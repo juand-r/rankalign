@@ -14,6 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer, AutoModelForCausalLM, AdamW
+from peft import LoraConfig, get_peft_model
 import math
 import random
 import argparse
@@ -39,6 +40,8 @@ def main(args):
     use_all = args.all  # New flag for using all examples
     train_g_or_d = args.train_g_or_d
     split_type = args.split_type
+    gradient_checkpointing = args.gradient_checkpointing
+    use_lora = args.lora
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
@@ -62,21 +65,91 @@ def main(args):
 
     def load_model_tokenizer(model_name):
         tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
+        # Use memory-efficient loading for large models
         if 'gemma' in model_name.lower():
-            model = AutoModelForCausalLM.from_pretrained(model_name, attn_implementation="eager", torch_dtype=torch.bfloat16)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                attn_implementation="eager", 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
+        elif 'llama' in model_name.lower() or '8B' in model_name or '7B' in model_name:
+            # For large Llama models, use more aggressive memory optimization
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+                # Note: flash_attention_2 requires separate installation
+            )
         else:
-            model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
+            
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
         #tokenizer.pad_token = tokenizer.eos_token
         return tokenizer, model
 
     tokenizer, model = load_model_tokenizer(model_name)
-    model.to(device)  # Move model to device right after creation
+    # Note: device_map="auto" in load_model_tokenizer handles device placement
+    
+    # Conditionally add LoRA for memory-efficient fine-tuning
+    if use_lora:
+        print("Setting up LoRA for memory-efficient fine-tuning...")
+        lora_config = LoraConfig(
+            r=16,  # Low-rank dimension
+            lora_alpha=32,  # LoRA scaling parameter
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],  # Llama target modules
+            lora_dropout=0.1,
+            bias="none",
+            task_type="CAUSAL_LM"
+        )
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()  # Show how many parameters we're actually training
+    else:
+        print("Using full model fine-tuning (no LoRA)")
+        # For full model fine-tuning, ensure model is on correct device if device_map didn't handle it
+        if not hasattr(model, 'hf_device_map'):
+            model.to(device)
+    
+    # Enable gradient checkpointing to save memory (optional)
+    if gradient_checkpointing and hasattr(model, 'gradient_checkpointing_enable'):
+        model.gradient_checkpointing_enable()
+        print("Gradient checkpointing enabled")
+    else:
+        print("Gradient checkpointing disabled")
 
     if WITH_REF:
-        model_ref = AutoModelForCausalLM.from_pretrained(model_name, attn_implementation="eager", torch_dtype=torch.bfloat16)
-        model_ref.to(device)  # Move model_ref to the same device as model
+        print("Loading reference model with memory optimizations...")
+        if 'gemma' in model_name.lower():
+            model_ref = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                attn_implementation="eager", 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
+        elif 'llama' in model_name.lower() or '8B' in model_name or '7B' in model_name:
+            model_ref = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
+        else:
+            model_ref = AutoModelForCausalLM.from_pretrained(
+                model_name, 
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
+                low_cpu_mem_usage=True
+            )
     else:
         model_ref = None
 
@@ -179,7 +252,6 @@ def main(args):
         else:
             L_train_all = [i for i in L_train if i['correct']=='yes']
 
-        breakpoint()
         #L_train_all = L_train  # Already using all examples for trivia-qa
         # Generate generator prompts
         #p_train_gen, hf_train_gen, _ = utils.make_and_format_data(make_prompt_triviaqa, L_train_all, tokenizer, style='generator', shots='zero', both=None)
@@ -253,7 +325,6 @@ def main(args):
         else:
             L_train_all = [i for i in L_train if i['correct']=='yes']
 
-        breakpoint()
 
         #L_train_all = L_train  # Already using all examples for lambada
         # Generate generator prompts
@@ -433,19 +504,21 @@ def main(args):
             raise ValueError("define batch size for this case")
     else:
         if task=='swords':
-            batch_size = 6
+            batch_size = 1#6
         elif task=='trivia-qa':
-            batch_size = 6
+            batch_size = 2#6
         elif task=='lambada':
-            batch_size = 6
+            batch_size = 2#6
         elif task =='hypernym':
-            batch_size = 32
+            batch_size = 2#6#1  # Reduced from 32 to 1 for large models
         else:
             raise ValueError("define batch size for this case")
-
+    if max_context_length > 80:
+        max_context_length == 80
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print("\n\nDone making dataloader\n\n")
+    # Use AdamW optimizer - with LoRA we have very few trainable parameters
     optimizer = AdamW(model.parameters(), lr=lr)
 
     losses = []
@@ -471,8 +544,31 @@ def main(args):
 
             save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str
             print("Saving to ", save_directory)
-            model.save_pretrained(save_directory)
-            tokenizer.save_pretrained(save_directory)
+            
+            if use_lora:
+                # For LoRA: Save adapters first, then merge and save full model
+                print("Saving LoRA adapters...")
+                model.save_pretrained(save_directory)
+                
+                print("Loading saved LoRA model...")
+                from peft import AutoPeftModelForCausalLM
+                model_peft = AutoPeftModelForCausalLM.from_pretrained(save_directory)
+                
+                print("Merging LoRA into base model...")
+                merged_model = model_peft.merge_and_unload()
+                
+                merge_dir = save_directory + "_merged"
+                print(f"Saving merged full model to {merge_dir}")
+                merged_model.save_pretrained(merge_dir, safe_serialization=True, max_shard_size="2GB")
+                tokenizer.save_pretrained(merge_dir)
+                
+                # Clean up merged model from memory
+                del model_peft, merged_model
+                torch.cuda.empty_cache()
+            else:
+                # For full model fine-tuning: Save normally
+                model.save_pretrained(save_directory)
+                tokenizer.save_pretrained(save_directory)
 
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
@@ -566,6 +662,9 @@ def main(args):
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
+            
+            # Clear cache to prevent memory accumulation
+            torch.cuda.empty_cache()
         avg_loss = total_loss / len(train_loader)
         losses.append(avg_loss)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
@@ -583,5 +682,7 @@ if __name__ == "__main__":
     parser.add_argument("--all", default=False, action="store_true", help="Whether to use all examples or just positive ones")
     parser.add_argument("--train_g_or_d", type=str, default='d', choices=["d","g","iter"], help="Train generator or discriminator.")
     parser.add_argument("--split_type", type=str, default='random', choices=["random","hyper","both"], help="How to do train/test split. Only applies to hypernymy.")
+    parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
+    parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     args = parser.parse_args()
     main(args)
