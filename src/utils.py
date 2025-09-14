@@ -191,6 +191,13 @@ def load_swords_data(seed=0):
     return trainset, testset
 
 
+def load_ifeval_data(seed=0):
+    """Load the ifeval dataset, and makes positive and negative pairs from it."""
+    dataset = read_data('../data/dataset/lambada_pn_train.jsonl')
+
+    return split_train_test(dataset, seed=seed, subsample=False)
+
+
 def make_prompt_lambada(item, style='generator', shots='zero', neg=False, gen_response = None):
     if style == "generator":
 
@@ -457,6 +464,38 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
     Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
     return Pt(prompt, completion)
 
+def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None):
+    """
+    Make a prompt based on the item.
+    """
+
+    if style == "generator":
+        if item["correct"] == "Yes":
+            prompt = item['prompt']
+        else:
+            prompt = item['prompt'] # negative examples should prob have a different prompt for training?
+
+        if shots != "zero":
+            raise NotImplementedError("TODO") # add example to prompt
+        
+        completion = " " + item['response']
+
+    elif style == "discriminator":
+        curr_response = gen_response if gen_response else item['response']
+        # todo improve prompt to ask about specific instructions. (create a mapping from the instrustions in the instruction registry to text).
+        prompt = Template(
+                "You will be given a prompt and a response. Determine if the response follows the instructions in the prompt (Yes/No). \n\n Prompt: $prompt \n\n Response: $response \n\n Does the response follow the prompt instructions?"
+                ).substitute(prompt=item['prompt'], response=curr_response)
+        completion = " " + item['correct']
+
+        if shots != "zero":
+            raise NotImplementedError("TODO") # add example to prompt
+    else:
+        raise ValueError("!?")
+    
+    Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
+    return Pt(prompt.strip(), completion)
+    
 
 def split_train_test(L, seed=0, subsample=False, num_train=3000):
     """
@@ -708,8 +747,6 @@ def get_L_prompt(task, split_type, seed, sample_negative=True):
             raise ValueError("Wrong value for split-type")
         make_prompt = make_prompt_hypernymy
     elif task=='trivia-qa':
-        
-        
         L_train, L_test = load_triviaqa_data(seed=seed, sample_negative=sample_negative)
         make_prompt = make_prompt_triviaqa
     elif task=='swords':
@@ -718,6 +755,9 @@ def get_L_prompt(task, split_type, seed, sample_negative=True):
     elif task=='lambada':
         L_train, L_test = load_lambada_data(seed=0, sample_negative=sample_negative)
         make_prompt = make_prompt_lambada
+    elif task=='ifeval':
+        L_train, L_test = load_ifeval_data(seed=0)
+        make_prompt = make_prompt_ifeval
     else:
         raise NotImplementedError("Not a task")
     return L_train, L_test, make_prompt

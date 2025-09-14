@@ -15,7 +15,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from utils import get_L_prompt, get_final_logit_prob
 from logitlens import compute_logodds_final_layer, get_logodds_gen, get_logodds_disc
 
-device = "cuda"
+def get_device():
+    if torch.cuda.is_available():
+        return "cuda"
+    elif torch.backends.mps.is_available():
+        return "mps"
+    else:
+        return "cpu"
+
+device = get_device()
 yes_words = ["Yes", " Yes", "YES", "yes", " yes"]
 no_words = ["No", " No", "NO", "no", " no"]
 
@@ -29,9 +37,10 @@ def init_model(model_name, device):
     #     model = Gemma3ForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype).to(device)
     # el
     if 'gemma' in model_name:
-        model = AutoModelForCausalLM.from_pretrained(model_name, attn_implementation="eager", torch_dtype=torch_dtype).to(device)
+        model = AutoModelForCausalLM.from_pretrained(model_name, attn_implementation="eager", torch_dtype=torch_dtype)
     else:
-        model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype).to(device)
+        model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype)
+    model = model.to(device)
     print("model.config.torch_dtype:", model.config.torch_dtype)  
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
@@ -56,7 +65,8 @@ def main(args):
 
     L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative)
     print("Loaded data with negative_sample = {}!".format(args.sample_negative))
-    device = "cuda"
+    device = get_device()
+    print(f"Using device: {device}")
 
     init_model(modelname, device)
     
@@ -130,6 +140,8 @@ def main(args):
                 json_list.append({"context":item.context, "target":item.target, "replacement":item.replacement, "synonym":item.synonym,
                                 "generator-prompt":prompt_gen, "discriminator-prompt":prompt_disc, "generator-log-prob":0, "discriminator-log-prob":0,
                                 "generator-completion": item.replacement.strip(), "discriminator-gold-completion": prefix + item.synonym.strip().capitalize()})
+            elif task == "ifeval":
+                json_list.append({"prompt":item.prompt, "generator-completion":item.response, "discriminator-gold-completion":item.correct})
             else:
                 raise NotImplementedError("Not a task")
             # print(json_list[-1])
@@ -146,7 +158,8 @@ def main(args):
         return
 
     gc.collect()
-    torch.cuda.empty_cache()
+    if device == "cuda":
+        torch.cuda.empty_cache()
 
     
     
