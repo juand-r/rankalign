@@ -63,7 +63,7 @@ def main(args):
     train_flag = args.train
     split_type = args.split_type
 
-    L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative)
+    L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative, variation = args.variation)
     print("Loaded data with negative_sample = {}!".format(args.sample_negative))
     device = get_device()
     print(f"Using device: {device}")
@@ -192,6 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("--split_type", type=str, default='random', help="'random' vs 'hyper' vs 'both' ")
     parser.add_argument("--task", type=str, default='hypernym', help="hypernym, trivia-qa, etc")
     parser.add_argument("--sample_negative", action="store_true", default=False, help="whether to sample negative examples when loading trivia-qa or lambada")
+    parser.add_argument("--variation", type=str, default="0", help="variation parameter for hypernym prompt formatting (default: '0')")
 
     args = parser.parse_args()
     main(args)

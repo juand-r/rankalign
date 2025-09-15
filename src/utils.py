@@ -356,6 +356,10 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
     """
     Make a prompt based on the item.
     """
+    
+    # Convert variation to int if it's a numeric string, otherwise keep as is
+    if isinstance(variation, str) and variation.isdigit():
+        variation = int(variation)
 
     #TODO do this better later
     #variation=0 # 0 for original
@@ -368,6 +372,8 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
     elif variation ==3:
         gtemplate = "Do you remember what our teacher used to tell us? She'd say that contrary to appearances, $word are actually"
         #"Do you remember what our teacher used to tell us? She'd say that contrary to appearances, $word are actually"
+    elif variation=='kind-of':
+        gtemplate = "corgis are a kind of dog? Yes; $word are a kind of"
     else:
         raise ValueError("Wrong num")
 
@@ -453,6 +459,9 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
                 prompt = Template(
                     "Deep down in your bones, do you believe that bees are furniture? Answer: No\n\nDeep down in your bones, do you believe that corgis are dogs? Answer: Yes\n\nDeep down in your bones, do you believe that trucks are a fruit? Answer: No\n\nDeep down in your bones, do you believe that robins are birds? Answer: Yes\n\nDeep down in your bones, do you believe that $word are a $hypernym? Answer:"
                 ).substitute(word=item.noun1, hypernym=cur_hypernym)
+            elif variation=='kind-of':
+                prompt = Template("corgis are a kind of dog? Yes; $word are a kind of $hypernym?").substitute(word=item.noun1, hypernym=cur_hypernym)
+
             else:
                 raise ValueError("Wrong num!")
 
@@ -734,7 +743,7 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
         # print(f"decoded_response::{decoded_response}::")
     return decoded_response
 
-def get_L_prompt(task, split_type, seed, sample_negative=True):
+def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
     if task=='hypernym':
         L = load_noun_pair_data()
         if split_type=='hyper':
@@ -745,7 +754,10 @@ def get_L_prompt(task, split_type, seed, sample_negative=True):
             L_train, L_test = split_train_test_no_overlap_both(L, seed=2)
         else:
             raise ValueError("Wrong value for split-type")
-        make_prompt = make_prompt_hypernymy
+        # Create a wrapper that includes the variation parameter
+        def make_prompt(*args, **kwargs):
+            return make_prompt_hypernymy(*args, variation=variation, **kwargs)
+        make_prompt = make_prompt
     elif task=='trivia-qa':
         L_train, L_test = load_triviaqa_data(seed=seed, sample_negative=sample_negative)
         make_prompt = make_prompt_triviaqa
