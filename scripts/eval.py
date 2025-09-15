@@ -93,6 +93,19 @@ def main(args):
         LL = L_test
         train_suffix = ""
 
+    # Filter for single-token completions if requested
+    if args.single_token_only:
+        print(f"Original dataset size: {len(LL)}")
+        filtered_LL = []
+        for item in LL:
+            gen_prompt_obj = make_prompt(item, style="generator", shots=gen_shots)
+            completion_tokens = tokenizer.encode(gen_prompt_obj.completion, add_special_tokens=False)
+            if len(completion_tokens) == 1:
+                filtered_LL.append(item)
+        LL = filtered_LL
+        print(f"Filtered to single-token completions: {len(LL)}")
+        train_suffix += "--single-token"
+
     if split_type=='random':
         split_suffix = ""
     elif split_type=='hyper':
@@ -193,6 +206,7 @@ if __name__ == "__main__":
     parser.add_argument("--task", type=str, default='hypernym', help="hypernym, trivia-qa, etc")
     parser.add_argument("--sample_negative", action="store_true", default=False, help="whether to sample negative examples when loading trivia-qa or lambada")
     parser.add_argument("--variation", type=str, default="0", help="variation parameter for hypernym prompt formatting (default: '0')")
+    parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
 
     args = parser.parse_args()
     main(args)
