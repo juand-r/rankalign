@@ -352,13 +352,13 @@ def make_prompt_swords(item, style="generator", shots="zero", neg=False, gen_res
     return Pt(prompt, completion)
 
 
-def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_response=None):
+def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_response=None, variation=0):
     """
     Make a prompt based on the item.
     """
 
     #TODO do this better later
-    variation=0 # 0 for original
+    #variation=0 # 0 for original
     if variation==0:
         gtemplate = "Complete the sentence: $word are a kind of"
     elif variation==1:
