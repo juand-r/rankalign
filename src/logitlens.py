@@ -122,13 +122,13 @@ def get_logodds_gen(Ps, L, ii, tokenizer, first_sw_token, task, is_chat = False,
         raise ValueError("!")
     
     logodds = []
-    for ind in inds:
+    for i in ind if isinstance(ind, list) else [ind]:
         if use_lgo:
-            lgo = torch.log(torch.abs(Ps[ii][..., ind])) - torch.log(
-                torch.abs(1 - Ps[ii][..., ind])
+            lgo = torch.log(torch.abs(Ps[ii][..., i])) - torch.log(
+                torch.abs(1 - Ps[ii][..., i])
             )
         else:
-            lgo = torch.log(torch.abs(Ps[ii][..., ind])) 
+            lgo = torch.log(torch.abs(Ps[ii][..., i])) 
         lgo[torch.isinf(lgo)] = 35  # truncate infs
         logodds.append(lgo)
     
@@ -385,10 +385,11 @@ def compute_logodds_final_layer(
             for ii in tqdm(range(len(P_gen)))
         ]
     elif task == 'ifeval':
+        prefix = ""
+        tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
         ranks = [
-            get_rank(
-                P_gen[ii][:], tokenizer.encode(prefix + L[ii]['response'])[first_sw_token]
-            )
+            sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
+            if len(tokens[ii]) > 0 else float('inf')
             for ii in tqdm(range(len(P_gen)))
         ]
     else:
