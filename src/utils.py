@@ -193,9 +193,9 @@ def load_swords_data(seed=0):
 
 def load_ifeval_data(seed=0):
     """Load the ifeval dataset, and makes positive and negative pairs from it."""
-    dataset = read_data('../data/dataset/lambada_pn_train.jsonl')
+    dataset = read_data('../data/ifeval-data.jsonl')
 
-    return split_train_test(dataset, seed=seed, subsample=False)
+    return split_train_test(dataset, seed=seed, subsample=False, num_train=math.floor(len(dataset) * 3 / 4))
 
 
 def make_prompt_lambada(item, style='generator', shots='zero', neg=False, gen_response = None):

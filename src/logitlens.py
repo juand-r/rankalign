@@ -116,16 +116,23 @@ def get_logodds_gen(Ps, L, ii, tokenizer, first_sw_token, task, is_chat = False,
         ind = tokenizer.encode(prefix + L[ii].replacement)[first_sw_token]
     elif task=='lambada':
         ind = tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token]
+    elif task=='ifeval':
+        ind = tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:]
     else:
         raise ValueError("!")
-    if use_lgo:
-        lgo = torch.log(torch.abs(Ps[ii][..., ind])) - torch.log(
-            torch.abs(1 - Ps[ii][..., ind])
-        )
-    else:
-        lgo = torch.log(torch.abs(Ps[ii][..., ind])) 
-    lgo[torch.isinf(lgo)] = 35  # truncate infs
-    return lgo
+    
+    logodds = []
+    for ind in inds:
+        if use_lgo:
+            lgo = torch.log(torch.abs(Ps[ii][..., ind])) - torch.log(
+                torch.abs(1 - Ps[ii][..., ind])
+            )
+        else:
+            lgo = torch.log(torch.abs(Ps[ii][..., ind])) 
+        lgo[torch.isinf(lgo)] = 35  # truncate infs
+        logodds.append(lgo)
+    
+    return torch.stack(logodds).sum(dim=0)
 
 
 def makepreds_disc(logodds, threshold=0, layer_disc=-1):
@@ -184,6 +191,8 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks):
             golds = [1 if i['correct'] == 'Yes' else 0 for i in L]
         else:
             golds = [1  for i in L]
+    elif task=='ifeval':
+        golds = [1 if i['correct'] == 'Yes' else 0 for i in L]
     else:
         raise ValueError("!")
 
@@ -322,6 +331,7 @@ def compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks,
 
 def compute_logodds_final_layer(
     task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False):
+
     prefix = "a " if not is_chat else ""
     if task=='hypernym':
         # for ii in range(len(P_gen)):
@@ -367,11 +377,17 @@ def compute_logodds_final_layer(
                 )
                 for ii in tqdm(range(len(P_gen)))
             ]
-    
     elif task == 'lambada':
         ranks = [
             get_rank(
                 P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token]
+            )
+            for ii in tqdm(range(len(P_gen)))
+        ]
+    elif task == 'ifeval':
+        ranks = [
+            get_rank(
+                P_gen[ii][:], tokenizer.encode(prefix + L[ii]['response'])[first_sw_token]
             )
             for ii in tqdm(range(len(P_gen)))
         ]
