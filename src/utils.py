@@ -373,7 +373,9 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
         gtemplate = "Do you remember what our teacher used to tell us? She'd say that contrary to appearances, $word are actually"
         #"Do you remember what our teacher used to tell us? She'd say that contrary to appearances, $word are actually"
     elif variation=='kind-of':
-        gtemplate = "corgis are a kind of dog? Yes; $word are a kind of"
+        #v0-prompt gtemplate = "corgis are a kind of dog? Answer: Yes\n\n$word are a kind of"
+        #v1 prompt gtemplate = "Do you think bees are furniture? Answer: No\n\nDo you think corgis are dogs? Answer: Yes\n\nDo you think trucks are a fruit? Answer: No\n\nDo you think robins are birds? Answer: Yes\n\nDo you think $word are a"
+        gtemplate = "Do you think sofas are furniture? Answer: Yes\n\nDo you think corgis are dogs? Answer: Yes\n\nDo you think trucks are a vehicles? Answer: Yes\n\nDo you think robins are birds? Answer: Yes\n\nDo you think $word are a"
     else:
         raise ValueError("Wrong num")
 
@@ -460,8 +462,14 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
                     "Deep down in your bones, do you believe that bees are furniture? Answer: No\n\nDeep down in your bones, do you believe that corgis are dogs? Answer: Yes\n\nDeep down in your bones, do you believe that trucks are a fruit? Answer: No\n\nDeep down in your bones, do you believe that robins are birds? Answer: Yes\n\nDeep down in your bones, do you believe that $word are a $hypernym? Answer:"
                 ).substitute(word=item.noun1, hypernym=cur_hypernym)
             elif variation=='kind-of':
-                prompt = Template("corgis are a kind of dog? Yes; $word are a kind of $hypernym?").substitute(word=item.noun1, hypernym=cur_hypernym)
-
+                #v0- prompt = Template("corgis are a kind of dog? Answer: Yes\n\n$word are a kind of $hypernym? Answer:").substitute(word=item.noun1, hypernym=cur_hypernym)
+                #v1- prompt
+                #prompt = Template(
+                #"Do you think bees are furniture? Answer: No\n\nDo you think corgis are dogs? Answer: Yes\n\nDo you think trucks are a fruit? Answer: No\n\nDo you think robins are birds? Answer: Yes\n\nDo you think $word are a $hypernym? Answer:"
+                #).substitute(word=item.noun1, hypernym=cur_hypernym)
+                prompt = Template(
+                "Do you think sofas are furniture? Answer: Yes\n\nDo you think corgis are dogs? Answer: Yes\n\nDo you think trucks are a vehicles? Answer: Yes\n\nDo you think robins are birds? Answer: Yes\n\nDo you think $word are a $hypernym? Answer:"
+                ).substitute(word=item.noun1, hypernym=cur_hypernym)
             else:
                 raise ValueError("Wrong num!")
 
