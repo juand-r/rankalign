@@ -751,6 +751,53 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
         # print(f"decoded_response::{decoded_response}::")
     return decoded_response
 
+def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False):
+    """Return per-token log probabilities for the given completion conditioned on the prompt.
+
+    - If is_chat is False: tokenize `prompt` and `completion` separately and concatenate.
+    - If is_chat is True: build the chat prompt prefix using the chat template with
+      add_generation_prompt=True (system+user, assistant prefix), then append tokenized
+      `completion` (no special tokens) and score each completion token autoregressively.
+    """
+    model_device = device
+    with torch.no_grad():
+        if is_chat:
+            # Build the chat prompt prefix (system + user + assistant prefix)
+            message = [
+                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "user", "content": prompt},
+            ]
+            prefix_ids = tokenizer.apply_chat_template(
+                message,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                tokenize=True,
+                return_dict=False,
+            )[0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
+            prefix_len = prefix_ids.shape[0]
+        else:
+            prompt_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            input_ids = torch.tensor([prompt_ids.tolist() + completion_ids])
+            prefix_len = prompt_ids.shape[0]
+
+        outputs = model(input_ids.to(model_device))
+        log_probs = outputs.logits.log_softmax(-1).squeeze(0)  # [seq_len, vocab]
+
+        # For k-th completion token, score is log_probs[prefix_len + k - 1, completion_ids[k]]
+        token_logprobs = []
+        for k, tok_id in enumerate(completion_ids):
+            timestep_index = prefix_len + k - 1
+            if timestep_index < 0 or timestep_index >= log_probs.shape[0]:
+                # Should not happen, but guard anyway
+                token_logprobs.append(torch.tensor(float("nan")))
+            else:
+                token_logprobs.append(log_probs[timestep_index, tok_id].detach().cpu().float())
+
+        return torch.stack(token_logprobs)
+
 def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
     if task=='hypernym':
         L = load_noun_pair_data()

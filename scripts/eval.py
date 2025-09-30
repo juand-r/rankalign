@@ -12,7 +12,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from utils import get_L_prompt, get_final_logit_prob
+from utils import get_L_prompt, get_final_logit_prob, get_completion_token_logprobs
 from logitlens import compute_logodds_final_layer, get_logodds_gen, get_logodds_disc
 
 def get_device():
@@ -117,14 +117,21 @@ def main(args):
     
     P_gen = []
     P_disc = []
+    gen_sum_logprobs = []
 
     json_list = []
     # LL = LL[:10]
     for item in tqdm(LL):
-        prompt_gen = make_prompt(item, style='generator', shots=gen_shots).prompt
+        gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+        prompt_gen = gen_obj.prompt
+        completion_gen = gen_obj.completion
         prompt_disc = make_prompt(item, style='discriminator', shots=disc_shots).prompt
         probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
         P_gen.append(probs_gen)
+        # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
+        if args.use_full_completion_logprobs:
+            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat)
+            gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
         # print(f"prompt_gen: {prompt_gen}")
         # print(f"prompt_disc: {prompt_disc}")
@@ -159,7 +166,11 @@ def main(args):
                 raise NotImplementedError("Not a task")
             # print(json_list[-1])
     if args.train:
-        logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
+        # If enabled, use summed generator log-prob over the full completion; otherwise original single-step behavior
+        if args.use_full_completion_logprobs:
+            logodds_gen = [torch.tensor(v) for v in gen_sum_logprobs]
+        else:
+            logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
         logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, None) for ii in range(len(P_disc))]
         for jj in range(len(json_list)):
             json_list[jj]["generator-log-prob"] = float(logodds_gen[jj])
@@ -177,7 +188,7 @@ def main(args):
     
     
     res_dict = compute_logodds_final_layer(task,
-        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat)
+        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, gen_logprobs=(gen_sum_logprobs if args.use_full_completion_logprobs else None))
 
     
     basename = get_base_model_name(modelname)
@@ -207,6 +218,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_negative", action="store_true", default=False, help="whether to sample negative examples when loading trivia-qa or lambada")
     parser.add_argument("--variation", type=str, default="0", help="variation parameter for hypernym prompt formatting (default: '0')")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
+    parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
 
     args = parser.parse_args()
     main(args)

@@ -330,7 +330,7 @@ def compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks,
 
 
 def compute_logodds_final_layer(
-    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False):
+    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None):
 
     prefix = "a " if not is_chat else ""
     if task=='hypernym':
@@ -395,7 +395,11 @@ def compute_logodds_final_layer(
     else:
         raise ValueError("!!")
 
-    logodds_gen = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat) for ii in range(len(P_gen))]
+    if gen_logprobs is not None:
+        # Use precomputed summed log-probs across the full completion
+        logodds_gen = [float(v) for v in gen_logprobs]
+    else:
+        logodds_gen = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat) for ii in range(len(P_gen))]
     logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
 
     # disc_accuracy, gen_accuracies, corr = compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks)
