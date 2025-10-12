@@ -118,6 +118,8 @@ def get_logodds_gen(Ps, L, ii, tokenizer, first_sw_token, task, is_chat = False,
         ind = tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token]
     elif task=='ifeval':
         ind = tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:]
+    elif task=='collie':
+        ind = tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:]
     else:
         raise ValueError("!")
     
@@ -193,6 +195,8 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks):
             golds = [1  for i in L]
     elif task=='ifeval':
         golds = [1 if i['correct'] == 'Yes' else 0 for i in L]
+    elif task=='collie':
+        golds = [1 if i['satisfies_constraint'] else 0 for i in L]
     else:
         raise ValueError("!")
 
@@ -387,6 +391,14 @@ def compute_logodds_final_layer(
     elif task == 'ifeval':
         prefix = ""
         tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
+        ranks = [
+            sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
+            if len(tokens[ii]) > 0 else float('inf')
+            for ii in tqdm(range(len(P_gen)))
+        ]
+    elif task == 'collie':
+        prefix = ""
+        tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
         ranks = [
             sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
             if len(tokens[ii]) > 0 else float('inf')

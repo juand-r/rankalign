@@ -197,6 +197,12 @@ def load_ifeval_data(seed=0):
 
     return split_train_test(dataset, seed=seed, subsample=False, num_train=math.floor(len(dataset) * 3 / 4))
 
+def load_collie_data(seed=0):
+    """Load the collie dataset, and makes positive and negative pairs from it."""
+    dataset = read_data('../data/collie-word-containment.jsonl')
+
+    return split_train_test(dataset, seed=seed, subsample=False, num_train=math.floor(len(dataset) * 3 / 4))
+
 
 def make_prompt_lambada(item, style='generator', shots='zero', neg=False, gen_response = None):
     if style == "generator":
@@ -513,6 +519,34 @@ def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None)
     Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
     return Pt(prompt.strip(), completion)
     
+def make_prompt_collie(item, style="generator", shots="zero", gen_response=None): 
+
+    if style == "generator":
+        if item["satisfies_constraint"]:
+            prompt = item['prompt']
+        else:
+            prompt = item['prompt'] # negative examples should prob have a different prompt?
+
+        if shots != "zero":
+            raise NotImplementedError("TODO") # add example to prompt
+        
+        completion = " " + item['generated']
+
+    elif style == "discriminator":
+        curr_response = gen_response if gen_response else item['generated']
+        collie_restriction = item['prompt'][16:] #remove "Please generate "
+        prompt = Template(
+                "$response. Is this $collie_restriction?"
+                ).substitute(prompt=item['prompt'], response=curr_response, collie_restriction=collie_restriction)
+
+        if shots != "zero":
+            example = "The cat sat on the mat. Is this a sentence that contains the word 'cat'? Yes. "
+            prompt = example + prompt
+
+        completion = " " + ("Yes" if item['satisfies_constraint'] else "No")
+
+    Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
+    return Pt(prompt.strip(), completion)
 
 def split_train_test(L, seed=0, subsample=False, num_train=3000):
     """
@@ -825,6 +859,9 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
     elif task=='ifeval':
         L_train, L_test = load_ifeval_data(seed=0)
         make_prompt = make_prompt_ifeval
+    elif task=='collie':
+        L_train, L_test = load_collie_data(seed=0)
+        make_prompt = make_prompt_collie
     else:
         raise NotImplementedError("Not a task")
     return L_train, L_test, make_prompt
