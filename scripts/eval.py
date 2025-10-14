@@ -212,11 +212,6 @@ def main(args):
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
         # print(f"prompt_gen: {prompt_gen}")
         # print(f"prompt_disc: {prompt_disc}")
-        # Debug: print raw P_disc probabilities for first few examples
-        if args.debug_save_values and len(P_disc) < 5:
-            yes_prob = probs_disc[..., yestoks].sum().item() if yestoks else 0
-            no_prob = probs_disc[..., notoks].sum().item() if notoks else 0
-            print(f"DEBUG Ex {len(P_disc)}: P(yes)={yes_prob:.6f}, P(no)={no_prob:.6f}, use_full={args.use_full_completion_logprobs}")
         P_disc.append(probs_disc)
         if args.train:
             prefix = " " if not model_is_chat else ""
@@ -262,6 +257,41 @@ def main(args):
         # Also compute log-probs version for second plot
         logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
         logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+    
+    # Compute confusion matrix for discriminator
+    # Get ground truth labels (1=positive, 0=negative)
+    true_labels = get_labels(task, LL)
+    
+    # Determine threshold based on metric type
+    # For log-odds: threshold = 0 (since log(P(yes)/P(no)) = 0 when P(yes) = P(no) = 0.5)
+    # For log-probs: threshold = log(0.5) ≈ -0.693 (since log(P(yes)) = log(0.5) when P(yes) = 0.5)
+    if args.use_full_completion_logprobs:
+        threshold = np.log(0.5)  # log-probs threshold
+        metric_name = "log-probs"
+    else:
+        threshold = 0.0  # log-odds threshold
+        metric_name = "log-odds"
+    
+    # Make predictions: predicted = 1 if score > threshold, else 0
+    disc_scores = np.array([float(x) for x in logodds_disc])
+    pred_labels = (disc_scores > threshold).astype(int)
+    true_labels_np = np.array(true_labels)
+    
+    # Compute confusion matrix components
+    tp = np.sum((pred_labels == 1) & (true_labels_np == 1))  # True Positives
+    fp = np.sum((pred_labels == 1) & (true_labels_np == 0))  # False Positives
+    tn = np.sum((pred_labels == 0) & (true_labels_np == 0))  # True Negatives
+    fn = np.sum((pred_labels == 0) & (true_labels_np == 1))  # False Negatives
+    
+    # Print confusion matrix
+    print(f"\nDiscriminator Confusion Matrix ({metric_name}, threshold={threshold:.3f}):")
+    print(f"                 Predicted Positive  Predicted Negative")
+    print(f"Actual Positive        {tp:6d}              {fn:6d}")
+    print(f"Actual Negative        {fp:6d}              {tn:6d}")
+    print(f"\nAccuracy: {(tp + tn) / len(true_labels):.4f}")
+    print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
+    print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
+    print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
     
     # Debug: Save discriminator values to file for inspection
     if args.debug_save_values:
