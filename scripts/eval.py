@@ -7,6 +7,10 @@ import torch
 import gc
 import json
 from datasets import load_dataset
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+import numpy as np
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
@@ -51,6 +55,77 @@ def init_model(model_name, device):
 def get_base_model_name(modelname):
     modelname = modelname.split("output")[-1]
     return modelname.replace('/', '-')
+
+def get_labels(task, LL):
+    """Extract binary labels (1=positive, 0=negative) from data."""
+    if task=='hypernym':
+        return [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in LL]
+    elif task=="trivia-qa":
+        if 'correct' in LL[0]:
+            return [1 if i['correct'] == 'Yes' else 0 for i in LL]
+        else:
+            return [1 for i in LL]
+    elif task=='swords':
+        return [1 if i.synonym.capitalize() == 'Yes' else 0 for i in LL]
+    elif task=='lambada':
+        if 'correct' in LL[0]:
+            return [1 if i['correct'] == 'Yes' else 0 for i in LL]
+        else:
+            return [1 for i in LL]
+    elif task=='ifeval':
+        return [1 if i['correct'] == 'Yes' else 0 for i in LL]
+    elif task=='collie':
+        return [1 if i['satisfies_constraint'] else 0 for i in LL]
+    else:
+        raise ValueError(f"Unknown task: {task}")
+
+def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args):
+    """
+    Create scatter plot of generator vs validator log-odds.
+    
+    Args:
+        logodds_gen: List of generator log-odds
+        logodds_disc: List of discriminator/validator log-odds  
+        labels: List of binary labels (1=positive, 0=negative)
+        modelname: Model name for filename
+        task: Task name for filename
+        args: Command line arguments
+    """
+    # Convert to numpy arrays
+    logodds_gen_np = np.array([float(x) for x in logodds_gen])
+    logodds_disc_np = np.array([float(x) for x in logodds_disc])
+    labels_np = np.array(labels)
+    
+    # Create figure
+    plt.figure(figsize=(10, 8))
+    
+    # Plot positive examples (orange)
+    pos_mask = labels_np == 1
+    plt.scatter(logodds_gen_np[pos_mask], logodds_disc_np[pos_mask], 
+                c='orange', label='Positive', alpha=0.6, s=30)
+    
+    # Plot negative examples (blue)
+    neg_mask = labels_np == 0
+    plt.scatter(logodds_gen_np[neg_mask], logodds_disc_np[neg_mask],
+                c='blue', label='Negative', alpha=0.6, s=30)
+    
+    # Styling
+    plt.xlabel('Generator log-odds', fontsize=12)
+    plt.ylabel('Validator log-odds', fontsize=12)
+    plt.grid(True, alpha=0.3)
+    plt.legend(title='Class', fontsize=10, title_fontsize=11)
+    
+    # Generate filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_short = modelname.split('/')[-1].replace('--', '_')
+    split = "train" if args.train else "test"
+    filename = f"../outputs/viz_{model_short}_{task}_{split}_{timestamp}.png"
+    
+    # Save
+    plt.tight_layout()
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    print(f"Visualization saved to: {filename}")
+    plt.close()
 
 def main(args):
     task = args.task
@@ -165,13 +240,15 @@ def main(args):
             else:
                 raise NotImplementedError("Not a task")
             # print(json_list[-1])
+    
+    # Compute logodds for visualization/analysis (needed for both train and test)
+    if args.use_full_completion_logprobs:
+        logodds_gen = [torch.tensor(v) for v in gen_sum_logprobs]
+    else:
+        logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
+    logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, None) for ii in range(len(P_disc))]
+    
     if args.train:
-        # If enabled, use summed generator log-prob over the full completion; otherwise original single-step behavior
-        if args.use_full_completion_logprobs:
-            logodds_gen = [torch.tensor(v) for v in gen_sum_logprobs]
-        else:
-            logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
-        logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, None) for ii in range(len(P_disc))]
         for jj in range(len(json_list)):
             json_list[jj]["generator-log-prob"] = float(logodds_gen[jj])
             json_list[jj]["discriminator-log-prob"] = float(logodds_disc[jj])
@@ -179,6 +256,11 @@ def main(args):
         print(f"Saving train data to ../data/{task}-train-{modelname.split('/')[-1]}.json")
         with open(f"../data/{task}-train-{modelname.split('/')[-1]}.json", 'w') as f:
             json.dump(json_list, f, indent=4)
+        
+        # Create visualization if requested
+        if args.viz:
+            labels = get_labels(task, LL)
+            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args)
         return
 
     gc.collect()
@@ -202,6 +284,11 @@ def main(args):
         split = "train" if args.train else "test"
         f.write(f"{modelname},{task},{res_dict['corr_all']},{res_dict['corr_pos']},{res_dict['corr_neg']},{res_dict['disc_acc']},{res_dict['disc_roc']},{res_dict['gen_acc_dict'][5]},{res_dict['gen_acc_dict'][10]},{res_dict['gen_acc_dict'][40]},{res_dict['gen_acc_dict'][100]},{res_dict['gen_acc_dict'][1000]},{res_dict['gen_mrr_pos']},{res_dict['gen_mrr_neg']},{gen_shots},{disc_shots},{split},{split_type},{seed}")
         f.write(f",{res_dict['spear_all']},{res_dict['spear_pos']},{res_dict['spear_neg']},\n")
+    
+    # Create visualization if requested
+    if args.viz:
+        labels = get_labels(task, LL)
+        create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args)
 
 
 
@@ -219,6 +306,7 @@ if __name__ == "__main__":
     parser.add_argument("--variation", type=str, default="0", help="variation parameter for hypernym prompt formatting (default: '0')")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
     parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
+    parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
 
     args = parser.parse_args()
     main(args)
