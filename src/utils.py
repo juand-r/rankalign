@@ -32,6 +32,7 @@ from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 import numpy as np
+import immutabledict
 from find_disjoint_sets import partition_items_kernighan_lin
 
 def write_data(filename, data):
@@ -487,6 +488,122 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
     Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
     return Pt(prompt, completion)
 
+# ISO 639-1 codes to language names.
+LANGUAGE_CODES = immutabledict.immutabledict({
+    "en": "English",
+    "es": "Spanish",
+    "pt": "Portuguese",
+    "ar": "Arabic",
+    "hi": "Hindi",
+    "fr": "French",
+    "ru": "Russian",
+    "de": "German",
+    "ja": "Japanese",
+    "it": "Italian",
+    "bn": "Bengali",
+    "uk": "Ukrainian",
+    "th": "Thai",
+    "ur": "Urdu",
+    "ta": "Tamil",
+    "te": "Telugu",
+    "bg": "Bulgarian",
+    "ko": "Korean",
+    "pl": "Polish",
+    "he": "Hebrew",
+    "fa": "Persian",
+    "vi": "Vietnamese",
+    "ne": "Nepali",
+    "sw": "Swahili",
+    "kn": "Kannada",
+    "mr": "Marathi",
+    "gu": "Gujarati",
+    "pa": "Punjabi",
+    "ml": "Malayalam",
+    "fi": "Finnish",
+    })
+
+def map_ifeval_instruction(instruction, args):
+    match instruction:
+        case "keywords:existence": 
+            keywords = args['keywords']
+            keywords_str = ', '.join(f"'{word}'" for word in keywords)
+            return f"contains the word(s) {keywords_str}"
+        
+        case "keywords:frequency": 
+            return f"contains the word '{args['keyword']}' {args['relation']} {args['frequency']} times"
+        
+        case "keywords:forbidden_words": 
+            forbidden_words = args['forbidden_words']
+            forbidden_words_str = ', '.join(f"'{word}'" for word in forbidden_words)
+            return f"does not contain the word(s) {forbidden_words_str}"
+        
+        case "keywords:letter_frequency": 
+            return f"contains the letter '{args['letter']}' {args['let_relation']} {args['let_frequency']} times"
+        
+        case "language:response_language":
+            return f"written in {LANGUAGE_CODES.get(args['language'], args['language'])}"
+        
+        case "length_constraints:number_sentences":
+            return f"contains {args['relation']} {args['num_sentences']} sentences"
+        
+        case "length_constraints:number_paragraphs":
+            return f"contains {args['num_paragraphs']} paragraphs"
+        
+        case "length_constraints:number_words":
+            return f"contains {args['relation']} {args['num_words']} words"
+        
+        case "length_constraints:nth_paragraph_first_word": 
+            return f"contains {args['num_paragraphs']} paragraphs separted by two new lines and the first word of paragraph {args['nth_paragraph']} is '{args['first_word']}'"
+        
+        case "detectable_content:number_placeholders": 
+            return f"contains at least {args['num_placeholders']} placeholders denoted by square brackets, such as [address]"
+        
+        case "detectable_content:postscript": 
+            return f"ends with a postscript denoted by '{args['postscript_marker']}'"
+        
+        case "detectable_format:number_bullet_lists":
+            return f"contains {args['num_bullets']} bullet points denoted by * in markdown"
+        
+        case "detectable_format:constrained_response": 
+            return "is exactly one of the following: 'My answer is yes.', 'My answer is no.', 'My answer is maybe.'"
+        
+        case "detectable_format:number_highlighted_sections": 
+            return f"contains at least {args['num_highlights']} higlighted sections denoted by *highlighted section* in markdown"
+        
+        case "detectable_format:multiple_sections": 
+            return f"has {args['num_sections']} sections with each section beginning with '{args['section_spliter']} X' with X being the section number"
+        
+        case "detectable_format:json_format": 
+            return "in a valid JSON format"
+        
+        case "detectable_format:title": 
+            return "must contain a title wrappec in double angular brackets i.e. <<title>>"
+        
+        case "combination:two_responses": 
+            return "has two responses separated by 6 asterisks ******"
+        
+        case "combination:repeat_prompt":
+            return f"starts with {args['prompt_to_repeat']}"
+        
+        case "startend:end_checker": 
+            return f"ends with {args['end_phrase']}"
+        
+        case "change_case:capital_word_frequency":
+            return f"contains {args['capital_relation']} {args['capital_frequency']} words in all capital letters"
+        
+        case "change_case:english_capital": 
+            return "is written in English in all capital letters"
+        
+        case "change_case:english_lowercase": 
+            return "is written in English in all lower case letters"
+        
+        case "punctuation:no_comma": 
+            return "does not contain any commas"
+        
+        case "startend:quotation": 
+            return "wrapped in double quotation marks"
+
+
 def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None):
     """
     Make a prompt based on the item.
@@ -506,9 +623,25 @@ def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None)
     elif style == "discriminator":
         curr_response = gen_response if gen_response else item['response']
         # todo improve prompt to ask about specific instructions. (create a mapping from the instrustions in the instruction registry to text).
+        
+        # original prompt
         prompt = Template(
-                "You will be given a prompt and a response. Determine if the response follows the instructions in the prompt (Yes/No). \n\n Prompt: $prompt \n\n Response: $response \n\n Does the response follow the prompt instructions?"
+                "You will be given a prompt and a response. Determine if the response follows the instructions in the prompt (Yes/No). \n\nPrompt: $prompt \n\nResponse: $response \n\nDoes the response follow the prompt instructions?"
                 ).substitute(prompt=item['prompt'], response=curr_response)
+        
+        # properties = [map_ifeval_instruction(instr, args) for instr, args in zip(item['instruction_id_list'], item['kwargs'])]
+        # properties_str = "\n".join(f"- {prop}" for prop in properties)
+
+        # text first
+        # prompt = Template(
+        #         "$text \n\nDoes the above text have the following properties (yes/no)?\n$properties_str"
+        #         ).substitute(text=curr_response, properties_str=properties_str)
+
+        # properties first
+        # prompt = Template(
+        #         "You will be given text, and will have to determine whether it has all of the following properties:\n$properties_str \n\n Text:\n$text \n\n Does the text have all of the properties? (Yes/No)"
+        #         ).substitute(text=curr_response, properties_str=properties_str)
+        
         completion = " " + item['correct']
 
         if shots != "zero":
@@ -540,7 +673,7 @@ def make_prompt_collie(item, style="generator", shots="zero", gen_response=None)
                 ).substitute(prompt=item['prompt'], response=curr_response, collie_restriction=collie_restriction)
 
         if shots != "zero":
-            example = "The cat sat on the mat. Is this a sentence that contains the word 'cat'? Yes. "
+            example = "The cat sat on the mat. Is this a sentence containing the word 'on', 'cat'? Yes. The overcast sky loomed over the city. Is this a sentence containing the word(s) 'blue'? No. "
             prompt = example + prompt
 
         completion = " " + ("Yes" if item['satisfies_constraint'] else "No")
