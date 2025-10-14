@@ -408,11 +408,13 @@ def compute_logodds_final_layer(
         raise ValueError("!!")
 
     if gen_logprobs is not None:
-        # Use precomputed summed log-probs across the full completion
+        # Multi-token case: use log-probs for both generator and discriminator
         logodds_gen = [float(v) for v in gen_logprobs]
+        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
     else:
-        logodds_gen = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat) for ii in range(len(P_gen))]
-    logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
+        # Single-token case: use log-odds for both generator and discriminator
+        logodds_gen = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat, use_lgo=True) for ii in range(len(P_gen))]
+        logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
 
     # disc_accuracy, gen_accuracies, corr = compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks)
     res_dict = compute_metrics(task, L, logodds_gen, logodds_disc, ranks)

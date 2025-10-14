@@ -79,17 +79,18 @@ def get_labels(task, LL):
     else:
         raise ValueError(f"Unknown task: {task}")
 
-def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args):
+def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds'):
     """
-    Create scatter plot of generator vs validator log-odds.
+    Create scatter plot of generator vs validator log-odds or log-probs.
     
     Args:
-        logodds_gen: List of generator log-odds
-        logodds_disc: List of discriminator/validator log-odds  
+        logodds_gen: List of generator log-odds/log-probs
+        logodds_disc: List of discriminator/validator log-odds/log-probs
         labels: List of binary labels (1=positive, 0=negative)
         modelname: Model name for filename
         task: Task name for filename
         args: Command line arguments
+        metric_type: 'logodds' or 'logprobs' for axis labels and filename
     """
     # Convert to numpy arrays
     logodds_gen_np = np.array([float(x) for x in logodds_gen])
@@ -109,17 +110,18 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
     plt.scatter(logodds_gen_np[neg_mask], logodds_disc_np[neg_mask],
                 c='blue', label='Negative', alpha=0.6, s=30)
     
-    # Styling
-    plt.xlabel('Generator log-odds', fontsize=12)
-    plt.ylabel('Validator log-odds', fontsize=12)
+    # Styling based on metric type
+    metric_label = 'log-odds' if metric_type == 'logodds' else 'log-probs'
+    plt.xlabel(f'Generator {metric_label}', fontsize=12)
+    plt.ylabel(f'Validator {metric_label}', fontsize=12)
     plt.grid(True, alpha=0.3)
     plt.legend(title='Class', fontsize=10, title_fontsize=11)
     
-    # Generate filename
+    # Generate filename with metric type
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_short = modelname.split('/')[-1].replace('--', '_')
     split = "train" if args.train else "test"
-    filename = f"../outputs/viz_{model_short}_{task}_{split}_{timestamp}.png"
+    filename = f"../outputs/viz_{model_short}_{task}_{split}_{metric_type}_{timestamp}.png"
     
     # Save
     plt.tight_layout()
@@ -243,10 +245,18 @@ def main(args):
     
     # Compute logodds for visualization/analysis (needed for both train and test)
     if args.use_full_completion_logprobs:
+        # Multi-token case: use log-probs for both generator and discriminator
         logodds_gen = [torch.tensor(v) for v in gen_sum_logprobs]
+        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+        logprobs_gen = None  # Not needed for multi-token
+        logprobs_disc = None
     else:
-        logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
-    logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, None) for ii in range(len(P_disc))]
+        # Single-token case: compute both log-odds and log-probs for visualization
+        logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=True) for ii in range(len(P_gen))]
+        logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
+        # Also compute log-probs version for second plot
+        logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
+        logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
     
     if args.train:
         for jj in range(len(json_list)):
@@ -260,7 +270,13 @@ def main(args):
         # Create visualization if requested
         if args.viz:
             labels = get_labels(task, LL)
-            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args)
+            if args.use_full_completion_logprobs:
+                # Multi-token: one plot with log-probs
+                create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
+            else:
+                # Single-token: two plots (log-odds and log-probs)
+                create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
+                create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
         return
 
     gc.collect()
@@ -288,7 +304,13 @@ def main(args):
     # Create visualization if requested
     if args.viz:
         labels = get_labels(task, LL)
-        create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args)
+        if args.use_full_completion_logprobs:
+            # Multi-token: one plot with log-probs
+            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
+        else:
+            # Single-token: two plots (log-odds and log-probs)
+            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
+            create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
 
 
 
