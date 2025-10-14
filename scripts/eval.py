@@ -212,6 +212,11 @@ def main(args):
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
         # print(f"prompt_gen: {prompt_gen}")
         # print(f"prompt_disc: {prompt_disc}")
+        # Debug: print raw P_disc probabilities for first few examples
+        if args.debug_save_values and len(P_disc) < 5:
+            yes_prob = probs_disc[..., yestoks].sum().item() if yestoks else 0
+            no_prob = probs_disc[..., notoks].sum().item() if notoks else 0
+            print(f"DEBUG Ex {len(P_disc)}: P(yes)={yes_prob:.6f}, P(no)={no_prob:.6f}, use_full={args.use_full_completion_logprobs}")
         P_disc.append(probs_disc)
         if args.train:
             prefix = " " if not model_is_chat else ""
@@ -257,6 +262,18 @@ def main(args):
         # Also compute log-probs version for second plot
         logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
         logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+    
+    # Debug: Save discriminator values to file for inspection
+    if args.debug_save_values:
+        debug_suffix = "full_completion" if args.use_full_completion_logprobs else "single_token"
+        debug_file = f"../outputs/debug_disc_values_{task}_{debug_suffix}.txt"
+        with open(debug_file, 'w') as f:
+            f.write(f"Task: {task}\n")
+            f.write(f"Mode: {'full_completion_logprobs' if args.use_full_completion_logprobs else 'single_token'}\n")
+            f.write(f"Metric: {'log-probs' if args.use_full_completion_logprobs else 'log-odds'}\n\n")
+            for i in range(min(20, len(logodds_disc))):  # First 20 examples
+                f.write(f"Example {i}: {float(logodds_disc[i]):.6f}\n")
+        print(f"Debug values saved to: {debug_file}")
     
     if args.train:
         for jj in range(len(json_list)):
@@ -329,6 +346,7 @@ if __name__ == "__main__":
     parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
     parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
     parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
+    parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
 
     args = parser.parse_args()
     main(args)
