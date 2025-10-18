@@ -258,6 +258,53 @@ def main(args):
         logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
         logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
     
+    # Compute confusion matrix for discriminator
+    # Get ground truth labels (1=positive, 0=negative)
+    true_labels = get_labels(task, LL)
+    
+    # Determine threshold based on metric type
+    # For log-odds: threshold = 0 (since log(P(yes)/P(no)) = 0 when P(yes) = P(no) = 0.5)
+    # For log-probs: threshold = log(0.5) ≈ -0.693 (since log(P(yes)) = log(0.5) when P(yes) = 0.5)
+    if args.use_full_completion_logprobs:
+        threshold = np.log(0.5)  # log-probs threshold
+        metric_name = "log-probs"
+    else:
+        threshold = 0.0  # log-odds threshold
+        metric_name = "log-odds"
+    
+    # Make predictions: predicted = 1 if score > threshold, else 0
+    disc_scores = np.array([float(x) for x in logodds_disc])
+    pred_labels = (disc_scores > threshold).astype(int)
+    true_labels_np = np.array(true_labels)
+    
+    # Compute confusion matrix components
+    tp = np.sum((pred_labels == 1) & (true_labels_np == 1))  # True Positives
+    fp = np.sum((pred_labels == 1) & (true_labels_np == 0))  # False Positives
+    tn = np.sum((pred_labels == 0) & (true_labels_np == 0))  # True Negatives
+    fn = np.sum((pred_labels == 0) & (true_labels_np == 1))  # False Negatives
+    
+    # Print confusion matrix
+    print(f"\nDiscriminator Confusion Matrix ({metric_name}, threshold={threshold:.3f}):")
+    print(f"                 Predicted Positive  Predicted Negative")
+    print(f"Actual Positive        {tp:6d}              {fn:6d}")
+    print(f"Actual Negative        {fp:6d}              {tn:6d}")
+    print(f"\nAccuracy: {(tp + tn) / len(true_labels):.4f}")
+    print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
+    print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
+    print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
+    
+    # Debug: Save discriminator values to file for inspection
+    if args.debug_save_values:
+        debug_suffix = "full_completion" if args.use_full_completion_logprobs else "single_token"
+        debug_file = f"../outputs/debug_disc_values_{task}_{debug_suffix}.txt"
+        with open(debug_file, 'w') as f:
+            f.write(f"Task: {task}\n")
+            f.write(f"Mode: {'full_completion_logprobs' if args.use_full_completion_logprobs else 'single_token'}\n")
+            f.write(f"Metric: {'log-probs' if args.use_full_completion_logprobs else 'log-odds'}\n\n")
+            for i in range(min(20, len(logodds_disc))):  # First 20 examples
+                f.write(f"Example {i}: {float(logodds_disc[i]):.6f}\n")
+        print(f"Debug values saved to: {debug_file}")
+    
     if args.train:
         for jj in range(len(json_list)):
             json_list[jj]["generator-log-prob"] = float(logodds_gen[jj])
@@ -329,6 +376,7 @@ if __name__ == "__main__":
     parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
     parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
     parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
+    parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
 
     args = parser.parse_args()
     main(args)
