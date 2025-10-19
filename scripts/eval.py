@@ -210,9 +210,46 @@ def main(args):
             gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
-        # print(f"prompt_gen: {prompt_gen}")
-        # print(f"prompt_disc: {prompt_disc}")
+        
+        # DEBUG: Print prompts and probabilities for first 5 examples
+        if len(P_disc) < 5:
+            # Get Yes/No tokens
+            if len(P_disc) == 0:
+                yes_token_strings = ['Yes', ' Yes', 'yes', ' yes']
+                no_token_strings = ['No', ' No', 'no', ' no']
+                yestoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in yes_token_strings]
+                notoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in no_token_strings]
+                print("\n" + "="*80)
+                print(f"DEBUG: use_full_completion_logprobs = {args.use_full_completion_logprobs}")
+                print("="*80)
+            
+            p_yes = probs_disc[yestoks].sum()
+            p_no = probs_disc[notoks].sum()
+            log_odds = float(torch.log(p_yes / p_no))
+            log_prob_yes = float(torch.log(p_yes))
+            
+            # Get ground truth
+            if task == 'collie':
+                gt_label = "POSITIVE" if item['satisfies_constraint'] else "NEGATIVE"
+            elif task == 'hypernym':
+                gt_label = "POSITIVE" if item.taxonomic.strip().capitalize() == 'Yes' else "NEGATIVE"
+            else:
+                gt_label = "UNKNOWN"
+            
+            print(f"\n--- Example {len(P_disc)} (Ground Truth: {gt_label}) ---")
+            print(f"Discriminator Prompt:\n{prompt_disc}")
+            print(f"\nProbabilities:")
+            print(f"  P(Yes)={p_yes:.6f}, P(No)={p_no:.6f}, P(other)={1-p_yes-p_no:.6f}")
+            print(f"  log-odds={log_odds:.4f}, log-prob={log_prob_yes:.4f}")
+        
         P_disc.append(probs_disc)
+        
+        # Break after 5 examples
+        if len(P_disc) == 5:
+            print("\n" + "="*80)
+            print("BREAKING AFTER 5 EXAMPLES")
+            print("="*80 + "\n")
+            break
         if args.train:
             prefix = " " if not model_is_chat else ""
             if task == 'hypernym':
@@ -293,17 +330,26 @@ def main(args):
     print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
     print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
     
-    # Debug: Save discriminator values to file for inspection
+    # Debug: Save ALL discriminator and generator values with ground truth to CSV
     if args.debug_save_values:
-        debug_suffix = "full_completion" if args.use_full_completion_logprobs else "single_token"
-        debug_file = f"../outputs/debug_disc_values_{task}_{debug_suffix}.txt"
-        with open(debug_file, 'w') as f:
-            f.write(f"Task: {task}\n")
-            f.write(f"Mode: {'full_completion_logprobs' if args.use_full_completion_logprobs else 'single_token'}\n")
-            f.write(f"Metric: {'log-probs' if args.use_full_completion_logprobs else 'log-odds'}\n\n")
-            for i in range(min(20, len(logodds_disc))):  # First 20 examples
-                f.write(f"Example {i}: {float(logodds_disc[i]):.6f}\n")
-        print(f"Debug values saved to: {debug_file}")
+        import csv
+        debug_suffix = "logprobs" if args.use_full_completion_logprobs else "logodds"
+        debug_file = f"../outputs/debug_values_{task}_{debug_suffix}.csv"
+        
+        with open(debug_file, 'w', newline='') as f:
+            writer = csv.writer(f)
+            # Write header
+            writer.writerow(['index', 'ground_truth', 'disc_score', 'gen_score'])
+            
+            # Write all data
+            for i in range(len(logodds_disc)):
+                writer.writerow([
+                    i,
+                    true_labels[i],
+                    float(logodds_disc[i]),
+                    float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                ])
+        print(f"Debug values saved to: {debug_file} ({len(logodds_disc)} examples)")
     
     if args.train:
         for jj in range(len(json_list)):
