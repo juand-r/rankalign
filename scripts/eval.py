@@ -211,45 +211,38 @@ def main(args):
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
         
-        # DEBUG: Print prompts and probabilities for first 5 examples
-        if len(P_disc) < 5:
-            # Get Yes/No tokens
-            if len(P_disc) == 0:
-                yes_token_strings = ['Yes', ' Yes', 'yes', ' yes']
-                no_token_strings = ['No', ' No', 'no', ' no']
-                yestoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in yes_token_strings]
-                notoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in no_token_strings]
-                print("\n" + "="*80)
-                print(f"DEBUG: use_full_completion_logprobs = {args.use_full_completion_logprobs}")
-                print("="*80)
-            
-            p_yes = probs_disc[yestoks].sum()
-            p_no = probs_disc[notoks].sum()
-            log_odds = float(torch.log(p_yes / p_no))
-            log_prob_yes = float(torch.log(p_yes))
-            
-            # Get ground truth
-            if task == 'collie':
-                gt_label = "POSITIVE" if item['satisfies_constraint'] else "NEGATIVE"
-            elif task == 'hypernym':
-                gt_label = "POSITIVE" if item.taxonomic.strip().capitalize() == 'Yes' else "NEGATIVE"
-            else:
-                gt_label = "UNKNOWN"
-            
-            print(f"\n--- Example {len(P_disc)} (Ground Truth: {gt_label}) ---")
-            print(f"Discriminator Prompt:\n{prompt_disc}")
-            print(f"\nProbabilities:")
-            print(f"  P(Yes)={p_yes:.6f}, P(No)={p_no:.6f}, P(other)={1-p_yes-p_no:.6f}")
-            print(f"  log-odds={log_odds:.4f}, log-prob={log_prob_yes:.4f}")
+        # # DEBUG: Print prompts and probabilities for first 5 examples
+        # if len(P_disc) < 5:
+        #     # Get Yes/No tokens
+        #     if len(P_disc) == 0:
+        #         yes_token_strings = ['Yes', ' Yes', 'yes', ' yes']
+        #         no_token_strings = ['No', ' No', 'no', ' no']
+        #         yestoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in yes_token_strings]
+        #         notoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in no_token_strings]
+        #         print("\n" + "="*80)
+        #         print(f"DEBUG: use_full_completion_logprobs = {args.use_full_completion_logprobs}")
+        #         print("="*80)
+        #     
+        #     p_yes = probs_disc[yestoks].sum()
+        #     p_no = probs_disc[notoks].sum()
+        #     log_odds = float(torch.log(p_yes / p_no))
+        #     log_prob_yes = float(torch.log(p_yes))
+        #     
+        #     # Get ground truth
+        #     if task == 'collie':
+        #         gt_label = "POSITIVE" if item['satisfies_constraint'] else "NEGATIVE"
+        #     elif task == 'hypernym':
+        #         gt_label = "POSITIVE" if item.taxonomic.strip().capitalize() == 'Yes' else "NEGATIVE"
+        #     else:
+        #         gt_label = "UNKNOWN"
+        #     
+        #     print(f"\n--- Example {len(P_disc)} (Ground Truth: {gt_label}) ---")
+        #     print(f"Discriminator Prompt:\n{prompt_disc}")
+        #     print(f"\nProbabilities:")
+        #     print(f"  P(Yes)={p_yes:.6f}, P(No)={p_no:.6f}, P(other)={1-p_yes-p_no:.6f}")
+        #     print(f"  log-odds={log_odds:.4f}, log-prob={log_prob_yes:.4f}")
         
         P_disc.append(probs_disc)
-        
-        # Break after 5 examples
-        if len(P_disc) == 5:
-            print("\n" + "="*80)
-            print("BREAKING AFTER 5 EXAMPLES")
-            print("="*80 + "\n")
-            break
         if args.train:
             prefix = " " if not model_is_chat else ""
             if task == 'hypernym':
