@@ -21,7 +21,7 @@ echo "Step 1/3: Running evaluation with log-odds..."
 CUDA_VISIBLE_DEVICES=$DEVICE python eval.py \
     --model "$MODEL" \
     --task "$TASK" \
-    --disc-shots zero \
+    --disc-shots few \
     --debug_save_values
 
 # Run with log-probs (full completion mode)
@@ -30,7 +30,7 @@ echo "Step 2/3: Running evaluation with log-probs..."
 CUDA_VISIBLE_DEVICES=$DEVICE python eval.py \
     --model "$MODEL" \
     --task "$TASK" \
-    --disc-shots zero \
+    --disc-shots few \
     --debug_save_values \
     --use_full_completion_logprobs
 

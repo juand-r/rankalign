@@ -331,17 +331,46 @@ def main(args):
         
         with open(debug_file, 'w', newline='') as f:
             writer = csv.writer(f)
-            # Write header
-            writer.writerow(['index', 'ground_truth', 'disc_score', 'gen_score'])
+            # Write header - include task-specific fields for verification
+            if task == 'hypernym':
+                writer.writerow(['index', 'noun1', 'noun2', 'taxonomic', 'ground_truth', 'disc_score', 'gen_score'])
+            elif task == 'swords':
+                writer.writerow(['index', 'context', 'target', 'replacement', 'synonym', 'ground_truth', 'disc_score', 'gen_score'])
+            elif task in ['trivia-qa', 'lambada']:
+                writer.writerow(['index', 'ground_truth', 'disc_score', 'gen_score'])
+            else:
+                writer.writerow(['index', 'ground_truth', 'disc_score', 'gen_score'])
             
             # Write all data
             for i in range(len(logodds_disc)):
-                writer.writerow([
-                    i,
-                    true_labels[i],
-                    float(logodds_disc[i]),
-                    float(logodds_gen[i]) if i < len(logodds_gen) else ''
-                ])
+                if task == 'hypernym':
+                    writer.writerow([
+                        i,
+                        LL[i].noun1,
+                        LL[i].noun2,
+                        LL[i].taxonomic,
+                        true_labels[i],
+                        float(logodds_disc[i]),
+                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                    ])
+                elif task == 'swords':
+                    writer.writerow([
+                        i,
+                        LL[i].context,
+                        LL[i].target,
+                        LL[i].replacement,
+                        LL[i].synonym,
+                        true_labels[i],
+                        float(logodds_disc[i]),
+                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                    ])
+                else:
+                    writer.writerow([
+                        i,
+                        true_labels[i],
+                        float(logodds_disc[i]),
+                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                    ])
         print(f"Debug values saved to: {debug_file} ({len(logodds_disc)} examples)")
     
     if args.train:
