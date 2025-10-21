@@ -153,10 +153,14 @@ def main(args):
     first_sw_token = 2
 
     model_is_chat = False
-    if 'instruct' in modelname.lower():
+    model_has_system_role = False
+    if 'instruct' in modelname.lower() or 'it' in modelname.lower():
         model_is_chat = True
         first_sw_token = 1
         print("Model is chat model!")
+    if 'llama' in modelname.lower():
+        model_has_system_role = True
+        print("Model has system role!")
     if "gpt" in modelname.lower():
         raise ValueError("If you are using GPT then rewrite this bit!")
 
@@ -195,6 +199,7 @@ def main(args):
     P_gen = []
     P_disc = []
     gen_sum_logprobs = []
+    disc_probs = []
 
     json_list = []
     # LL = LL[:10]
@@ -203,14 +208,15 @@ def main(args):
         prompt_gen = gen_obj.prompt
         completion_gen = gen_obj.completion
         prompt_disc = make_prompt(item, style='discriminator', shots=disc_shots).prompt
-        probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
+        probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
         P_gen.append(probs_gen)
         # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
         if args.use_full_completion_logprobs:
-            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat)
+            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
-        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat) # TODO: change is_chat to True if instruction-tuned model
-        
+        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
+        disc_probs.append((float(probs_disc[yestoks].sum().item()), float(probs_disc[notoks].sum().item())))
+
         # # DEBUG: Print prompts and probabilities for first 5 examples
         # if len(P_disc) < 5:
         #     # Get Yes/No tokens
@@ -322,7 +328,17 @@ def main(args):
     print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
     print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
     print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
-    
+
+    disc_probs_sum = [p_yes + p_no for p_yes, p_no in disc_probs]
+    print(f"Discriminator Probabilities Avg p_yes + p_no: {np.mean(disc_probs_sum):.4f}")
+    plt.hist(disc_probs_sum)
+    plt.xlabel("Discriminator P(Yes) + P(No)")
+    plt.ylabel("Count")
+    plt.title(f"Histogram of Discriminator P(Yes) + P(No) for {task}")
+    hist_filename = f"../outputs/hist_disc_probs_{task}_{modelname.split('/')[-1]}.png"
+    plt.savefig(hist_filename)
+    plt.close()
+
     # Debug: Save ALL discriminator and generator values with ground truth to CSV
     if args.debug_save_values:
         import csv

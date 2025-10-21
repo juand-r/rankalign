@@ -669,11 +669,11 @@ def make_prompt_collie(item, style="generator", shots="zero", gen_response=None)
         curr_response = gen_response if gen_response else item['generated']
         collie_restriction = item['prompt'][16:] #remove "Please generate "
         prompt = Template(
-                "$response. Is this $collie_restriction?"
+                "You will be given a sentence and a list of words. Determine if the following sentence contains all of these words exactly. Answer yes or no with no explanation. $response. Is this $collie_restriction?"
                 ).substitute(prompt=item['prompt'], response=curr_response, collie_restriction=collie_restriction)
 
         if shots != "zero":
-            example = "The cat sat on the mat. Is this a sentence containing the word 'on', 'cat'? Yes. The overcast sky loomed over the city. Is this a sentence containing the word(s) 'blue'? No. "
+            example = "You will be given a sentence and a list of words. Determine if the sentence contains all of these words exactly. Answer yes or no with no explanation. The cat sat on the mat. Is this a sentence containing the word 'on', 'cat'? Yes. The overcast sky loomed over the city. Is this a sentence containing the word 'blue', 'loom'? No. "
             prompt = example + prompt
 
         completion = " " + ("Yes" if item['satisfies_constraint'] else "No")
@@ -861,11 +861,15 @@ def load_model(peft_model_id, device):
     return model, tokenizer
 
 
-def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=False):
+def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=False, has_system_role=False):
     with torch.no_grad():
-        if is_chat:
+        if is_chat and has_system_role:
             message = [
                 {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "user", "content": prompt},]
+            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
+        elif is_chat:
+            message = [
                 {"role": "user", "content": prompt},]
             input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         else:
@@ -918,7 +922,7 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
         # print(f"decoded_response::{decoded_response}::")
     return decoded_response
 
-def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False):
+def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False, has_system_role=False):
     """Return per-token log probabilities for the given completion conditioned on the prompt.
 
     - If is_chat is False: tokenize `prompt` and `completion` separately and concatenate.
@@ -928,10 +932,25 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
     """
     model_device = device
     with torch.no_grad():
-        if is_chat:
+        if is_chat and has_system_role:
             # Build the chat prompt prefix (system + user + assistant prefix)
             message = [
                 {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "user", "content": prompt},
+            ]
+            prefix_ids = tokenizer.apply_chat_template(
+                message,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                tokenize=True,
+                return_dict=False,
+            )[0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
+            prefix_len = prefix_ids.shape[0]
+        elif is_chat:
+            # Build the chat prompt prefix (user + assistant prefix)
+            message = [
                 {"role": "user", "content": prompt},
             ]
             prefix_ids = tokenizer.apply_chat_template(
