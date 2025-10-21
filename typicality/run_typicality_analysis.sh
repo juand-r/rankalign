@@ -29,30 +29,26 @@ echo "=========================================="
 # Get safe model name for files (replace / with -)
 MODEL_SAFE=$(echo "$MODEL" | tr '/' '-')
 
-# Step 1: Run eval.py if debug output doesn't exist
-EVAL_OUTPUT="../outputs/debug_values_hypernym_logodds.csv"
-if [ ! -f "$EVAL_OUTPUT" ]; then
-    echo ""
-    echo "Step 1/3: Running eval.py to generate debug output..."
-    cd ../scripts
-    CUDA_VISIBLE_DEVICES=$DEVICE python eval.py \
-        --model "$MODEL" \
-        --task hypernym \
-        --seed $SEED \
-        --split_type $SPLIT_TYPE \
-        --debug_save_values
-    cd ../typicality
-else
-    echo ""
-    echo "Step 1/3: Using existing eval output: $EVAL_OUTPUT"
-fi
+# Step 1: Run eval.py to generate debug output (always run to ensure correct format)
+EVAL_OUTPUT="../outputs/debug_values_hypernym_logprobs.csv"
+echo ""
+echo "Step 1/3: Running eval.py to generate debug output..."
+cd ../scripts
+source ~/venvs/venv_lexcons/bin/activate
+CUDA_VISIBLE_DEVICES=$DEVICE python eval.py \
+    --model "$MODEL" \
+    --task hypernym \
+    --split_type $SPLIT_TYPE \
+    --use_full_completion_logprobs \
+    --debug_save_values
+cd ../typicality
 
 # Step 2: Compute GPT-2 typicality scores
 echo ""
 echo "Step 2/3: Computing GPT-2 typicality scores..."
 TYPICALITY_OUTPUT="gpt2_typicality_scores_${SPLIT_TYPE}_seed${SEED}.csv"
+source ~/venvs/venv_lexcons/bin/activate
 python compute_gpt2_typicality.py \
-    --seed $SEED \
     --split_type $SPLIT_TYPE \
     --output "$TYPICALITY_OUTPUT"
 
@@ -60,6 +56,7 @@ python compute_gpt2_typicality.py \
 echo ""
 echo "Step 3/3: Merging data..."
 MERGED_OUTPUT="merged_data_${MODEL_SAFE}_${SPLIT_TYPE}_seed${SEED}.csv"
+source ~/venvs/venv_lexcons/bin/activate
 python merge_data.py \
     --typicality "$TYPICALITY_OUTPUT" \
     --eval_output "$EVAL_OUTPUT" \
