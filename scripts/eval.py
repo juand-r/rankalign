@@ -27,6 +27,88 @@ def get_device():
     else:
         return "cpu"
 
+def compute_gpt2_typicality(completions, task, LL):
+    """
+    Compute GPT-2 unconditional log probability P(completion) for typicality correction.
+    
+    Args:
+        completions: List of completion texts
+        task: Task name (e.g., 'hypernym')
+        LL: Data items
+        
+    Returns:
+        List of log probabilities, one per completion
+    """
+    print("\nLoading GPT-2 for typicality correction...")
+    gpt2_tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    gpt2_model = AutoModelForCausalLM.from_pretrained("gpt2")
+    device = get_device()
+    gpt2_model = gpt2_model.to(device)
+    gpt2_model.eval()
+    print(f"  ✓ GPT-2 loaded on {device}")
+    
+    typicality_scores = []
+    
+    print("Computing GPT-2 typicality scores...")
+    for completion in tqdm(completions, desc="GPT-2 typicality"):
+        with torch.no_grad():
+            # Tokenize without special tokens
+            input_ids = gpt2_tokenizer.encode(completion, add_special_tokens=False)
+            
+            if len(input_ids) == 0:
+                typicality_scores.append(float('-inf'))
+                continue
+            
+            # For single token, compute P(token)
+            if len(input_ids) == 1:
+                context_ids = gpt2_tokenizer.encode("", add_special_tokens=True)
+                full_ids = context_ids + input_ids
+                
+                input_tensor = torch.tensor([full_ids]).to(device)
+                outputs = gpt2_model(input_tensor)
+                logits = outputs.logits
+                
+                target_logits = logits[0, len(context_ids) - 1, :]
+                probs = torch.softmax(target_logits, dim=-1)
+                token_prob = probs[input_ids[0]].item()
+                
+                typicality_scores.append(np.log(token_prob + 1e-12))
+            else:
+                # For multi-token, compute product of conditional probabilities
+                log_prob_sum = 0.0
+                
+                for i in range(len(input_ids)):
+                    if i == 0:
+                        context_ids = gpt2_tokenizer.encode("", add_special_tokens=True)
+                    else:
+                        context_ids = gpt2_tokenizer.encode("", add_special_tokens=True)[:-1] + input_ids[:i]
+                    
+                    full_ids = context_ids + [input_ids[i]]
+                    input_tensor = torch.tensor([full_ids]).to(device)
+                    outputs = gpt2_model(input_tensor)
+                    logits = outputs.logits
+                    
+                    target_logits = logits[0, len(context_ids) - 1, :]
+                    probs = torch.softmax(target_logits, dim=-1)
+                    token_prob = probs[input_ids[i]].item()
+                    
+                    log_prob_sum += np.log(token_prob + 1e-12)
+                
+                typicality_scores.append(log_prob_sum)
+    
+    # Clean up GPT-2 model
+    del gpt2_model
+    del gpt2_tokenizer
+    gc.collect()
+    if device == "cuda":
+        torch.cuda.empty_cache()
+    
+    print(f"  ✓ Computed {len(typicality_scores)} typicality scores")
+    print(f"  Mean typicality: {np.mean(typicality_scores):.4f}")
+    print(f"  Std typicality: {np.std(typicality_scores):.4f}")
+    
+    return typicality_scores
+
 device = get_device()
 yes_words = ["Yes", " Yes", "YES", "yes", " yes"]
 no_words = ["No", " No", "NO", "no", " no"]
@@ -294,6 +376,40 @@ def main(args):
         logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
         logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
     
+    # Apply typicality correction if requested
+    if args.typicality_correction:
+        print("\n" + "="*60)
+        print("APPLYING TYPICALITY CORRECTION")
+        print("="*60)
+        
+        # Extract completions from data
+        completions = []
+        for item in LL:
+            gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+            completions.append(gen_obj.completion)
+        
+        # Compute GPT-2 typicality scores
+        typicality_scores = compute_gpt2_typicality(completions, task, LL)
+        
+        # Apply correction: corrected_gen = gen - typicality
+        print("\nApplying correction: Generator - GPT-2 P(completion)")
+        logodds_gen_original = logodds_gen.copy()
+        logodds_gen = [float(logodds_gen[i]) - typicality_scores[i] for i in range(len(logodds_gen))]
+        
+        # Convert back to tensors
+        logodds_gen = [torch.tensor(v) for v in logodds_gen]
+        
+        print(f"  Original generator mean: {np.mean([float(x) for x in logodds_gen_original]):.4f}")
+        print(f"  Corrected generator mean: {np.mean([float(x) for x in logodds_gen]):.4f}")
+        print(f"  Correction applied to {len(logodds_gen)} examples")
+        
+        # Also correct logprobs_gen if it exists (for visualization)
+        if logprobs_gen is not None:
+            logprobs_gen = [float(logprobs_gen[i]) - typicality_scores[i] for i in range(len(logprobs_gen))]
+            logprobs_gen = [torch.tensor(v) for v in logprobs_gen]
+        
+        print("="*60 + "\n")
+    
     # Compute confusion matrix for discriminator
     # Get ground truth labels (1=positive, 0=negative)
     true_labels = get_labels(task, LL)
@@ -416,8 +532,13 @@ def main(args):
 
     
     
+    # Pass corrected scores if typicality correction was applied
+    corrected_scores = logodds_gen if args.typicality_correction else None
+    
     res_dict = compute_logodds_final_layer(task,
-        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, gen_logprobs=(gen_sum_logprobs if args.use_full_completion_logprobs else None))
+        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, 
+        gen_logprobs=(gen_sum_logprobs if args.use_full_completion_logprobs else None),
+        corrected_logodds_gen=corrected_scores)
 
     
     basename = get_base_model_name(modelname)
@@ -461,6 +582,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
     parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
     parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
+    parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
 
     args = parser.parse_args()
     main(args)

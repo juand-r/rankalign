@@ -334,7 +334,7 @@ def compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks,
 
 
 def compute_logodds_final_layer(
-    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None):
+    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None, corrected_logodds_gen=None):
 
     prefix = "a " if not is_chat else ""
     if task=='hypernym':
@@ -407,7 +407,11 @@ def compute_logodds_final_layer(
     else:
         raise ValueError("!!")
 
-    if gen_logprobs is not None:
+    # Use corrected_logodds_gen if provided (for typicality correction)
+    if corrected_logodds_gen is not None:
+        logodds_gen = [float(v) for v in corrected_logodds_gen]
+        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+    elif gen_logprobs is not None:
         # Multi-token case: use log-probs for both generator and discriminator
         logodds_gen = [float(v) for v in gen_logprobs]
         logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]

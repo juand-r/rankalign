@@ -55,6 +55,76 @@ def get_alpha(alpha_arg, gen_log_prob_i, gen_log_prob_j, disc_log_prob_i, disc_l
     else:
         raise ValueError(f"Unknown alpha function: {alpha_arg}")
 
+def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
+    """
+    Compute GPT-2 unconditional log probability P(completion) for typicality correction.
+    
+    Args:
+        completions: List of completion texts
+        tokenizer_gpt2: GPT-2 tokenizer
+        model_gpt2: GPT-2 model
+        device: Device to run on
+        
+    Returns:
+        List of log probabilities, one per completion
+    """
+    import numpy as np
+    
+    typicality_scores = []
+    
+    print("Computing GPT-2 typicality scores...")
+    for completion in tqdm(completions, desc="GPT-2 typicality"):
+        with torch.no_grad():
+            # Tokenize without special tokens
+            input_ids = tokenizer_gpt2.encode(completion, add_special_tokens=False)
+            
+            if len(input_ids) == 0:
+                typicality_scores.append(float('-inf'))
+                continue
+            
+            # For single token, compute P(token)
+            if len(input_ids) == 1:
+                context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)
+                full_ids = context_ids + input_ids
+                
+                input_tensor = torch.tensor([full_ids]).to(device)
+                outputs = model_gpt2(input_tensor)
+                logits = outputs.logits
+                
+                target_logits = logits[0, len(context_ids) - 1, :]
+                probs = torch.softmax(target_logits, dim=-1)
+                token_prob = probs[input_ids[0]].item()
+                
+                typicality_scores.append(math.log(token_prob + 1e-12))
+            else:
+                # For multi-token, compute product of conditional probabilities
+                log_prob_sum = 0.0
+                
+                for i in range(len(input_ids)):
+                    if i == 0:
+                        context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)
+                    else:
+                        context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)[:-1] + input_ids[:i]
+                    
+                    full_ids = context_ids + [input_ids[i]]
+                    input_tensor = torch.tensor([full_ids]).to(device)
+                    outputs = model_gpt2(input_tensor)
+                    logits = outputs.logits
+                    
+                    target_logits = logits[0, len(context_ids) - 1, :]
+                    probs = torch.softmax(target_logits, dim=-1)
+                    token_prob = probs[input_ids[i]].item()
+                    
+                    log_prob_sum += math.log(token_prob + 1e-12)
+                
+                typicality_scores.append(log_prob_sum)
+    
+    print(f"  ✓ Computed {len(typicality_scores)} typicality scores")
+    if len(typicality_scores) > 0:
+        print(f"  Mean typicality: {sum(typicality_scores)/len(typicality_scores):.4f}")
+    
+    return typicality_scores
+
 def main(args):
     model_name = args.model
     task = args.task
@@ -451,6 +521,64 @@ def main(args):
     else:
         raise ValueError("Task unsupported!")
 
+    # Apply typicality correction if requested
+    if args.typicality_correction and train_g_or_d in ['d', 'both']:
+        print("\n" + "="*60)
+        print("APPLYING TYPICALITY CORRECTION")
+        print("="*60)
+        
+        # Extract completions based on task
+        completions = []
+        if task == 'hypernym':
+            completions = [item.noun2 for item in L_train_all]
+        elif task == 'trivia-qa':
+            completions = [item['answers'][0] for item in L_train_all]
+        elif task == 'swords':
+            completions = [item.replacement for item in L_train_all]
+        elif task == 'lambada':
+            completions = [item['final_word'] for item in L_train_all]
+        else:
+            raise ValueError(f"Task {task} not supported for typicality correction")
+        
+        # Load GPT-2 for typicality computation
+        print("\nLoading GPT-2 for typicality correction...")
+        tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
+        model_gpt2 = AutoModelForCausalLM.from_pretrained("gpt2")
+        model_gpt2 = model_gpt2.to(device)
+        model_gpt2.eval()
+        print(f"  ✓ GPT-2 loaded on {device}")
+        
+        # Compute GPT-2 typicality scores
+        typicality_scores = compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device)
+        
+        # Apply correction to generator logprobs
+        print("\nApplying correction: Generator - GPT-2 P(completion)")
+        if train_g_or_d == 'both':
+            # For 'both' mode, logprobs_last_layer contains tuples (log_prob_d, log_prob_g)
+            # We correct log_prob_d (generator logprob for discriminator path)
+            logprobs_original = logprobs_last_layer.copy()
+            logprobs_last_layer = [(lp[0] - typicality_scores[i], lp[1]) for i, lp in enumerate(logprobs_last_layer)]
+            original_means_d = sum([lp[0] for lp in logprobs_original]) / len(logprobs_original)
+            corrected_means_d = sum([lp[0] for lp in logprobs_last_layer]) / len(logprobs_last_layer)
+            print(f"  Original generator mean (d): {original_means_d:.4f}")
+            print(f"  Corrected generator mean (d): {corrected_means_d:.4f}")
+        else:
+            # For 'd' or 'g' mode, logprobs_last_layer is just a list of floats
+            logprobs_original = logprobs_last_layer.copy()
+            logprobs_last_layer = [lp - typicality_scores[i] for i, lp in enumerate(logprobs_last_layer)]
+            original_mean = sum(logprobs_original) / len(logprobs_original)
+            corrected_mean = sum(logprobs_last_layer) / len(logprobs_last_layer)
+            print(f"  Original generator mean: {original_mean:.4f}")
+            print(f"  Corrected generator mean: {corrected_mean:.4f}")
+        
+        print(f"  Correction applied to {len(logprobs_last_layer)} examples")
+        
+        # Clean up GPT-2 model
+        del model_gpt2, tokenizer_gpt2
+        torch.cuda.empty_cache()
+        
+        print("="*60 + "\n")
+
     if with_chat:
         # Process discriminator prompts (p_train_tune)
         ms_tune = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()} ] for i in p_train_tune]
@@ -757,7 +885,8 @@ def main(args):
             split_type_str = "--"+ split_type
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str
+            typcorr_str = "--typcorr" if args.typicality_correction else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -982,6 +1111,7 @@ if __name__ == "__main__":
     parser.add_argument("--alpha", type=str, default='1.0', help="Alpha value or function name. Can be a number between 0 and 1, or 'alpha_fun_1'")
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
+    parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
