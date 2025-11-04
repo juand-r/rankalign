@@ -91,6 +91,40 @@ def get_rank(L, ind):
     return rank
 
 
+def get_rank_in_subset(L, ind, candidate_indices):
+    """
+    Get rank of token 'ind' among only the candidate tokens.
+    
+    Args:
+        L: Probability/score distribution over full vocabulary
+        ind: Target token index
+        candidate_indices: List of token indices to consider (e.g., all dataset tokens)
+    
+    Returns:
+        Rank of ind among candidate_indices (1-indexed)
+    """
+    # Extract scores for candidate tokens only
+    candidate_scores = L[candidate_indices]
+    
+    # Sort in descending order
+    sorted_scores, sorted_indices = torch.sort(candidate_scores, descending=True)
+    
+    # Find which candidate index corresponds to our target
+    target_candidate_idx = (candidate_indices == ind).nonzero(as_tuple=True)[0]
+    
+    if len(target_candidate_idx) == 0:
+        # Target token not in candidate set - return large rank
+        return len(candidate_indices) + 1
+    
+    target_candidate_idx = target_candidate_idx[0].item()
+    target_score = candidate_scores[target_candidate_idx]
+    
+    # Find rank among candidates
+    rank = (sorted_scores >= target_score).sum().item()
+    
+    return rank
+
+
 def get_logodds_disc(Ps, ii, yestoks, notoks):
     if notoks is None:
         lgo = torch.log(torch.sum(Ps[ii][..., yestoks], dim=-1)) 
@@ -162,13 +196,21 @@ def compute_disc_accuracy(gold, logodds_disc):
     # print(f'roc_auc: {roc_auc}')
     return disc_accuracy, roc_auc
 
-def compute_gen_accuracy(golds, ranks, thresholds = [5, 10, 40, 100, 1000]):
+def compute_gen_roc(gold, logodds_gen):
+    """Compute AUC-ROC using generator scores."""
+    if len(set(gold)) == 1:
+        # Only one class present, ROC is undefined
+        return np.nan
+    else:
+        return roc_auc_score(gold, logodds_gen)
+
+def compute_gen_accuracy(golds, ranks, thresholds = [5, 10, 40, 100, 1000], prefix=""):
     gen_accuracies = {} #map threshold to accuracy
     for t in thresholds:
         preds = [1 if r <= t else 0 for r in ranks]
         a = sklearn.metrics.accuracy_score(golds, preds)
         gen_accuracies[t]= a
-        print("accuracy of generator zs: (th={}: {})".format(t, a))
+        print("accuracy of generator {}: (th={}: {})".format(prefix, t, a))
     return gen_accuracies
 
 def compute_gen_mrr(golds, ranks):
@@ -178,7 +220,7 @@ def compute_gen_mrr(golds, ranks):
     mrr_neg = np.mean([1 / r for r in ranks_neg])
     return mrr_pos, mrr_neg
 
-def compute_metrics(task, L, logodds_gen, logodds_disc, ranks):
+def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=None):
     if task=='hypernym':
         golds = [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in L]
     elif task=="trivia-qa":
@@ -219,18 +261,24 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks):
     print(f"spearman: all = {spear_all}, pos = {spear_pos}, neg = {spear_neg}")
     disc_acc, disc_roc = compute_disc_accuracy(golds, logodds_disc)
     print(f"disc_acc: {disc_acc}, disc_roc: {disc_roc}")
+    
+    # Compute generator ROC
+    gen_roc = compute_gen_roc(golds, logodds_gen)
+    print(f"gen_roc: {gen_roc}")
 
-    gen_acc_dict = compute_gen_accuracy(golds, ranks, thresholds = [5, 10, 40, 100, 1000])
-
+    print("\n--- Full Vocabulary Ranking ---")
+    gen_acc_dict = compute_gen_accuracy(golds, ranks, thresholds = [5, 10, 40, 100, 1000], prefix="full-vocab")
     gen_mrr_pos, gen_mrr_neg = compute_gen_mrr(golds, ranks)
-    print(f"gen_mrr_pos: {gen_mrr_pos}, gen_mrr_neg: {gen_mrr_neg}")
+    print(f"gen_mrr_pos (full-vocab): {gen_mrr_pos}, gen_mrr_neg (full-vocab): {gen_mrr_neg}")
 
-    return {
+    # Compute dataset-constrained metrics if provided
+    result = {
         'corr_all': corr_all,
         'corr_pos': corr_pos,
         'corr_neg': corr_neg,
         'disc_acc': disc_acc,
         'disc_roc': disc_roc,
+        'gen_roc': gen_roc,
         'gen_acc_dict': gen_acc_dict,
         'gen_mrr_pos': gen_mrr_pos,
         'gen_mrr_neg': gen_mrr_neg,
@@ -238,6 +286,18 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks):
         'spear_pos': spear_pos,
         'spear_neg': spear_neg
     }
+    
+    if ranks_dataset is not None:
+        print("\n--- Dataset-Constrained Ranking ---")
+        gen_acc_dict_dataset = compute_gen_accuracy(golds, ranks_dataset, thresholds = [5, 10, 40, 100, 1000], prefix="dataset")
+        gen_mrr_pos_dataset, gen_mrr_neg_dataset = compute_gen_mrr(golds, ranks_dataset)
+        print(f"gen_mrr_pos (dataset): {gen_mrr_pos_dataset}, gen_mrr_neg (dataset): {gen_mrr_neg_dataset}")
+        
+        result['gen_acc_dict_dataset'] = gen_acc_dict_dataset
+        result['gen_mrr_pos_dataset'] = gen_mrr_pos_dataset
+        result['gen_mrr_neg_dataset'] = gen_mrr_neg_dataset
+    
+    return result
 
 
 
@@ -333,10 +393,64 @@ def compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks,
 #     return ranks, logodds_gen, logodds_disc, corr
 
 
+def extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat=False):
+    """Extract all unique completion token IDs from the dataset."""
+    prefix = "a " if not is_chat else ""
+    unique_tokens = set()
+    
+    if task=='hypernym':
+        for item in L:
+            token_ids = tokenizer.encode(prefix + item.noun2, add_special_tokens=False)
+            if len(token_ids) > first_sw_token:
+                unique_tokens.add(token_ids[first_sw_token])
+    elif task=='trivia-qa':
+        for item in L:
+            # Add both lowercase and capitalized versions
+            token_ids = tokenizer.encode(prefix + item['answers'][0], add_special_tokens=False)
+            if len(token_ids) > first_sw_token:
+                unique_tokens.add(token_ids[first_sw_token])
+            token_ids_cap = tokenizer.encode(prefix + item['answers'][0].capitalize(), add_special_tokens=False)
+            if len(token_ids_cap) > first_sw_token:
+                unique_tokens.add(token_ids_cap[first_sw_token])
+    elif task=='swords':
+        idx = first_sw_token if is_chat else first_sw_token - 1
+        for item in L:
+            token_ids = tokenizer.encode(item.replacement if is_chat else prefix + item.replacement, add_special_tokens=False)
+            if len(token_ids) > idx:
+                unique_tokens.add(token_ids[idx])
+    elif task=='lambada':
+        for item in L:
+            token_ids = tokenizer.encode(prefix + item['final_word'], add_special_tokens=False)
+            if len(token_ids) > first_sw_token:
+                unique_tokens.add(token_ids[first_sw_token])
+    elif task in ['ifeval', 'collie']:
+        # For multi-token tasks, collect all tokens
+        prefix = ""
+        key = 'response' if task == 'ifeval' else 'generated'
+        for item in L:
+            token_ids = tokenizer.encode(prefix + item[key], add_special_tokens=False)
+            for tid in token_ids[first_sw_token:]:
+                unique_tokens.add(tid)
+    else:
+        raise ValueError(f"Unknown task: {task}")
+    
+    # Convert to sorted tensor for consistent indexing
+    import torch
+    return torch.tensor(sorted(unique_tokens), dtype=torch.long)
+
+
 def compute_logodds_final_layer(
     task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None, corrected_logodds_gen=None):
 
     prefix = "a " if not is_chat else ""
+    
+    # Extract all unique completion tokens from dataset
+    print("Extracting dataset tokens...")
+    dataset_token_ids = extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat)
+    print(f"  Found {len(dataset_token_ids)} unique tokens in dataset completions")
+    
+    # Compute full-vocabulary ranks
+    print("Computing full-vocabulary ranks...")
     if task=='hypernym':
         # for ii in range(len(P_gen)):
         #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
@@ -407,6 +521,69 @@ def compute_logodds_final_layer(
     else:
         raise ValueError("!!")
 
+    # Compute dataset-constrained ranks (only among dataset completion tokens)
+    print("Computing dataset-constrained ranks...")
+    if task=='hypernym':
+        ranks_dataset = [
+            get_rank_in_subset(
+                P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token], dataset_token_ids
+            )
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    elif task=='trivia-qa':
+        ranks_dataset = [
+            min(
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0])[first_sw_token], dataset_token_ids
+                ),
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token], dataset_token_ids
+                )
+            )
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    elif task=='swords':
+        idx = first_sw_token if is_chat else first_sw_token - 1
+        if is_chat:
+            ranks_dataset = [
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token], dataset_token_ids
+                )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        else:
+            ranks_dataset = [
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token-1], dataset_token_ids
+                )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+    elif task == 'lambada':
+        ranks_dataset = [
+            get_rank_in_subset(
+                P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token], dataset_token_ids
+            )
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    elif task == 'ifeval':
+        prefix = ""
+        tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
+        ranks_dataset = [
+            sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
+            if len(tokens[ii]) > 0 else float('inf')
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    elif task == 'collie':
+        prefix = ""
+        tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
+        ranks_dataset = [
+            sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
+            if len(tokens[ii]) > 0 else float('inf')
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    else:
+        raise ValueError("!!")
+
     # Use corrected_logodds_gen if provided (for typicality correction)
     if corrected_logodds_gen is not None:
         logodds_gen = [float(v) for v in corrected_logodds_gen]
@@ -421,7 +598,7 @@ def compute_logodds_final_layer(
         logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
 
     # disc_accuracy, gen_accuracies, corr = compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks)
-    res_dict = compute_metrics(task, L, logodds_gen, logodds_disc, ranks)
+    res_dict = compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=ranks_dataset)
     print(res_dict)
     return res_dict
 

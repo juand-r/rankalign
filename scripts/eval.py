@@ -211,6 +211,56 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
     print(f"Visualization saved to: {filename}")
     plt.close()
 
+def load_gpt2_vocab_probs(modelname, tokenizer):
+    """
+    Load precomputed GPT-2 log probabilities for all tokens in model's vocabulary.
+    
+    The .npy file structure:
+    - 1D array of shape (vocab_size,)
+    - Index i contains log P_gpt2(text) where text = tokenizer.decode([i])
+    - Created by precompute_gpt2_vocab_probs.py
+    
+    Args:
+        modelname: Model name/path
+        tokenizer: The model's tokenizer (used for vocab size verification)
+    
+    Returns:
+        torch.Tensor: log probabilities for each token index, or None if not available
+    """
+    # Detect vocab size to determine which precomputed file to use
+    vocab_size = len(tokenizer)
+    
+    # Map vocab sizes to their precomputed files
+    if vocab_size == 256000:
+        # Gemma-2-2b or fine-tuned versions
+        vocab_file = Path(__file__).parent.parent / "typicality" / "gpt2_vocab_logprobs.npy"
+        expected_vocab_size = 256000
+        print(f"  Detected Gemma-2-2b vocabulary (size: {vocab_size})")
+    else:
+        print(f"Warning: No precomputed GPT-2 vocab probabilities for vocab size {vocab_size}")
+        print(f"  Available: Gemma-2-2b (256000 tokens)")
+        return None
+    
+    if not vocab_file.exists():
+        print(f"Warning: GPT-2 vocab file not found at {vocab_file}")
+        return None
+    
+    print(f"Loading precomputed GPT-2 vocab probabilities from {vocab_file}...")
+    gpt2_log_probs = np.load(vocab_file)
+    print(f"  ✓ Loaded {len(gpt2_log_probs)} token probabilities")
+    
+    # Verify vocab size matches
+    actual_vocab_size = len(tokenizer)
+    if len(gpt2_log_probs) != actual_vocab_size:
+        raise ValueError(
+            f"Vocab size mismatch! GPT-2 vocab file has {len(gpt2_log_probs)} entries, "
+            f"but model tokenizer has {actual_vocab_size} tokens. "
+            f"Expected {expected_vocab_size} for {modelname}."
+        )
+    
+    print(f"  ✓ Vocab size verified: {actual_vocab_size} tokens")
+    return torch.tensor(gpt2_log_probs, dtype=torch.float32)
+
 def main(args):
     task = args.task
     modelname = args.model
@@ -382,31 +432,55 @@ def main(args):
         print("APPLYING TYPICALITY CORRECTION")
         print("="*60)
         
-        # Extract completions from data
+        # Load precomputed GPT-2 vocab probabilities
+        gpt2_vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
+        if gpt2_vocab_logprobs is None:
+            raise ValueError("Typicality correction requires precomputed GPT-2 vocab probabilities")
+        
+        # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
+        gpt2_vocab_logprobs = gpt2_vocab_logprobs.to(P_gen[0].device)
+        
+        # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_gpt2
+        # In log space: log P_corrected = log P_model - log P_gpt2
+        print("\nApplying PMI correction to probability distributions...")
+        P_gen_corrected = []
+        for ii, probs in enumerate(P_gen):
+            # probs shape: (vocab_size,) - probability distribution over all tokens
+            log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
+            log_probs_corrected = log_probs_model - gpt2_vocab_logprobs
+            # Keep in log space - no need to exponentiate!
+            # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
+            # get_rank() only sorts, so we can work directly with log-probs for efficiency.
+            P_gen_corrected.append(log_probs_corrected)
+        
+        # Also compute per-completion typicality scores for the log-odds metric
         completions = []
         for item in LL:
             gen_obj = make_prompt(item, style='generator', shots=gen_shots)
             completions.append(gen_obj.completion)
         
-        # Compute GPT-2 typicality scores
         typicality_scores = compute_gpt2_typicality(completions, task, LL)
         
-        # Apply correction: corrected_gen = gen - typicality
-        print("\nApplying correction: Generator - GPT-2 P(completion)")
+        # Apply correction to completion scores: corrected_gen = gen - typicality
+        print("\nApplying correction to completion scores: log P(completion|context) - log P_GPT2(completion)")
         logodds_gen_original = logodds_gen.copy()
         logodds_gen = [float(logodds_gen[i]) - typicality_scores[i] for i in range(len(logodds_gen))]
         
         # Convert back to tensors
         logodds_gen = [torch.tensor(v) for v in logodds_gen]
         
-        print(f"  Original generator mean: {np.mean([float(x) for x in logodds_gen_original]):.4f}")
-        print(f"  Corrected generator mean: {np.mean([float(x) for x in logodds_gen]):.4f}")
-        print(f"  Correction applied to {len(logodds_gen)} examples")
-        
-        # Also correct logprobs_gen if it exists (for visualization)
+        # Also correct logprobs_gen if it exists (for single-token mode visualization)
         if logprobs_gen is not None:
             logprobs_gen = [float(logprobs_gen[i]) - typicality_scores[i] for i in range(len(logprobs_gen))]
             logprobs_gen = [torch.tensor(v) for v in logprobs_gen]
+        
+        print(f"  Original score mean: {np.mean([float(x) for x in logodds_gen_original]):.4f}")
+        print(f"  Corrected score mean (PMI): {np.mean([float(x) for x in logodds_gen]):.4f}")
+        print(f"  Correction applied to {len(logodds_gen)} examples")
+        print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
+        
+        # Replace P_gen with corrected version for rank computation
+        P_gen = P_gen_corrected
         
         print("="*60 + "\n")
     
@@ -548,10 +622,17 @@ def main(args):
     with open(summary_file, 'a') as f:
         # if file is empty:
         if os.stat(summary_file).st_size == 0:
-            f.write("model,task,corr_all,corr_pos,corr_neg,disc_acc,disc_roc, gen_acc_5, gen_acc_10, gen_acc_40, gen_acc_100, gen_acc_1000,gen_mrr_pos, gen_mrr_neg, gen_shots,disc_shots,split,split_type,seed,spear_all,spear_pos,spear_neg,\n")
+            f.write("model,task,corr_all,corr_pos,corr_neg,disc_acc,disc_roc,gen_acc_5,gen_acc_10,gen_acc_40,gen_acc_100,gen_acc_1000,gen_mrr_pos,gen_mrr_neg,gen_shots,disc_shots,split,split_type,seed,spear_all,spear_pos,spear_neg,gen_acc_5_dataset,gen_acc_10_dataset,gen_acc_40_dataset,gen_acc_100_dataset,gen_acc_1000_dataset,gen_mrr_pos_dataset,gen_mrr_neg_dataset,gen_roc,\n")
         split = "train" if args.train else "test"
         f.write(f"{modelname},{task},{res_dict['corr_all']},{res_dict['corr_pos']},{res_dict['corr_neg']},{res_dict['disc_acc']},{res_dict['disc_roc']},{res_dict['gen_acc_dict'][5]},{res_dict['gen_acc_dict'][10]},{res_dict['gen_acc_dict'][40]},{res_dict['gen_acc_dict'][100]},{res_dict['gen_acc_dict'][1000]},{res_dict['gen_mrr_pos']},{res_dict['gen_mrr_neg']},{gen_shots},{disc_shots},{split},{split_type},{seed}")
-        f.write(f",{res_dict['spear_all']},{res_dict['spear_pos']},{res_dict['spear_neg']},\n")
+        f.write(f",{res_dict['spear_all']},{res_dict['spear_pos']},{res_dict['spear_neg']}")
+        # Add dataset-constrained metrics
+        if 'gen_acc_dict_dataset' in res_dict:
+            f.write(f",{res_dict['gen_acc_dict_dataset'][5]},{res_dict['gen_acc_dict_dataset'][10]},{res_dict['gen_acc_dict_dataset'][40]},{res_dict['gen_acc_dict_dataset'][100]},{res_dict['gen_acc_dict_dataset'][1000]},{res_dict['gen_mrr_pos_dataset']},{res_dict['gen_mrr_neg_dataset']}")
+        else:
+            f.write(",,,,,,,")  # Empty values if not computed
+        # Add gen_roc at the end
+        f.write(f",{res_dict['gen_roc']},\n")
     
     # Create visualization if requested
     if args.viz:
@@ -582,7 +663,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
     parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
     parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
-    parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
+    parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction using PMI: corrects both completion scores and full vocab distributions for ranking")
 
     args = parser.parse_args()
     main(args)
