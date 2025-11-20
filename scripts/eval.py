@@ -286,7 +286,7 @@ def main(args):
 
     model_is_chat = False
     model_has_system_role = False
-    if 'instruct' in modelname.lower() or 'it' in modelname.lower():
+    if 'instruct' in modelname.lower() or '-it' in modelname.lower():
         model_is_chat = True
         first_sw_token = 1
         print("Model is chat model!")

@@ -25,7 +25,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 import utils
-from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, get_final_logit_prob
+from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
 
 # good_pair, alpha_fun_1, get_alpha are used for "both" mode
 def good_pair(log_prob_i, log_prob_j, label_i, label_j):
@@ -141,6 +141,7 @@ def main(args):
     alpha = args.alpha  # New alpha parameter
     use_lora = args.lora
     gradient_checkpointing = args.gradient_checkpointing
+    use_full_completion = args.use_full_completion
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
@@ -275,8 +276,8 @@ def main(args):
         #L_train, L_test = utils.split_train_test_no_overlap_both(L)
     elif task=='trivia-qa':
         #USE SUBSET FOR NOW
-#        L_train =  L['train'].shuffle(seed=42).select(range(3000))
-#        L_test = L['validation'].shuffle(seed=42).select(range(1000))
+        #L_train =  L['train'].shuffle(seed=42).select(range(3000))
+        #L_test = L['validation'].shuffle(seed=42).select(range(1000))
         L_train, L_test, _ = utils.get_L_prompt('trivia-qa', split_type, seed=0)
     elif task=='swords':
         L_train, L_test = utils.load_swords_data(seed=0)
@@ -334,7 +335,6 @@ def main(args):
         # if trainin disc, log_probs_last_layer_pos are for generator prompt
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
             # Get the log probability for the target token (noun2)
             # For hypernymy, we want the probability of the noun2 token
             if train_g_or_d=='d':
@@ -352,18 +352,31 @@ def main(args):
                 target_tokens_g = tokenizer.encode(target_text_g)
             else:
                 raise ValueError("No.")
-            # Use the first token after the space
-            if train_g_or_d == 'both':
-                ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                logprobs_last_layer.append((log_prob_d, log_prob_g))
-                #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
+            
+            if use_full_completion:
+                if train_g_or_d == 'both':
+                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat)
+                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat)
+                    total_log_prob_d = float(log_prob_d.sum().item())
+                    total_log_prob_g = float(log_prob_g.sum().item())
+                    logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
+                else:
+                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat)
+                    total_log_prob = float(log_prob.sum().item())
+                    logprobs_last_layer.append(total_log_prob)
             else:
-                ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                log_prob = math.log(probs[ind].item() + 1e-12)
-                logprobs_last_layer.append(log_prob)
+                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
+                if train_g_or_d == 'both':
+                    ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
+                    ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                    log_prob_d = math.log(probs[ind_d].item() + 1e-12)
+                    log_prob_g = math.log(probs[ind_g].item() + 1e-12)
+                    logprobs_last_layer.append((log_prob_d, log_prob_g))
+                    #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
+                else:
+                    ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                    log_prob = math.log(probs[ind].item() + 1e-12)
+                    logprobs_last_layer.append(log_prob)
 
         # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
         p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_hypernymy, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
@@ -656,33 +669,33 @@ def main(args):
 
     if train_g_or_d=='d':
         #NOTE in this case the tokens we are targeting are the "Yes" tokens in both cases.
-        token_id = tokenizer.encode(space_prefix +"Yes")[-1]
+        completion_text = space_prefix +"Yes"
 
         if with_chat:
-             pairs = [(  ( format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  (token_id, token_id) ) for pair in pairs_
+             pairs = [(  ( format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  (completion_text, completion_text) ) for pair in pairs_
                 if pair[1][1] - pair[0][1] > delta]
         else:
-            pairs = [((pair[0][0].prompt ,pair[1][0].prompt),  (token_id, token_id) ) for pair in pairs_
+            pairs = [((pair[0][0].prompt ,pair[1][0].prompt),  (completion_text, completion_text) ) for pair in pairs_
                 if pair[1][1] - pair[0][1] > delta]
     elif train_g_or_d=='g':
         #NOTE in this case the ranking is derived from the log-probs of Yes under both prompts but we are targetting
         # the log-odds (hopefully log-prob is fine here) of the *generator completion*, so not the same in each item of the pair!
         if with_chat:
-             pairs = [(  ( format_with_inst(pair[0][0].prompt),  format_with_inst(pair[1][0].prompt)),  (tokenizer.encode(pair[0][0].completion)[1], tokenizer.encode(pair[1][0].completion)[1] )     ) for pair in pairs_
+            pairs = [(  ( format_with_inst(pair[0][0].prompt),  format_with_inst(pair[1][0].prompt)),  (pair[0][0].completion, pair[1][0].completion )     ) for pair in pairs_
                 if pair[1][1] - pair[0][1] > delta]
         else:
-            pairs = [(   (pair[0][0].prompt, pair[1][0].prompt) , (tokenizer.encode(pair[0][0].completion)[1], tokenizer.encode(pair[1][0].completion)[1] )   ) for pair in pairs_  if pair[1][1] - pair[0][1] > delta]
+            pairs = [(   (pair[0][0].prompt, pair[1][0].prompt) , (pair[0][0].completion, pair[1][0].completion )   ) for pair in pairs_  if pair[1][1] - pair[0][1] > delta]
     elif train_g_or_d == 'both':
         # For both mode, we create pairs for both generator and discriminator training
         # First create discriminator pairs (targeting "Yes" tokens)
-        token_id = tokenizer.encode(space_prefix +"Yes")[-1]
+        completion_text = space_prefix +"Yes"
         if with_chat:
             # Create pairs with both discriminator and generator prompts, applying chat formatting
             # NOTE verify fixed
             pairs = [
                 (
-                    ((format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)), (token_id, token_id)),  # discriminator pair
-                    ((format_with_inst(pair[0][1].prompt), format_with_inst(pair[1][1].prompt)), (tokenizer.encode(pair[0][1].completion)[1], tokenizer.encode(pair[1][1].completion)[1])),  # generator pair
+                    ((format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)), (completion_text, completion_text)),  # discriminator pair
+                    ((format_with_inst(pair[0][1].prompt), format_with_inst(pair[1][1].prompt)), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
                     (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   )
                 ) for pair in pairs_ if pair[1][-1][0] - pair[0][-1][0] > delta
             ]
@@ -690,8 +703,8 @@ def main(args):
             # Create pairs with both discriminator and generator prompts
             pairs = [
                 (
-                    ((pair[0][0].prompt, pair[1][0].prompt), (token_id, token_id)),  # discriminator pair
-                    ((pair[0][1].prompt, pair[1][1].prompt), (tokenizer.encode(pair[0][1].completion)[1], tokenizer.encode(pair[1][1].completion)[1])),  # generator pair
+                    ((pair[0][0].prompt, pair[1][0].prompt), (completion_text, completion_text)),  # discriminator pair
+                    ((pair[0][1].prompt, pair[1][1].prompt), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
                     (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   )
                 ) for pair in pairs_ if pair[1][-1][0] - pair[0][-1][0] > delta
             ]
@@ -735,24 +748,29 @@ def main(args):
 
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
-                ((prompt_i_disc, prompt_j_disc), (token_i_disc, token_j_disc)), ((prompt_i_gen, prompt_j_gen), (token_i_gen, token_j_gen)), (label_i, label_j) = self.pairs[idx]
+                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j) = self.pairs[idx]
             else:
-                (prompt_i, prompt_j), (token_i, token_j) = self.pairs[idx]
+                (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
             # Debug print
             #print(f"\nProcessing item {idx}:")
             #print("Token types:", type(token_i), type(token_j))
             #print("Tokens:", token_i, token_j)
+
+            #TODO: truncate the completion if not using full completion
             if train_g_or_d == 'both':
                 # Tokenize discriminator prompts
+                input_i_disc = prompt_i_disc + completion_i_disc
+                input_j_disc = prompt_j_disc + completion_j_disc
+
                 enc_i_disc = self.tokenizer(
-                    prompt_i_disc,
+                    input_i_disc,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
                     return_tensors='pt'
                 )
                 enc_j_disc = self.tokenizer(
-                    prompt_j_disc,
+                    input_j_disc,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
@@ -760,20 +778,31 @@ def main(args):
                 )
                 
                 # Tokenize generator prompts
+                input_i_gen = prompt_i_gen + completion_i_gen
+                input_j_gen = prompt_j_gen + completion_j_gen
+
                 enc_i_gen = self.tokenizer(
-                    prompt_i_gen,
+                    input_i_gen,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
                     return_tensors='pt'
                 )
                 enc_j_gen = self.tokenizer(
-                    prompt_j_gen,
+                    input_j_gen,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
                     return_tensors='pt'
                 )
+
+                # Tokenize completions
+
+                token_i_disc = self.tokenizer.encode(completion_i_disc, add_special_tokens=False, return_tensors='pt')
+                token_j_disc = self.tokenizer.encode(completion_j_disc, add_special_tokens=False, return_tensors='pt')
+
+                token_i_gen = self.tokenizer.encode(completion_i_gen, add_special_tokens=False, return_tensors='pt')
+                token_j_gen = self.tokenizer.encode(completion_j_gen, add_special_tokens=False, return_tensors='pt')
             # Get labels from prompts
             #    label_i = "yes" if "yes" in prompt_i.lower() else "no"
             #    label_j = "yes" if "yes" in prompt_j.lower() else "no"
@@ -782,47 +811,56 @@ def main(args):
 
             else:
                 # Tokenize prompt i
+                input_i = prompt_i + completion_i
                 enc_i = self.tokenizer(
-                    prompt_i,
+                    input_i,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
-                    return_tensors='pt'
+                    return_tensors='pt',
                 )
+                
+                # Tokenize completion i
+                token_i = self.tokenizer.encode(completion_i, add_special_tokens=False, return_tensors='pt')
+
                 # Tokenize prompt j
+                input_j = prompt_j + completion_j
                 enc_j = self.tokenizer(
-                    prompt_j,
+                    input_j,
                     padding='max_length',
                     truncation=True,
                     max_length=self.max_length,
                     return_tensors='pt'
                 )
 
+                # Tokenize completion j
+                token_j = self.tokenizer.encode(completion_j, add_special_tokens=False, return_tensors='pt')
+
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
                 item = {
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
                     'attention_mask_i': enc_i['attention_mask'].squeeze(0),
-                    'token_id_i': torch.tensor(token_i, dtype=torch.long),
+                    'token_id_i': token_i.squeeze(0),
                     'input_ids_j': enc_j['input_ids'].squeeze(0),
                     'attention_mask_j': enc_j['attention_mask'].squeeze(0),
-                    'token_id_j': torch.tensor(token_j, dtype=torch.long),
+                    'token_id_j': token_j.squeeze(0),
                     'label': torch.tensor(1.0, dtype=torch.float)
                 }
             else:
                 item = {
                     'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
                     'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
-                    'token_id_i_disc': torch.tensor(token_i_disc, dtype=torch.long),
+                    'token_id_i_disc': token_i_disc.squeeze(0),
                     'input_ids_j_disc': enc_j_disc['input_ids'].squeeze(0),
                     'attention_mask_j_disc': enc_j_disc['attention_mask'].squeeze(0),
-                    'token_id_j_disc': torch.tensor(token_j_disc, dtype=torch.long),
+                    'token_id_j_disc': token_j_disc.squeeze(0),
                     'input_ids_i_gen': enc_i_gen['input_ids'].squeeze(0),
                     'attention_mask_i_gen': enc_i_gen['attention_mask'].squeeze(0),
-                    'token_id_i_gen': torch.tensor(token_i_gen, dtype=torch.long),
+                    'token_id_i_gen': token_i_gen.squeeze(0),
                     'input_ids_j_gen': enc_j_gen['input_ids'].squeeze(0),
                     'attention_mask_j_gen': enc_j_gen['attention_mask'].squeeze(0),
-                    'token_id_j_gen': torch.tensor(token_j_gen, dtype=torch.long),
+                    'token_id_j_gen': token_j_gen.squeeze(0),
                     'label_i': torch.tensor(1.0 if label_i == "yes" else 0.0, dtype=torch.float),
                     'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float)
             }
@@ -830,28 +868,35 @@ def main(args):
 
 
     #18 fine for zero-shot
-    if with_ref:
-        if task=='swords':
-            batch_size = 2
-        elif task=='trivia-qa':
-            batch_size = 2
-        elif task=='lambada':
-            batch_size = 2
-        elif task =='hypernym':
-            batch_size = 1 #4
-        else:
-            raise ValueError("define batch size for this case")
+    if use_full_completion:
+        batch_size = 1 #TODO: allow actual batches
     else:
-        if task=='swords':
-            batch_size = 1#6
-        elif task=='trivia-qa':
-            batch_size = 2#6
-        elif task=='lambada':
-            batch_size = 2#6
-        elif task =='hypernym':
-            batch_size = 2#6#1  # Reduced from 32 to 1 for large models
+        if with_ref:
+            if task=='swords':
+                batch_size = 2
+            elif task=='trivia-qa':
+                batch_size = 2
+            elif task=='lambada':
+                batch_size = 2
+            elif task =='hypernym':
+                batch_size = 1 #4
+            elif task =='collie':
+                batch_size = 32
+            else:
+                raise ValueError("define batch size for this case")
         else:
-            raise ValueError("define batch size for this case")
+            if task=='swords':
+                batch_size = 1#6
+            elif task=='trivia-qa':
+                batch_size = 2#6
+            elif task=='lambada':
+                batch_size = 2#6
+            elif task =='hypernym':
+                batch_size = 2#6#1  # Reduced from 32 to 1 for large models
+            elif task =='collie':
+                batch_size = 32
+            else:
+                raise ValueError("define batch size for this case")
 
     if max_context_length > 90:
         max_context_length = 90
@@ -917,6 +962,23 @@ def main(args):
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
 
+            def sum_completion_logprobs(log_probs, token_ids):
+                """
+                log_probs: [batch, seq_len, vocab] - over input_ids (prompt + completion), left padded
+                token_ids: [batch, completion_len] - only the completion tokens
+                """
+                completion_log_probs = []
+                batch_size, seq_len, vocab_size = log_probs.shape
+
+                for b in range(batch_size):
+                    # pick the slice for this batch element
+                    comp_log_probs = log_probs[b, -token_ids[b].size(0):, :]  # [completion_len, vocab]
+                    # gather the logprobs for the actual completion tokens
+                    gathered = comp_log_probs.gather(1, token_ids[b].unsqueeze(-1)).squeeze(-1)
+                    completion_log_probs.append(gathered.sum())
+
+                return torch.stack(completion_log_probs)
+
             # Move all inputs to device
             if train_g_or_d == 'both':
                 # Get discriminator inputs
@@ -946,27 +1008,17 @@ def main(args):
                 outputs_i_gen = model(input_ids=input_ids_i_gen, attention_mask=attention_mask_i_gen)
                 outputs_j_gen = model(input_ids=input_ids_j_gen, attention_mask=attention_mask_j_gen)
 
-                # Get logits for discriminator
-                last_idx_disc = attention_mask_i_disc.size(1) - 1
-                selected_logits_i_disc = torch.cat([outputs_i_disc.logits[b, last_idx_disc, :].unsqueeze(0) for b in range(outputs_i_disc.logits.size(0))], dim=0)
-                selected_logits_j_disc = torch.cat([outputs_j_disc.logits[b, last_idx_disc, :].unsqueeze(0) for b in range(outputs_j_disc.logits.size(0))], dim=0)
-                
-                # Get logits for generator
-                last_idx_gen = attention_mask_i_gen.size(1) - 1
-                selected_logits_i_gen = torch.cat([outputs_i_gen.logits[b, last_idx_gen, :].unsqueeze(0) for b in range(outputs_i_gen.logits.size(0))], dim=0)
-                selected_logits_j_gen = torch.cat([outputs_j_gen.logits[b, last_idx_gen, :].unsqueeze(0) for b in range(outputs_j_gen.logits.size(0))], dim=0)
-
                 # Compute log probabilities
-                log_probs_i_disc = F.log_softmax(selected_logits_i_disc, dim=-1)
-                log_probs_j_disc = F.log_softmax(selected_logits_j_disc, dim=-1)
-                log_probs_i_gen = F.log_softmax(selected_logits_i_gen, dim=-1)
-                log_probs_j_gen = F.log_softmax(selected_logits_j_gen, dim=-1)
+                log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
+                log_probs_j_disc = F.log_softmax(outputs_j_disc.logits, dim=-1)
+                log_probs_i_gen = F.log_softmax(outputs_i_gen.logits, dim=-1)
+                log_probs_j_gen = F.log_softmax(outputs_j_gen.logits, dim=-1)
 
                 # Get scores
-                score_i_disc = log_probs_i_disc[torch.arange(log_probs_i_disc.size(0), device=device), token_id_i_disc]
-                score_j_disc = log_probs_j_disc[torch.arange(log_probs_j_disc.size(0), device=device), token_id_j_disc]
-                score_i_gen = log_probs_i_gen[torch.arange(log_probs_i_gen.size(0), device=device), token_id_i_gen]
-                score_j_gen = log_probs_j_gen[torch.arange(log_probs_j_gen.size(0), device=device), token_id_j_gen]
+                score_i_disc = sum_completion_logprobs(log_probs_i_disc, token_id_i_disc)   
+                score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
+                score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen)
+                score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen)
 
                 # Use frozen reference model if needed
                 if WITH_REF:
@@ -1013,48 +1065,21 @@ def main(args):
                 # Forward pass for prompt i
                 outputs_i = model(input_ids=input_ids_i, attention_mask=attention_mask_i)
                 # logits_i: [batch_size, seq_len, vocab_size]
-                logits_i = outputs_i.logits
 
-                last_idx_i = attention_mask_i.size(1) - 1
-
-                # Gather the logits for the chosen position and compute log-softmax
-                # shape [B, vocab_size]
-                selected_logits_i = []
-                for b in range(logits_i.size(0)):
-                    #selected_logits_i.append(logits_i[b, last_idx_i[b], :].unsqueeze(0))
-                    selected_logits_i.append(logits_i[b, last_idx_i, :].unsqueeze(0))
-                selected_logits_i = torch.cat(selected_logits_i, dim=0)
-
-                log_probs_i = F.log_softmax(selected_logits_i, dim=-1)  # [B, vocab_size]
-
+                log_probs_i = F.log_softmax(outputs_i.logits, dim=-1)  # [B, seq_len, vocab_size]
                 # Score for example i is the log-prob of token_id_i
-                # shape [B]
-                #score_i = log_probs_i[torch.arange(log_probs_i.size(0)), token_id_i]
-                score_i = log_probs_i[torch.arange(log_probs_i.size(0), device=device), token_id_i]
+                score_i = sum_completion_logprobs(log_probs_i, token_id_i)  # [B]
 
                 # Forward pass for prompt j
                 outputs_j = model(input_ids=input_ids_j, attention_mask=attention_mask_j)
-                logits_j = outputs_j.logits
 
-                #last_idx_j = attention_mask_j.sum(dim=1) - 1
-                last_idx_j = attention_mask_j.size(1) - 1 # assumes LEFT padding
-                #print(last_idx_i)
-                #print(last_idx_j)
-
-                selected_logits_j = []
-                for b in range(logits_j.size(0)):
-                    #selected_logits_j.append(logits_j[b, last_idx_j[b], :].unsqueeze(0))
-                    selected_logits_j.append(logits_j[b, last_idx_j, :].unsqueeze(0))
-
-                selected_logits_j = torch.cat(selected_logits_j, dim=0)
-                log_probs_j = F.log_softmax(selected_logits_j, dim=-1)  # [B, vocab_size]
-                #score_j = log_probs_j[torch.arange(log_probs_j.size(0)), token_id_j]
-                score_j = log_probs_j[torch.arange(log_probs_j.size(0), device=device), token_id_j]
+                log_probs_j = F.log_softmax(outputs_j.logits, dim=-1)  # [B, seq_len, vocab_size]
+                score_j = sum_completion_logprobs(log_probs_j, token_id_j)  # [B]
 
                 # Use frozen reference model
                 if WITH_REF:
                     with torch.no_grad():
-                        outputs_i_ref = model_ref(input_ids=input_ids_i, attention_mask=attention_mask_i)
+                        outputs_i_ref = model_ref(input_ids=input_ids_i, attention_mask=attention_mask_i, use_cache = False)
                         # logits_i: [batch_size, seq_len, vocab_size]
                         logits_i_ref = outputs_i_ref.logits
                         last_idx_i = attention_mask_i.size(1) - 1
@@ -1067,7 +1092,7 @@ def main(args):
                         score_i_ref = log_probs_i_ref[torch.arange(log_probs_i_ref.size(0), device=device), token_id_i]
 
                         # Forward pass for prompt j
-                        outputs_j_ref = model_ref(input_ids=input_ids_j, attention_mask=attention_mask_j)
+                        outputs_j_ref = model_ref(input_ids=input_ids_j, attention_mask=attention_mask_j, use_cache = False)
                         logits_j_ref = outputs_j_ref.logits
 
                         last_idx_j = attention_mask_j.size(1) - 1 # assumes LEFT padding
@@ -1098,7 +1123,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="google/gemma-2-2b", help="Model name/path")
-    parser.add_argument("--task", type=str, choices=["hypernym", "trivia-qa", "swords", "lambada"], help="Task to run")
+    parser.add_argument("--task", type=str, choices=["hypernym", "trivia-qa", "swords", "lambada", "collie"], help="Task to run")
     parser.add_argument("--with_ref", default=False, action="store_true", help="Whether to use reference model")
     parser.add_argument("--num_epochs", type=int, default=10, help="Number of epochs to train")
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")
@@ -1112,6 +1137,7 @@ if __name__ == "__main__":
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
+    parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
