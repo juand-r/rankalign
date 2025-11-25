@@ -142,6 +142,7 @@ def main(args):
     use_lora = args.lora
     gradient_checkpointing = args.gradient_checkpointing
     use_full_completion = args.use_full_completion
+    debug = args.debug
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
@@ -841,9 +842,8 @@ def main(args):
                 # Tokenize completion j
                 token_j = self.tokenizer.encode(completion_j, add_special_tokens=False, return_tensors='pt')
 
-                # DEBUG: Check for tokenization mismatch
-                #if idx == 0:  # Only print for first item
-                if True:
+                # DEBUG: Check for tokenization mismatch (enabled with --debug flag)
+                if debug:
                     print("\n" + "="*60)
                     print("DEBUG: TOKENIZATION MISMATCH CHECK")
                     print("="*60)
@@ -874,8 +874,6 @@ def main(args):
                     print(f"\nDecoded separately tokenized: '{self.tokenizer.decode(token_i.squeeze())}'")
                     print(f"Decoded from full sequence: '{self.tokenizer.decode(actual_completion_tokens)}'")
                     print("="*60)
-                    
-                    #import pdb; pdb.set_trace()
 
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
@@ -1184,6 +1182,7 @@ if __name__ == "__main__":
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
     parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
+    parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
