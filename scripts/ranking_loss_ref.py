@@ -145,6 +145,11 @@ def main(args):
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
+    
+    # Compatibility check: --use-full-completion is not yet supported with --with_ref
+    if use_full_completion and WITH_REF:
+        raise ValueError("--use-full-completion is not yet compatible with --with_ref. "
+                        "The reference model scoring needs to be updated for multi-token completions.")
 
     if 'Instruct' in model_name or 'instruct' in model_name:
         with_chat = True
@@ -836,6 +841,42 @@ def main(args):
                 # Tokenize completion j
                 token_j = self.tokenizer.encode(completion_j, add_special_tokens=False, return_tensors='pt')
 
+                # DEBUG: Check for tokenization mismatch
+                #if idx == 0:  # Only print for first item
+                if True:
+                    print("\n" + "="*60)
+                    print("DEBUG: TOKENIZATION MISMATCH CHECK")
+                    print("="*60)
+                    print(f"Completion text: '{completion_i}'")
+                    separately_tokenized_completion = token_i.squeeze().tolist()
+                    if not isinstance(separately_tokenized_completion, list):
+                        separately_tokenized_completion = [separately_tokenized_completion]
+                    print(f"Separately tokenized completion: {separately_tokenized_completion}")
+                    
+                    # Find actual tokens in full sequence
+                    full_tokens = enc_i['input_ids'].squeeze().tolist()
+                    # Remove padding tokens (usually 0 or pad_token_id)
+                    pad_id = self.tokenizer.pad_token_id
+                    actual_tokens = [t for t in full_tokens if t != pad_id]
+                    
+                    # Get last N tokens where N = len(completion tokens)
+                    comp_len = token_i.squeeze().shape[0] if token_i.squeeze().dim() > 0 else 1
+                    actual_completion_tokens = actual_tokens[-comp_len:]
+                    
+                    print(f"Actual tokens at end of full sequence: {actual_completion_tokens}")
+                    do_they_match = separately_tokenized_completion == actual_completion_tokens
+                    print(f"Do they match? {do_they_match}")
+                    if not do_they_match:
+                        print("*** MISMATCH DETECTED! ***")
+                        breakpoint()
+                    
+                    # Decode both to see what text they represent
+                    print(f"\nDecoded separately tokenized: '{self.tokenizer.decode(token_i.squeeze())}'")
+                    print(f"Decoded from full sequence: '{self.tokenizer.decode(actual_completion_tokens)}'")
+                    print("="*60)
+                    
+                    #import pdb; pdb.set_trace()
+
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
                 item = {
@@ -966,13 +1007,18 @@ def main(args):
                 """
                 log_probs: [batch, seq_len, vocab] - over input_ids (prompt + completion), left padded
                 token_ids: [batch, completion_len] - only the completion tokens
+                
+                Note: log_probs[t] predicts token at position t+1, so for completion tokens
+                at positions [-C:], we need log_probs at positions [-(C+1):-1]
                 """
                 completion_log_probs = []
                 batch_size, seq_len, vocab_size = log_probs.shape
 
                 for b in range(batch_size):
                     # pick the slice for this batch element
-                    comp_log_probs = log_probs[b, -token_ids[b].size(0):, :]  # [completion_len, vocab]
+                    # log_probs[t] predicts token[t+1], so we need positions [-(C+1):-1] to predict tokens [-C:]
+                    comp_len = token_ids[b].size(0)
+                    comp_log_probs = log_probs[b, -(comp_len+1):-1, :]  # [completion_len, vocab]
                     # gather the logprobs for the actual completion tokens
                     gathered = comp_log_probs.gather(1, token_ids[b].unsqueeze(-1)).squeeze(-1)
                     completion_log_probs.append(gathered.sum())
