@@ -294,6 +294,30 @@ def main(args):
     else:
         raise NotImplementedError("Task not implemented!")
 
+    # Filter for single-token completions if requested
+    if args.single_token_only:
+        print(f"Original L_train size: {len(L_train)}")
+        # Determine the appropriate make_prompt function for the task
+        if task == 'hypernym':
+            make_prompt_fn = make_prompt_hypernymy
+        elif task == 'trivia-qa':
+            make_prompt_fn = make_prompt_triviaqa
+        elif task == 'swords':
+            make_prompt_fn = make_prompt_swords
+        elif task == 'lambada':
+            make_prompt_fn = make_prompt_lambada
+        else:
+            raise ValueError(f"Task {task} not supported for single_token_only filtering")
+        
+        filtered_L_train = []
+        for item in L_train:
+            gen_prompt_obj = make_prompt_fn(item, style="generator", shots='zero')
+            completion_tokens = tokenizer.encode(gen_prompt_obj.completion, add_special_tokens=False)
+            if len(completion_tokens) == 1:
+                filtered_L_train.append(item)
+        L_train = filtered_L_train
+        print(f"Filtered to single-token completions: {len(L_train)}")
+
     print("Computing log-probabilities on the fly...")
     print(f"Using device: {device}")
 
@@ -970,7 +994,9 @@ def main(args):
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
             typcorr_str = "--typcorr" if args.typicality_correction else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str
+            single_token_str = "--single-token" if args.single_token_only else ""
+            full_completion_str = "--full-completion" if use_full_completion else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -1183,6 +1209,7 @@ if __name__ == "__main__":
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
     parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
+    parser.add_argument("--single_token_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
