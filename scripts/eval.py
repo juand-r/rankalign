@@ -118,16 +118,31 @@ def init_model(model_name, device):
     global model
     global tokenizer
     global terminators 
-    torch_dtype = "auto"#torch.bfloat16
+    torch_dtype = torch.bfloat16
+    
+    # Common kwargs for loading
+    load_kwargs = {
+        "torch_dtype": torch_dtype,
+        "device_map": "auto",  # Automatically spread across available GPUs
+        "low_cpu_mem_usage": True,
+    }
+    
     # if 'gemma-3' in model_name:
     #     model = Gemma3ForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype).to(device)
-    # el
+    
     if 'gemma' in model_name:
-        model = AutoModelForCausalLM.from_pretrained(model_name, attn_implementation="eager", torch_dtype=torch_dtype)
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name, 
+            attn_implementation="eager", 
+            **load_kwargs
+        )
     else:
-        model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype)
-    model = model.to(device)
-    print("model.config.torch_dtype:", model.config.torch_dtype)  
+        model = AutoModelForCausalLM.from_pretrained(model_name, **load_kwargs)
+    
+    # Note: Don't call model.to(device) when using device_map="auto"
+    print("model.config.torch_dtype:", model.config.torch_dtype)
+    print(f"Model distributed across devices: {set(model.hf_device_map.values()) if hasattr(model, 'hf_device_map') else 'single device'}")
+    
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     if "llama" in model_name:

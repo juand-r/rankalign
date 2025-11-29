@@ -861,6 +861,18 @@ def load_model(peft_model_id, device):
     return model, tokenizer
 
 
+def get_model_input_device(model, fallback_device='cuda'):
+    """Get the device where model inputs should be placed.
+    
+    For models loaded with device_map="auto" (distributed across GPUs),
+    inputs should go to the device of the first layer (embedding layer).
+    """
+    # For models with device_map="auto", get device of first parameter
+    try:
+        return next(model.parameters()).device
+    except StopIteration:
+        return torch.device(fallback_device)
+
 def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=False, has_system_role=False):
     with torch.no_grad():
         if is_chat and has_system_role:
@@ -874,7 +886,10 @@ def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=Fals
             input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         else:
             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0].tolist()
-        outputs = model(torch.tensor([input_ids]).to(device), output_hidden_states=True)
+        # Use device of first parameter for proper placement with device_map="auto"
+        input_device = get_model_input_device(model, device)
+        # Disable cache to avoid device mismatch issues with device_map="auto"
+        outputs = model(torch.tensor([input_ids]).to(input_device), output_hidden_states=True, use_cache=False)
     #     response = model.generate(
     #         input_ids=torch.tensor([input_ids]).to(device),max_new_tokens=10,do_sample=False)
     #     decoded_response = tokenizer.decode(response[0][len(input_ids):], skip_special_tokens=False)
@@ -913,9 +928,11 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0].tolist()
         # outputs = model(torch.tensor([input_ids]).to(device), output_hidden_states=True)
 
+        # Use device of first parameter for proper placement with device_map="auto"
+        input_device = get_model_input_device(model, device)
         response = model.generate(
-            input_ids=torch.tensor([input_ids]).to(device),
-            attention_mask=torch.ones(1,len(input_ids)).to(device),
+            input_ids=torch.tensor([input_ids]).to(input_device),
+            attention_mask=torch.ones(1,len(input_ids)).to(input_device),
             max_new_tokens=10,do_sample=False,
             pad_token_id=tokenizer.eos_token_id)
         decoded_response = tokenizer.decode(response[0][len(input_ids):], skip_special_tokens=True)
@@ -930,7 +947,8 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
       add_generation_prompt=True (system+user, assistant prefix), then append tokenized
       `completion` (no special tokens) and score each completion token autoregressively.
     """
-    model_device = device
+    # Use device of first parameter for proper placement with device_map="auto"
+    model_device = get_model_input_device(model, device)
     with torch.no_grad():
         if is_chat and has_system_role:
             # Build the chat prompt prefix (system + user + assistant prefix)
@@ -969,7 +987,8 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
             input_ids = torch.tensor([prompt_ids.tolist() + completion_ids])
             prefix_len = prompt_ids.shape[0]
 
-        outputs = model(input_ids.to(model_device))
+        # Disable cache to avoid device mismatch issues with device_map="auto"
+        outputs = model(input_ids.to(model_device), use_cache=False)
         log_probs = outputs.logits.log_softmax(-1).squeeze(0)  # [seq_len, vocab]
 
         # For k-th completion token, score is log_probs[prefix_len + k - 1, completion_ids[k]]
