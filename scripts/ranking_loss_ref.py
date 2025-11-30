@@ -748,7 +748,7 @@ def main(args):
     print("\n\nNum Samples: ", len(pairs))
 
     class PairwiseDataset(Dataset):
-        def __init__(self, pairs, tokenizer, max_length=128, device='cuda'):
+        def __init__(self, pairs, tokenizer, max_length=128, device='cuda', use_full_completion=False):
             """
             pairs: list of ((prompt_i, prompt_j), (token_i, token_j))
             tokenizer: Hugging Face tokenizer
@@ -758,6 +758,7 @@ def main(args):
             self.tokenizer = tokenizer
             self.max_length = max_length
             self.device = device
+            self.use_full_completion = use_full_completion
 
             # Debug print first pair
             #print("\nDebugging PairwiseDataset initialization:")
@@ -779,8 +780,16 @@ def main(args):
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
                 ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j) = self.pairs[idx]
+                if not use_full_completion:
+                    completion_i_disc = self.tokenizer.decode(self.tokenizer.encode(completion_i_disc)[-1])
+                    completion_j_disc = self.tokenizer.decode(self.tokenizer.encode(completion_j_disc)[-1])
+                    completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
+                    completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
                 (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
+                if not use_full_completion:
+                    completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
+                    completion_j = self.tokenizer.decode(self.tokenizer.encode(completion_j)[-1])
             # Debug print
             #print(f"\nProcessing item {idx}:")
             #print("Token types:", type(token_i), type(token_j))
@@ -964,7 +973,7 @@ def main(args):
     if max_context_length > 90:
         max_context_length = 90
 
-    dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device)
+    dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     print("\n\nDone making dataloader\n\n")
     optimizer = AdamW(model.parameters(), lr=lr)
