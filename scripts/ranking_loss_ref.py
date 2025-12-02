@@ -145,7 +145,7 @@ def main(args):
     use_full_completion = args.use_full_completion
     debug = args.debug
     nll_weight = args.nll_weight
-    use_wandb = args.wandb
+    use_wandb = not args.no_wandb
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
@@ -1382,7 +1382,7 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
     parser.add_argument("--nll_weight", type=float, default=0.0, help="Weight for NLL loss on preferred output (CPO-style BC regularizer)")
-    parser.add_argument("--wandb", action="store_true", default=False, help="Enable Weights & Biases logging")
+    parser.add_argument("--no-wandb", action="store_true", default=False, help="Disable Weights & Biases logging (enabled by default)")
     parser.add_argument("--wandb_run_name", type=str, default=None, help="Weights & Biases run name (auto-generated if not provided)")
     args = parser.parse_args()
     
