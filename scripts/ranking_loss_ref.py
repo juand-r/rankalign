@@ -18,6 +18,7 @@ from peft import LoraConfig, get_peft_model
 import math
 import random
 import argparse
+import wandb
 
 from datasets import load_dataset
 
@@ -144,14 +145,52 @@ def main(args):
     use_full_completion = args.use_full_completion
     debug = args.debug
     nll_weight = args.nll_weight
+    use_wandb = args.wandb
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
+    
+    # Initialize wandb if enabled
+    if use_wandb:
+        run_name = args.wandb_run_name
+        if run_name is None:
+            # Auto-generate run name from key parameters
+            run_name = f"{task}-{train_g_or_d}-delta{delta}-nll{nll_weight}-lr{lr}"
+        
+        wandb.init(
+            project="rankalign",
+            name=run_name,
+            config={
+                "model": model_name,
+                "task": task,
+                "train_g_or_d": train_g_or_d,
+                "delta": delta,
+                "nll_weight": nll_weight,
+                "learning_rate": lr,
+                "num_epochs": num_epochs,
+                "total_samples": total_samples,
+                "with_ref": with_ref,
+                "use_all": use_all,
+                "split_type": split_type,
+                "alpha": alpha,
+                "use_lora": use_lora,
+                "gradient_checkpointing": gradient_checkpointing,
+                "use_full_completion": use_full_completion,
+                "single_token_only": args.single_token_only,
+            }
+        )
+        print(f"Weights & Biases initialized: rankalign/{run_name}")
     
     # Compatibility check: --use-full-completion is not yet supported with --with_ref
     if use_full_completion and WITH_REF:
         raise ValueError("--use-full-completion is not yet compatible with --with_ref. "
                         "The reference model scoring needs to be updated for multi-token completions.")
+
+    # Compatibility check: NLL with generator training requires positive-only examples
+    if nll_weight > 0 and train_g_or_d == 'g' and use_all:
+        raise ValueError("--nll_weight with --train_g_or_d g and --all is not supported. "
+                        "Generator NLL uses the ranking winner's completion, which is only valid "
+                        "when all examples are positive. Either remove --all or use --train_g_or_d d.")
 
     if 'Instruct' in model_name or 'instruct' in model_name:
         with_chat = True
@@ -669,8 +708,9 @@ def main(args):
         pairs_ = [(Z[i[0]], Z[i[1]]) for i in pair_inds]
     else:
         #Z = list(zip(prompts_pos, gen_logprobs_last_layer))
-        Z = list(zip(p_train_tune, logprobs_last_layer))
-        Z = sorted(Z, key = lambda i: i[-1])
+        # Include L_train_all to access ground truth labels (e.g., .taxonomic)
+        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all))
+        Z = sorted(Z, key = lambda i: i[1])  # Sort by logprob (index 1)
 
         # Calculate delta based on range of logprobs
         min_logprob = Z[0][1]
@@ -697,17 +737,47 @@ def main(args):
         toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt')[0]
         return tokenizer.decode(toks[1:])
 
+    def get_correct_answer(data_item, task):
+        """Get the ground truth answer for a data item based on task type."""
+        if task == 'hypernym':
+            label = data_item.taxonomic.strip().lower()
+        elif task == 'trivia-qa':
+            label = data_item['correct'].strip().lower()
+        elif task == 'swords':
+            label = data_item.synonym.strip().lower()
+        elif task == 'lambada':
+            label = data_item['correct'].strip().lower()
+        else:
+            raise ValueError(f"Task {task} not supported for ground truth lookup")
+        
+        if label == 'yes':
+            return space_prefix + "Yes"
+        else:
+            return space_prefix + "No"
+
 
     if train_g_or_d=='d':
         #NOTE in this case the tokens we are targeting are the "Yes" tokens in both cases.
         completion_text = space_prefix +"Yes"
 
         if with_chat:
-             pairs = [(  ( format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  (completion_text, completion_text) ) for pair in pairs_
-                if pair[1][1] - pair[0][1] > delta]
+             pairs = [
+                 (
+                     (format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  # prompts
+                     (completion_text, completion_text),  # completion for ranking (always "Yes")
+                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task))  # ground truth for NLL
+                 )
+                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+             ]
         else:
-            pairs = [((pair[0][0].prompt ,pair[1][0].prompt),  (completion_text, completion_text) ) for pair in pairs_
-                if pair[1][1] - pair[0][1] > delta]
+            pairs = [
+                (
+                    (pair[0][0].prompt, pair[1][0].prompt),  # prompts
+                    (completion_text, completion_text),  # completion for ranking (always "Yes")
+                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task))  # ground truth for NLL
+                )
+                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+            ]
     elif train_g_or_d=='g':
         #NOTE in this case the ranking is derived from the log-probs of Yes under both prompts but we are targetting
         # the log-odds (hopefully log-prob is fine here) of the *generator completion*, so not the same in each item of the pair!
@@ -787,10 +857,19 @@ def main(args):
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
-                (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
+                # For 'd' mode: pairs have 3 elements (prompts, ranking_completions, ground_truth_completions)
+                # For 'g' mode: pairs have 2 elements (prompts, completions)
+                if len(self.pairs[idx]) == 3:
+                    (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j) = self.pairs[idx]
+                else:
+                    (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
+                    correct_i, correct_j = completion_i, completion_j  # For 'g' mode, completion IS the correct answer
+                
                 if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
                     completion_j = self.tokenizer.decode(self.tokenizer.encode(completion_j)[-1])
+                    correct_i = self.tokenizer.decode(self.tokenizer.encode(correct_i)[-1])
+                    correct_j = self.tokenizer.decode(self.tokenizer.encode(correct_j)[-1])
             # Debug print
             #print(f"\nProcessing item {idx}:")
             #print("Token types:", type(token_i), type(token_j))
@@ -876,6 +955,10 @@ def main(args):
                 # Tokenize completion j
                 token_j = self.tokenizer.encode(completion_j, add_special_tokens=False, return_tensors='pt')
 
+                # Tokenize correct completions (for NLL loss)
+                token_correct_i = self.tokenizer.encode(correct_i, add_special_tokens=False, return_tensors='pt')
+                token_correct_j = self.tokenizer.encode(correct_j, add_special_tokens=False, return_tensors='pt')
+
                 # DEBUG: Check for tokenization mismatch (enabled with --debug flag)
                 if debug:
                     print("\n" + "="*60)
@@ -915,9 +998,11 @@ def main(args):
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
                     'attention_mask_i': enc_i['attention_mask'].squeeze(0),
                     'token_id_i': token_i.squeeze(0),
+                    'token_correct_i': token_correct_i.squeeze(0),  # ground truth completion
                     'input_ids_j': enc_j['input_ids'].squeeze(0),
                     'attention_mask_j': enc_j['attention_mask'].squeeze(0),
                     'token_id_j': token_j.squeeze(0),
+                    'token_correct_j': token_correct_j.squeeze(0),  # ground truth completion
                     'label': torch.tensor(1.0, dtype=torch.float)
                 }
             else:
@@ -980,6 +1065,7 @@ def main(args):
     optimizer = AdamW(model.parameters(), lr=lr)
 
     losses = []
+    global_step = 0
 
     for epoch in range(num_epochs):
         model.train()
@@ -1131,11 +1217,29 @@ def main(args):
                     nll_loss = (alphas * (-score_j_disc) + (1 - alphas) * (-score_j_gen)).mean()
                     loss = preference_loss + nll_weight * nll_loss
                 else:
+                    nll_loss = torch.tensor(0.0)
                     loss = preference_loss
 
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
+                global_step += 1
+                
+                # Log to wandb
+                if use_wandb:
+                    wandb.log({
+                        "train/loss": loss.item(),
+                        "train/preference_loss": preference_loss.item(),
+                        "train/nll_loss": nll_loss.item() if nll_weight > 0 else 0.0,
+                        "train/g2v_loss": g2v_loss.mean().item(),
+                        "train/v2g_loss": v2g_loss.mean().item(),
+                        "train/score_j_disc": score_j_disc.mean().item(),
+                        "train/score_i_disc": score_i_disc.mean().item(),
+                        "train/score_j_gen": score_j_gen.mean().item(),
+                        "train/score_i_gen": score_i_gen.mean().item(),
+                        "train/epoch": epoch,
+                        "train/global_step": global_step,
+                    })
                 
                 # Clear cache to prevent memory accumulation
                 torch.cuda.empty_cache()
@@ -1143,10 +1247,12 @@ def main(args):
                 input_ids_i = batch["input_ids_i"].to(device)
                 attention_mask_i = batch["attention_mask_i"].to(device)
                 token_id_i = batch["token_id_i"].to(device)
+                token_correct_i = batch["token_correct_i"].to(device)  # ground truth completion
 
                 input_ids_j = batch["input_ids_j"].to(device)
                 attention_mask_j = batch["attention_mask_j"].to(device)
                 token_id_j = batch["token_id_j"].to(device)
+                token_correct_j = batch["token_correct_j"].to(device)  # ground truth completion
 
                 label = batch["label"].to(device)
 
@@ -1199,22 +1305,61 @@ def main(args):
                 diff = score_j - score_i - diff_ref
                 preference_loss = -torch.log(torch.sigmoid(diff) + 1e-12).mean()
                 
-                # NLL on preferred output (j is the winner)
-                # This is the CPO-style BC regularizer see https://arxiv.org/pdf/2401.08417
+                # NLL loss computation depends on training mode
                 if nll_weight > 0:
-                    nll_loss = -score_j.mean()
+                    if train_g_or_d == 'g':
+                        # For generator training: use NLL on ranking winner (all completions are correct)
+                        nll_loss = -score_j.mean()
+                    else:
+                        # For discriminator training: use NLL on ground truth correct answers
+                        # This is necessary because ranking winner might be a negative example
+                        score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
+                        score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
+                        nll_loss = -(score_correct_i.mean() + score_correct_j.mean()) / 2
                     loss = preference_loss + nll_weight * nll_loss
                 else:
+                    nll_loss = torch.tensor(0.0)
                     loss = preference_loss
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
+                global_step += 1
+                
+                # Log to wandb
+                if use_wandb:
+                    log_dict = {
+                        "train/loss": loss.item(),
+                        "train/preference_loss": preference_loss.item(),
+                        "train/nll_loss": nll_loss.item() if nll_weight > 0 else 0.0,
+                        "train/score_j": score_j.mean().item(),
+                        "train/score_i": score_i.mean().item(),
+                        "train/diff": diff.mean().item(),
+                        "train/epoch": epoch,
+                        "train/global_step": global_step,
+                    }
+                    # Log correct scores only for discriminator training with NLL
+                    if nll_weight > 0 and train_g_or_d != 'g':
+                        log_dict["train/score_correct_i"] = score_correct_i.mean().item()
+                        log_dict["train/score_correct_j"] = score_correct_j.mean().item()
+                    wandb.log(log_dict)
                 
                 # Clear cache to prevent memory accumulation
                 torch.cuda.empty_cache()
         avg_loss = total_loss / len(train_loader)
         losses.append(avg_loss)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
+        
+        # Log epoch-level metrics to wandb
+        if use_wandb:
+            wandb.log({
+                "epoch/avg_loss": avg_loss,
+                "epoch/epoch": epoch + 1,
+            })
+    
+    # Finish wandb run
+    if use_wandb:
+        wandb.finish()
+        print("Weights & Biases run finished.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -1237,6 +1382,8 @@ if __name__ == "__main__":
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
     parser.add_argument("--nll_weight", type=float, default=0.0, help="Weight for NLL loss on preferred output (CPO-style BC regularizer)")
+    parser.add_argument("--wandb", action="store_true", default=False, help="Enable Weights & Biases logging")
+    parser.add_argument("--wandb_run_name", type=str, default=None, help="Weights & Biases run name (auto-generated if not provided)")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
