@@ -780,14 +780,14 @@ def main(args):
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
                 ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j) = self.pairs[idx]
-                if not use_full_completion:
+                if not self.use_full_completion:
                     completion_i_disc = self.tokenizer.decode(self.tokenizer.encode(completion_i_disc)[-1])
                     completion_j_disc = self.tokenizer.decode(self.tokenizer.encode(completion_j_disc)[-1])
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
                 (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
-                if not use_full_completion:
+                if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
                     completion_j = self.tokenizer.decode(self.tokenizer.encode(completion_j)[-1])
             # Debug print
