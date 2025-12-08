@@ -604,16 +604,16 @@ def map_ifeval_instruction(instruction, args):
             return "wrapped in double quotation marks"
 
 
-def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None):
+def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None, neg = False):
     """
     Make a prompt based on the item.
     """
 
+    if neg:
+        raise NotImplementedError("negation not implemented for ifeval yet")
+
     if style == "generator":
-        if item["correct"] == "Yes":
-            prompt = item['prompt']
-        else:
-            prompt = item['prompt'] # negative examples should prob have a different prompt for training?
+        prompt = item['prompt']
 
         if shots != "zero":
             raise NotImplementedError("TODO") # add example to prompt
@@ -652,7 +652,10 @@ def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None)
     Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
     return Pt(prompt.strip(), completion)
     
-def make_prompt_collie(item, style="generator", shots="zero", gen_response=None): 
+def make_prompt_collie(item, style="generator", shots="zero", gen_response=None, neg = False): 
+
+    if neg:
+        raise NotImplementedError("negation not implemented for collie yet")
 
     if style == "generator":
         if item["satisfies_constraint"]:

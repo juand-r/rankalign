@@ -26,7 +26,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 import utils
-from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
+from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_ifeval, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
 
 # good_pair, alpha_fun_1, get_alpha are used for "both" mode
 def good_pair(log_prob_i, log_prob_j, label_i, label_j):
@@ -192,7 +192,7 @@ def main(args):
                         "Generator NLL uses the ranking winner's completion, which is only valid "
                         "when all examples are positive. Either remove --all or use --train_g_or_d d.")
 
-    if 'Instruct' in model_name or 'instruct' in model_name:
+    if 'Instruct' in model_name or 'instruct' in model_name or '-it' in model_name:
         with_chat = True
         print(f"Detected instruct model: {model_name}")
         print("Using chat template formatting for prompts")
@@ -204,6 +204,10 @@ def main(args):
         space_prefix = " "
         print(f"Using standard formatting for model: {model_name}")
 
+    has_system_role = False
+    if 'llama' in model_name.lower():
+        has_system_role = True
+        print("Model has system role!")
 
     # Define device first
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -331,6 +335,10 @@ def main(args):
         #L_train, L_test = utils.load_lambada_data(seed=0)
         # experiment with negatives -- recent version of get_L_prompt does this
         L_train, L_test, _ = utils.get_L_prompt('lambada', split_type, seed=0)
+    elif task=='ifeval':
+        L_train, L_test = utils.load_ifeval_data(seed=0)
+    elif task=='collie':
+        L_train, L_test = utils.load_collie_data(seed=0)
     else:
         raise NotImplementedError("Task not implemented!")
 
@@ -425,17 +433,17 @@ def main(args):
             
             if use_full_completion:
                 if train_g_or_d == 'both':
-                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat)
-                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat)
+                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
                     total_log_prob_d = float(log_prob_d.sum().item())
                     total_log_prob_g = float(log_prob_g.sum().item())
                     logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
                 else:
-                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat)
+                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
                     total_log_prob = float(log_prob.sum().item())
                     logprobs_last_layer.append(total_log_prob)
             else:
-                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
+                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
                 if train_g_or_d == 'both':
                     ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                     ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
@@ -469,7 +477,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
             if train_g_or_d=='d':
                 # Get the log probability for the target token (answer)
                 target_text = space_prefix + L_train_all[idx]['answers'][0].capitalize()
@@ -516,7 +524,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
             # Get the log probability for the target token (replacement)
             #target_text = space_prefix + L_train_all[idx].replacement
             #target_tokens = tokenizer.encode(target_text)
@@ -567,7 +575,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
             # Get the log probability for the target token (final_word)
             #target_text = space_prefix + L_train_all[idx]['final_word']
             #target_tokens = tokenizer.encode(target_text)
@@ -601,6 +609,100 @@ def main(args):
         # Generate discriminator prompts
         p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_lambada, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
         #prompts_pos = [i.prompt for i in p_train]
+    elif task=='ifeval':
+        if use_all:
+            L_train_all = L_train
+        else:
+            L_train_all = [i for i in L_train if i.correct]
+        # Generate generator prompts
+        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_ifeval, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
+        prompts_gold = [i.prompt for i in p_train_gold]
+
+        # Compute log-probabilities for presumed "gold truth" prompts (when training discriminator, these are generator prompts)
+        # if trainin disc, log_probs_last_layer_pos are for generator prompt
+        logprobs_last_layer = []
+        for idx, prompt in enumerate(tqdm(prompts_gold)):
+            # Get the log probability for the target 
+            if train_g_or_d=='d':
+                target_text = space_prefix + L_train_all[idx]['response']
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d=='g':
+                target_text = space_prefix +"Yes"
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d=='both':
+                # For both mode, we use the same target as discriminator mode
+                target_text_d = space_prefix + L_train_all[idx]['response']
+                target_tokens_d = tokenizer.encode(target_text_d)
+
+                target_text_g = space_prefix + "Yes"
+                target_tokens_g = tokenizer.encode(target_text_g)
+            else:
+                raise ValueError("No.")
+
+            if not use_full_completion:
+                raise ValueError("must use full completion for ifeval task")
+            
+            if train_g_or_d == 'both':
+                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                total_log_prob_d = float(log_prob_d.sum().item())
+                total_log_prob_g = float(log_prob_g.sum().item())
+                logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
+            else:
+                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                total_log_prob = float(log_prob.sum().item())
+                logprobs_last_layer.append(total_log_prob)
+
+        # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
+        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_ifeval, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
+        #prompts_pos = [i.prompt for i in p_train]
+    elif task=='collie':
+        if use_all:
+            L_train_all = L_train
+        else:
+            L_train_all = [i for i in L_train if i.correct]
+        # Generate generator prompts
+        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_collie, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
+        prompts_gold = [i.prompt for i in p_train_gold]
+
+        # Compute log-probabilities for presumed "gold truth" prompts (when training discriminator, these are generator prompts)
+        # if trainin disc, log_probs_last_layer_pos are for generator prompt
+        logprobs_last_layer = []
+        for idx, prompt in enumerate(tqdm(prompts_gold)):
+            # Get the log probability for the target 
+            if train_g_or_d=='d':
+                target_text = space_prefix + L_train_all[idx]['generated']
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d=='g':
+                target_text = space_prefix +"Yes"
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d=='both':
+                # For both mode, we use the same target as discriminator mode
+                target_text_d = space_prefix + L_train_all[idx]['generated']
+                target_tokens_d = tokenizer.encode(target_text_d)
+
+                target_text_g = space_prefix + "Yes"
+                target_tokens_g = tokenizer.encode(target_text_g)
+            else:
+                raise ValueError("No.")
+
+            if not use_full_completion:
+                raise ValueError("must use full completion for collie task")
+            
+            if train_g_or_d == 'both':
+                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                total_log_prob_d = float(log_prob_d.sum().item())
+                total_log_prob_g = float(log_prob_g.sum().item())
+                logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
+            else:
+                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                total_log_prob = float(log_prob.sum().item())
+                logprobs_last_layer.append(total_log_prob)
+
+        # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
+        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_collie, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
+        #prompts_pos = [i.prompt for i in p_train]
     else:
         raise ValueError("Task unsupported!")
 
@@ -620,6 +722,10 @@ def main(args):
             completions = [item.replacement for item in L_train_all]
         elif task == 'lambada':
             completions = [item['final_word'] for item in L_train_all]
+        elif task == 'ifeval':
+            completions = [item['response'] for item in L_train_all]
+        elif task == 'collie':
+            completions = [item['generated'] for item in L_train_all]
         else:
             raise ValueError(f"Task {task} not supported for typicality correction")
         
@@ -662,15 +768,26 @@ def main(args):
         
         print("="*60 + "\n")
 
-    if with_chat:
+    if with_chat and has_system_role:
         # Process discriminator prompts (p_train_tune)
-        ms_tune = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()} ] for i in p_train_tune]
+        ms_tune = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_tune]
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
         max_context_length = toks_tune.shape[1]
         
         # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
         if train_g_or_d == 'both':
-            ms_gold = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()} ] for i in p_train_gold]
+            ms_gold = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_gold]
+            toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+            max_context_length = max(max_context_length, toks_gold.shape[1])
+    elif with_chat:
+        # Process discriminator prompts (p_train_tune)
+        ms_tune = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_tune]
+        toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+        max_context_length = toks_tune.shape[1]
+        
+        # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
+        if train_g_or_d == 'both':
+            ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
             max_context_length = max(max_context_length, toks_gold.shape[1])
     else:
@@ -731,9 +848,13 @@ def main(args):
 
 
     def format_with_inst(prompt):
-        message = [
-            {"role": "system", "content": "Answer directly without explanation."},
-            {"role": "user", "content": prompt},]
+        if has_system_role:
+            message = [
+                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "user", "content": prompt},]
+        else:
+            message = [
+                {"role": "user", "content": prompt},]
         toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt')[0]
         return tokenizer.decode(toks[1:])
 
@@ -746,6 +867,8 @@ def main(args):
         elif task == 'swords':
             label = data_item.synonym.strip().lower()
         elif task == 'lambada':
+            label = data_item['correct'].strip().lower()
+        elif task == 'ifeval':
             label = data_item['correct'].strip().lower()
         else:
             raise ValueError(f"Task {task} not supported for ground truth lookup")
@@ -1038,8 +1161,10 @@ def main(args):
                 batch_size = 2
             elif task =='hypernym':
                 batch_size = 1 #4
+            elif task == 'ifeval':
+                batch_size = 1
             elif task =='collie':
-                batch_size = 32
+                batch_size = 2
             else:
                 raise ValueError("define batch size for this case")
         else:
@@ -1051,13 +1176,15 @@ def main(args):
                 batch_size = 2#6
             elif task =='hypernym':
                 batch_size = 2#6#1  # Reduced from 32 to 1 for large models
+            elif task == 'ifeval':
+                batch_size = 1
             elif task =='collie':
-                batch_size = 32
+                batch_size = 2
             else:
                 raise ValueError("define batch size for this case")
 
-    if max_context_length > 90:
-        max_context_length = 90
+    # if max_context_length > 90:
+    #     max_context_length = 90
 
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -1364,7 +1491,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="google/gemma-2-2b", help="Model name/path")
-    parser.add_argument("--task", type=str, choices=["hypernym", "trivia-qa", "swords", "lambada", "collie"], help="Task to run")
+    parser.add_argument("--task", type=str, choices=["hypernym", "trivia-qa", "swords", "lambada", "ifeval", "collie"], help="Task to run")
     parser.add_argument("--with_ref", default=False, action="store_true", help="Whether to use reference model")
     parser.add_argument("--num_epochs", type=int, default=10, help="Number of epochs to train")
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")

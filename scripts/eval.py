@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
 import numpy as np
+import plotly.express as px
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
@@ -176,6 +177,12 @@ def get_labels(task, LL):
     else:
         raise ValueError(f"Unknown task: {task}")
 
+def get_example_details(task, LL):
+    if task=='hypernym':
+        return [ (i.noun1, i.noun2) for i in LL ]
+    else:
+        raise ValueError(f"Unknown task: {task}")
+
 def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds'):
     """
     Create scatter plot of generator vs validator log-odds or log-probs.
@@ -225,6 +232,55 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     print(f"Visualization saved to: {filename}")
     plt.close()
+
+
+
+def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_details, modelname, task, args, metric_type='logodds'):
+    """
+    Create an interactive scatter plot (Plotly) of generator vs validator log-odds/log-probs.
+    """
+    # Convert to numpy
+    logodds_gen_np = np.array([float(x) for x in logodds_gen])
+    logodds_disc_np = np.array([float(x) for x in logodds_disc])
+    labels_np = np.array(labels)
+    
+    # Prepare dataframe-like dict for Plotly
+    data = {
+        "Generator": logodds_gen_np,
+        "Validator": logodds_disc_np,
+        "Label": ["Positive" if l == 1 else "Negative" for l in labels_np],
+        "Index": np.arange(len(labels_np)),   # helps identify points
+        "Example Details": example_details
+    }
+
+    metric_label = "log-odds" if metric_type == "logodds" else "log-probs"
+
+    # Create interactive scatter
+    fig = px.scatter(
+        data,
+        x="Generator",
+        y="Validator",
+        color="Label",
+        hover_data=["Index", "Generator", "Validator", "Label", "Example Details"],
+        color_discrete_map={"Positive": "orange", "Negative": "blue"},
+        labels={"Generator": f"Generator {metric_label}",
+                "Validator": f"Validator {metric_label}"}
+    )
+
+    fig.update_layout(
+        title=f"Generator vs Validator ({metric_label})",
+        width=900,
+        height=700
+    )
+
+    # Output filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    model_short = modelname.split('/')[-1].replace('--', '_')
+    split = "train" if args.train else "test"
+    filename = f"../outputs/viz_interactive_{model_short}_{task}_{split}_{metric_type}_{timestamp}.html"
+
+    fig.write_html(filename)
+    print(f"Interactive visualization saved to: {filename}")
 
 def load_gpt2_vocab_probs(modelname, tokenizer):
     """
@@ -447,26 +503,27 @@ def main(args):
         print("APPLYING TYPICALITY CORRECTION")
         print("="*60)
         
-        # Load precomputed GPT-2 vocab probabilities
-        gpt2_vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
-        if gpt2_vocab_logprobs is None:
-            raise ValueError("Typicality correction requires precomputed GPT-2 vocab probabilities")
-        
-        # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
-        gpt2_vocab_logprobs = gpt2_vocab_logprobs.to(P_gen[0].device)
-        
-        # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_gpt2
-        # In log space: log P_corrected = log P_model - log P_gpt2
-        print("\nApplying PMI correction to probability distributions...")
-        P_gen_corrected = []
-        for ii, probs in enumerate(P_gen):
-            # probs shape: (vocab_size,) - probability distribution over all tokens
-            log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
-            log_probs_corrected = log_probs_model - gpt2_vocab_logprobs
-            # Keep in log space - no need to exponentiate!
-            # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
-            # get_rank() only sorts, so we can work directly with log-probs for efficiency.
-            P_gen_corrected.append(log_probs_corrected)
+        if not args.use_full_completion_logprobs:
+            # Load precomputed GPT-2 vocab probabilities
+            gpt2_vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
+            if gpt2_vocab_logprobs is None:
+                raise ValueError("Typicality correction requires precomputed GPT-2 vocab probabilities")
+            
+            # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
+            gpt2_vocab_logprobs = gpt2_vocab_logprobs.to(P_gen[0].device)
+            
+            # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_gpt2
+            # In log space: log P_corrected = log P_model - log P_gpt2
+            print("\nApplying PMI correction to probability distributions...")
+            P_gen_corrected = []
+            for ii, probs in enumerate(P_gen):
+                # probs shape: (vocab_size,) - probability distribution over all tokens
+                log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
+                log_probs_corrected = log_probs_model - gpt2_vocab_logprobs
+                # Keep in log space - no need to exponentiate!
+                # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
+                # get_rank() only sorts, so we can work directly with log-probs for efficiency.
+                P_gen_corrected.append(log_probs_corrected)
         
         # Also compute per-completion typicality scores for the log-odds metric
         completions = []
@@ -492,10 +549,10 @@ def main(args):
         print(f"  Original score mean: {np.mean([float(x) for x in logodds_gen_original]):.4f}")
         print(f"  Corrected score mean (PMI): {np.mean([float(x) for x in logodds_gen]):.4f}")
         print(f"  Correction applied to {len(logodds_gen)} examples")
-        print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
-        
-        # Replace P_gen with corrected version for rank computation
-        P_gen = P_gen_corrected
+        if not args.use_full_completion_logprobs:
+            print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
+            # Replace P_gen with corrected version for rank computation
+            P_gen = P_gen_corrected
         
         print("="*60 + "\n")
     
@@ -655,6 +712,7 @@ def main(args):
         if args.use_full_completion_logprobs:
             # Multi-token: one plot with log-probs
             create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
+            # create_visualization_interactive(logodds_gen, logodds_disc, labels, example_details, modelname, task, args, metric_type='logprobs')
         else:
             # Single-token: two plots (log-odds and log-probs)
             create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
