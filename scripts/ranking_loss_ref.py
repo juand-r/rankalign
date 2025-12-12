@@ -144,7 +144,8 @@ def main(args):
     gradient_checkpointing = args.gradient_checkpointing
     use_full_completion = args.use_full_completion
     debug = args.debug
-    nll_weight = args.nll_weight
+    nll_validator_weight = args.nll_validator_weight
+    nll_generator_weight = args.nll_generator_weight
     use_wandb = not args.no_wandb
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -155,7 +156,7 @@ def main(args):
         run_name = args.wandb_run_name
         if run_name is None:
             # Auto-generate run name from key parameters
-            run_name = f"{task}-{train_g_or_d}-delta{delta}-nll{nll_weight}-lr{lr}"
+            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}-lr{lr}"
         
         wandb.init(
             project="rankalign",
@@ -165,7 +166,8 @@ def main(args):
                 "task": task,
                 "train_g_or_d": train_g_or_d,
                 "delta": delta,
-                "nll_weight": nll_weight,
+                "nll_validator_weight": nll_validator_weight,
+                "nll_generator_weight": nll_generator_weight,
                 "learning_rate": lr,
                 "num_epochs": num_epochs,
                 "total_samples": total_samples,
@@ -186,11 +188,11 @@ def main(args):
         raise ValueError("--use-full-completion is not yet compatible with --with_ref. "
                         "The reference model scoring needs to be updated for multi-token completions.")
 
-    # Compatibility check: NLL with generator training requires positive-only examples
-    if nll_weight > 0 and train_g_or_d == 'g' and use_all:
-        raise ValueError("--nll_weight with --train_g_or_d g and --all is not supported. "
-                        "Generator NLL uses the ranking winner's completion, which is only valid "
-                        "when all examples are positive. Either remove --all or use --train_g_or_d d.")
+    # Compatibility check: NLL weights not yet supported with 'both' mode
+    #TODO need to add this later!
+    if train_g_or_d == 'both' and (nll_validator_weight > 0 or nll_generator_weight > 0):
+        raise ValueError("NLL weights (--nll_validator_weight, --nll_generator_weight) are not yet "
+                        "supported with --train_g_or_d both. Use 'd' or 'g' mode instead.")
 
     if 'Instruct' in model_name or 'instruct' in model_name or '-it' in model_name:
         with_chat = True
@@ -859,7 +861,7 @@ def main(args):
         return tokenizer.decode(toks[1:])
 
     def get_correct_answer(data_item, task):
-        """Get the ground truth answer for a data item based on task type."""
+        """Get the ground truth answer (Yes/No) for a data item based on task type."""
         if task == 'hypernym':
             label = data_item.taxonomic.strip().lower()
         elif task == 'trivia-qa':
@@ -878,6 +880,34 @@ def main(args):
         else:
             return space_prefix + "No"
 
+    def get_generator_completion(data_item, task):
+        """Get the generator completion (actual task answer) for a data item."""
+        if task == 'hypernym':
+            return space_prefix + data_item.noun2
+        elif task == 'trivia-qa':
+            return space_prefix + data_item['answers'][0]
+        elif task == 'swords':
+            return space_prefix + data_item.replacement
+        elif task == 'lambada':
+            return space_prefix + data_item['final_word']
+        else:
+            raise ValueError(f"Task {task} not supported for generator completion lookup")
+
+    def get_indicator(data_item, task):
+        """Get indicator (1 if positive example, 0 if negative)."""
+        if task == 'hypernym':
+            label = data_item.taxonomic.strip().lower()
+        elif task == 'trivia-qa':
+            label = data_item['correct'].strip().lower()
+        elif task == 'swords':
+            label = data_item.synonym.strip().lower()
+        elif task == 'lambada':
+            label = data_item['correct'].strip().lower()
+        else:
+            raise ValueError(f"Task {task} not supported for indicator lookup")
+        
+        return 1.0 if label == 'yes' else 0.0
+
 
     if train_g_or_d=='d':
         #NOTE in this case the tokens we are targeting are the "Yes" tokens in both cases.
@@ -888,7 +918,9 @@ def main(args):
                  (
                      (format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  # prompts
                      (completion_text, completion_text),  # completion for ranking (always "Yes")
-                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task))  # ground truth for NLL
+                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
+                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
                  )
                  for pair in pairs_ if pair[1][1] - pair[0][1] > delta
              ]
@@ -897,7 +929,9 @@ def main(args):
                 (
                     (pair[0][0].prompt, pair[1][0].prompt),  # prompts
                     (completion_text, completion_text),  # completion for ranking (always "Yes")
-                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task))  # ground truth for NLL
+                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
+                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -905,10 +939,27 @@ def main(args):
         #NOTE in this case the ranking is derived from the log-probs of Yes under both prompts but we are targetting
         # the log-odds (hopefully log-prob is fine here) of the *generator completion*, so not the same in each item of the pair!
         if with_chat:
-            pairs = [(  ( format_with_inst(pair[0][0].prompt),  format_with_inst(pair[1][0].prompt)),  (pair[0][0].completion, pair[1][0].completion )     ) for pair in pairs_
-                if pair[1][1] - pair[0][1] > delta]
+            pairs = [
+                (
+                    (format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  # prompts
+                    (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
+                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
+                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                )
+                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+            ]
         else:
-            pairs = [(   (pair[0][0].prompt, pair[1][0].prompt) , (pair[0][0].completion, pair[1][0].completion )   ) for pair in pairs_  if pair[1][1] - pair[0][1] > delta]
+            pairs = [
+                (
+                    (pair[0][0].prompt, pair[1][0].prompt),  # prompts
+                    (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
+                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
+                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                )
+                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+            ]
     elif train_g_or_d == 'both':
         # For both mode, we create pairs for both generator and discriminator training
         # First create discriminator pairs (targeting "Yes" tokens)
@@ -980,19 +1031,16 @@ def main(args):
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
-                # For 'd' mode: pairs have 3 elements (prompts, ranking_completions, ground_truth_completions)
-                # For 'g' mode: pairs have 2 elements (prompts, completions)
-                if len(self.pairs[idx]) == 3:
-                    (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j) = self.pairs[idx]
-                else:
-                    (prompt_i, prompt_j), (completion_i, completion_j) = self.pairs[idx]
-                    correct_i, correct_j = completion_i, completion_j  # For 'g' mode, completion IS the correct answer
+                # Unified 5-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators)
+                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j) = self.pairs[idx]
                 
                 if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
                     completion_j = self.tokenizer.decode(self.tokenizer.encode(completion_j)[-1])
                     correct_i = self.tokenizer.decode(self.tokenizer.encode(correct_i)[-1])
                     correct_j = self.tokenizer.decode(self.tokenizer.encode(correct_j)[-1])
+                    gen_completion_i = self.tokenizer.decode(self.tokenizer.encode(gen_completion_i)[-1])
+                    gen_completion_j = self.tokenizer.decode(self.tokenizer.encode(gen_completion_j)[-1])
             # Debug print
             #print(f"\nProcessing item {idx}:")
             #print("Token types:", type(token_i), type(token_j))
@@ -1078,9 +1126,13 @@ def main(args):
                 # Tokenize completion j
                 token_j = self.tokenizer.encode(completion_j, add_special_tokens=False, return_tensors='pt')
 
-                # Tokenize correct completions (for NLL loss)
+                # Tokenize correct completions (for validator NLL loss)
                 token_correct_i = self.tokenizer.encode(correct_i, add_special_tokens=False, return_tensors='pt')
                 token_correct_j = self.tokenizer.encode(correct_j, add_special_tokens=False, return_tensors='pt')
+
+                # Tokenize generator completions (for generator NLL loss)
+                token_gen_i = self.tokenizer.encode(gen_completion_i, add_special_tokens=False, return_tensors='pt')
+                token_gen_j = self.tokenizer.encode(gen_completion_j, add_special_tokens=False, return_tensors='pt')
 
                 # DEBUG: Check for tokenization mismatch (enabled with --debug flag)
                 if debug:
@@ -1121,11 +1173,15 @@ def main(args):
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
                     'attention_mask_i': enc_i['attention_mask'].squeeze(0),
                     'token_id_i': token_i.squeeze(0),
-                    'token_correct_i': token_correct_i.squeeze(0),  # ground truth completion
+                    'token_correct_i': token_correct_i.squeeze(0),  # validator correct answer
+                    'token_gen_i': token_gen_i.squeeze(0),  # generator completion
+                    'indicator_i': torch.tensor(indicator_i, dtype=torch.float),  # 1 if positive, 0 if negative
                     'input_ids_j': enc_j['input_ids'].squeeze(0),
                     'attention_mask_j': enc_j['attention_mask'].squeeze(0),
                     'token_id_j': token_j.squeeze(0),
-                    'token_correct_j': token_correct_j.squeeze(0),  # ground truth completion
+                    'token_correct_j': token_correct_j.squeeze(0),  # validator correct answer
+                    'token_gen_j': token_gen_j.squeeze(0),  # generator completion
+                    'indicator_j': torch.tensor(indicator_j, dtype=torch.float),  # 1 if positive, 0 if negative
                     'label': torch.tensor(1.0, dtype=torch.float)
                 }
             else:
@@ -1219,8 +1275,9 @@ def main(args):
             typcorr_str = "--typcorr" if args.typicality_correction else ""
             single_token_str = "--single-token" if args.single_token_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
-            nll_str = f"--nll{nll_weight}" if nll_weight > 0 else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str + nll_str
+            nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
+            nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -1339,13 +1396,9 @@ def main(args):
                 v2g_loss = -torch.log(torch.sigmoid(v2g_diff) + 1e-12)
                 preference_loss = (alphas * g2v_loss + (1 - alphas) * v2g_loss).mean()
                 
-                # NLL on preferred outputs (j is the winner)
-                if nll_weight > 0:
-                    nll_loss = (alphas * (-score_j_disc) + (1 - alphas) * (-score_j_gen)).mean()
-                    loss = preference_loss + nll_weight * nll_loss
-                else:
-                    nll_loss = torch.tensor(0.0)
-                    loss = preference_loss
+                # Note: NLL loss not yet implemented for 'both' mode
+                # Use 'd' or 'g' mode with --nll_validator_weight or --nll_generator_weight
+                loss = preference_loss
 
                 loss.backward()
                 optimizer.step()
@@ -1357,7 +1410,6 @@ def main(args):
                     wandb.log({
                         "train/loss": loss.item(),
                         "train/preference_loss": preference_loss.item(),
-                        "train/nll_loss": nll_loss.item() if nll_weight > 0 else 0.0,
                         "train/g2v_loss": g2v_loss.mean().item(),
                         "train/v2g_loss": v2g_loss.mean().item(),
                         "train/score_j_disc": score_j_disc.mean().item(),
@@ -1374,12 +1426,16 @@ def main(args):
                 input_ids_i = batch["input_ids_i"].to(device)
                 attention_mask_i = batch["attention_mask_i"].to(device)
                 token_id_i = batch["token_id_i"].to(device)
-                token_correct_i = batch["token_correct_i"].to(device)  # ground truth completion
+                token_correct_i = batch["token_correct_i"].to(device)  # validator correct answer
+                token_gen_i = batch["token_gen_i"].to(device)  # generator completion
+                indicator_i = batch["indicator_i"].to(device)  # 1 if positive, 0 if negative
 
                 input_ids_j = batch["input_ids_j"].to(device)
                 attention_mask_j = batch["attention_mask_j"].to(device)
                 token_id_j = batch["token_id_j"].to(device)
-                token_correct_j = batch["token_correct_j"].to(device)  # ground truth completion
+                token_correct_j = batch["token_correct_j"].to(device)  # validator correct answer
+                token_gen_j = batch["token_gen_j"].to(device)  # generator completion
+                indicator_j = batch["indicator_j"].to(device)  # 1 if positive, 0 if negative
 
                 label = batch["label"].to(device)
 
@@ -1432,21 +1488,19 @@ def main(args):
                 diff = score_j - score_i - diff_ref
                 preference_loss = -torch.log(torch.sigmoid(diff) + 1e-12).mean()
                 
-                # NLL loss computation depends on training mode
-                if nll_weight > 0:
-                    if train_g_or_d == 'g':
-                        # For generator training: use NLL on ranking winner (all completions are correct)
-                        nll_loss = -score_j.mean()
-                    else:
-                        # For discriminator training: use NLL on ground truth correct answers
-                        # This is necessary because ranking winner might be a negative example
-                        score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
-                        score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                        nll_loss = -(score_correct_i.mean() + score_correct_j.mean()) / 2
-                    loss = preference_loss + nll_weight * nll_loss
-                else:
-                    nll_loss = torch.tensor(0.0)
-                    loss = preference_loss
+                # Validator NLL: -log P(correct_answer | prompt) for both items
+                score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
+                score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
+                nll_validator_loss = -(score_correct_i + score_correct_j).mean() / 2
+                
+                # Generator NLL: -log P(completion | prompt) * indicator (only for positive examples)
+                score_gen_i = sum_completion_logprobs(log_probs_i, token_gen_i)
+                score_gen_j = sum_completion_logprobs(log_probs_j, token_gen_j)
+                nll_generator_loss = -(score_gen_i * indicator_i + score_gen_j * indicator_j).mean() / 2
+                
+                # Total loss
+                loss = preference_loss + nll_validator_weight * nll_validator_loss + nll_generator_weight * nll_generator_loss
+                
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
@@ -1457,17 +1511,22 @@ def main(args):
                     log_dict = {
                         "train/loss": loss.item(),
                         "train/preference_loss": preference_loss.item(),
-                        "train/nll_loss": nll_loss.item() if nll_weight > 0 else 0.0,
+                        "train/nll_validator_loss": nll_validator_loss.item(),
+                        "train/nll_generator_loss": nll_generator_loss.item(),
                         "train/score_j": score_j.mean().item(),
                         "train/score_i": score_i.mean().item(),
                         "train/diff": diff.mean().item(),
                         "train/epoch": epoch,
                         "train/global_step": global_step,
                     }
-                    # Log correct scores only for discriminator training with NLL
-                    if nll_weight > 0 and train_g_or_d != 'g':
+                    if nll_validator_weight > 0:
                         log_dict["train/score_correct_i"] = score_correct_i.mean().item()
                         log_dict["train/score_correct_j"] = score_correct_j.mean().item()
+                    if nll_generator_weight > 0:
+                        log_dict["train/score_gen_i"] = score_gen_i.mean().item()
+                        log_dict["train/score_gen_j"] = score_gen_j.mean().item()
+                        log_dict["train/indicator_i"] = indicator_i.mean().item()
+                        log_dict["train/indicator_j"] = indicator_j.mean().item()
                     wandb.log(log_dict)
                 
                 # Clear cache to prevent memory accumulation
@@ -1508,7 +1567,8 @@ if __name__ == "__main__":
     parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
-    parser.add_argument("--nll_weight", type=float, default=0.0, help="Weight for NLL loss on preferred output (CPO-style BC regularizer)")
+    parser.add_argument("--nll_validator_weight", type=float, default=0.0, help="Weight for NLL loss on validator (discriminator) correct answers")
+    parser.add_argument("--nll_generator_weight", type=float, default=0.0, help="Weight for NLL loss on generator completions (only for positive examples)")
     parser.add_argument("--no-wandb", action="store_true", default=False, help="Disable Weights & Biases logging (enabled by default)")
     parser.add_argument("--wandb_run_name", type=str, default=None, help="Weights & Biases run name (auto-generated if not provided)")
     args = parser.parse_args()
