@@ -84,6 +84,10 @@ def compute_gpt2_typicality(completions, task, LL):
                     else:
                         context_ids = gpt2_tokenizer.encode("", add_special_tokens=True)[:-1] + input_ids[:i]
                     
+                    max_ctx = 1024
+                    if len(context_ids) > max_ctx - 1:
+                        context_ids = context_ids[-(max_ctx - 1):]
+
                     full_ids = context_ids + [input_ids[i]]
                     input_tensor = torch.tensor([full_ids]).to(device)
                     outputs = gpt2_model(input_tensor)
