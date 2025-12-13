@@ -890,6 +890,10 @@ def main(args):
             return space_prefix + data_item.replacement
         elif task == 'lambada':
             return space_prefix + data_item['final_word']
+        elif task == 'ifeval':
+            return space_prefix + data_item['response']
+        elif task == 'collie':
+            return space_prefix + data_item['generated']
         else:
             raise ValueError(f"Task {task} not supported for generator completion lookup")
 
@@ -902,6 +906,8 @@ def main(args):
         elif task == 'swords':
             label = data_item.synonym.strip().lower()
         elif task == 'lambada':
+            label = data_item['correct'].strip().lower()
+        elif task == 'ifeval':
             label = data_item['correct'].strip().lower()
         else:
             raise ValueError(f"Task {task} not supported for indicator lookup")
@@ -1253,57 +1259,6 @@ def main(args):
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0.0
-        #if True:#epoch % save_steps==1:
-        if epoch!=0:
-            with_ref_str = "-with-ref" if with_ref else ""
-            all_str = "-all" if use_all else ""
-
-            if train_g_or_d == 'd':
-                direction_str = '--g2d'
-            elif train_g_or_d == 'g':
-                direction_str = '--d2g'
-            elif train_g_or_d == 'iter':
-                direction_str = '--iter'
-            elif train_g_or_d == 'both':
-                direction_str = '--both'
-            else:
-                raise ValueError("not supported")
-
-            split_type_str = "--"+ split_type
-
-            alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
-            typcorr_str = "--typcorr" if args.typicality_correction else ""
-            single_token_str = "--single-token" if args.single_token_only else ""
-            full_completion_str = "--full-completion" if use_full_completion else ""
-            nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
-            nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
-            print("Saving to ", save_directory)
-            
-            if use_lora:
-                # For LoRA: Save adapters first, then merge and save full model
-                print("Saving LoRA adapters...")
-                model.save_pretrained(save_directory)
-                
-                print("Loading saved LoRA model...")
-                from peft import AutoPeftModelForCausalLM
-                model_peft = AutoPeftModelForCausalLM.from_pretrained(save_directory)
-                
-                print("Merging LoRA into base model...")
-                merged_model = model_peft.merge_and_unload()
-                
-                merge_dir = save_directory + "_merged"
-                print(f"Saving merged full model to {merge_dir}")
-                merged_model.save_pretrained(merge_dir, safe_serialization=True, max_shard_size="2GB")
-                tokenizer.save_pretrained(merge_dir)
-                
-                # Clean up merged model from memory
-                del model_peft, merged_model
-                torch.cuda.empty_cache()
-            else:
-                # For full model fine-tuning: Save normally
-                model.save_pretrained(save_directory)
-                tokenizer.save_pretrained(save_directory)
 
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
@@ -1534,6 +1489,57 @@ def main(args):
         avg_loss = total_loss / len(train_loader)
         losses.append(avg_loss)
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_loss:.4f}")
+
+        if epoch%save_steps == 0 or epoch == num_epochs - 1:
+            with_ref_str = "-with-ref" if with_ref else ""
+            all_str = "-all" if use_all else ""
+
+            if train_g_or_d == 'd':
+                direction_str = '--g2d'
+            elif train_g_or_d == 'g':
+                direction_str = '--d2g'
+            elif train_g_or_d == 'iter':
+                direction_str = '--iter'
+            elif train_g_or_d == 'both':
+                direction_str = '--both'
+            else:
+                raise ValueError("not supported")
+
+            split_type_str = "--"+ split_type
+
+            alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
+            typcorr_str = "--typcorr" if args.typicality_correction else ""
+            single_token_str = "--single-token" if args.single_token_only else ""
+            full_completion_str = "--full-completion" if use_full_completion else ""
+            nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
+            nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
+            print("Saving to ", save_directory)
+            
+            if use_lora:
+                # For LoRA: Save adapters first, then merge and save full model
+                print("Saving LoRA adapters...")
+                model.save_pretrained(save_directory)
+                
+                print("Loading saved LoRA model...")
+                from peft import AutoPeftModelForCausalLM
+                model_peft = AutoPeftModelForCausalLM.from_pretrained(save_directory)
+                
+                print("Merging LoRA into base model...")
+                merged_model = model_peft.merge_and_unload()
+                
+                merge_dir = save_directory + "_merged"
+                print(f"Saving merged full model to {merge_dir}")
+                merged_model.save_pretrained(merge_dir, safe_serialization=True, max_shard_size="2GB")
+                tokenizer.save_pretrained(merge_dir)
+                
+                # Clean up merged model from memory
+                del model_peft, merged_model
+                torch.cuda.empty_cache()
+            else:
+                # For full model fine-tuning: Save normally
+                model.save_pretrained(save_directory)
+                tokenizer.save_pretrained(save_directory)
         
         # Log epoch-level metrics to wandb
         if use_wandb:
