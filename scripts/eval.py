@@ -160,7 +160,7 @@ def get_base_model_name(modelname):
 
 def get_labels(task, LL):
     """Extract binary labels (1=positive, 0=negative) from data."""
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         return [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in LL]
     elif task=="trivia-qa":
         if 'correct' in LL[0]:
@@ -182,7 +182,7 @@ def get_labels(task, LL):
         raise ValueError(f"Unknown task: {task}")
 
 def get_example_details(task, LL):
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         return [ (i.noun1, i.noun2) for i in LL ]
     else:
         raise ValueError(f"Unknown task: {task}")
@@ -458,7 +458,7 @@ def main(args):
         P_disc.append(probs_disc)
         if args.train:
             prefix = " " if not model_is_chat else ""
-            if task == 'hypernym':
+            if task in ['hypernym', 'hypernym-car']:
                 json_list.append({"noun1":item.noun1, "noun2":item.noun2, "taxonomic":item.taxonomic, "generator-prompt":prompt_gen, "discriminator-prompt":prompt_disc, "generator-log-prob":0, "discriminator-log-prob":0, 
                                 "generator-completion": prefix + item.noun2.strip(), "discriminator-gold-completion": prefix + item.taxonomic.strip().capitalize()})
             elif task == 'trivia-qa':
@@ -614,7 +614,7 @@ def main(args):
         with open(debug_file, 'w', newline='') as f:
             writer = csv.writer(f)
             # Write header - include task-specific fields for verification
-            if task == 'hypernym':
+            if task in ['hypernym', 'hypernym-car']:
                 writer.writerow(['index', 'noun1', 'noun2', 'taxonomic', 'ground_truth', 'disc_score', 'gen_score'])
             elif task == 'swords':
                 writer.writerow(['index', 'context', 'target', 'replacement', 'synonym', 'ground_truth', 'disc_score', 'gen_score'])
@@ -625,7 +625,7 @@ def main(args):
             
             # Write all data
             for i in range(len(logodds_disc)):
-                if task == 'hypernym':
+                if task in ['hypernym', 'hypernym-car']:
                     writer.writerow([
                         i,
                         LL[i].noun1,

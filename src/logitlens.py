@@ -142,7 +142,7 @@ def get_logodds_gen(Ps, L, ii, tokenizer, first_sw_token, task, is_chat = False,
         prefix = ""
     else:
         prefix = "a "
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         ind = tokenizer.encode(prefix + L[ii].noun2)[first_sw_token]
     elif task=='trivia-qa':
         ind = tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token]
@@ -221,7 +221,7 @@ def compute_gen_mrr(golds, ranks):
     return mrr_pos, mrr_neg
 
 def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=None):
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         golds = [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in L]
     elif task=="trivia-qa":
         if 'correct' in L[0]:
@@ -304,7 +304,7 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=Non
 
 def compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks, layer_gen=-1, layer_disc=-1):
 
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         gold = [i.taxonomic.capitalize() for i in L]
     elif task=="trivia-qa":
         if 'correct' in L[0]:
@@ -398,7 +398,7 @@ def extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat=False):
     prefix = "a " if not is_chat else ""
     unique_tokens = set()
     
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         for item in L:
             token_ids = tokenizer.encode(prefix + item.noun2, add_special_tokens=False)
             if len(token_ids) > first_sw_token:
@@ -451,7 +451,7 @@ def compute_logodds_final_layer(
     
     # Compute full-vocabulary ranks
     print("Computing full-vocabulary ranks...")
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         # for ii in range(len(P_gen)):
         #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
         #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
@@ -523,7 +523,7 @@ def compute_logodds_final_layer(
 
     # Compute dataset-constrained ranks (only among dataset completion tokens)
     print("Computing dataset-constrained ranks...")
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         ranks_dataset = [
             get_rank_in_subset(
                 P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token], dataset_token_ids

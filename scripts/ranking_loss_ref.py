@@ -330,6 +330,9 @@ def main(args):
         #L_train, L_test = utils.split_train_test(L, seed=0, subsample=False, num_train=3000)
         #L_train, L_test = utils.split_train_test_no_overlap(L, seed=0)
         #L_train, L_test = utils.split_train_test_no_overlap_both(L)
+    elif task=='hypernym-car':
+        # Pre-split balanced dataset for "cars are a kind of X"
+        L_train, L_test = utils.load_hypernym_car_data()
     elif task=='trivia-qa':
         #USE SUBSET FOR NOW
         #L_train =  L['train'].shuffle(seed=42).select(range(3000))
@@ -352,7 +355,7 @@ def main(args):
     if args.single_token_only:
         print(f"Original L_train size: {len(L_train)}")
         # Determine the appropriate make_prompt function for the task
-        if task == 'hypernym':
+        if task in ['hypernym', 'hypernym-car']:
             make_prompt_fn = make_prompt_hypernymy
         elif task == 'trivia-qa':
             make_prompt_fn = make_prompt_triviaqa
@@ -406,7 +409,7 @@ def main(args):
         raise NotImplementedError("train_g_or_d needs to be 'g', 'd', 'both', or 'i'.")
 
 
-    if task=='hypernym':
+    if task in ['hypernym', 'hypernym-car']:
         if use_all:
             L_train_all = L_train
         else:
@@ -720,7 +723,7 @@ def main(args):
         
         # Extract completions based on task
         completions = []
-        if task == 'hypernym':
+        if task in ['hypernym', 'hypernym-car']:
             completions = [item.noun2 for item in L_train_all]
         elif task == 'trivia-qa':
             completions = [item['answers'][0] for item in L_train_all]
@@ -866,7 +869,7 @@ def main(args):
 
     def get_correct_answer(data_item, task):
         """Get the ground truth answer (Yes/No) for a data item based on task type."""
-        if task == 'hypernym':
+        if task in ['hypernym', 'hypernym-car']:
             label = data_item.taxonomic.strip().lower()
         elif task == 'trivia-qa':
             label = data_item['correct'].strip().lower()
@@ -886,7 +889,7 @@ def main(args):
 
     def get_generator_completion(data_item, task):
         """Get the generator completion (actual task answer) for a data item."""
-        if task == 'hypernym':
+        if task in ['hypernym', 'hypernym-car']:
             return space_prefix + data_item.noun2
         elif task == 'trivia-qa':
             return space_prefix + data_item['answers'][0]
@@ -903,7 +906,7 @@ def main(args):
 
     def get_indicator(data_item, task):
         """Get indicator (1 if positive example, 0 if negative)."""
-        if task == 'hypernym':
+        if task in ['hypernym', 'hypernym-car']:
             label = data_item.taxonomic.strip().lower()
         elif task == 'trivia-qa':
             label = data_item['correct'].strip().lower()
@@ -1225,7 +1228,7 @@ def main(args):
                 batch_size = 2
             elif task=='lambada':
                 batch_size = 2
-            elif task =='hypernym':
+            elif task in ['hypernym', 'hypernym-car']:
                 batch_size = 1 #4
             elif task == 'ifeval':
                 batch_size = 1
@@ -1240,7 +1243,7 @@ def main(args):
                 batch_size = 2#6
             elif task=='lambada':
                 batch_size = 2#6
-            elif task =='hypernym':
+            elif task in ['hypernym', 'hypernym-car']:
                 batch_size = 2#6#1  # Reduced from 32 to 1 for large models
             elif task == 'ifeval':
                 batch_size = 1
@@ -1560,7 +1563,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="google/gemma-2-2b", help="Model name/path")
-    parser.add_argument("--task", type=str, choices=["hypernym", "trivia-qa", "swords", "lambada", "ifeval", "collie"], help="Task to run")
+    parser.add_argument("--task", type=str, choices=["hypernym", "hypernym-car", "trivia-qa", "swords", "lambada", "ifeval", "collie"], help="Task to run")
     parser.add_argument("--with_ref", default=False, action="store_true", help="Whether to use reference model")
     parser.add_argument("--num_epochs", type=int, default=10, help="Number of epochs to train")
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")

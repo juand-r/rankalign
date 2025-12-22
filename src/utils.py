@@ -89,6 +89,47 @@ def load_noun_pair_data():
     return out
 
 
+def load_hypernym_car_data():
+    """
+    Load the hypernym-car dataset with balanced train/test splits.
+    Uses "cars" as noun1 with various predicted hypernyms, labeled by GPT-4.
+    Returns (L_train, L_test) with Item namedtuples matching hypernym format.
+    """
+    import pandas as pd
+    
+    train_df = pd.read_csv("../data/hypernym_car_train.csv")
+    test_df = pd.read_csv("../data/hypernym_car_test.csv")
+    
+    # Create namedtuple with same fields as hypernym for compatibility
+    Item = namedtuple(
+        "Item",
+        ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax"],
+    )
+    
+    def df_to_items(df):
+        items = []
+        for _, row in df.iterrows():
+            # Map gpt4_ground_truth to lowercase for taxonomic field
+            taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
+            # Create Item with placeholder values for unused fields
+            item = Item(
+                noun1=row['noun1'],
+                noun2=row['predicted_hypernym'],
+                taxonomic=taxonomic,
+                sim="high",  # placeholder
+                gen_rank=0,  # placeholder
+                yesgreater="yes",  # placeholder
+                argmax="yes"  # placeholder
+            )
+            items.append(item)
+        return items
+    
+    L_train = df_to_items(train_df)
+    L_test = df_to_items(test_df)
+    
+    return L_train, L_test
+
+
 def load_lambada_data(seed=0, sample_negative=True): 
     if sample_negative:
         L_train = read_data('../data/dataset/lambada_pn_train.jsonl')
@@ -1018,6 +1059,13 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
         else:
             raise ValueError("Wrong value for split-type")
         # Create a wrapper that includes the variation parameter
+        def make_prompt(*args, **kwargs):
+            return make_prompt_hypernymy(*args, variation=variation, **kwargs)
+        make_prompt = make_prompt
+    elif task=='hypernym-car':
+        # Load pre-split balanced train/test for "cars are a kind of X"
+        L_train, L_test = load_hypernym_car_data()
+        # Use same prompt format as hypernym
         def make_prompt(*args, **kwargs):
             return make_prompt_hypernymy(*args, variation=variation, **kwargs)
         make_prompt = make_prompt
