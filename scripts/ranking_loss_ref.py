@@ -27,6 +27,7 @@ src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 import utils
 from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_ifeval, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
+from task_registry import get_task, get_all_task_names
 
 # good_pair, alpha_fun_1, get_alpha are used for "both" mode
 def good_pair(log_prob_i, log_prob_j, label_i, label_j):
@@ -182,7 +183,7 @@ def main(args):
                 "use_lora": use_lora,
                 "gradient_checkpointing": gradient_checkpointing,
                 "use_full_completion": use_full_completion,
-                "single_token_only": args.single_token_only,
+                "single_token_data_only": args.single_token_data_only,
             }
         )
         print(f"Weights & Biases initialized: rankalign/{run_name}")
@@ -317,7 +318,13 @@ def main(args):
     # NOTE first use ground truth ranking from generator.
     # Will now use ranking loss on *discriminator* prompts to try to match it!
 
-    if task=='hypernym':
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        L_train, L_test = task_config['load_data'](seed=0, split_type=split_type)
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif task=='hypernym':
         L = utils.load_noun_pair_data()
         if split_type=='hyper':
             L_train, L_test = utils.split_train_test_no_overlap(L, seed=0)
@@ -352,10 +359,16 @@ def main(args):
         raise NotImplementedError("Task not implemented!")
 
     # Filter for single-token completions if requested
-    if args.single_token_only:
+    if args.single_token_data_only:
         print(f"Original L_train size: {len(L_train)}")
         # Determine the appropriate make_prompt function for the task
-        if task in ['hypernym', 'hypernym-car']:
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            make_prompt_fn = task_config['make_prompt']
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif task in ['hypernym', 'hypernym-car']:
             make_prompt_fn = make_prompt_hypernymy
         elif task == 'trivia-qa':
             make_prompt_fn = make_prompt_triviaqa
@@ -364,7 +377,7 @@ def main(args):
         elif task == 'lambada':
             make_prompt_fn = make_prompt_lambada
         else:
-            raise ValueError(f"Task {task} not supported for single_token_only filtering")
+            raise ValueError(f"Task {task} not supported for single_token_data_only filtering")
         
         filtered_L_train = []
         for item in L_train:
@@ -409,7 +422,71 @@ def main(args):
         raise NotImplementedError("train_g_or_d needs to be 'g', 'd', 'both', or 'i'.")
 
 
-    if task in ['hypernym', 'hypernym-car']:
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        if use_all:
+            L_train_all = L_train
+        else:
+            L_train_all = [i for i in L_train if task_config['get_label'](i) == 'yes']
+        
+        # Generate gold prompts using task's make_prompt function
+        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(
+            task_config['make_prompt'], L_train_all, tokenizer,
+            style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None
+        )
+        prompts_gold = [i.prompt for i in p_train_gold]
+
+        # Compute log-probabilities for gold prompts
+        logprobs_last_layer = []
+        for idx, prompt in enumerate(tqdm(prompts_gold)):
+            if train_g_or_d == 'd':
+                target_text = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d == 'g':
+                target_text = space_prefix + "Yes"
+                target_tokens = tokenizer.encode(target_text)
+            elif train_g_or_d == 'both':
+                target_text_d = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
+                target_tokens_d = tokenizer.encode(target_text_d)
+                target_text_g = space_prefix + "Yes"
+                target_tokens_g = tokenizer.encode(target_text_g)
+            else:
+                raise ValueError("No.")
+
+            if use_full_completion:
+                if train_g_or_d == 'both':
+                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    total_log_prob_d = float(log_prob_d.sum().item())
+                    total_log_prob_g = float(log_prob_g.sum().item())
+                    logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
+                else:
+                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    total_log_prob = float(log_prob.sum().item())
+                    logprobs_last_layer.append(total_log_prob)
+            else:
+                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                if train_g_or_d == 'both':
+                    ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
+                    ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                    log_prob_d = math.log(probs[ind_d].item() + 1e-12)
+                    log_prob_g = math.log(probs[ind_g].item() + 1e-12)
+                    logprobs_last_layer.append((log_prob_d, log_prob_g))
+                else:
+                    ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                    log_prob = math.log(probs[ind].item() + 1e-12)
+                    logprobs_last_layer.append(log_prob)
+
+        # Generate tune prompts
+        p_train_tune, hf_train, _ = utils.make_and_format_data(
+            task_config['make_prompt'], L_train_all, tokenizer,
+            style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None
+        )
+
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif task in ['hypernym', 'hypernym-car']:
         if use_all:
             L_train_all = L_train
         else:
@@ -723,7 +800,13 @@ def main(args):
         
         # Extract completions based on task
         completions = []
-        if task in ['hypernym', 'hypernym-car']:
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            completions = [task_config['get_completion'](item).strip() for item in L_train_all]
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif task in ['hypernym', 'hypernym-car']:
             completions = [item.noun2 for item in L_train_all]
         elif task == 'trivia-qa':
             completions = [item['answers'][0] for item in L_train_all]
@@ -869,7 +952,13 @@ def main(args):
 
     def get_correct_answer(data_item, task):
         """Get the ground truth answer (Yes/No) for a data item based on task type."""
-        if task in ['hypernym', 'hypernym-car']:
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            label = task_config['get_label'](data_item)
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif task in ['hypernym', 'hypernym-car']:
             label = data_item.taxonomic.strip().lower()
         elif task == 'trivia-qa':
             label = data_item['correct'].strip().lower()
@@ -889,6 +978,12 @@ def main(args):
 
     def get_generator_completion(data_item, task):
         """Get the generator completion (actual task answer) for a data item."""
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            return space_prefix + task_config['get_completion'](data_item).strip()
+        # LEGACY PATH: Existing task implementations (unchanged)
         if task in ['hypernym', 'hypernym-car']:
             return space_prefix + data_item.noun2
         elif task == 'trivia-qa':
@@ -906,6 +1001,12 @@ def main(args):
 
     def get_indicator(data_item, task):
         """Get indicator (1 if positive example, 0 if negative)."""
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            return task_config['get_indicator'](data_item)
+        # LEGACY PATH: Existing task implementations (unchanged)
         if task in ['hypernym', 'hypernym-car']:
             label = data_item.taxonomic.strip().lower()
         elif task == 'trivia-qa':
@@ -1221,7 +1322,14 @@ def main(args):
     if use_full_completion:
         batch_size = 1 #TODO: allow actual batches
     else:
-        if with_ref:
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
+            batch_sizes = task_config.get('batch_size', {'with_ref': 1, 'without_ref': 2})
+            batch_size = batch_sizes['with_ref'] if with_ref else batch_sizes['without_ref']
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif with_ref:
             if task=='swords':
                 batch_size = 2
             elif task=='trivia-qa':
@@ -1516,7 +1624,7 @@ def main(args):
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
             typcorr_str = "--typcorr" if args.typicality_correction else ""
-            single_token_str = "--single-token" if args.single_token_only else ""
+            single_token_str = "--single-token-data" if args.single_token_data_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
@@ -1561,25 +1669,34 @@ def main(args):
         print("Weights & Biases run finished.")
 
 if __name__ == "__main__":
+    # Import tasks module to trigger registration of any custom tasks
+    import tasks
+
+    # Legacy task names (handled by existing if/elif chains)
+    LEGACY_TASKS = ["hypernym", "hypernym-car", "trivia-qa", "swords", "lambada", "ifeval", "collie"]
+    # Combined list includes both legacy and any newly registered tasks
+    ALL_TASKS = get_all_task_names(LEGACY_TASKS)
+
+    #TODO change --all flag since we can't set it to False like this!
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str, default="google/gemma-2-2b", help="Model name/path")
-    parser.add_argument("--task", type=str, choices=["hypernym", "hypernym-car", "trivia-qa", "swords", "lambada", "ifeval", "collie"], help="Task to run")
+    parser.add_argument("--task", type=str, choices=ALL_TASKS, help="Task to run")
     parser.add_argument("--with_ref", default=False, action="store_true", help="Whether to use reference model")
-    parser.add_argument("--num_epochs", type=int, default=10, help="Number of epochs to train")
+    parser.add_argument("--num_epochs", type=int, default=3, help="Number of epochs to train")
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")
     parser.add_argument("--delta", type=float, default=10, help="Delta")
     parser.add_argument("--total_samples", type=int, default=5110, help="Total samples")
     parser.add_argument("--save_steps", type=int, default=1, help="Save steps")
-    parser.add_argument("--all", default=False, action="store_true", help="Whether to use all examples or just positive ones")
+    parser.add_argument("--all", default=True, action="store_true", help="Whether to use all examples or just positive ones")
     parser.add_argument("--train_g_or_d", type=str, default='d', choices=["d","g","iter","both"], help="Train generator or discriminator.")
     parser.add_argument("--split_type", type=str, default='random', choices=["random","hyper","both"], help="How to do train/test split. Only applies to hypernymy.")
-    parser.add_argument("--alpha", type=str, default='1.0', help="Alpha value or function name. Can be a number between 0 and 1, or 'alpha_fun_1'")
+    parser.add_argument("--alpha", type=str, default='1.0', help="Alpha value or function name. NOTE: this is only used when train_g_or_d is 'both'. Can be a number between 0 and 1, or 'alpha_fun_1'")
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
     parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
-    parser.add_argument("--single_token_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
+    parser.add_argument("--single_token_data_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
     parser.add_argument("--nll_validator_weight", type=float, default=0.0, help="Weight for NLL loss on validator (discriminator) correct answers")
     parser.add_argument("--nll_generator_weight", type=float, default=0.0, help="Weight for NLL loss on generator completions (only for positive examples)")
     parser.add_argument("--no-wandb", action="store_true", default=False, help="Disable Weights & Biases logging (enabled by default)")

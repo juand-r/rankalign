@@ -19,6 +19,13 @@ sys.path.append(src_path)
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from utils import get_L_prompt, get_final_logit_prob, get_completion_token_logprobs
 from logitlens import compute_logodds_final_layer, get_logodds_gen, get_logodds_disc
+from task_registry import get_task
+import tasks  # Triggers task registration
+
+def is_hypernym_task(task):
+    """Check if task is any hypernym variant (hypernym, hypernym-cars, hypernym-fruit, etc.)"""
+    return task == 'hypernym' or task.startswith('hypernym-')
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -160,7 +167,13 @@ def get_base_model_name(modelname):
 
 def get_labels(task, LL):
     """Extract binary labels (1=positive, 0=negative) from data."""
-    if task in ['hypernym', 'hypernym-car']:
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        return [1 if task_config['get_label'](i) == 'yes' else 0 for i in LL]
+    # LEGACY PATH: Existing task implementations (unchanged)
+    if is_hypernym_task(task):
         return [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in LL]
     elif task=="trivia-qa":
         if 'correct' in LL[0]:
@@ -182,7 +195,7 @@ def get_labels(task, LL):
         raise ValueError(f"Unknown task: {task}")
 
 def get_example_details(task, LL):
-    if task in ['hypernym', 'hypernym-car']:
+    if is_hypernym_task(task):
         return [ (i.noun1, i.noun2) for i in LL ]
     else:
         raise ValueError(f"Unknown task: {task}")
@@ -458,7 +471,21 @@ def main(args):
         P_disc.append(probs_disc)
         if args.train:
             prefix = " " if not model_is_chat else ""
-            if task in ['hypernym', 'hypernym-car']:
+            # Check task registry first (for new extensible tasks)
+            task_config = get_task(task)
+            if task_config is not None:
+                # NEW PATH: Use registered task configuration
+                label = task_config['get_label'](item)
+                json_list.append({
+                    "generator-prompt": prompt_gen,
+                    "discriminator-prompt": prompt_disc,
+                    "generator-log-prob": 0,
+                    "discriminator-log-prob": 0,
+                    "generator-completion": prefix + task_config['get_completion'](item).strip(),
+                    "discriminator-gold-completion": prefix + ("Yes" if label == 'yes' else "No")
+                })
+            # LEGACY PATH: Existing task implementations (unchanged)
+            elif is_hypernym_task(task):
                 json_list.append({"noun1":item.noun1, "noun2":item.noun2, "taxonomic":item.taxonomic, "generator-prompt":prompt_gen, "discriminator-prompt":prompt_disc, "generator-log-prob":0, "discriminator-log-prob":0, 
                                 "generator-completion": prefix + item.noun2.strip(), "discriminator-gold-completion": prefix + item.taxonomic.strip().capitalize()})
             elif task == 'trivia-qa':
@@ -614,7 +641,7 @@ def main(args):
         with open(debug_file, 'w', newline='') as f:
             writer = csv.writer(f)
             # Write header - include task-specific fields for verification
-            if task in ['hypernym', 'hypernym-car']:
+            if is_hypernym_task(task):
                 writer.writerow(['index', 'noun1', 'noun2', 'taxonomic', 'ground_truth', 'disc_score', 'gen_score'])
             elif task == 'swords':
                 writer.writerow(['index', 'context', 'target', 'replacement', 'synonym', 'ground_truth', 'disc_score', 'gen_score'])
@@ -625,7 +652,7 @@ def main(args):
             
             # Write all data
             for i in range(len(logodds_disc)):
-                if task in ['hypernym', 'hypernym-car']:
+                if is_hypernym_task(task):
                     writer.writerow([
                         i,
                         LL[i].noun1,
