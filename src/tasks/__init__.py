@@ -51,4 +51,6 @@ from . import hypernym2        # Replica of legacy 'hypernym' for testing regist
 from . import ksat             # 2-SAT and 3-SAT tasks
 from . import hypernym_custom  # Custom hypernym tasks: hypernym-cars, hypernym-fruit, etc.
 from . import hyponym          # Hyponym task (reverse of hypernym)
+from . import hypernym_hyponyms  # Auto-registered hypernym tasks for each hyponym dataset
+from . import hypernym_concat   # Concatenated hypernym task (balanced sampling from all datasets)
 

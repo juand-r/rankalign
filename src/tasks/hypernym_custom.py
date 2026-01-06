@@ -138,7 +138,7 @@ def create_hypernym_task(noun):
 #     python typicality/generate_hypernym_dataset.py --noun1 <noun> --total 4000
 
 REGISTERED_NOUNS = [
-    'cars',
+    # 'cars',  # Now handled by hypernym_hyponyms.py with new file format
     # Add more nouns here as you generate them:
     # 'fruit',
     # 'dogs',

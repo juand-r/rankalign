@@ -34,6 +34,7 @@ import torch
 import numpy as np
 import immutabledict
 from find_disjoint_sets import partition_items_kernighan_lin
+from task_registry import get_task
 
 def write_data(filename, data):
     with open(filename, 'a') as fout:
@@ -89,16 +90,37 @@ def load_noun_pair_data():
     return out
 
 
-def load_hypernym_car_data():
+def load_hypernym_noun_data(noun):
     """
-    Load the hypernym-car dataset with balanced train/test splits.
-    Uses "cars" as noun1 with various predicted hypernyms, labeled by GPT-4.
+    Load a hypernym dataset for a specific noun with balanced train/test splits.
+    
+    Args:
+        noun: The noun name (e.g., 'cars', 'fruit', 'dogs')
+        
     Returns (L_train, L_test) with Item namedtuples matching hypernym format.
+    
+    Expected files:
+        ../data/hypernym_{noun}_train.csv
+        ../data/hypernym_{noun}_test.csv
+    
+    CSV columns:
+        noun1, predicted_hypernym, gpt4_ground_truth (Yes/No), log_prob, ...
     """
     import pandas as pd
+    from pathlib import Path
     
-    train_df = pd.read_csv("../data/hypernym_car_train.csv")
-    test_df = pd.read_csv("../data/hypernym_car_test.csv")
+    train_file = Path(f"../data/hypernym_{noun}_train.csv")
+    test_file = Path(f"../data/hypernym_{noun}_test.csv")
+    
+    if not train_file.exists():
+        raise FileNotFoundError(f"Training data not found: {train_file}\n"
+                                f"Run: python typicality/generate_hypernym_dataset.py --noun1 {noun}")
+    if not test_file.exists():
+        raise FileNotFoundError(f"Test data not found: {test_file}\n"
+                                f"Run: python typicality/generate_hypernym_dataset.py --noun1 {noun}")
+    
+    train_df = pd.read_csv(train_file)
+    test_df = pd.read_csv(test_file)
     
     # Create namedtuple with same fields as hypernym for compatibility
     Item = namedtuple(
@@ -128,6 +150,13 @@ def load_hypernym_car_data():
     L_test = df_to_items(test_df)
     
     return L_train, L_test
+
+
+def load_hypernym_car_data():
+    """
+    Load the hypernym-car dataset. Wrapper for load_hypernym_noun_data('cars').
+    """
+    return load_hypernym_noun_data('cars')
 
 
 def load_lambada_data(seed=0, sample_negative=True): 
@@ -1048,6 +1077,19 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
         return torch.stack(token_logprobs)
 
 def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        L_train, L_test = task_config['load_data'](
+            seed=seed,
+            split_type=split_type,
+            sample_negative=sample_negative
+        )
+        make_prompt = task_config['make_prompt']
+        return L_train, L_test, make_prompt
+
+    # LEGACY PATH: Existing task implementations (unchanged)
     if task=='hypernym':
         L = load_noun_pair_data()
         if split_type=='hyper':
@@ -1062,9 +1104,10 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
         def make_prompt(*args, **kwargs):
             return make_prompt_hypernymy(*args, variation=variation, **kwargs)
         make_prompt = make_prompt
-    elif task=='hypernym-car':
-        # Load pre-split balanced train/test for "cars are a kind of X"
-        L_train, L_test = load_hypernym_car_data()
+    elif task.startswith('hypernym-'):
+        # Dynamic hypernym task for any noun: hypernym-cars, hypernym-fruit, etc.
+        noun = task.split('hypernym-', 1)[1]
+        L_train, L_test = load_hypernym_noun_data(noun)
         # Use same prompt format as hypernym
         def make_prompt(*args, **kwargs):
             return make_prompt_hypernymy(*args, variation=variation, **kwargs)

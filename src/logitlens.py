@@ -12,8 +12,14 @@ import sklearn.metrics
 from scipy.stats import pearsonr, spearmanr
 from tqdm import tqdm
 from sklearn.metrics import roc_curve, auc, roc_auc_score
+from task_registry import get_task
 
 device = "cuda:0"
+
+
+def is_hypernym_task(task):
+    """Check if task is any hypernym variant (hypernym, hypernym-cars, hypernym-fruit, etc.)"""
+    return task == 'hypernym' or task.startswith('hypernym-')
 
 
 def load_model_nnsight(modelname, device):
@@ -142,7 +148,15 @@ def get_logodds_gen(Ps, L, ii, tokenizer, first_sw_token, task, is_chat = False,
         prefix = ""
     else:
         prefix = "a "
-    if task in ['hypernym', 'hypernym-car']:
+
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        completion = task_config['get_completion'](L[ii]).strip()
+        ind = tokenizer.encode(prefix + completion)[first_sw_token]
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif is_hypernym_task(task):
         ind = tokenizer.encode(prefix + L[ii].noun2)[first_sw_token]
     elif task=='trivia-qa':
         ind = tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token]
@@ -221,7 +235,13 @@ def compute_gen_mrr(golds, ranks):
     return mrr_pos, mrr_neg
 
 def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=None):
-    if task in ['hypernym', 'hypernym-car']:
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        golds = [1 if task_config['get_label'](i) == 'yes' else 0 for i in L]
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif is_hypernym_task(task):
         golds = [1 if i.taxonomic.strip().capitalize() == 'Yes' else 0 for i in L]
     elif task=="trivia-qa":
         if 'correct' in L[0]:
@@ -397,8 +417,18 @@ def extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat=False):
     """Extract all unique completion token IDs from the dataset."""
     prefix = "a " if not is_chat else ""
     unique_tokens = set()
-    
-    if task in ['hypernym', 'hypernym-car']:
+
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        for item in L:
+            completion = task_config['get_completion'](item).strip()
+            token_ids = tokenizer.encode(prefix + completion, add_special_tokens=False)
+            if len(token_ids) > first_sw_token:
+                unique_tokens.add(token_ids[first_sw_token])
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif task in ['hypernym', 'hypernym-car']:
         for item in L:
             token_ids = tokenizer.encode(prefix + item.noun2, add_special_tokens=False)
             if len(token_ids) > first_sw_token:
@@ -451,7 +481,19 @@ def compute_logodds_final_layer(
     
     # Compute full-vocabulary ranks
     print("Computing full-vocabulary ranks...")
-    if task in ['hypernym', 'hypernym-car']:
+
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        ranks = [
+            get_rank(
+                P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token]
+            )
+            for ii in tqdm(range(len(P_gen)))
+        ]
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif task in ['hypernym', 'hypernym-car']:
         # for ii in range(len(P_gen)):
         #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
         #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
@@ -523,7 +565,19 @@ def compute_logodds_final_layer(
 
     # Compute dataset-constrained ranks (only among dataset completion tokens)
     print("Computing dataset-constrained ranks...")
-    if task in ['hypernym', 'hypernym-car']:
+
+    # Check task registry first (for new extensible tasks)
+    task_config = get_task(task)
+    if task_config is not None:
+        # NEW PATH: Use registered task configuration
+        ranks_dataset = [
+            get_rank_in_subset(
+                P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token], dataset_token_ids
+            )
+            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+        ]
+    # LEGACY PATH: Existing task implementations (unchanged)
+    elif task in ['hypernym', 'hypernym-car']:
         ranks_dataset = [
             get_rank_in_subset(
                 P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token], dataset_token_ids
