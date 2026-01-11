@@ -90,27 +90,43 @@ def load_noun_pair_data():
     return out
 
 
-def load_hypernym_noun_data(noun):
+def load_hypernym_noun_data(noun, v2=False):
     """
     Load a hypernym dataset for a specific noun with balanced train/test splits.
     
     Args:
         noun: The noun name (e.g., 'cars', 'fruit', 'dogs')
+        v2: If True, load from fixed-hypernyms/ with grammar-corrected sentences
         
     Returns (L_train, L_test) with Item namedtuples matching hypernym format.
     
-    Expected files:
+    Expected files (v2=False):
         ../data/hypernym_{noun}_train.csv
         ../data/hypernym_{noun}_test.csv
     
+    Expected files (v2=True):
+        ../data/fixed-hypernyms/hypernym_{noun}_google-gemma-2-2b_{train|test}-fixed.csv
+    
     CSV columns:
         noun1, predicted_hypernym, gpt4_ground_truth (Yes/No), log_prob, ...
+        (v2 also has: fixed_hypernym_generator, discriminator_sentence)
     """
     import pandas as pd
     from pathlib import Path
     
-    train_file = Path(f"../data/hypernym_{noun}_train.csv")
-    test_file = Path(f"../data/hypernym_{noun}_test.csv")
+    if v2:
+        # Load from fixed-hypernyms directory with grammar-corrected data
+        train_file = Path(f"../data/fixed-hypernyms/hypernym_{noun}_google-gemma-2-2b_train-fixed.csv")
+        test_file = Path(f"../data/fixed-hypernyms/hypernym_{noun}_google-gemma-2-2b_test-fixed.csv")
+    else:
+        # Try both naming patterns: with and without model name
+        train_file = Path(f"../data/hypernym_{noun}_google-gemma-2-2b_train.csv")
+        test_file = Path(f"../data/hypernym_{noun}_google-gemma-2-2b_test.csv")
+        # Fallback to old naming if new doesn't exist
+        if not train_file.exists():
+            train_file = Path(f"../data/hypernym_{noun}_train.csv")
+        if not test_file.exists():
+            test_file = Path(f"../data/hypernym_{noun}_test.csv")
     
     if not train_file.exists():
         raise FileNotFoundError(f"Training data not found: {train_file}\n"
@@ -122,29 +138,53 @@ def load_hypernym_noun_data(noun):
     train_df = pd.read_csv(train_file)
     test_df = pd.read_csv(test_file)
     
-    # Create namedtuple with same fields as hypernym for compatibility
-    Item = namedtuple(
-        "Item",
-        ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax"],
-    )
-    
-    def df_to_items(df):
-        items = []
-        for _, row in df.iterrows():
-            # Map gpt4_ground_truth to lowercase for taxonomic field
-            taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
-            # Create Item with placeholder values for unused fields
-            item = Item(
-                noun1=row['noun1'],
-                noun2=row['predicted_hypernym'],
-                taxonomic=taxonomic,
-                sim="high",  # placeholder
-                gen_rank=0,  # placeholder
-                yesgreater="yes",  # placeholder
-                argmax="yes"  # placeholder
-            )
-            items.append(item)
-        return items
+    if v2:
+        # v2 mode: include fixed_hypernym_generator and discriminator_sentence
+        Item = namedtuple(
+            "Item",
+            ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax",
+             "fixed_hypernym_generator", "discriminator_sentence"],
+        )
+        
+        def df_to_items(df):
+            items = []
+            for _, row in df.iterrows():
+                taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
+                item = Item(
+                    noun1=row['noun1'],
+                    noun2=row['fixed_hypernym_generator'],  # Use corrected hypernym as noun2
+                    taxonomic=taxonomic,
+                    sim="high",
+                    gen_rank=0,
+                    yesgreater="yes",
+                    argmax="yes",
+                    fixed_hypernym_generator=row['fixed_hypernym_generator'],
+                    discriminator_sentence=row['discriminator_sentence'],
+                )
+                items.append(item)
+            return items
+    else:
+        # Original mode
+        Item = namedtuple(
+            "Item",
+            ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax"],
+        )
+        
+        def df_to_items(df):
+            items = []
+            for _, row in df.iterrows():
+                taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
+                item = Item(
+                    noun1=row['noun1'],
+                    noun2=row['predicted_hypernym'],
+                    taxonomic=taxonomic,
+                    sim="high",
+                    gen_rank=0,
+                    yesgreater="yes",
+                    argmax="yes"
+                )
+                items.append(item)
+            return items
     
     L_train = df_to_items(train_df)
     L_test = df_to_items(test_df)
@@ -557,6 +597,47 @@ def make_prompt_hypernymy(item, style="generator", shots="zero", neg=False, gen_
     prompt = prompt.strip()
     Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
     return Pt(prompt, completion)
+
+
+def make_prompt_hypernymy_v2(item, style="generator", shots="zero", neg=False, gen_response=None, variation=0):
+    """
+    Make a prompt for v2 hypernym data (grammar-corrected).
+    
+    Uses fixed_hypernym_generator for completion and discriminator_sentence for discriminator prompts.
+    """
+    # Convert variation to int if it's a numeric string
+    if isinstance(variation, str) and variation.isdigit():
+        variation = int(variation)
+    
+    Pt = namedtuple("PromptCompletion", ["prompt", "completion"])
+    
+    if style == "generator":
+        # Use the same gtemplate as original variation=0
+        gtemplate = "Complete the sentence: $word are a kind of"
+        prompt = Template(gtemplate).substitute(word=item.noun1)
+        # Use fixed_hypernym_generator as completion
+        completion = " " + item.fixed_hypernym_generator
+        
+    elif style == "discriminator":
+        if variation != 0:
+            raise NotImplementedError(f"v2 discriminator only supports variation=0, got variation={variation}")
+        
+        # Few-shot prefix + discriminator_sentence from the CSV
+        few_shot_prefix = (
+            "Do you think bees are furniture? Answer: No\n\n"
+            "Do you think corgis are dogs? Answer: Yes\n\n"
+            "Do you think trucks are a fruit? Answer: No\n\n"
+            "Do you think robins are birds? Answer: Yes\n\n"
+        )
+        # discriminator_sentence already contains the question (e.g., "Do you think bananas are a food?")
+        prompt = few_shot_prefix + item.discriminator_sentence + " Answer:"
+        completion = " " + item.taxonomic.capitalize()
+    else:
+        raise ValueError(f"Unknown style: {style}")
+    
+    prompt = prompt.strip()
+    return Pt(prompt, completion)
+
 
 # ISO 639-1 codes to language names.
 LANGUAGE_CODES = immutabledict.immutabledict({
@@ -1076,7 +1157,7 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
 
         return torch.stack(token_logprobs)
 
-def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
+def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0, v2=False):
     # Check task registry first (for new extensible tasks)
     task_config = get_task(task)
     if task_config is not None:
@@ -1084,9 +1165,13 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
         L_train, L_test = task_config['load_data'](
             seed=seed,
             split_type=split_type,
-            sample_negative=sample_negative
+            sample_negative=sample_negative,
+            v2=v2
         )
-        make_prompt = task_config['make_prompt']
+        # Wrap make_prompt to pass through v2 and variation
+        base_make_prompt = task_config['make_prompt']
+        def make_prompt(*args, **kwargs):
+            return base_make_prompt(*args, v2=v2, variation=variation, **kwargs)
         return L_train, L_test, make_prompt
 
     # LEGACY PATH: Existing task implementations (unchanged)
@@ -1107,10 +1192,14 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0):
     elif task.startswith('hypernym-'):
         # Dynamic hypernym task for any noun: hypernym-cars, hypernym-fruit, etc.
         noun = task.split('hypernym-', 1)[1]
-        L_train, L_test = load_hypernym_noun_data(noun)
-        # Use same prompt format as hypernym
-        def make_prompt(*args, **kwargs):
-            return make_prompt_hypernymy(*args, variation=variation, **kwargs)
+        L_train, L_test = load_hypernym_noun_data(noun, v2=v2)
+        # Use v2 prompt function if v2 mode, otherwise original
+        if v2:
+            def make_prompt(*args, **kwargs):
+                return make_prompt_hypernymy_v2(*args, variation=variation, **kwargs)
+        else:
+            def make_prompt(*args, **kwargs):
+                return make_prompt_hypernymy(*args, variation=variation, **kwargs)
         make_prompt = make_prompt
     elif task=='trivia-qa':
         L_train, L_test = load_triviaqa_data(seed=seed, sample_negative=sample_negative)
