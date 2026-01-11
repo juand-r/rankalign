@@ -53,4 +53,5 @@ from . import hypernym_custom  # Custom hypernym tasks: hypernym-cars, hypernym-
 from . import hyponym          # Hyponym task (reverse of hypernym)
 from . import hypernym_hyponyms  # Auto-registered hypernym tasks for each hyponym dataset
 from . import hypernym_concat   # Concatenated hypernym task (balanced sampling from all datasets)
+from . import hypernym_concat_subset  # Subset: bananas to dogs only
 
