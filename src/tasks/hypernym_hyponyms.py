@@ -56,7 +56,7 @@ def load_hyponym_data(hyponym_name, split='train', v2=True):
     if v2:
         csv_path = os.path.join(FIXED_DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}-fixed.csv")
     else:
-    csv_path = os.path.join(DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}.csv")
+        csv_path = os.path.join(DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}.csv")
     
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"Data file not found: {csv_path}")
@@ -75,11 +75,11 @@ def load_hyponym_data(hyponym_name, split='train', v2=True):
                     discriminator_sentence=row['discriminator_sentence'],
                 )
             else:
-            item = HypernymItem(
-                noun1=row['noun1'],
-                noun2=row['predicted_hypernym'],
+                item = HypernymItem(
+                    noun1=row['noun1'],
+                    noun2=row['predicted_hypernym'],
                     taxonomic=row['gpt4_ground_truth'].lower()
-            )
+                )
             items.append(item)
     
     return items
@@ -114,14 +114,14 @@ def make_prompt(item, style='generator', shots='zero', gen_response=None, neg=Fa
             variation=variation
         )
     else:
-    return utils.make_prompt_hypernymy(
-        item,
-        style=style,
-        shots=shots,
-        neg=neg,
-        gen_response=gen_response,
-        variation=variation
-    )
+        return utils.make_prompt_hypernymy(
+            item,
+            style=style,
+            shots=shots,
+            neg=neg,
+            gen_response=gen_response,
+            variation=variation
+        )
 
 
 def get_completion(item):

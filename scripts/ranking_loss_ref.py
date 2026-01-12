@@ -108,10 +108,23 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
                     else:
                         context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)[:-1] + input_ids[:i]
                     
+                    # Assert: context_ids for i > 0 should also start with BOS like i == 0
+                    # If this fails, the [:-1] slice is removing the BOS token incorrectly
+                    bos_tokens = tokenizer_gpt2.encode("", add_special_tokens=True)
+                    if i == 0:
+                        assert context_ids == bos_tokens, f"i=0 context should be BOS: {context_ids} vs {bos_tokens}"
+                    else:
+                        # Check if context starts with BOS (it should for consistency)
+                        expected_context = bos_tokens + input_ids[:i]
+                        assert context_ids == expected_context, (
+                            f"Context mismatch at i={i}: got {context_ids}, expected {expected_context}. "
+                            f"The [:-1] slice removes BOS, making contexts inconsistent between i=0 and i>0."
+                        )
+                    
                     max_ctx = 1024
                     if len(context_ids) > max_ctx - 1:
                         context_ids = context_ids[-(max_ctx - 1):]
-
+                    
                     full_ids = context_ids + [input_ids[i]]
                     input_tensor = torch.tensor([full_ids]).to(device)
                     outputs = model_gpt2(input_tensor)
@@ -147,14 +160,19 @@ def main(args):
     alpha = args.alpha  # New alpha parameter
     use_lora = args.lora
     gradient_checkpointing = args.gradient_checkpointing
-    use_full_completion = args.use_full_completion
+    use_full_completion = not args.no_full_completion
     debug = args.debug
     nll_validator_weight = args.nll_validator_weight
     nll_generator_weight = args.nll_generator_weight
     use_wandb = not args.no_wandb
+    validator_log_odds = args.validator_log_odds
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     WITH_REF = with_ref
+    
+    # Yes/No token variants for log-odds computation
+    yes_words = ["Yes", " Yes", "YES", "yes", " yes"]
+    no_words = ["No", " No", "NO", "no", " no"]
     
     # Initialize wandb if enabled
     if use_wandb:
@@ -257,6 +275,12 @@ def main(args):
     tokenizer, model = load_model_tokenizer(model_name)
     # Note: device_map="auto" in load_model_tokenizer handles device placement
     
+    # Compute yes/no token IDs for log-odds computation
+    yestoks = [tokenizer.encode(w)[-1] for w in yes_words]
+    notoks = [tokenizer.encode(w)[-1] for w in no_words]
+    if validator_log_odds:
+        print(f"Using log-odds for validator: yestoks={yestoks}, notoks={notoks}")
+    
     # Conditionally add LoRA for memory-efficient fine-tuning
     if use_lora:
         print("Setting up LoRA for memory-efficient fine-tuning...")
@@ -320,9 +344,10 @@ def main(args):
 
     # Check task registry first (for new extensible tasks)
     task_config = get_task(task)
+    use_v2 = not args.no_v2
     if task_config is not None:
         # NEW PATH: Use registered task configuration
-        L_train, L_test = task_config['load_data'](seed=0, split_type=split_type)
+        L_train, L_test = task_config['load_data'](seed=0, split_type=split_type, v2=use_v2)
     # LEGACY PATH: Existing task implementations (unchanged)
     elif task=='hypernym':
         L = utils.load_noun_pair_data()
@@ -471,11 +496,19 @@ def main(args):
                 if train_g_or_d == 'both':
                     ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                     ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                    # Assert that heuristic matches correct approach
+                    ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
+                    ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
+                    assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
+                    assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
                     log_prob_d = math.log(probs[ind_d].item() + 1e-12)
                     log_prob_g = math.log(probs[ind_g].item() + 1e-12)
                     logprobs_last_layer.append((log_prob_d, log_prob_g))
                 else:
                     ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                    # Assert that heuristic matches correct approach (tokenize without special tokens)
+                    ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
+                    assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
                     log_prob = math.log(probs[ind].item() + 1e-12)
                     logprobs_last_layer.append(log_prob)
 
@@ -533,12 +566,20 @@ def main(args):
                 if train_g_or_d == 'both':
                     ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                     ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                    # Assert that heuristic matches correct approach
+                    ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
+                    ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
+                    assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
+                    assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
                     log_prob_d = math.log(probs[ind_d].item() + 1e-12)
                     log_prob_g = math.log(probs[ind_g].item() + 1e-12)
                     logprobs_last_layer.append((log_prob_d, log_prob_g))
                     #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
                 else:
                     ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                    # Assert that heuristic matches correct approach
+                    ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
+                    assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
                     log_prob = math.log(probs[ind].item() + 1e-12)
                     logprobs_last_layer.append(log_prob)
 
@@ -584,12 +625,20 @@ def main(args):
             if train_g_or_d == 'both':
                 ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                 ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                # Assert that heuristic matches correct approach
+                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
+                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
+                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
+                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
                 log_prob_d = math.log(probs[ind_d].item() + 1e-12)
                 log_prob_g = math.log(probs[ind_g].item() + 1e-12)
                 logprobs_last_layer.append((log_prob_d, log_prob_g))
                 #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
             else:
                 ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                # Assert that heuristic matches correct approach
+                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
+                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
                 log_prob = math.log(probs[ind].item() + 1e-12)
                 logprobs_last_layer.append(log_prob)
 
@@ -633,12 +682,20 @@ def main(args):
             if train_g_or_d == 'both':
                 ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                 ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                # Assert that heuristic matches correct approach
+                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
+                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
+                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
+                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
                 log_prob_d = math.log(probs[ind_d].item() + 1e-12)
                 log_prob_g = math.log(probs[ind_g].item() + 1e-12)
                 logprobs_last_layer.append((log_prob_d, log_prob_g))
                 #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
             else:
                 ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                # Assert that heuristic matches correct approach
+                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
+                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
                 log_prob = math.log(probs[ind].item() + 1e-12)
                 logprobs_last_layer.append(log_prob)
         # Generate discriminator prompts
@@ -654,7 +711,7 @@ def main(args):
 
         #L_train_all = L_train  # Already using all examples for lambada
         # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_lambada, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, both=None)
+        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_lambada, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
  
         prompts_gold = [i.prompt for i in p_train_gold]
 
@@ -684,12 +741,20 @@ def main(args):
             if train_g_or_d == 'both':
                 ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                 ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
+                # Assert that heuristic matches correct approach
+                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
+                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
+                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
+                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
                 log_prob_d = math.log(probs[ind_d].item() + 1e-12)
                 log_prob_g = math.log(probs[ind_g].item() + 1e-12)
                 logprobs_last_layer.append((log_prob_d, log_prob_g))
                 #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
             else:
                 ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
+                # Assert that heuristic matches correct approach
+                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
+                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
                 log_prob = math.log(probs[ind].item() + 1e-12)
                 logprobs_last_layer.append(log_prob)
         # Generate discriminator prompts
@@ -948,7 +1013,20 @@ def main(args):
             message = [
                 {"role": "user", "content": prompt},]
         toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt')[0]
-        return tokenizer.decode(toks[1:])
+        decoded = tokenizer.decode(toks[1:])
+        
+        # Assert: decode/re-encode should produce the same tokens
+        # If this fails, there's a tokenization asymmetry that could cause training inconsistencies
+        reencoded = tokenizer.encode(decoded, add_special_tokens=False, return_tensors='pt')[0]
+        original_without_bos = toks[1:]
+        assert torch.equal(reencoded, original_without_bos), (
+            f"Decode/re-encode mismatch! "
+            f"Original tokens (no BOS): {original_without_bos.tolist()}, "
+            f"Re-encoded tokens: {reencoded.tolist()}, "
+            f"Decoded text: '{decoded[:100]}...'"
+        )
+        
+        return decoded
 
     def get_correct_answer(data_item, task):
         """Get the ground truth answer (Yes/No) for a data item based on task type."""
@@ -1435,9 +1513,33 @@ def main(args):
                 log_probs_i_gen = F.log_softmax(outputs_i_gen.logits, dim=-1)
                 log_probs_j_gen = F.log_softmax(outputs_j_gen.logits, dim=-1)
 
-                # Get scores
-                score_i_disc = sum_completion_logprobs(log_probs_i_disc, token_id_i_disc)   
-                score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
+                # Get discriminator scores
+                if validator_log_odds:
+                    # Log-odds: log(sum P(yes_tokens)) - log(sum P(no_tokens))
+                    # Look at position before completion (last position predicts first completion token)
+                    def compute_logodds(log_probs, token_ids):
+                        """Compute log-odds for yes vs no at the position predicting the completion."""
+                        batch_size = log_probs.shape[0]
+                        logodds_list = []
+                        for b in range(batch_size):
+                            comp_len = token_ids[b].size(0)
+                            # Position that predicts first completion token
+                            pred_pos = -(comp_len + 1)
+                            probs_at_pos = torch.exp(log_probs[b, pred_pos, :])  # [vocab]
+                            p_yes = probs_at_pos[yestoks].sum()
+                            p_no = probs_at_pos[notoks].sum()
+                            logodds = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
+                            logodds_list.append(logodds)
+                        return torch.stack(logodds_list)
+                    
+                    score_i_disc = compute_logodds(log_probs_i_disc, token_id_i_disc)
+                    score_j_disc = compute_logodds(log_probs_j_disc, token_id_j_disc)
+                else:
+                    # Log-probs: log(P(completion))
+                    score_i_disc = sum_completion_logprobs(log_probs_i_disc, token_id_i_disc)   
+                    score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
+                
+                # Generator always uses log-probs (completion can be multi-token)
                 score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen)
                 score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen)
 
@@ -1514,17 +1616,52 @@ def main(args):
                 # logits_i: [batch_size, seq_len, vocab_size]
 
                 log_probs_i = F.log_softmax(outputs_i.logits, dim=-1)  # [B, seq_len, vocab_size]
-                # Score for example i is the log-prob of token_id_i
-                score_i = sum_completion_logprobs(log_probs_i, token_id_i)  # [B]
 
                 # Forward pass for prompt j
                 outputs_j = model(input_ids=input_ids_j, attention_mask=attention_mask_j)
-
                 log_probs_j = F.log_softmax(outputs_j.logits, dim=-1)  # [B, seq_len, vocab_size]
+                
+                # Compute scores - use log-odds for discriminator mode if flag is set
+                if train_g_or_d == 'd' and validator_log_odds:
+                    # Log-odds: log(sum P(yes_tokens)) - log(sum P(no_tokens))
+                    def compute_logodds_simple(log_probs, token_ids):
+                        """Compute log-odds for yes vs no at the position predicting the completion."""
+                        batch_size = log_probs.shape[0]
+                        logodds_list = []
+                        for b in range(batch_size):
+                            comp_len = token_ids[b].size(0)
+                            pred_pos = -(comp_len + 1)
+                            probs_at_pos = torch.exp(log_probs[b, pred_pos, :])
+                            p_yes = probs_at_pos[yestoks].sum()
+                            p_no = probs_at_pos[notoks].sum()
+                            logodds = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
+                            logodds_list.append(logodds)
+                        return torch.stack(logodds_list)
+                    
+                    score_i = compute_logodds_simple(log_probs_i, token_id_i)
+                    score_j = compute_logodds_simple(log_probs_j, token_id_j)
+                else:
+                    # Log-probs (default)
+                    score_i = sum_completion_logprobs(log_probs_i, token_id_i)  # [B]
                 score_j = sum_completion_logprobs(log_probs_j, token_id_j)  # [B]
 
                 # Use frozen reference model
                 if WITH_REF:
+                    # Check that token_ids are single-token (1D after squeeze, or 2D with size 1 in last dim)
+                    # This reference model scoring code assumes single-token completions
+                    if token_id_i.dim() > 1 or (token_id_i.dim() == 1 and token_id_i.size(0) != batch["input_ids_i"].size(0)):
+                        raise NotImplementedError(
+                            "Reference model scoring (WITH_REF) currently only supports single-token completions. "
+                            f"Got token_id_i with shape {token_id_i.shape}. "
+                            "Use --use-full-completion without --with_ref, or ensure completions are single tokens."
+                        )
+                    if token_id_j.dim() > 1 or (token_id_j.dim() == 1 and token_id_j.size(0) != batch["input_ids_j"].size(0)):
+                        raise NotImplementedError(
+                            "Reference model scoring (WITH_REF) currently only supports single-token completions. "
+                            f"Got token_id_j with shape {token_id_j.shape}. "
+                            "Use --use-full-completion without --with_ref, or ensure completions are single tokens."
+                        )
+                    
                     with torch.no_grad():
                         outputs_i_ref = model_ref(input_ids=input_ids_i, attention_mask=attention_mask_i, use_cache = False)
                         # logits_i: [batch_size, seq_len, vocab_size]
@@ -1694,13 +1831,15 @@ if __name__ == "__main__":
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
-    parser.add_argument("--use-full-completion", default=False, action='store_true', help="Use full completion for generator scoring instead of just the first token")
+    parser.add_argument("--no-full-completion", default=False, action='store_true', help="Use only first token for scoring instead of full completion (full completion is default)")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_data_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
     parser.add_argument("--nll_validator_weight", type=float, default=0.0, help="Weight for NLL loss on validator (discriminator) correct answers")
     parser.add_argument("--nll_generator_weight", type=float, default=0.0, help="Weight for NLL loss on generator completions (only for positive examples)")
     parser.add_argument("--no-wandb", action="store_true", default=False, help="Disable Weights & Biases logging (enabled by default)")
     parser.add_argument("--wandb_run_name", type=str, default=None, help="Weights & Biases run name (auto-generated if not provided)")
+    parser.add_argument("--no-v2", action="store_true", default=False, help="Use original hypernym data instead of v2 grammar-corrected data")
+    parser.add_argument("--validator-log-odds", action="store_true", default=False, help="Use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes)))")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number

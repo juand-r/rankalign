@@ -124,9 +124,9 @@ def load_hypernym_noun_data(noun, v2=True):
         test_file = Path(f"../data/hypernym_{noun}_google-gemma-2-2b_test.csv")
         # Fallback to old naming if new doesn't exist
         if not train_file.exists():
-    train_file = Path(f"../data/hypernym_{noun}_train.csv")
+            train_file = Path(f"../data/hypernym_{noun}_train.csv")
         if not test_file.exists():
-    test_file = Path(f"../data/hypernym_{noun}_test.csv")
+            test_file = Path(f"../data/hypernym_{noun}_test.csv")
     
     if not train_file.exists():
         raise FileNotFoundError(f"Training data not found: {train_file}\n"
@@ -165,26 +165,26 @@ def load_hypernym_noun_data(noun, v2=True):
             return items
     else:
         # Original mode
-    Item = namedtuple(
-        "Item",
-        ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax"],
-    )
-    
-    def df_to_items(df):
-        items = []
-        for _, row in df.iterrows():
-            taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
-            item = Item(
-                noun1=row['noun1'],
-                noun2=row['predicted_hypernym'],
-                taxonomic=taxonomic,
+        Item = namedtuple(
+            "Item",
+            ["noun1", "noun2", "taxonomic", "sim", "gen_rank", "yesgreater", "argmax"],
+        )
+        
+        def df_to_items(df):
+            items = []
+            for _, row in df.iterrows():
+                taxonomic = "yes" if row['gpt4_ground_truth'] == 'Yes' else "no"
+                item = Item(
+                    noun1=row['noun1'],
+                    noun2=row['predicted_hypernym'],
+                    taxonomic=taxonomic,
                     sim="high",
                     gen_rank=0,
                     yesgreater="yes",
                     argmax="yes"
-            )
-            items.append(item)
-        return items
+                )
+                items.append(item)
+            return items
     
     L_train = df_to_items(train_df)
     L_test = df_to_items(test_df)
@@ -1198,8 +1198,8 @@ def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0, v2=T
             def make_prompt(*args, **kwargs):
                 return make_prompt_hypernymy_v2(*args, variation=variation, **kwargs)
         else:
-        def make_prompt(*args, **kwargs):
-            return make_prompt_hypernymy(*args, variation=variation, **kwargs)
+            def make_prompt(*args, **kwargs):
+                return make_prompt_hypernymy(*args, variation=variation, **kwargs)
         make_prompt = make_prompt
     elif task=='trivia-qa':
         L_train, L_test = load_triviaqa_data(seed=seed, sample_negative=sample_negative)
