@@ -242,7 +242,8 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_short = modelname.split('/')[-1].replace('--', '_')
     split = "train" if args.train else "test"
-    filename = f"../outputs/viz_{model_short}_{task}_{split}_{metric_type}_{timestamp}.png"
+    v2_suffix = "_v2" if not args.no_v2 else ""
+    filename = f"../outputs/viz_{model_short}_{task}_{split}_{metric_type}{v2_suffix}_{timestamp}.png"
     
     # Save
     plt.tight_layout()
@@ -294,7 +295,8 @@ def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_short = modelname.split('/')[-1].replace('--', '_')
     split = "train" if args.train else "test"
-    filename = f"../outputs/viz_interactive_{model_short}_{task}_{split}_{metric_type}_{timestamp}.html"
+    v2_suffix = "_v2" if not args.no_v2 else ""
+    filename = f"../outputs/viz_interactive_{model_short}_{task}_{split}_{metric_type}{v2_suffix}_{timestamp}.html"
 
     fig.write_html(filename)
     print(f"Interactive visualization saved to: {filename}")
@@ -360,8 +362,12 @@ def main(args):
     train_flag = args.train
     split_type = args.split_type
 
-    L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative, variation = args.variation)
-    print("Loaded data with negative_sample = {}!".format(args.sample_negative))
+    # Default to full completion logprobs (multi-token), unless --no-full-completion-logprobs is set
+    use_full_completion_logprobs = not args.no_full_completion_logprobs
+
+    v2 = not args.no_v2
+    L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative, variation = args.variation, v2=v2)
+    print("Loaded data with negative_sample = {}, v2 = {}!".format(args.sample_negative, v2))
     device = get_device()
     print(f"Using device: {device}")
 
@@ -431,7 +437,7 @@ def main(args):
         probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
         P_gen.append(probs_gen)
         # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
-        if args.use_full_completion_logprobs:
+        if use_full_completion_logprobs:
             gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
@@ -446,7 +452,7 @@ def main(args):
         #         yestoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in yes_token_strings]
         #         notoks = [tokenizer.encode(s, add_special_tokens=False)[0] for s in no_token_strings]
         #         print("\n" + "="*80)
-        #         print(f"DEBUG: use_full_completion_logprobs = {args.use_full_completion_logprobs}")
+        #         print(f"DEBUG: use_full_completion_logprobs = {use_full_completion_logprobs}")
         #         print("="*80)
         #     
         #     p_yes = probs_disc[yestoks].sum()
@@ -513,20 +519,19 @@ def main(args):
                 raise NotImplementedError("Not a task")
             # print(json_list[-1])
     
-    # Compute logodds for visualization/analysis (needed for both train and test)
-    if args.use_full_completion_logprobs:
-        # Multi-token case: use log-probs for both generator and discriminator
-        logodds_gen = [torch.tensor(v) for v in gen_sum_logprobs]
-        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
-        logprobs_gen = None  # Not needed for multi-token
-        logprobs_disc = None
+    # Compute generator scores for typicality correction (if needed)
+    # NOTE: disc_scores are computed in compute_logodds_final_layer and returned in res_dict
+    # NOTE: When typicality correction is NOT applied, these are recomputed in compute_logodds_final_layer
+    if use_full_completion_logprobs:
+        # Multi-token case: use log-probs for generator (gen_sum_logprobs is already list of floats)
+        gen_scores = gen_sum_logprobs  # No need to wrap in tensor - will be converted to float anyway
+        # # OLD: computed disc here, now done in compute_logodds_final_layer
+        # logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
     else:
-        # Single-token case: compute both log-odds and log-probs for visualization
-        logodds_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=True) for ii in range(len(P_gen))]
-        logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
-        # Also compute log-probs version for second plot
-        logprobs_gen = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=False) for ii in range(len(P_gen))]
-        logprobs_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+        # Single-token case: use log-odds for generator
+        gen_scores = [get_logodds_gen(P_gen, LL, ii, tokenizer, first_sw_token, task, is_chat = model_is_chat, use_lgo=True) for ii in range(len(P_gen))]
+        # # OLD: computed disc here, now done in compute_logodds_final_layer
+        # logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
     
     # Apply typicality correction if requested
     if args.typicality_correction:
@@ -534,7 +539,7 @@ def main(args):
         print("APPLYING TYPICALITY CORRECTION")
         print("="*60)
         
-        if not args.use_full_completion_logprobs:
+        if not use_full_completion_logprobs:
             # Load precomputed GPT-2 vocab probabilities
             gpt2_vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
             if gpt2_vocab_logprobs is None:
@@ -566,61 +571,58 @@ def main(args):
         
         # Apply correction to completion scores: corrected_gen = gen - typicality
         print("\nApplying correction to completion scores: log P(completion|context) - log P_GPT2(completion)")
-        logodds_gen_original = logodds_gen.copy()
-        logodds_gen = [float(logodds_gen[i]) - typicality_scores[i] for i in range(len(logodds_gen))]
+        gen_scores_original = gen_scores.copy() if isinstance(gen_scores, list) else list(gen_scores)
+        gen_scores = [float(gen_scores[i]) - typicality_scores[i] for i in range(len(gen_scores))]
+        # gen_scores is now a list of floats - compute_logodds_final_layer will handle it
         
-        # Convert back to tensors
-        logodds_gen = [torch.tensor(v) for v in logodds_gen]
-        
-        # Also correct logprobs_gen if it exists (for single-token mode visualization)
-        if logprobs_gen is not None:
-            logprobs_gen = [float(logprobs_gen[i]) - typicality_scores[i] for i in range(len(logprobs_gen))]
-            logprobs_gen = [torch.tensor(v) for v in logprobs_gen]
-        
-        print(f"  Original score mean: {np.mean([float(x) for x in logodds_gen_original]):.4f}")
-        print(f"  Corrected score mean (PMI): {np.mean([float(x) for x in logodds_gen]):.4f}")
-        print(f"  Correction applied to {len(logodds_gen)} examples")
-        if not args.use_full_completion_logprobs:
+        print(f"  Original score mean: {np.mean([float(x) for x in gen_scores_original]):.4f}")
+        print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
+        print(f"  Correction applied to {len(gen_scores)} examples")
+        if not use_full_completion_logprobs:
             print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
             # Replace P_gen with corrected version for rank computation
             P_gen = P_gen_corrected
         
         print("="*60 + "\n")
     
-    # Compute confusion matrix for discriminator
-    # Get ground truth labels (1=positive, 0=negative)
-    true_labels = get_labels(task, LL)
-    
-    # Determine threshold based on metric type
-    # For log-odds: threshold = 0 (since log(P(yes)/P(no)) = 0 when P(yes) = P(no) = 0.5)
-    # For log-probs: threshold = log(0.5) ≈ -0.693 (since log(P(yes)) = log(0.5) when P(yes) = 0.5)
-    if args.use_full_completion_logprobs:
-        threshold = np.log(0.5)  # log-probs threshold
-        metric_name = "log-probs"
-    else:
-        threshold = 0.0  # log-odds threshold
-        metric_name = "log-odds"
-    
-    # Make predictions: predicted = 1 if score > threshold, else 0
-    disc_scores = np.array([float(x) for x in logodds_disc])
-    pred_labels = (disc_scores > threshold).astype(int)
-    true_labels_np = np.array(true_labels)
-    
-    # Compute confusion matrix components
-    tp = np.sum((pred_labels == 1) & (true_labels_np == 1))  # True Positives
-    fp = np.sum((pred_labels == 1) & (true_labels_np == 0))  # False Positives
-    tn = np.sum((pred_labels == 0) & (true_labels_np == 0))  # True Negatives
-    fn = np.sum((pred_labels == 0) & (true_labels_np == 1))  # False Negatives
-    
-    # Print confusion matrix
-    print(f"\nDiscriminator Confusion Matrix ({metric_name}, threshold={threshold:.3f}):")
-    print(f"                 Predicted Positive  Predicted Negative")
-    print(f"Actual Positive        {tp:6d}              {fn:6d}")
-    print(f"Actual Negative        {fp:6d}              {tn:6d}")
-    print(f"\nAccuracy: {(tp + tn) / len(true_labels):.4f}")
-    print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
-    print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
-    print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
+    # # OLD: Confusion matrix was computed here before compute_logodds_final_layer
+    # # Now moved to after compute_logodds_final_layer to use consistent disc_scores
+    # # Compute confusion matrix for discriminator
+    # # Get ground truth labels (1=positive, 0=negative)
+    # true_labels = get_labels(task, LL)
+    # 
+    # # Determine threshold based on metric type
+    # # For log-odds: threshold = 0 (since log(P(yes)/P(no)) = 0 when P(yes) = P(no) = 0.5)
+    # # Threshold depends on whether we're using log-odds or log-probs for validator
+    # # For log-odds: threshold = 0 (since log(P(yes)/P(no)) = 0 when P(yes) = P(no) = 0.5)
+    # # For log-probs: threshold = log(0.5) ≈ -0.693 (since log(P(yes)) = log(0.5) when P(yes) = 0.5)
+    # if args.validator_log_odds:
+    #     threshold = 0.0  # log-odds threshold
+    #     metric_name = "log-odds"
+    # else:
+    #     threshold = np.log(0.5)  # log-probs threshold
+    #     metric_name = "log-probs"
+    # 
+    # # Make predictions: predicted = 1 if score > threshold, else 0
+    # disc_scores = np.array([float(x) for x in logodds_disc])
+    # pred_labels = (disc_scores > threshold).astype(int)
+    # true_labels_np = np.array(true_labels)
+    # 
+    # # Compute confusion matrix components
+    # tp = np.sum((pred_labels == 1) & (true_labels_np == 1))  # True Positives
+    # fp = np.sum((pred_labels == 1) & (true_labels_np == 0))  # False Positives
+    # tn = np.sum((pred_labels == 0) & (true_labels_np == 0))  # True Negatives
+    # fn = np.sum((pred_labels == 0) & (true_labels_np == 1))  # False Negatives
+    # 
+    # # Print confusion matrix
+    # print(f"\nDiscriminator Confusion Matrix ({metric_name}, threshold={threshold:.3f}):")
+    # print(f"                 Predicted Positive  Predicted Negative")
+    # print(f"Actual Positive        {tp:6d}              {fn:6d}")
+    # print(f"Actual Negative        {fp:6d}              {tn:6d}")
+    # print(f"\nAccuracy: {(tp + tn) / len(true_labels):.4f}")
+    # print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
+    # print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
+    # print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
 
     disc_probs_sum = [p_yes + p_no for p_yes, p_no in disc_probs]
     print(f"Discriminator Probabilities Avg p_yes + p_no: {np.mean(disc_probs_sum):.4f}")
@@ -632,10 +634,28 @@ def main(args):
     plt.savefig(hist_filename)
     plt.close()
 
+    # Compute scores via compute_logodds_final_layer (single source of truth for all scores)
+    # Pass corrected scores if typicality correction was applied
+    corrected_scores = gen_scores if args.typicality_correction else None
+    
+    res_dict = compute_logodds_final_layer(task,
+        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, 
+        gen_logprobs=(gen_sum_logprobs if use_full_completion_logprobs else None),
+        corrected_logodds_gen=corrected_scores,
+        use_log_odds=args.validator_log_odds)
+
+    # Extract scores from res_dict (computed consistently in compute_logodds_final_layer)
+    gen_scores = res_dict['gen_scores']
+    disc_scores = res_dict['disc_scores']
+    disc_threshold = res_dict['disc_threshold']
+    
+    # Get labels for subsequent uses
+    true_labels = get_labels(task, LL)
+
     # Debug: Save ALL discriminator and generator values with ground truth to CSV
     if args.debug_save_values:
         import csv
-        debug_suffix = "logprobs" if args.use_full_completion_logprobs else "logodds"
+        debug_suffix = "logprobs" if use_full_completion_logprobs else "logodds"
         debug_file = f"../outputs/debug_values_{task}_{debug_suffix}.csv"
         
         with open(debug_file, 'w', newline='') as f:
@@ -651,7 +671,7 @@ def main(args):
                 writer.writerow(['index', 'ground_truth', 'disc_score', 'gen_score'])
             
             # Write all data
-            for i in range(len(logodds_disc)):
+            for i in range(len(disc_scores)):
                 if is_hypernym_task(task):
                     writer.writerow([
                         i,
@@ -659,8 +679,8 @@ def main(args):
                         LL[i].noun2,
                         LL[i].taxonomic,
                         true_labels[i],
-                        float(logodds_disc[i]),
-                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                        float(disc_scores[i]),
+                        float(gen_scores[i]) if i < len(gen_scores) else ''
                     ])
                 elif task == 'swords':
                     writer.writerow([
@@ -670,22 +690,22 @@ def main(args):
                         LL[i].replacement,
                         LL[i].synonym,
                         true_labels[i],
-                        float(logodds_disc[i]),
-                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                        float(disc_scores[i]),
+                        float(gen_scores[i]) if i < len(gen_scores) else ''
                     ])
                 else:
                     writer.writerow([
                         i,
                         true_labels[i],
-                        float(logodds_disc[i]),
-                        float(logodds_gen[i]) if i < len(logodds_gen) else ''
+                        float(disc_scores[i]),
+                        float(gen_scores[i]) if i < len(gen_scores) else ''
                     ])
-        print(f"Debug values saved to: {debug_file} ({len(logodds_disc)} examples)")
+        print(f"Debug values saved to: {debug_file} ({len(disc_scores)} examples)")
     
     if args.train:
         for jj in range(len(json_list)):
-            json_list[jj]["generator-log-prob"] = float(logodds_gen[jj])
-            json_list[jj]["discriminator-log-prob"] = float(logodds_disc[jj])
+            json_list[jj]["generator-log-prob"] = float(gen_scores[jj])
+            json_list[jj]["discriminator-log-prob"] = float(disc_scores[jj])
             # print(json_list[jj])
         print(f"Saving train data to ../data/{task}-train-{modelname.split('/')[-1]}.json")
         with open(f"../data/{task}-train-{modelname.split('/')[-1]}.json", 'w') as f:
@@ -694,29 +714,60 @@ def main(args):
         # Create visualization if requested
         if args.viz:
             labels = get_labels(task, LL)
-            if args.use_full_completion_logprobs:
-                # Multi-token: one plot with log-probs
-                create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
-            else:
-                # Single-token: two plots (log-odds and log-probs)
-                create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
-                create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
+            metric_type = 'log-odds' if args.validator_log_odds else 'log-probs'
+            create_visualization(gen_scores, disc_scores, labels, modelname, task, args, metric_type=metric_type)
+            # # OLD: single-token mode had two plots
+            # if use_full_completion_logprobs:
+            #     # Multi-token: one plot with log-probs
+            #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
+            # else:
+            #     # Single-token: two plots (log-odds and log-probs)
+            #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
+            #     create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
         return
 
     gc.collect()
     if device == "cuda":
         torch.cuda.empty_cache()
 
+    # # OLD: Duplicate call to compute_logodds_final_layer - now called earlier (before debug section)
+    # # Pass corrected scores if typicality correction was applied
+    # corrected_scores = gen_scores if args.typicality_correction else None
+    # 
+    # res_dict = compute_logodds_final_layer(task,
+    #     P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, 
+    #     gen_logprobs=(gen_sum_logprobs if use_full_completion_logprobs else None),
+    #     corrected_logodds_gen=corrected_scores,
+    #     use_log_odds=args.validator_log_odds)
+    #
+    # # Extract scores from res_dict (computed consistently in compute_logodds_final_layer)
+    # gen_scores = res_dict['gen_scores']
+    # disc_scores = res_dict['disc_scores']
+    # disc_threshold = res_dict['disc_threshold']
     
+    # Compute confusion matrix for discriminator using consistent disc_scores
+    metric_name = "log-odds" if args.validator_log_odds else "log-probs"
     
-    # Pass corrected scores if typicality correction was applied
-    corrected_scores = logodds_gen if args.typicality_correction else None
+    # Make predictions: predicted = 1 if score > threshold, else 0
+    disc_scores_np = np.array([float(x) for x in disc_scores])
+    pred_labels = (disc_scores_np > disc_threshold).astype(int)
+    true_labels_np = np.array(true_labels)
     
-    res_dict = compute_logodds_final_layer(task,
-        P_gen, P_disc, LL, tokenizer, first_sw_token, yestoks, notoks, is_chat=model_is_chat, 
-        gen_logprobs=(gen_sum_logprobs if args.use_full_completion_logprobs else None),
-        corrected_logodds_gen=corrected_scores)
-
+    # Compute confusion matrix components
+    tp = np.sum((pred_labels == 1) & (true_labels_np == 1))  # True Positives
+    fp = np.sum((pred_labels == 1) & (true_labels_np == 0))  # False Positives
+    tn = np.sum((pred_labels == 0) & (true_labels_np == 0))  # True Negatives
+    fn = np.sum((pred_labels == 0) & (true_labels_np == 1))  # False Negatives
+    
+    # Print confusion matrix
+    print(f"\nDiscriminator Confusion Matrix ({metric_name}, threshold={disc_threshold:.3f}):")
+    print(f"                 Predicted Positive  Predicted Negative")
+    print(f"Actual Positive        {tp:6d}              {fn:6d}")
+    print(f"Actual Negative        {fp:6d}              {tn:6d}")
+    print(f"\nAccuracy: {(tp + tn) / len(true_labels):.4f}")
+    print(f"Precision: {tp / (tp + fp) if (tp + fp) > 0 else 0:.4f}")
+    print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
+    print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
     
     basename = get_base_model_name(modelname)
 
@@ -725,9 +776,10 @@ def main(args):
     with open(summary_file, 'a') as f:
         # if file is empty:
         if os.stat(summary_file).st_size == 0:
-            f.write("model,task,corr_all,corr_pos,corr_neg,disc_acc,disc_roc,gen_acc_5,gen_acc_10,gen_acc_40,gen_acc_100,gen_acc_1000,gen_mrr_pos,gen_mrr_neg,gen_shots,disc_shots,split,split_type,seed,spear_all,spear_pos,spear_neg,gen_acc_5_dataset,gen_acc_10_dataset,gen_acc_40_dataset,gen_acc_100_dataset,gen_acc_1000_dataset,gen_mrr_pos_dataset,gen_mrr_neg_dataset,gen_roc,\n")
+            f.write("model,task,typcorr,corr_all,corr_pos,corr_neg,disc_acc,disc_roc,gen_acc_5,gen_acc_10,gen_acc_40,gen_acc_100,gen_acc_1000,gen_mrr_pos,gen_mrr_neg,gen_shots,disc_shots,split,split_type,seed,spear_all,spear_pos,spear_neg,gen_acc_5_dataset,gen_acc_10_dataset,gen_acc_40_dataset,gen_acc_100_dataset,gen_acc_1000_dataset,gen_mrr_pos_dataset,gen_mrr_neg_dataset,gen_roc,\n")
         split = "train" if args.train else "test"
-        f.write(f"{modelname},{task},{res_dict['corr_all']},{res_dict['corr_pos']},{res_dict['corr_neg']},{res_dict['disc_acc']},{res_dict['disc_roc']},{res_dict['gen_acc_dict'][5]},{res_dict['gen_acc_dict'][10]},{res_dict['gen_acc_dict'][40]},{res_dict['gen_acc_dict'][100]},{res_dict['gen_acc_dict'][1000]},{res_dict['gen_mrr_pos']},{res_dict['gen_mrr_neg']},{gen_shots},{disc_shots},{split},{split_type},{seed}")
+        typcorr = "Y" if args.typicality_correction else "N"
+        f.write(f"{modelname},{task},{typcorr},{res_dict['corr_all']},{res_dict['corr_pos']},{res_dict['corr_neg']},{res_dict['disc_acc']},{res_dict['disc_roc']},{res_dict['gen_acc_dict'][5]},{res_dict['gen_acc_dict'][10]},{res_dict['gen_acc_dict'][40]},{res_dict['gen_acc_dict'][100]},{res_dict['gen_acc_dict'][1000]},{res_dict['gen_mrr_pos']},{res_dict['gen_mrr_neg']},{gen_shots},{disc_shots},{split},{split_type},{seed}")
         f.write(f",{res_dict['spear_all']},{res_dict['spear_pos']},{res_dict['spear_neg']}")
         # Add dataset-constrained metrics
         if 'gen_acc_dict_dataset' in res_dict:
@@ -740,14 +792,17 @@ def main(args):
     # Create visualization if requested
     if args.viz:
         labels = get_labels(task, LL)
-        if args.use_full_completion_logprobs:
-            # Multi-token: one plot with log-probs
-            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
-            # create_visualization_interactive(logodds_gen, logodds_disc, labels, example_details, modelname, task, args, metric_type='logprobs')
-        else:
-            # Single-token: two plots (log-odds and log-probs)
-            create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
-            create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
+        metric_type = 'log-odds' if args.validator_log_odds else 'log-probs'
+        create_visualization(gen_scores, disc_scores, labels, modelname, task, args, metric_type=metric_type)
+        # # OLD: different visualizations for single-token vs multi-token
+        # if use_full_completion_logprobs:
+        #     # Multi-token: one plot with log-probs
+        #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
+        #     # create_visualization_interactive(logodds_gen, logodds_disc, labels, example_details, modelname, task, args, metric_type='logprobs')
+        # else:
+        #     # Single-token: two plots (log-odds and log-probs)
+        #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
+        #     create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
 
 
 
@@ -764,10 +819,12 @@ if __name__ == "__main__":
     parser.add_argument("--sample_negative", action="store_true", default=False, help="whether to sample negative examples when loading trivia-qa or lambada")
     parser.add_argument("--variation", type=str, default="0", help="variation parameter for hypernym prompt formatting (default: '0')")
     parser.add_argument("--single_token_only", action="store_true", default=False, help="only use test data where generator completion is exactly one token")
-    parser.add_argument("--use_full_completion_logprobs", action="store_true", default=False, help="use autoregressive log-probs over all completion tokens for generator scoring")
+    parser.add_argument("--no-full-completion-logprobs", action="store_true", default=False, help="use single-token log-probs instead of full completion log-probs for generator scoring")
     parser.add_argument("--viz", action="store_true", default=False, help="create and save visualization plot of generator vs validator log-odds")
     parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
     parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction using PMI: corrects both completion scores and full vocab distributions for ranking")
+    parser.add_argument("--validator-log-odds", action="store_true", default=False, help="use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes))). Changes threshold from log(0.5) to 0.")
+    parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
 
     args = parser.parse_args()
     main(args)

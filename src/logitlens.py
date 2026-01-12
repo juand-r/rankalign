@@ -197,17 +197,21 @@ def makepreds_gen(ranks, threshold=40):
     return ["Yes" if r <= threshold else "No" for r in ranks]
 
 
-def compute_disc_accuracy(gold, logodds_disc):
-    preds = [1 if i>0 else 0 for i in logodds_disc]
+def compute_disc_accuracy(gold, disc_scores, threshold=0.0):
+    """Compute discriminator accuracy and ROC AUC.
+    
+    Args:
+        gold: Ground truth labels (1 for positive, 0 for negative)
+        disc_scores: Discriminator scores (log-odds or log-probs)
+        threshold: Decision threshold. Use 0.0 for log-odds, np.log(0.5) for log-probs.
+    """
+    preds = [1 if i > threshold else 0 for i in disc_scores]
     disc_accuracy = sklearn.metrics.accuracy_score(gold, preds)
-    # print("\naccuracy of discriminator fs: {}".format(disc_accuracy))
 
-    # fpr, tpr, thresholds = roc_curve(gold, preds)
     if len(set(gold)) == 1:
         roc_auc = np.nan
     else:
-        roc_auc = roc_auc_score(gold, logodds_disc)
-    # print(f'roc_auc: {roc_auc}')
+        roc_auc = roc_auc_score(gold, disc_scores)
     return disc_accuracy, roc_auc
 
 def compute_gen_roc(gold, logodds_gen):
@@ -234,7 +238,7 @@ def compute_gen_mrr(golds, ranks):
     mrr_neg = np.mean([1 / r for r in ranks_neg])
     return mrr_pos, mrr_neg
 
-def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=None):
+def compute_metrics(task, L, logodds_gen, disc_scores, ranks, ranks_dataset=None, disc_threshold=0.0):
     # Check task registry first (for new extensible tasks)
     task_config = get_task(task)
     if task_config is not None:
@@ -263,24 +267,24 @@ def compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=Non
         raise ValueError("!")
 
     print("correlation: zs gen, fs disc (more usual)")
-    corr_all = pearsonr(logodds_gen, logodds_disc).statistic
-    spear_all = spearmanr(logodds_gen, logodds_disc).statistic
+    corr_all = pearsonr(logodds_gen, disc_scores).statistic
+    spear_all = spearmanr(logodds_gen, disc_scores).statistic
     logodds_gen_pos = [logodds_gen[i] for i in range(len(logodds_gen)) if golds[i] == 1]
     logodds_gen_neg = [logodds_gen[i] for i in range(len(logodds_gen)) if golds[i] == 0]
-    logodds_disc_pos = [logodds_disc[i] for i in range(len(logodds_disc)) if golds[i] == 1]
-    logodds_disc_neg = [logodds_disc[i] for i in range(len(logodds_disc)) if golds[i] == 0]
-    corr_pos = pearsonr(logodds_gen_pos, logodds_disc_pos).statistic
-    spear_pos = spearmanr(logodds_gen_pos, logodds_disc_pos).statistic
+    disc_scores_pos = [disc_scores[i] for i in range(len(disc_scores)) if golds[i] == 1]
+    disc_scores_neg = [disc_scores[i] for i in range(len(disc_scores)) if golds[i] == 0]
+    corr_pos = pearsonr(logodds_gen_pos, disc_scores_pos).statistic
+    spear_pos = spearmanr(logodds_gen_pos, disc_scores_pos).statistic
     if len(logodds_gen_neg) == 0:
         corr_neg = np.nan
         spear_neg = np.nan
     else:
-        corr_neg = pearsonr(logodds_gen_neg, logodds_disc_neg).statistic
-        spear_neg = spearmanr(logodds_gen_neg, logodds_disc_neg).statistic
+        corr_neg = pearsonr(logodds_gen_neg, disc_scores_neg).statistic
+        spear_neg = spearmanr(logodds_gen_neg, disc_scores_neg).statistic
     print(f"correlation: all = {corr_all}, pos = {corr_pos}, neg = {corr_neg}")
     print(f"spearman: all = {spear_all}, pos = {spear_pos}, neg = {spear_neg}")
-    disc_acc, disc_roc = compute_disc_accuracy(golds, logodds_disc)
-    print(f"disc_acc: {disc_acc}, disc_roc: {disc_roc}")
+    disc_acc, disc_roc = compute_disc_accuracy(golds, disc_scores, threshold=disc_threshold)
+    print(f"disc_acc: {disc_acc}, disc_roc: {disc_roc} (threshold={disc_threshold:.4f})")
     
     # Compute generator ROC
     gen_roc = compute_gen_roc(golds, logodds_gen)
@@ -470,7 +474,7 @@ def extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat=False):
 
 
 def compute_logodds_final_layer(
-    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None, corrected_logodds_gen=None):
+    task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None, corrected_logodds_gen=None, use_log_odds=False):
 
     prefix = "a " if not is_chat else ""
     
@@ -638,21 +642,36 @@ def compute_logodds_final_layer(
     else:
         raise ValueError("!!")
 
-    # Use corrected_logodds_gen if provided (for typicality correction)
+    # Compute generator scores
+    # gen_scores: log-probs if multi-token (gen_logprobs provided), else log-odds for single-token
     if corrected_logodds_gen is not None:
-        logodds_gen = [float(v) for v in corrected_logodds_gen]
-        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+        gen_scores = [float(v) for v in corrected_logodds_gen]
     elif gen_logprobs is not None:
-        # Multi-token case: use log-probs for both generator and discriminator
-        logodds_gen = [float(v) for v in gen_logprobs]
-        logodds_disc = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+        # Multi-token case: use log-probs for generator
+        gen_scores = [float(v) for v in gen_logprobs]
     else:
-        # Single-token case: use log-odds for both generator and discriminator
-        logodds_gen = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat, use_lgo=True) for ii in range(len(P_gen))]
-        logodds_disc = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
+        # Single-token case: use log-odds for generator
+        gen_scores = [get_logodds_gen(P_gen, L, ii, tokenizer, first_sw_token, task, is_chat=is_chat, use_lgo=True) for ii in range(len(P_gen))]
 
-    # disc_accuracy, gen_accuracies, corr = compute_accuracy_and_correlations(task, L, logodds_gen, logodds_disc, ranks)
-    res_dict = compute_metrics(task, L, logodds_gen, logodds_disc, ranks, ranks_dataset=ranks_dataset)
+    # Compute discriminator scores (log-odds or log-probs based on use_log_odds flag)
+    # NOTE: This is independent of use_full_completion_logprobs (which only affects generator)
+    if use_log_odds:
+        # Log-odds: log(P(Yes)/P(No)), threshold = 0
+        disc_scores = [get_logodds_disc(P_disc, ii, yestoks, notoks) for ii in range(len(P_disc))]
+        disc_threshold = 0.0
+    else:
+        # Log-probs: log(P(Yes)), threshold = log(0.5)
+        disc_scores = [torch.log(torch.sum(P_disc[ii][..., yestoks], dim=-1)) for ii in range(len(P_disc))]
+        disc_threshold = np.log(0.5)
+
+    res_dict = compute_metrics(task, L, gen_scores, disc_scores, ranks, ranks_dataset=ranks_dataset, disc_threshold=disc_threshold)
+    
+    # Include scores in result for use by caller (visualization, debug, etc.)
+    # Normalize to floats for consistency (gen_scores can be tensors in single-token mode)
+    res_dict['gen_scores'] = [float(s) for s in gen_scores]
+    res_dict['disc_scores'] = [float(s) for s in disc_scores]
+    res_dict['disc_threshold'] = disc_threshold
+    
     print(res_dict)
     return res_dict
 

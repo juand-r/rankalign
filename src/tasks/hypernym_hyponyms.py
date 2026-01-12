@@ -41,7 +41,7 @@ HypernymItemV2 = namedtuple('HypernymItemV2', [
 ])
 
 
-def load_hyponym_data(hyponym_name, split='train', v2=False):
+def load_hyponym_data(hyponym_name, split='train', v2=True):
     """
     Load data for a specific hyponym from CSV.
     
@@ -56,7 +56,7 @@ def load_hyponym_data(hyponym_name, split='train', v2=False):
     if v2:
         csv_path = os.path.join(FIXED_DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}-fixed.csv")
     else:
-        csv_path = os.path.join(DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}.csv")
+    csv_path = os.path.join(DATA_DIR, f"hypernym_{hyponym_name}_google-gemma-2-2b_{split}.csv")
     
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"Data file not found: {csv_path}")
@@ -75,11 +75,11 @@ def load_hyponym_data(hyponym_name, split='train', v2=False):
                     discriminator_sentence=row['discriminator_sentence'],
                 )
             else:
-                item = HypernymItem(
-                    noun1=row['noun1'],
-                    noun2=row['predicted_hypernym'],
+            item = HypernymItem(
+                noun1=row['noun1'],
+                noun2=row['predicted_hypernym'],
                     taxonomic=row['gpt4_ground_truth'].lower()
-                )
+            )
             items.append(item)
     
     return items
@@ -87,7 +87,7 @@ def load_hyponym_data(hyponym_name, split='train', v2=False):
 
 def create_load_data_func(hyponym_name):
     """Factory function to create load_data for a specific hyponym."""
-    def load_data(seed=0, split_type='random', sample_negative=False, v2=False, **kwargs):
+    def load_data(seed=0, split_type='random', sample_negative=False, v2=True, **kwargs):
         """Load train/test data for this hyponym."""
         L_train = load_hyponym_data(hyponym_name, split='train', v2=v2)
         L_test = load_hyponym_data(hyponym_name, split='test', v2=v2)
@@ -95,7 +95,7 @@ def create_load_data_func(hyponym_name):
     return load_data
 
 
-def make_prompt(item, style='generator', shots='zero', gen_response=None, neg=False, variation=0, v2=False, **kwargs):
+def make_prompt(item, style='generator', shots='zero', gen_response=None, neg=False, variation=0, v2=True, **kwargs):
     """
     Create prompt for generator or discriminator.
     
@@ -114,14 +114,14 @@ def make_prompt(item, style='generator', shots='zero', gen_response=None, neg=Fa
             variation=variation
         )
     else:
-        return utils.make_prompt_hypernymy(
-            item,
-            style=style,
-            shots=shots,
-            neg=neg,
-            gen_response=gen_response,
-            variation=variation
-        )
+    return utils.make_prompt_hypernymy(
+        item,
+        style=style,
+        shots=shots,
+        neg=neg,
+        gen_response=gen_response,
+        variation=variation
+    )
 
 
 def get_completion(item):
