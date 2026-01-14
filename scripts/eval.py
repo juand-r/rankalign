@@ -232,18 +232,27 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
                 c='blue', label='Negative', alpha=0.6, s=30)
     
     # Styling based on metric type
-    metric_label = 'log-odds' if metric_type == 'logodds' else 'log-probs'
+    metric_label = 'log-odds' if metric_type == 'log-odds' else 'log-probs'
     plt.xlabel(f'Generator {metric_label}', fontsize=12)
     plt.ylabel(f'Validator {metric_label}', fontsize=12)
     plt.grid(True, alpha=0.3)
     plt.legend(title='Class', fontsize=10, title_fontsize=11)
     
-    # Generate filename with metric type
+    # Add horizontal line at threshold for validator classification
+    if metric_type == 'log-odds':
+        plt.axhline(y=0, color='red', linestyle='--', linewidth=1, alpha=0.7, label='threshold = 0')
+    else:
+        threshold = np.log(0.5)
+        plt.axhline(y=threshold, color='red', linestyle='--', linewidth=1, alpha=0.7, label=f'threshold = log(0.5) ≈ {threshold:.3f}')
+    
+    # Generate filename with metric type and eval settings
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     model_short = modelname.split('/')[-1].replace('--', '_')
     split = "train" if args.train else "test"
     v2_suffix = "_v2" if not args.no_v2 else ""
-    filename = f"../outputs/viz_{model_short}_{task}_{split}_{metric_type}{v2_suffix}_{timestamp}.png"
+    eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+    eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+    filename = f"../outputs/viz_{model_short}_{task}_{split}_{metric_type}{v2_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.png"
     
     # Save
     plt.tight_layout()
@@ -271,7 +280,7 @@ def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_
         "Example Details": example_details
     }
 
-    metric_label = "log-odds" if metric_type == "logodds" else "log-probs"
+    metric_label = "log-odds" if metric_type == "log-odds" else "log-probs"
 
     # Create interactive scatter
     fig = px.scatter(
@@ -428,12 +437,23 @@ def main(args):
     disc_probs = []
 
     json_list = []
+    # Storage for detailed CSV output
+    all_prompts_gen = []
+    all_prompts_disc = []
+    all_num_tokens = []
+    
     # LL = LL[:10]
     for item in tqdm(LL):
         gen_obj = make_prompt(item, style='generator', shots=gen_shots)
         prompt_gen = gen_obj.prompt
         completion_gen = gen_obj.completion
         prompt_disc = make_prompt(item, style='discriminator', shots=disc_shots).prompt
+        
+        # Store prompts and num_tokens for detailed CSV
+        all_prompts_gen.append(prompt_gen)
+        all_prompts_disc.append(prompt_disc)
+        completion_tokens = tokenizer.encode(completion_gen, add_special_tokens=False)
+        all_num_tokens.append(len(completion_tokens))
         probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
         P_gen.append(probs_gen)
         # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
@@ -571,11 +591,13 @@ def main(args):
         
         # Apply correction to completion scores: corrected_gen = gen - typicality
         print("\nApplying correction to completion scores: log P(completion|context) - log P_GPT2(completion)")
-        gen_scores_original = gen_scores.copy() if isinstance(gen_scores, list) else list(gen_scores)
-        gen_scores = [float(gen_scores[i]) - typicality_scores[i] for i in range(len(gen_scores))]
+        gen_scores_raw = gen_scores.copy() if isinstance(gen_scores, list) else list(gen_scores)
+        gen_scores_raw = [float(x) for x in gen_scores_raw]  # Ensure floats
+        gen_scores_typcorr = [float(gen_scores[i]) - typicality_scores[i] for i in range(len(gen_scores))]
+        gen_scores = gen_scores_typcorr  # Use corrected scores for downstream processing
         # gen_scores is now a list of floats - compute_logodds_final_layer will handle it
         
-        print(f"  Original score mean: {np.mean([float(x) for x in gen_scores_original]):.4f}")
+        print(f"  Original score mean: {np.mean(gen_scores_raw):.4f}")
         print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
         print(f"  Correction applied to {len(gen_scores)} examples")
         if not use_full_completion_logprobs:
@@ -584,6 +606,10 @@ def main(args):
             P_gen = P_gen_corrected
         
         print("="*60 + "\n")
+    else:
+        # No typicality correction - set raw scores and leave typcorr as None
+        gen_scores_raw = [float(x) for x in gen_scores] if isinstance(gen_scores, list) else [float(x) for x in gen_scores]
+        gen_scores_typcorr = None  # Will be NaN in CSV
     
     # # OLD: Confusion matrix was computed here before compute_logodds_final_layer
     # # Now moved to after compute_logodds_final_layer to use consistent disc_scores
@@ -630,7 +656,9 @@ def main(args):
     plt.xlabel("Discriminator P(Yes) + P(No)")
     plt.ylabel("Count")
     plt.title(f"Histogram of Discriminator P(Yes) + P(No) for {task}")
-    hist_filename = f"../outputs/hist_disc_probs_{task}_{modelname.split('/')[-1]}.png"
+    eval_tc_str = "_evaltc" if args.typicality_correction else ""
+    eval_lenorm_str = "_evallenorm" if args.length_normalize else ""
+    hist_filename = f"../outputs/hist_disc_probs_{task}_{modelname.split('/')[-1]}{eval_tc_str}{eval_lenorm_str}.png"
     plt.savefig(hist_filename)
     plt.close()
 
@@ -804,6 +832,70 @@ def main(args):
         #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
         #     create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
 
+    # Save detailed scores to CSV if requested
+    if args.save_scores_csv and is_hypernym_task(task):
+        import csv
+        from datetime import datetime
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_short = modelname.split('/')[-1].replace('--', '_')
+        split = "train" if args.train else "test"
+        v2_suffix = "_v2" if not args.no_v2 else ""
+        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+        # Add eval setting suffixes
+        eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+        scores_csv_filename = f"../outputs/scores_{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+        
+        # Determine strategy string
+        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+        if use_full_completion_logprobs:
+            strategy += "_fullcomp"
+        else:
+            strategy += "_singletoken"
+        if args.validator_log_odds:
+            strategy += "_logodds"
+        else:
+            strategy += "_logprobs"
+        if args.typicality_correction:
+            strategy += "_typcorr"
+        
+        with open(scores_csv_filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth', 
+                           'gen_score', 'gen_score_typcorr', 'gen_score_lenorm', 'gen_score_typcorr_lenorm',
+                           'val_score', 'gen_prompt', 'val_prompt'])
+            
+            for i, item in enumerate(LL):
+                # Extract just the final query part (not the few-shot examples)
+                gen_prompt_final = all_prompts_gen[i].split("\n")[-1]
+                disc_prompt_final = all_prompts_disc[i].split("\n")[-1]
+                # Use strategy from data item if available, otherwise use constructed strategy
+                item_strategy = getattr(item, 'strategy', strategy)
+                
+                # Compute length-normalized scores
+                num_toks = all_num_tokens[i]
+                gen_score_raw = gen_scores_raw[i]
+                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+                
+                writer.writerow([
+                    item.noun1,
+                    item.noun2,
+                    num_toks,
+                    item_strategy,
+                    item.taxonomic,
+                    gen_score_raw,
+                    gen_score_typcorr_val,
+                    gen_score_lenorm,
+                    gen_score_typcorr_lenorm,
+                    disc_scores[i],
+                    gen_prompt_final,
+                    disc_prompt_final
+                ])
+        
+        print(f"Detailed scores saved to: {scores_csv_filename}")
 
 
 if __name__ == "__main__":
@@ -825,6 +917,8 @@ if __name__ == "__main__":
     parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction using PMI: corrects both completion scores and full vocab distributions for ranking")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes))). Changes threshold from log(0.5) to 0.")
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
+    parser.add_argument("--save-scores-csv", action="store_true", default=False, help="save detailed scores to CSV with all score columns")
+    parser.add_argument("--length-normalize", action="store_true", default=False, help="also compute length-normalized gen scores (gen_score / num_tokens)")
 
     args = parser.parse_args()
     main(args)
