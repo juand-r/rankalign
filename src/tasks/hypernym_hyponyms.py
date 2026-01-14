@@ -37,7 +37,7 @@ HypernymItem = namedtuple('HypernymItem', ['noun1', 'noun2', 'taxonomic'])
 # v2 item includes extra fields for grammar-corrected sentences
 HypernymItemV2 = namedtuple('HypernymItemV2', [
     'noun1', 'noun2', 'taxonomic',
-    'fixed_hypernym_generator', 'discriminator_sentence'
+    'fixed_hypernym_generator', 'discriminator_sentence', 'strategy'
 ])
 
 
@@ -73,6 +73,7 @@ def load_hyponym_data(hyponym_name, split='train', v2=True):
                     taxonomic=row['gpt4_ground_truth'].lower(),
                     fixed_hypernym_generator=row['fixed_hypernym_generator'],
                     discriminator_sentence=row['discriminator_sentence'],
+                    strategy=row.get('strategy', 'unknown'),
                 )
             else:
                 item = HypernymItem(
