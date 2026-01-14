@@ -1456,10 +1456,11 @@ def main(args):
         for batch in tqdm(train_loader):
             optimizer.zero_grad()
 
-            def sum_completion_logprobs(log_probs, token_ids):
+            def sum_completion_logprobs(log_probs, token_ids, length_normalize=False):
                 """
                 log_probs: [batch, seq_len, vocab] - over input_ids (prompt + completion), left padded
                 token_ids: [batch, completion_len] - only the completion tokens
+                length_normalize: if True, divide sum by number of tokens
                 
                 Note: log_probs[t] predicts token at position t+1, so for completion tokens
                 at positions [-C:], we need log_probs at positions [-(C+1):-1]
@@ -1474,7 +1475,10 @@ def main(args):
                     comp_log_probs = log_probs[b, -(comp_len+1):-1, :]  # [completion_len, vocab]
                     # gather the logprobs for the actual completion tokens
                     gathered = comp_log_probs.gather(1, token_ids[b].unsqueeze(-1)).squeeze(-1)
-                    completion_log_probs.append(gathered.sum())
+                    score = gathered.sum()
+                    if length_normalize and comp_len > 0:
+                        score = score / comp_len
+                    completion_log_probs.append(score)
 
                 return torch.stack(completion_log_probs)
 
@@ -1540,8 +1544,9 @@ def main(args):
                     score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
                 
                 # Generator always uses log-probs (completion can be multi-token)
-                score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen)
-                score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen)
+                # Apply length normalization if flag is set
+                score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen, length_normalize=args.length_normalize)
+                score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen, length_normalize=args.length_normalize)
 
                 # Use frozen reference model if needed
                 if WITH_REF:
@@ -1641,9 +1646,10 @@ def main(args):
                     score_i = compute_logodds_simple(log_probs_i, token_id_i)
                     score_j = compute_logodds_simple(log_probs_j, token_id_j)
                 else:
-                    # Log-probs (default)
-                    score_i = sum_completion_logprobs(log_probs_i, token_id_i)  # [B]
-                score_j = sum_completion_logprobs(log_probs_j, token_id_j)  # [B]
+                    # Log-probs (default) - apply length normalization for generator mode
+                    use_lenorm = args.length_normalize and train_g_or_d == 'g'
+                    score_i = sum_completion_logprobs(log_probs_i, token_id_i, length_normalize=use_lenorm)  # [B]
+                    score_j = sum_completion_logprobs(log_probs_j, token_id_j, length_normalize=use_lenorm)  # [B]
 
                 # Use frozen reference model
                 if WITH_REF:
@@ -1761,11 +1767,12 @@ def main(args):
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
             typcorr_str = "--typcorr" if args.typicality_correction else ""
+            lenorm_str = "--lenorm" if args.length_normalize else ""
             single_token_str = "--single-token-data" if args.single_token_data_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -1840,6 +1847,7 @@ if __name__ == "__main__":
     parser.add_argument("--wandb_run_name", type=str, default=None, help="Weights & Biases run name (auto-generated if not provided)")
     parser.add_argument("--no-v2", action="store_true", default=False, help="Use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="Use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes)))")
+    parser.add_argument("--length-normalize", action="store_true", default=False, help="Divide generator scores by number of tokens (length normalization)")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
