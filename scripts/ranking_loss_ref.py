@@ -8,6 +8,7 @@ python ranking_loss_ref.py --model google/gemma-2-2b --task hypernym --with_ref 
 import os
 import sys
 import itertools
+import csv
 import torch
 from tqdm import tqdm
 import torch.nn as nn
@@ -144,6 +145,250 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
     
     return typicality_scores
 
+
+def track_all_scores(model, tokenizer, L_train_all, task, device, yestoks, notoks, 
+                     length_normalize=False, use_full_completion=True, task_config=None,
+                     validator_log_odds=True, is_chat=False, has_system_role=False,
+                     batch_size=16):
+    """
+    Compute generator and validator scores for all datapoints in L_train_all.
+    
+    BATCHED VERSION for speed - processes multiple items per forward pass.
+    
+    Args:
+        validator_log_odds: If True, return log(P(Yes)/P(No)). If False, return log(P(Yes)).
+        is_chat: Whether to use chat template for prompts.
+        has_system_role: Whether the model supports system role in chat template.
+        batch_size: Number of items to process per batch.
+    
+    Returns a list of dicts with keys: noun1, noun2, gen_score, val_score
+    """
+    model.eval()
+    
+    # Determine how to get noun1, noun2, completion based on task
+    def get_noun1(item):
+        if hasattr(item, 'noun1'):
+            return item.noun1
+        elif task_config and 'get_noun1' in task_config:
+            return task_config['get_noun1'](item)
+        return str(item)[:50]  # fallback
+    
+    def get_noun2(item):
+        if hasattr(item, 'noun2'):
+            return item.noun2
+        elif task_config and 'get_completion' in task_config:
+            return task_config['get_completion'](item)
+        return ""
+    
+    def get_item_completion(item):
+        """Get the generator completion - must match what make_prompt returns for consistency."""
+        if task_config:
+            result = task_config['make_prompt'](item, style='generator')
+            if hasattr(result, 'completion'):
+                return result.completion.lstrip()
+        if hasattr(item, 'fixed_hypernym_generator'):
+            return item.fixed_hypernym_generator
+        elif hasattr(item, 'noun2'):
+            return item.noun2
+        return ""
+    
+    def get_val_prompt(item):
+        """Get the validator/discriminator prompt."""
+        if task_config:
+            result = task_config['make_prompt'](item, style='discriminator')
+            return result.prompt if hasattr(result, 'prompt') else str(item)
+        elif task in ['hypernym', 'hypernym-car']:
+            few_shot_prefix = (
+                "Do you think bees are furniture? Answer: No\n\n"
+                "Do you think corgis are dogs? Answer: Yes\n\n"
+                "Do you think trucks are a fruit? Answer: No\n\n"
+                "Do you think robins are birds? Answer: Yes\n\n"
+            )
+            return few_shot_prefix + f"Do you think {item.noun1} are a {item.noun2}? Answer:"
+        return ""
+    
+    def get_gen_prompt(item):
+        """Get the generator prompt."""
+        if task_config:
+            result = task_config['make_prompt'](item, style='generator')
+            return result.prompt if hasattr(result, 'prompt') else str(item)
+        elif task in ['hypernym', 'hypernym-car']:
+            return f"A {item.noun1} is a kind of"
+        return ""
+    
+    # Pre-compute all prompts and metadata
+    all_data = []
+    for item in L_train_all:
+        all_data.append({
+            'noun1': get_noun1(item),
+            'noun2': get_noun2(item),
+            'completion': get_item_completion(item),
+            'gen_prompt': get_gen_prompt(item),
+            'val_prompt': get_val_prompt(item),
+        })
+    
+    # Initialize results
+    gen_scores = [None] * len(all_data)
+    val_scores = [None] * len(all_data)
+    
+    # Convert yestoks/notoks to tensors for batched indexing
+    yestoks_tensor = torch.tensor(yestoks, device=device)
+    notoks_tensor = torch.tensor(notoks, device=device)
+    
+    with torch.no_grad():
+        # === BATCHED VALIDATOR SCORING ===
+        print("  Computing validator scores (batched)...")
+        for batch_start in tqdm(range(0, len(all_data), batch_size), desc="Val scores"):
+            batch_end = min(batch_start + batch_size, len(all_data))
+            batch_prompts = [all_data[i]['val_prompt'] for i in range(batch_start, batch_end)]
+            
+            # Tokenize batch with left padding
+            tokenizer.padding_side = 'left'
+            encoded = tokenizer(batch_prompts, return_tensors='pt', padding=True, truncation=True)
+            input_ids = encoded['input_ids'].to(device)
+            attention_mask = encoded['attention_mask'].to(device)
+            
+            # Forward pass
+            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+            logits = outputs.logits  # [batch, seq_len, vocab]
+            
+            # Get probabilities at last position for each item
+            # With left padding, last position is always the prediction position
+            last_logits = logits[:, -1, :]  # [batch, vocab]
+            probs = torch.softmax(last_logits, dim=-1)  # [batch, vocab]
+            
+            # Compute yes/no probabilities
+            p_yes = probs[:, yestoks_tensor].sum(dim=-1)  # [batch]
+            p_no = probs[:, notoks_tensor].sum(dim=-1)  # [batch]
+            
+            # Compute log-odds or log-prob
+            if validator_log_odds:
+                batch_val_scores = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
+            else:
+                batch_val_scores = torch.log(p_yes + 1e-12)
+            
+            # Store results
+            for i, score in enumerate(batch_val_scores.cpu().tolist()):
+                val_scores[batch_start + i] = score
+        
+        # === BATCHED GENERATOR SCORING ===
+        print("  Computing generator scores (batched)...")
+        for batch_start in tqdm(range(0, len(all_data), batch_size), desc="Gen scores"):
+            batch_end = min(batch_start + batch_size, len(all_data))
+            batch_items = [all_data[i] for i in range(batch_start, batch_end)]
+            
+            if use_full_completion:
+                # For full completion, we need prompt + completion together
+                # Tokenize each separately to know completion boundaries
+                batch_gen_scores = []
+                for item in batch_items:
+                    prompt = item['gen_prompt']
+                    completion = " " + item['completion']
+                    
+                    # Tokenize prompt and full sequence
+                    prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
+                    full_text = prompt + completion
+                    full_ids = tokenizer.encode(full_text, add_special_tokens=True)
+                    
+                    # The completion tokens are those after the prompt
+                    completion_start = len(prompt_ids)
+                    completion_ids = full_ids[completion_start:]
+                    
+                    if len(completion_ids) == 0:
+                        batch_gen_scores.append(float('-inf'))
+                        continue
+                    
+                    # Forward pass on full sequence
+                    input_tensor = torch.tensor([full_ids], device=device)
+                    outputs = model(input_ids=input_tensor)
+                    logits = outputs.logits[0]  # [seq_len, vocab]
+                    log_probs = torch.log_softmax(logits, dim=-1)
+                    
+                    # Sum log probs for completion tokens
+                    # logits[t] predicts token t+1, so for completion starting at position completion_start,
+                    # we need log_probs[completion_start-1:completion_start-1+len(completion_ids)]
+                    total_log_prob = 0.0
+                    for i, tok_id in enumerate(completion_ids):
+                        pos = completion_start - 1 + i
+                        if pos < log_probs.shape[0]:
+                            total_log_prob += log_probs[pos, tok_id].item()
+                    
+                    if length_normalize and len(completion_ids) > 0:
+                        total_log_prob = total_log_prob / len(completion_ids)
+                    
+                    batch_gen_scores.append(total_log_prob)
+                
+                for i, score in enumerate(batch_gen_scores):
+                    gen_scores[batch_start + i] = score
+            else:
+                # First token only - can be batched more efficiently
+                batch_prompts = [item['gen_prompt'] for item in batch_items]
+                batch_completions = [" " + item['completion'] for item in batch_items]
+                
+                # Get first token of each completion
+                first_tokens = []
+                for comp in batch_completions:
+                    toks = tokenizer.encode(comp, add_special_tokens=False)
+                    first_tokens.append(toks[0] if toks else 0)
+                
+                # Tokenize prompts
+                tokenizer.padding_side = 'left'
+                encoded = tokenizer(batch_prompts, return_tensors='pt', padding=True, truncation=True)
+                input_ids = encoded['input_ids'].to(device)
+                attention_mask = encoded['attention_mask'].to(device)
+                
+                # Forward pass
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask)
+                last_logits = outputs.logits[:, -1, :]
+                log_probs = torch.log_softmax(last_logits, dim=-1)
+                
+                # Get log prob for each completion's first token
+                for i, tok_id in enumerate(first_tokens):
+                    gen_scores[batch_start + i] = log_probs[i, tok_id].item()
+    
+    # Build results
+    results = []
+    for i, data in enumerate(all_data):
+        results.append({
+            'noun1': data['noun1'],
+            'noun2': data['noun2'],
+            'gen_score': gen_scores[i],
+            'val_score': val_scores[i],
+        })
+    
+    model.train()
+    return results
+
+
+def save_tracked_scores(results, output_path):
+    """Save tracked scores to CSV file."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=['noun1', 'noun2', 'gen_score', 'val_score'])
+        writer.writeheader()
+        writer.writerows(results)
+    print(f"  Saved tracked scores to {output_path}")
+
+
+def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
+                                typicality_correction, length_normalize, use_full_completion,
+                                nll_validator_weight, nll_generator_weight):
+    """Generate base filename for tracking logs (same as model save name but without epoch)."""
+    direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
+    all_str = "-all" if use_all else ""
+    alpha_str = f"-alpha{alpha}" if isinstance(alpha, (int, float)) else f"-alpha-{alpha}"
+    typcorr_str = "-typcorr" if typicality_correction else ""
+    lenorm_str = "-lenorm" if length_normalize else ""
+    full_completion_str = "-full-completion" if use_full_completion else ""
+    nll_v_str = f"-nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
+    nll_g_str = f"-nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
+    
+    base_name = (f"v5-{model_name.replace('/', '--')}-delta{delta}--{task}{all_str}"
+                 f"--{direction_str}--{split_type}{alpha_str}{typcorr_str}{lenorm_str}"
+                 f"{full_completion_str}{nll_v_str}{nll_g_str}")
+    return base_name
+
+
 def main(args):
     model_name = args.model
     task = args.task
@@ -166,7 +411,21 @@ def main(args):
     nll_generator_weight = args.nll_generator_weight
     use_wandb = not args.no_wandb
     validator_log_odds = args.validator_log_odds
+    track_scores = args.track_scores
+    track_scores_freq = args.track_scores_freq
     #tokenizer = AutoTokenizer.from_pretrained(model_name)
+    
+    # Setup tracking directory and base filename
+    if track_scores:
+        tracking_base_name = get_tracking_base_filename(
+            model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
+            args.typicality_correction, args.length_normalize, use_full_completion,
+            nll_validator_weight, nll_generator_weight
+        )
+        tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                    "outputs", "training-logs")
+        os.makedirs(tracking_dir, exist_ok=True)
+        print(f"Score tracking enabled. Logs will be saved to: {tracking_dir}/{tracking_base_name}-step*.csv")
 
     WITH_REF = with_ref
     
@@ -1449,6 +1708,22 @@ def main(args):
     losses = []
     global_step = 0
 
+    # Track scores at step 0 (before any training)
+    if track_scores:
+        print(f"\n  [Step 0] Tracking initial scores for all datapoints...")
+        task_config_for_tracking = get_task(task)
+        tracked_results = track_all_scores(
+            model, tokenizer, L_train_all, task, device, yestoks, notoks,
+            length_normalize=args.length_normalize,
+            use_full_completion=use_full_completion,
+            task_config=task_config_for_tracking,
+            validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
+            is_chat=with_chat,
+            has_system_role=has_system_role
+        )
+        tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step0.csv")
+        save_tracked_scores(tracked_results, tracking_path)
+
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0.0
@@ -1597,6 +1872,40 @@ def main(args):
                         "train/global_step": global_step,
                     })
                 
+                # Track scores for all datapoints at specified frequency (both mode)
+                if track_scores and global_step % track_scores_freq == 0:
+                    print(f"\n  [Step {global_step}] Tracking scores for all datapoints...")
+                    
+                    task_config_for_tracking = get_task(task)
+                    tracked_results = track_all_scores(
+                        model, tokenizer, L_train_all, task, device, yestoks, notoks,
+                        length_normalize=args.length_normalize,
+                        use_full_completion=use_full_completion,
+                        task_config=task_config_for_tracking,
+                        validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
+                        is_chat=with_chat,
+                        has_system_role=has_system_role
+                    )
+                    
+                    tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}.csv")
+                    save_tracked_scores(tracked_results, tracking_path)
+                    
+                    # Decode completions for 'both' mode
+                    completion_i_disc_text = tokenizer.decode(token_id_i_disc[0] if token_id_i_disc.dim() > 1 else token_id_i_disc, skip_special_tokens=True).strip()
+                    completion_j_disc_text = tokenizer.decode(token_id_j_disc[0] if token_id_j_disc.dim() > 1 else token_id_j_disc, skip_special_tokens=True).strip()
+                    completion_i_gen_text = tokenizer.decode(token_id_i_gen[0] if token_id_i_gen.dim() > 1 else token_id_i_gen, skip_special_tokens=True).strip()
+                    completion_j_gen_text = tokenizer.decode(token_id_j_gen[0] if token_id_j_gen.dim() > 1 else token_id_j_gen, skip_special_tokens=True).strip()
+                    
+                    pair_info_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}-pair.csv")
+                    with open(pair_info_path, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['item', 'disc_completion', 'gen_completion', 'val_score_after', 'gen_score_after', 'label', 'note'])
+                        label_i = 'positive' if label_i.mean().item() > 0.5 else 'negative'
+                        label_j = 'positive' if label_j.mean().item() > 0.5 else 'negative'
+                        writer.writerow(['i (lower gold)', completion_i_disc_text, completion_i_gen_text, f'{score_i_disc.mean().item():.4f}', f'{score_i_gen.mean().item():.4f}', label_i, 'should be pushed DOWN'])
+                        writer.writerow(['j (higher gold)', completion_j_disc_text, completion_j_gen_text, f'{score_j_disc.mean().item():.4f}', f'{score_j_gen.mean().item():.4f}', label_j, 'should be pushed UP'])
+                    print(f"  Saved pair info to {pair_info_path}")
+                
                 # Clear cache to prevent memory accumulation
                 torch.cuda.empty_cache()
             else:
@@ -1742,6 +2051,47 @@ def main(args):
                         log_dict["train/indicator_j"] = indicator_j.mean().item()
                     wandb.log(log_dict)
                 
+                # Track scores for all datapoints at specified frequency
+                if track_scores and global_step % track_scores_freq == 0:
+                    print(f"\n  [Step {global_step}] Tracking scores for all datapoints...")
+                    
+                    # Get task_config for tracking
+                    task_config_for_tracking = get_task(task)
+                    
+                    # Track all scores
+                    tracked_results = track_all_scores(
+                        model, tokenizer, L_train_all, task, device, yestoks, notoks,
+                        length_normalize=args.length_normalize,
+                        use_full_completion=use_full_completion,
+                        task_config=task_config_for_tracking,
+                        validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
+                        is_chat=with_chat,
+                        has_system_role=has_system_role
+                    )
+                    
+                    # Save to CSV
+                    tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}.csv")
+                    save_tracked_scores(tracked_results, tracking_path)
+                    
+                    # Also save info about the sampled pair
+                    # Decode completions to get noun2 (the completion text)
+                    completion_i_text = tokenizer.decode(token_id_i[0] if token_id_i.dim() > 1 else token_id_i, skip_special_tokens=True).strip()
+                    completion_j_text = tokenizer.decode(token_id_j[0] if token_id_j.dim() > 1 else token_id_j, skip_special_tokens=True).strip()
+                    gen_completion_i_text = tokenizer.decode(token_gen_i[0] if token_gen_i.dim() > 1 else token_gen_i, skip_special_tokens=True).strip()
+                    gen_completion_j_text = tokenizer.decode(token_gen_j[0] if token_gen_j.dim() > 1 else token_gen_j, skip_special_tokens=True).strip()
+                    
+                    pair_info_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}-pair.csv")
+                    with open(pair_info_path, 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(['item', 'completion', 'gen_completion', 'score_after', 'label', 'note'])
+                        # item i has LOWER gold score (should have lower score after training)
+                        # item j has HIGHER gold score (should have higher score after training)
+                        label_i = 'positive' if indicator_i.mean().item() > 0.5 else 'negative'
+                        label_j = 'positive' if indicator_j.mean().item() > 0.5 else 'negative'
+                        writer.writerow(['i (lower gold)', completion_i_text, gen_completion_i_text, f'{score_i.mean().item():.4f}', label_i, 'should be pushed DOWN'])
+                        writer.writerow(['j (higher gold)', completion_j_text, gen_completion_j_text, f'{score_j.mean().item():.4f}', label_j, 'should be pushed UP'])
+                    print(f"  Saved pair info to {pair_info_path}")
+                
                 # Clear cache to prevent memory accumulation
                 torch.cuda.empty_cache()
         avg_loss = total_loss / len(train_loader)
@@ -1848,6 +2198,8 @@ if __name__ == "__main__":
     parser.add_argument("--no-v2", action="store_true", default=False, help="Use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="Use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes)))")
     parser.add_argument("--length-normalize", action="store_true", default=False, help="Divide generator scores by number of tokens (length normalization)")
+    parser.add_argument("--track-scores", action="store_true", default=False, help="Track gen/val scores for all datapoints during training")
+    parser.add_argument("--track-scores-freq", type=int, default=10, help="Frequency (in steps) to track scores when --track-scores is enabled")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
