@@ -2,6 +2,7 @@
 
 # Run eval.py on hypernym-X tasks for lenorm models
 # Evaluates 4 model variants per task (d2g/g2d with lenorm, with/without typcorr)
+# Uses --train flag to evaluate on training set and --fp32-model for continuous log-odds
 #
 # Usage: ./run_eval_hypernym_tasks.sh <GPU_LIST>
 # Example: ./run_eval_hypernym_tasks.sh 0,1,2,3
@@ -62,6 +63,8 @@ run_eval() {
         --save-scores-csv \
         --viz \
         --use_full_completion_logprobs \
+        --train \
+        --fp32-model \
         $EXTRA_FLAGS \
         >> "$LOG_FILE" 2>&1
 }

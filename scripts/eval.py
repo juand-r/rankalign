@@ -126,11 +126,17 @@ yes_words = ["Yes", " Yes", "YES", "yes", " yes"]
 no_words = ["No", " No", "NO", "no", " no"]
 
 
-def init_model(model_name, device):
+def init_model(model_name, device, fp32_model=False):
     global model
     global tokenizer
     global terminators 
-    torch_dtype = torch.bfloat16
+    # Use float32 if requested to avoid bfloat16 logit quantization
+    # (at logit magnitudes ~20, bfloat16 has precision of 0.125, causing
+    # log-odds to be quantized to 0.125 steps)
+    torch_dtype = torch.float32 if fp32_model else torch.bfloat16
+    
+    if fp32_model:
+        print("Using float32 precision (avoids bfloat16 logit quantization, uses ~2x memory)")
     
     # Common kwargs for loading
     load_kwargs = {
@@ -380,7 +386,7 @@ def main(args):
     device = get_device()
     print(f"Using device: {device}")
 
-    init_model(modelname, device)
+    init_model(modelname, device, fp32_model=args.fp32_model)
     
 
 
@@ -454,13 +460,13 @@ def main(args):
         all_prompts_disc.append(prompt_disc)
         completion_tokens = tokenizer.encode(completion_gen, add_special_tokens=False)
         all_num_tokens.append(len(completion_tokens))
-        probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
+        probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
         P_gen.append(probs_gen)
         # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
         if use_full_completion_logprobs:
             gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
-        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role) # TODO: change is_chat to True if instruction-tuned model
+        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
         disc_probs.append((float(probs_disc[yestoks].sum().item()), float(probs_disc[notoks].sum().item())))
 
         # # DEBUG: Print prompts and probabilities for first 5 examples
@@ -744,14 +750,67 @@ def main(args):
             labels = get_labels(task, LL)
             metric_type = 'log-odds' if args.validator_log_odds else 'log-probs'
             create_visualization(gen_scores, disc_scores, labels, modelname, task, args, metric_type=metric_type)
-            # # OLD: single-token mode had two plots
-            # if use_full_completion_logprobs:
-            #     # Multi-token: one plot with log-probs
-            #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logprobs')
-            # else:
-            #     # Single-token: two plots (log-odds and log-probs)
-            #     create_visualization(logodds_gen, logodds_disc, labels, modelname, task, args, metric_type='logodds')
-            #     create_visualization(logprobs_gen, logprobs_disc, labels, modelname, task, args, metric_type='logprobs')
+        
+        # Save detailed scores to CSV if requested (also works for --train)
+        if args.save_scores_csv and is_hypernym_task(task):
+            import csv
+            from datetime import datetime
+            
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            model_short = modelname.split('/')[-1].replace('--', '_')
+            split = "train"
+            v2_suffix = "_v2" if not args.no_v2 else ""
+            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+            eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+            scores_csv_filename = f"../outputs/scores_{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+            
+            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+            if use_full_completion_logprobs:
+                strategy += "_fullcomp"
+            else:
+                strategy += "_singletoken"
+            if args.validator_log_odds:
+                strategy += "_logodds"
+            else:
+                strategy += "_logprobs"
+            if args.typicality_correction:
+                strategy += "_typcorr"
+            
+            with open(scores_csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth', 
+                               'gen_score', 'gen_score_typcorr', 'gen_score_lenorm', 'gen_score_typcorr_lenorm',
+                               'val_score', 'gen_prompt', 'val_prompt'])
+                
+                labels = get_labels(task, LL)
+                for i, item in enumerate(LL):
+                    gen_prompt_final = all_prompts_gen[i].split("\n")[-1]
+                    disc_prompt_final = all_prompts_disc[i].split("\n")[-1]
+                    item_strategy = getattr(item, 'strategy', strategy)
+                    
+                    num_toks = all_num_tokens[i]
+                    gen_score_raw = gen_scores[i]
+                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                    gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+                    
+                    writer.writerow([
+                        item.noun1,
+                        getattr(item, 'noun2', getattr(item, 'fixed_hypernym_generator', '')),
+                        num_toks,
+                        item_strategy,
+                        labels[i] if i < len(labels) else '',
+                        float(gen_score_raw),
+                        float(gen_score_typcorr_val) if gen_scores_typcorr is not None else '',
+                        float(gen_score_lenorm),
+                        float(gen_score_typcorr_lenorm) if gen_scores_typcorr is not None else '',
+                        float(disc_scores[i]),
+                        gen_prompt_final,
+                        disc_prompt_final
+                    ])
+            print(f"Detailed scores saved to: {scores_csv_filename}")
+        
         return
 
     gc.collect()
@@ -919,6 +978,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--save-scores-csv", action="store_true", default=False, help="save detailed scores to CSV with all score columns")
     parser.add_argument("--length-normalize", action="store_true", default=False, help="also compute length-normalized gen scores (gen_score / num_tokens)")
+    parser.add_argument("--fp32-model", action="store_true", default=False, help="load model in float32 instead of bfloat16 to avoid logit quantization (uses ~2x memory but gives continuous log-odds)")
 
     args = parser.parse_args()
     main(args)
