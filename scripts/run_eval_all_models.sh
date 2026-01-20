@@ -41,9 +41,9 @@ run_task() {
         if [ -d "$MODEL" ]; then
             echo "[GPU $GPU] Evaluating epoch $EPOCH for hypernym-$TASK"
             CUDA_VISIBLE_DEVICES=$GPU python eval.py \
-                --model "$MODEL" \
+    --model "$MODEL" \
                 --task "hypernym-${TASK}" \
-                --split_type random \
+    --split_type random \
                 --save-scores-csv \
                 --validator-log-odds \
                 --viz

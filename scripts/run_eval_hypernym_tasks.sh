@@ -7,7 +7,6 @@
 #   - d2g/g2d with typcorr only
 #   - d2g/g2d with lenorm only
 #   - d2g/g2d with typcorr + lenorm
-# Uses --train flag to evaluate on training set
 #
 # Usage: ./run_eval_hypernym_tasks.sh <GPU_LIST>
 # Example: ./run_eval_hypernym_tasks.sh 0,1,2,3
@@ -42,14 +41,20 @@ EPOCH=2
 
 # Hypernym tasks
 TASKS=(
-    "hypernym-bananas"
-    "hypernym-bazookas"
-    "hypernym-cabinets"
-    "hypernym-cars"
-    "hypernym-chairs"
-    "hypernym-crows"
+    # "hypernym-bananas"
+    # "hypernym-bazookas"
+    # "hypernym-cabinets"
+    # "hypernym-cars"
+    # "hypernym-chairs"
+    # "hypernym-crows"
+    # "hypernym-diapers"
+    # "hypernym-dogs"
+    "hypernym-kites"
+    "hypernym-jackets"
+    "hypernym-elephants"
+    "hypernym-ducklings"
+    "hypernym-dolls"
     "hypernym-diapers"
-    "hypernym-dogs"
 )
 
 mkdir -p logs
@@ -72,7 +77,6 @@ run_eval() {
         --typicality-correction \
         --save-scores-csv \
         --viz \
-        --train \
         $EXTRA_FLAGS \
         >> "$LOG_FILE" 2>&1
 }
@@ -99,7 +103,6 @@ run_task_evals() {
         --typicality-correction \
         --save-scores-csv \
         --viz \
-        --train \
         >> "$LOG_FILE" 2>&1
     
     # ========================================

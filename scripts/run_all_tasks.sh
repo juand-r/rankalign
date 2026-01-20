@@ -18,7 +18,7 @@ if [ -z "$DN" ] || [ -z "$TASK" ]; then
 fi
 
 MODEL="google/gemma-2-2b"
-NUM_EPOCHS=5
+NUM_EPOCHS=3
 TOTAL_SAMPLES=5110
 
 # TASKS=("hypernym" "trivia-qa" "swords" "lambada" "ifeval" "collie")
@@ -41,6 +41,7 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
+    --force-same-x
 
 # Config 2: train_g_or_d=g, delta=0.15, with typicality correction
 echo "--- Config 2: g, delta=0.15, with typcorr ---"
@@ -55,7 +56,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
-    --typicality-correction
+    --typicality-correction \
+    --force-same-x
 
 # Config 3: train_g_or_d=d, delta=2.5, no typicality correction
 echo "--- Config 3: d, delta=2.5, no typcorr ---"
@@ -70,6 +72,7 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 2.5 \
     --total_samples $TOTAL_SAMPLES \
+    --force-same-x
 
 # Config 4: train_g_or_d=d, delta=2.5, with typicality correction
 echo "--- Config 4: d, delta=2.5, with typcorr ---"
@@ -84,7 +87,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 2.5 \
     --total_samples $TOTAL_SAMPLES \
-    --typicality-correction
+    --typicality-correction \
+    --force-same-x
 
 echo "Finished task: $TASK"
 # done

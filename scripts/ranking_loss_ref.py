@@ -9,6 +9,7 @@ import os
 import sys
 import itertools
 import csv
+from collections import defaultdict
 import torch
 from tqdm import tqdm
 import torch.nn as nn
@@ -372,7 +373,7 @@ def save_tracked_scores(results, output_path):
 
 def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
                                 typicality_correction, length_normalize, use_full_completion,
-                                nll_validator_weight, nll_generator_weight):
+                                nll_validator_weight, nll_generator_weight, force_same_x=False):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
@@ -382,10 +383,11 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
     full_completion_str = "-full-completion" if use_full_completion else ""
     nll_v_str = f"-nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
     nll_g_str = f"-nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
+    force_same_x_str = "-force-same-x" if force_same_x else ""
     
     base_name = (f"v5-{model_name.replace('/', '--')}-delta{delta}--{task}{all_str}"
                  f"--{direction_str}--{split_type}{alpha_str}{typcorr_str}{lenorm_str}"
-                 f"{full_completion_str}{nll_v_str}{nll_g_str}")
+                 f"{full_completion_str}{nll_v_str}{nll_g_str}{force_same_x_str}")
     return base_name
 
 
@@ -420,7 +422,7 @@ def main(args):
         tracking_base_name = get_tracking_base_filename(
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
-            nll_validator_weight, nll_generator_weight
+            nll_validator_weight, nll_generator_weight, args.force_same_x
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
                                     "outputs", "training-logs")
@@ -1232,10 +1234,68 @@ def main(args):
         print(f"Min logprob: {min_logprob}")
         print(f"Max logprob: {max_logprob}")
 
-        indices = range(len(Z))
-        pair_inds = list(itertools.product(indices, repeat=2))
-        pair_inds = [i for i in pair_inds if i[0] < i[1]]
-        pair_inds = random.sample(pair_inds, total_samples)
+        if args.force_same_x:
+            # Group indices by generator prompt (p_train_gold.prompt)
+            prompt_to_indices = defaultdict(list)
+            for idx, z in enumerate(Z):
+                gen_prompt = z[1].prompt  # z[1] is p_train_gold
+                prompt_to_indices[gen_prompt].append(idx)
+            
+            print(f"\n{'='*60}")
+            print(f"FORCE-SAME-X MODE (both)")
+            print(f"{'='*60}")
+            print(f"Found {len(prompt_to_indices)} unique generator prompts")
+            
+            # For each group: create pairs, filter by delta
+            prompt_to_valid_pairs = {}
+            total_valid_pairs = 0
+            for prompt, indices in prompt_to_indices.items():
+                group_pairs = []
+                for i, j in itertools.combinations(indices, 2):
+                    logprob_i = Z[i][2][0]  # discriminator logprob
+                    logprob_j = Z[j][2][0]
+                    if abs(logprob_i - logprob_j) > delta:
+                        # Ensure i has lower logprob than j
+                        group_pairs.append((i, j) if logprob_i < logprob_j else (j, i))
+                prompt_to_valid_pairs[prompt] = group_pairs
+                total_valid_pairs += len(group_pairs)
+            
+            print(f"Total valid pairs (after delta filter): {total_valid_pairs}")
+            
+            # Sample proportionally from each group
+            num_groups = len(prompt_to_valid_pairs)
+            samples_per_group = total_samples // num_groups
+            remainder = total_samples % num_groups
+            
+            print(f"\nPairs in train set per category:")
+            pair_inds = []
+            for i, (prompt, pairs) in enumerate(prompt_to_valid_pairs.items()):
+                # Distribute remainder across first few groups
+                n_samples = samples_per_group + (1 if i < remainder else 0)
+                print(f"{prompt[:80]}...\t{n_samples}")
+                if len(pairs) < n_samples:
+                    raise ValueError(
+                        f"Not enough pairs for prompt '{prompt[:60]}...': "
+                        f"need {n_samples}, have {len(pairs)}. "
+                        f"Try reducing --total_samples or --delta."
+                    )
+                pair_inds.extend(random.sample(pairs, n_samples))
+            
+            random.shuffle(pair_inds)
+            
+            # Debug: show sample pairs
+            print(f"\n--- Sample pairs (first 3) ---")
+            for pi, (i, j) in enumerate(pair_inds[:3]):
+                print(f"Pair {pi+1}:")
+                print(f"  Prompt: '{Z[i][1].prompt[:80]}...'")
+                print(f"  Completion A: '{Z[i][1].completion}' (logprob={Z[i][2][0]:.3f})")
+                print(f"  Completion B: '{Z[j][1].completion}' (logprob={Z[j][2][0]:.3f})")
+            print(f"{'='*60}\n")
+        else:
+            indices = range(len(Z))
+            pair_inds = list(itertools.product(indices, repeat=2))
+            pair_inds = [i for i in pair_inds if i[0] < i[1]]
+            pair_inds = random.sample(pair_inds, total_samples)
         
         # Create pairs with all the information
         pairs_ = [(Z[i[0]], Z[i[1]]) for i in pair_inds]
@@ -1256,10 +1316,69 @@ def main(args):
         print(f"Min logprob: {min_logprob}")
         print(f"Max logprob: {max_logprob}")
 
-        indices = range(len(Z))
-        pair_inds = list(itertools.product(indices, repeat=2))
-        pair_inds = [i for i in pair_inds if i[0] < i[1]]
-        pair_inds = random.sample(pair_inds, total_samples)
+        if args.force_same_x:
+            # Group indices by prompt (p_train_tune.prompt)
+            prompt_to_indices = defaultdict(list)
+            for idx, z in enumerate(Z):
+                prompt = z[0].prompt  # z[0] is p_train_tune
+                prompt_to_indices[prompt].append(idx)
+            
+            print(f"\n{'='*60}")
+            print(f"FORCE-SAME-X MODE (train_g_or_d={train_g_or_d})")
+            print(f"{'='*60}")
+            print(f"Found {len(prompt_to_indices)} unique prompts")
+            
+            # For each group: create pairs, filter by delta
+            prompt_to_valid_pairs = {}
+            total_valid_pairs = 0
+            for prompt, indices in prompt_to_indices.items():
+                group_pairs = []
+                for i, j in itertools.combinations(indices, 2):
+                    logprob_i = Z[i][1]  # logprob is at index 1
+                    logprob_j = Z[j][1]
+                    if abs(logprob_i - logprob_j) > delta:
+                        # Ensure i has lower logprob than j
+                        group_pairs.append((i, j) if logprob_i < logprob_j else (j, i))
+                prompt_to_valid_pairs[prompt] = group_pairs
+                total_valid_pairs += len(group_pairs)
+            
+            print(f"Total valid pairs (after delta filter): {total_valid_pairs}")
+            
+            # Sample proportionally from each group
+            num_groups = len(prompt_to_valid_pairs)
+            samples_per_group = total_samples // num_groups
+            remainder = total_samples % num_groups
+            
+            print(f"\nPairs in train set per category:")
+            pair_inds = []
+            for i, (prompt, pairs) in enumerate(prompt_to_valid_pairs.items()):
+                # Distribute remainder across first few groups
+                n_samples = samples_per_group + (1 if i < remainder else 0)
+                print(f"{prompt[:80]}...\t{n_samples}")
+                if len(pairs) < n_samples:
+                    raise ValueError(
+                        f"Not enough pairs for prompt '{prompt[:60]}...': "
+                        f"need {n_samples}, have {len(pairs)}. "
+                        f"Try reducing --total_samples or --delta."
+                    )
+                pair_inds.extend(random.sample(pairs, n_samples))
+            
+            random.shuffle(pair_inds)
+            
+            # Debug: show sample pairs
+            print(f"\n--- Sample pairs (first 3) ---")
+            for pi, (i, j) in enumerate(pair_inds[:3]):
+                print(f"Pair {pi+1}:")
+                print(f"  Prompt: '{Z[i][0].prompt[:80]}...'")
+                print(f"  Completion A: '{Z[i][0].completion}' (logprob={Z[i][1]:.3f})")
+                print(f"  Completion B: '{Z[j][0].completion}' (logprob={Z[j][1]:.3f})")
+            print(f"{'='*60}\n")
+        else:
+            indices = range(len(Z))
+            pair_inds = list(itertools.product(indices, repeat=2))
+            pair_inds = [i for i in pair_inds if i[0] < i[1]]
+            pair_inds = random.sample(pair_inds, total_samples)
+        
         pairs_ = [(Z[i[0]], Z[i[1]]) for i in pair_inds]
 
 
@@ -2122,7 +2241,8 @@ def main(args):
             full_completion_str = "--full-completion" if use_full_completion else ""
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str
+            force_same_x_str = "--force-same-x" if args.force_same_x else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2200,6 +2320,7 @@ if __name__ == "__main__":
     parser.add_argument("--length-normalize", action="store_true", default=False, help="Divide generator scores by number of tokens (length normalization)")
     parser.add_argument("--track-scores", action="store_true", default=False, help="Track gen/val scores for all datapoints during training")
     parser.add_argument("--track-scores-freq", type=int, default=10, help="Frequency (in steps) to track scores when --track-scores is enabled")
+    parser.add_argument("--force-same-x", action="store_true", default=False, help="Only pair examples with the same generator prompt (same 'x'). Ensures pairs compare different completions for the same input.")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
