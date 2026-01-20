@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# Run eval.py on hypernym-X tasks for lenorm models
-# Evaluates 4 model variants per task (d2g/g2d with lenorm, with/without typcorr)
-# Uses --train flag to evaluate on training set and --fp32-model for continuous log-odds
+# Run eval.py on hypernym-X tasks for all model variants
+# Evaluates multiple model variants per task:
+#   - Base model (google/gemma-2-2b)
+#   - d2g/g2d vanilla (no corrections)
+#   - d2g/g2d with typcorr only
+#   - d2g/g2d with lenorm only
+#   - d2g/g2d with typcorr + lenorm
+# Uses --train flag to evaluate on training set
 #
 # Usage: ./run_eval_hypernym_tasks.sh <GPU_LIST>
 # Example: ./run_eval_hypernym_tasks.sh 0,1,2,3
@@ -13,11 +18,16 @@ if [ -z "$GPU_LIST" ]; then
     echo "Usage: $0 <GPU_LIST>"
     echo "  GPU_LIST: comma-separated GPU IDs (e.g., 0,1,2,3)"
     echo ""
-    echo "This script evaluates lenorm models on hypernym-X tasks."
+    echo "This script evaluates all model variants on hypernym-X tasks."
     echo "Models evaluated per task:"
-    echo "  - d2g (delta=0.15) with lenorm"
+    echo "  - Base model (google/gemma-2-2b)"
+    echo "  - d2g (delta=0.15) vanilla (no corrections)"
+    echo "  - d2g (delta=0.15) with typcorr only"
+    echo "  - d2g (delta=0.15) with lenorm only"
     echo "  - d2g (delta=0.15) with typcorr + lenorm"
-    echo "  - g2d (delta=2.5) with lenorm"
+    echo "  - g2d (delta=2.5) vanilla (no corrections)"
+    echo "  - g2d (delta=2.5) with typcorr only"
+    echo "  - g2d (delta=2.5) with lenorm only"
     echo "  - g2d (delta=2.5) with typcorr + lenorm"
     exit 1
 fi
@@ -62,54 +72,107 @@ run_eval() {
         --typicality-correction \
         --save-scores-csv \
         --viz \
-        --use_full_completion_logprobs \
         --train \
-        --fp32-model \
         $EXTRA_FLAGS \
         >> "$LOG_FILE" 2>&1
 }
 
-# Function to run all 4 model variants for a task
+# Function to run all model variants for a task
 run_task_evals() {
     local TASK=$1
     local GPU=$2
-    local LOG_FILE="logs/eval_${TASK}_lenorm_gpu${GPU}.log"
+    local LOG_FILE="logs/eval_${TASK}_all_gpu${GPU}.log"
     
     echo "========================================"
     echo "[GPU $GPU] Starting evals for: $TASK"
     echo "========================================"
     
-    # d2g (delta=0.15) with lenorm only
-    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0"
+    # ========================================
+    # BASE MODEL (google/gemma-2-2b)
+    # ========================================
+    echo "[GPU $GPU] Evaluating: Base model (google/gemma-2-2b)"
+    CUDA_VISIBLE_DEVICES=$GPU python eval.py \
+        --model "google/gemma-2-2b" \
+        --task "$TASK" \
+        --split_type random \
+        --validator-log-odds \
+        --typicality-correction \
+        --save-scores-csv \
+        --viz \
+        --train \
+        >> "$LOG_FILE" 2>&1
+    
+    # ========================================
+    # d2g (delta=0.15) variants
+    # ========================================
+    
+    # d2g vanilla (no corrections)
+    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
         echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
     fi
     
-    # d2g (delta=0.15) with typcorr + lenorm
-    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
+    # d2g with typcorr only
+    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--full-completion--nllv1.0--nllg1.0"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
         echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
     fi
     
-    # g2d (delta=2.5) with lenorm only
-    MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0"
+    # d2g with lenorm only (already evaluated)
+    # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0"
+    # if [ -d "$MODEL" ]; then
+    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    # else
+    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    # fi
+    
+    # d2g with typcorr + lenorm (already evaluated)
+    # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
+    # if [ -d "$MODEL" ]; then
+    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    # else
+    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    # fi
+    
+    # ========================================
+    # g2d (delta=2.5) variants
+    # ========================================
+    
+    # g2d vanilla (no corrections)
+    MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--full-completion--nllv1.0--nllg1.0"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
         echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
     fi
     
-    # g2d (delta=2.5) with typcorr + lenorm
-    MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
+    # g2d with typcorr only
+    MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--typcorr--full-completion--nllv1.0--nllg1.0"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
         echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
     fi
+    
+    # g2d with lenorm only (already evaluated)
+    # MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0"
+    # if [ -d "$MODEL" ]; then
+    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    # else
+    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    # fi
+    
+    # g2d with typcorr + lenorm (already evaluated)
+    # MODEL="../models/v5-google--gemma-2-2b-delta2.5-epoch${EPOCH}--${TASK}-all--g2d--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
+    # if [ -d "$MODEL" ]; then
+    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    # else
+    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    # fi
     
     echo "[GPU $GPU] Finished evals for: $TASK"
 }

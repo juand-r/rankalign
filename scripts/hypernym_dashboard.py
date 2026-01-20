@@ -25,7 +25,8 @@ from sklearn.decomposition import PCA
 
 import dash
 from dash import dcc, html
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -62,6 +63,14 @@ def discover_scores_files():
         dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
         dataset = dataset_match.group(1) if dataset_match else 'unknown'
         
+        # Determine train vs test split
+        if '_train_' in name:
+            split = 'train'
+        elif '_test_' in name:
+            split = 'test'
+        else:
+            split = '?'
+        
         # Determine model type
         if 'v5-google' in name:
             # Finetuned model
@@ -89,7 +98,7 @@ def discover_scores_files():
         else:
             model_type = 'Base'
         
-        display_name = f'{dataset} | {model_type}'
+        display_name = f'{dataset} | {split} | {model_type}'
         files.append({'path': str(csv_file), 'display': display_name, 'value': str(csv_file)})
     
     return files
@@ -101,8 +110,13 @@ def load_scores_data(csv_path):
     
     # Convert ground truth to binary label
     if 'gpt4_ground_truth' in df.columns:
-        df['label'] = df['gpt4_ground_truth'].str.strip().str.lower().map({'yes': 1, 'no': 0})
-        df['label'] = df['label'].fillna(0).astype(int)
+        gt_col = df['gpt4_ground_truth']
+        # Check if it's already numeric (0/1) or string (yes/no)
+        if gt_col.dtype in ['int64', 'float64', 'int', 'float']:
+            df['label'] = gt_col.astype(int)
+        else:
+            df['label'] = gt_col.str.strip().str.lower().map({'yes': 1, 'no': 0})
+            df['label'] = df['label'].fillna(0).astype(int)
     
     return df
 
@@ -226,15 +240,20 @@ def compute_metrics_for_heatmap(df, gen_col, metric_type='log-odds'):
     return compute_metrics(gen_scores, val_scores, labels, metric_type)
 
 
-def discover_heatmap_data(dataset_name):
-    """Discover and load heatmap data for a dataset."""
+def discover_heatmap_data(dataset_name, split='test'):
+    """Discover and load heatmap data for a dataset.
+    
+    Args:
+        dataset_name: Name of the dataset (e.g., 'bananas')
+        split: 'test' or 'train'
+    """
     data = {
         'base': {row: {col: None for col in EVAL_COLS} for row in MODEL_ROWS},
         'd2g': {row: {col: None for col in EVAL_COLS} for row in MODEL_ROWS},
         'g2d': {row: {col: None for col in EVAL_COLS} for row in MODEL_ROWS},
     }
     
-    for csv_file in OUTPUTS_DIR.glob(f"scores_*hypernym-{dataset_name}*.csv"):
+    for csv_file in OUTPUTS_DIR.glob(f"scores_*hypernym-{dataset_name}*_{split}_*.csv"):
         direction, is_finetuned, has_typcorr, has_lenorm, ds_name = parse_model_config(csv_file.stem)
         model_row = get_model_row_label(is_finetuned, has_typcorr, has_lenorm)
         metric_type = 'log-odds' if 'log-odds' in csv_file.stem else 'log-probs'
@@ -242,8 +261,12 @@ def discover_heatmap_data(dataset_name):
         try:
             df = pd.read_csv(csv_file)
             if 'gpt4_ground_truth' in df.columns:
-                df['label'] = df['gpt4_ground_truth'].str.strip().str.lower().map({'yes': 1, 'no': 0})
-                df['label'] = df['label'].fillna(0).astype(int)
+                gt_col = df['gpt4_ground_truth']
+                if gt_col.dtype in ['int64', 'float64', 'int', 'float']:
+                    df['label'] = gt_col.astype(int)
+                else:
+                    df['label'] = gt_col.str.strip().str.lower().map({'yes': 1, 'no': 0})
+                    df['label'] = df['label'].fillna(0).astype(int)
             
             for eval_col, gen_col in EVAL_COL_MAP.items():
                 metrics = compute_metrics_for_heatmap(df, gen_col, metric_type=metric_type)
@@ -459,22 +482,111 @@ def create_aggregated_bar_plot(all_heatmap_data, metric, direction):
 # Initialize Dash app
 app = dash.Dash(__name__)
 
-# Discover files
+# Discover files and build index
 scores_files = discover_scores_files()
+
+# Build a lookup: (dataset, split, model_type) -> file_path
+FILE_INDEX = {}
+ALL_DATASETS = set()
+ALL_SPLITS = set()
+ALL_MODEL_TYPES = set()
+
+for f in scores_files:
+    name = Path(f['path']).stem
+    
+    # Extract dataset
+    dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
+    dataset = dataset_match.group(1) if dataset_match else 'unknown'
+    
+    # Extract split
+    if '_train_' in name:
+        split = 'train'
+    elif '_test_' in name:
+        split = 'test'
+    else:
+        split = 'unknown'
+    
+    # Extract model type
+    if 'v5-google' in name:
+        if '_g2d_' in name:
+            direction = 'G2V'
+        elif '_d2g_' in name:
+            direction = 'V2G'
+        else:
+            direction = 'FT'
+        
+        has_typcorr = '_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name
+        has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name
+        
+        if has_typcorr and has_lenorm:
+            suffix = '+tc+lenorm'
+        elif has_typcorr:
+            suffix = '+tc'
+        elif has_lenorm:
+            suffix = '+lenorm'
+        else:
+            suffix = ''
+        
+        model_type = f'{direction}{suffix}'
+    else:
+        model_type = 'Base'
+    
+    ALL_DATASETS.add(dataset)
+    ALL_SPLITS.add(split)
+    ALL_MODEL_TYPES.add(model_type)
+    
+    # Store in index (keep most recent if duplicates)
+    FILE_INDEX[(dataset, split, model_type)] = f['path']
+
+# Sort for display
+ALL_DATASETS = sorted(ALL_DATASETS)
+ALL_SPLITS = sorted(ALL_SPLITS, reverse=True)  # train before test
+ALL_MODEL_TYPES = sorted(ALL_MODEL_TYPES)
 
 app.layout = html.Div([
     html.H1('Hypernym Visualization Dashboard', style={'textAlign': 'center', 'color': '#333'}),
     
-    # File selector
+    # Three dropdowns for filtering
     html.Div([
-        html.Label('Select Scores File:', style={'fontWeight': 'bold'}),
-        dcc.Dropdown(
-            id='file-selector',
-            options=[{'label': f['display'], 'value': f['value']} for f in scores_files],
-            value=scores_files[0]['value'] if scores_files else None,
-            style={'width': '100%'}
-        )
-    ], style={'width': '60%', 'margin': '20px auto'}),
+        html.Div([
+            html.Label('Dataset:', style={'fontWeight': 'bold'}),
+            dcc.Dropdown(
+                id='dataset-selector',
+                options=[{'label': d, 'value': d} for d in ALL_DATASETS],
+                value=ALL_DATASETS[0] if ALL_DATASETS else None,
+                style={'width': '100%'},
+                clearable=False
+            )
+        ], style={'width': '30%', 'display': 'inline-block', 'marginRight': '2%'}),
+        
+        html.Div([
+            html.Label('Split:', style={'fontWeight': 'bold'}),
+            dcc.Dropdown(
+                id='split-selector',
+                options=[{'label': s, 'value': s} for s in ALL_SPLITS],
+                value=ALL_SPLITS[0] if ALL_SPLITS else None,
+                style={'width': '100%'},
+                clearable=False
+            )
+        ], style={'width': '30%', 'display': 'inline-block', 'marginRight': '2%'}),
+        
+        html.Div([
+            html.Label('Model:', style={'fontWeight': 'bold'}),
+            dcc.Dropdown(
+                id='model-selector',
+                options=[{'label': m, 'value': m} for m in ALL_MODEL_TYPES],
+                value=ALL_MODEL_TYPES[0] if ALL_MODEL_TYPES else None,
+                style={'width': '100%'},
+                clearable=False
+            )
+        ], style={'width': '30%', 'display': 'inline-block'}),
+    ], style={'width': '80%', 'margin': '20px auto'}),
+    
+    # Status message
+    html.Div(id='file-status', style={
+        'width': '80%', 'margin': '10px auto', 'textAlign': 'center',
+        'color': '#666', 'fontStyle': 'italic'
+    }),
     
     # Stats panel
     html.Div(id='stats-panel', style={
@@ -513,18 +625,54 @@ app.layout = html.Div([
 ], style={'padding': '20px', 'backgroundColor': 'white', 'minHeight': '100vh'})
 
 
+# Callback to update model dropdown options based on dataset and split
 @app.callback(
-    [Output('stats-panel', 'children'),
+    [Output('model-selector', 'options'),
+     Output('model-selector', 'value')],
+    [Input('dataset-selector', 'value'),
+     Input('split-selector', 'value')]
+)
+def update_model_options(dataset, split):
+    if not dataset or not split:
+        return [{'label': m, 'value': m} for m in ALL_MODEL_TYPES], ALL_MODEL_TYPES[0] if ALL_MODEL_TYPES else None
+    
+    # Find available model types for this dataset/split combination
+    available_models = sorted([k[2] for k in FILE_INDEX.keys() if k[0] == dataset and k[1] == split])
+    
+    if not available_models:
+        return [{'label': 'No models available', 'value': None}], None
+    
+    return [{'label': m, 'value': m} for m in available_models], available_models[0]
+
+
+@app.callback(
+    [Output('file-status', 'children'),
+     Output('stats-panel', 'children'),
      Output('main-scatter', 'figure'),
      Output('faceted-plot', 'figure'),
      Output('pca-plot', 'figure'),
      Output('compare-plot', 'figure')],
-    [Input('file-selector', 'value')]
+    [Input('dataset-selector', 'value'),
+     Input('split-selector', 'value'),
+     Input('model-selector', 'value')]
 )
-def update_visualizations(csv_path):
+def update_visualizations(dataset, split, model_type):
+    empty_fig = go.Figure()
+    
+    if not dataset or not split or not model_type:
+        return "Please select all three options", "No file selected", empty_fig, empty_fig, empty_fig, empty_fig
+    
+    # Look up file path from index
+    key = (dataset, split, model_type)
+    csv_path = FILE_INDEX.get(key)
+    
     if not csv_path:
-        empty_fig = go.Figure()
-        return "No file selected", empty_fig, empty_fig, empty_fig, empty_fig
+        # This can happen during dropdown updates when model doesn't exist for new split
+        # Try to find any valid model for this dataset/split
+        available = [k[2] for k in FILE_INDEX.keys() if k[0] == dataset and k[1] == split]
+        if available:
+            return f"Model '{model_type}' not available for {dataset}/{split}. Available: {', '.join(available)}", "Select a valid model", empty_fig, empty_fig, empty_fig, empty_fig
+        return f"No data for: {dataset} | {split}", "No data", empty_fig, empty_fig, empty_fig, empty_fig
     
     # Load data
     df = load_scores_data(csv_path)
@@ -806,48 +954,61 @@ def update_visualizations(csv_path):
         paper_bgcolor='white', plot_bgcolor='white'
     )
     
-    return stats_text, main_fig, faceted_fig, pca_fig, compare_fig
+    file_status = f"Loaded: {Path(csv_path).name}"
+    return file_status, stats_text, main_fig, faceted_fig, pca_fig, compare_fig
 
 
 @app.callback(
     Output('all-heatmaps-container', 'children'),
-    [Input('file-selector', 'options')]
+    [Input('dataset-selector', 'options')]
 )
 def generate_all_heatmaps(_options):
     children = []
     
-    # Load all heatmap data
-    all_heatmap_data = {}
+    # Load all heatmap data for both test and train
+    all_heatmap_data_test = {}
+    all_heatmap_data_train = {}
     for dataset_name in ALL_DATASETS:
-        all_heatmap_data[dataset_name] = discover_heatmap_data(dataset_name)
+        all_heatmap_data_test[dataset_name] = discover_heatmap_data(dataset_name, split='test')
+        all_heatmap_data_train[dataset_name] = discover_heatmap_data(dataset_name, split='train')
     
-    # === AGGREGATED SECTION ===
+    # ============================================================
+    # TEST SECTION
+    # ============================================================
+    children.append(html.H2(
+        '🧪 TEST SET RESULTS',
+        style={'marginTop': '10px', 'marginBottom': '20px', 'color': '#2e7d32',
+               'borderBottom': '3px solid #2e7d32', 'paddingBottom': '10px',
+               'backgroundColor': '#e8f5e9', 'padding': '15px', 'borderRadius': '8px'}
+    ))
+    
+    # === AGGREGATED SECTION (TEST) ===
     children.append(html.H3(
-        '📊 Aggregated Results (Mean across all datasets)',
+        '📊 Aggregated Results - TEST (Mean across all datasets)',
         style={'marginTop': '10px', 'marginBottom': '10px', 'color': '#1a5f7a',
                'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
     ))
     
-    # Aggregated heatmaps
+    # Aggregated heatmaps (TEST)
     children.append(html.H4('Aggregated Heatmaps', style={'marginTop': '15px', 'color': '#333'}))
-    fig_agg_d2g = create_aggregated_heatmap(all_heatmap_data, 'd2g')
-    fig_agg_g2d = create_aggregated_heatmap(all_heatmap_data, 'g2d')
+    fig_agg_d2g = create_aggregated_heatmap(all_heatmap_data_test, 'd2g')
+    fig_agg_g2d = create_aggregated_heatmap(all_heatmap_data_test, 'g2d')
     children.append(dcc.Graph(figure=fig_agg_d2g, style={'height': '280px'}))
     children.append(dcc.Graph(figure=fig_agg_g2d, style={'height': '280px'}))
     
-    # Bar plots
+    # Bar plots (TEST)
     children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
     
     for metric in METRICS:
         children.append(html.H5(f'{metric}', style={'marginTop': '15px', 'color': '#555'}))
-        fig_bar_d2g = create_aggregated_bar_plot(all_heatmap_data, metric, 'd2g')
-        fig_bar_g2d = create_aggregated_bar_plot(all_heatmap_data, metric, 'g2d')
+        fig_bar_d2g = create_aggregated_bar_plot(all_heatmap_data_test, metric, 'd2g')
+        fig_bar_g2d = create_aggregated_bar_plot(all_heatmap_data_test, metric, 'g2d')
         children.append(dcc.Graph(figure=fig_bar_d2g, style={'height': '320px'}))
         children.append(dcc.Graph(figure=fig_bar_g2d, style={'height': '320px'}))
     
-    # === PER-DATASET SECTION ===
+    # === PER-DATASET SECTION (TEST) ===
     children.append(html.H3(
-        '📋 Per-Dataset Results',
+        '📋 Per-Dataset Results - TEST',
         style={'marginTop': '30px', 'marginBottom': '10px', 'color': '#1a5f7a',
                'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
     ))
@@ -859,7 +1020,63 @@ def generate_all_heatmaps(_options):
                    'borderBottom': '1px solid #ddd', 'paddingBottom': '5px'}
         ))
         
-        heatmap_data = all_heatmap_data[dataset_name]
+        heatmap_data = all_heatmap_data_test[dataset_name]
+        
+        fig_d2g = create_heatmap_figure(heatmap_data, 'd2g', 'log-odds')
+        fig_g2d = create_heatmap_figure(heatmap_data, 'g2d', 'log-odds')
+        
+        children.append(dcc.Graph(figure=fig_d2g, style={'height': '280px', 'marginTop': '0px'}))
+        children.append(dcc.Graph(figure=fig_g2d, style={'height': '280px', 'marginTop': '0px'}))
+    
+    # ============================================================
+    # TRAIN SECTION
+    # ============================================================
+    children.append(html.H2(
+        '🏋️ TRAIN SET RESULTS',
+        style={'marginTop': '40px', 'marginBottom': '20px', 'color': '#c62828',
+               'borderBottom': '3px solid #c62828', 'paddingBottom': '10px',
+               'backgroundColor': '#ffebee', 'padding': '15px', 'borderRadius': '8px'}
+    ))
+    
+    # === AGGREGATED SECTION (TRAIN) ===
+    children.append(html.H3(
+        '📊 Aggregated Results - TRAIN (Mean across all datasets)',
+        style={'marginTop': '10px', 'marginBottom': '10px', 'color': '#1a5f7a',
+               'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
+    ))
+    
+    # Aggregated heatmaps (TRAIN)
+    children.append(html.H4('Aggregated Heatmaps', style={'marginTop': '15px', 'color': '#333'}))
+    fig_agg_d2g_train = create_aggregated_heatmap(all_heatmap_data_train, 'd2g')
+    fig_agg_g2d_train = create_aggregated_heatmap(all_heatmap_data_train, 'g2d')
+    children.append(dcc.Graph(figure=fig_agg_d2g_train, style={'height': '280px'}))
+    children.append(dcc.Graph(figure=fig_agg_g2d_train, style={'height': '280px'}))
+    
+    # Bar plots (TRAIN)
+    children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
+    
+    for metric in METRICS:
+        children.append(html.H5(f'{metric}', style={'marginTop': '15px', 'color': '#555'}))
+        fig_bar_d2g_train = create_aggregated_bar_plot(all_heatmap_data_train, metric, 'd2g')
+        fig_bar_g2d_train = create_aggregated_bar_plot(all_heatmap_data_train, metric, 'g2d')
+        children.append(dcc.Graph(figure=fig_bar_d2g_train, style={'height': '320px'}))
+        children.append(dcc.Graph(figure=fig_bar_g2d_train, style={'height': '320px'}))
+    
+    # === PER-DATASET SECTION (TRAIN) ===
+    children.append(html.H3(
+        '📋 Per-Dataset Results - TRAIN',
+        style={'marginTop': '30px', 'marginBottom': '10px', 'color': '#1a5f7a',
+               'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
+    ))
+    
+    for dataset_name in ALL_DATASETS:
+        children.append(html.H4(
+            f'{dataset_name.capitalize()}',
+            style={'marginTop': '15px', 'marginBottom': '5px', 'color': '#333',
+                   'borderBottom': '1px solid #ddd', 'paddingBottom': '5px'}
+        ))
+        
+        heatmap_data = all_heatmap_data_train[dataset_name]
         
         fig_d2g = create_heatmap_figure(heatmap_data, 'd2g', 'log-odds')
         fig_g2d = create_heatmap_figure(heatmap_data, 'g2d', 'log-odds')
