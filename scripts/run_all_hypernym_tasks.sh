@@ -36,14 +36,14 @@ TOTAL_SAMPLES=5110
 
 # All 33 hypernym-X tasks (32 individual + 1 concat)
 TASKS=(
-#    "hypernym-bananas"
-#    "hypernym-bazookas"
-#    "hypernym-cabinets"
-#    "hypernym-cars"
-#    "hypernym-chairs"
-#    "hypernym-crows"
-#    "hypernym-diapers"
-#    "hypernym-dogs"
+    "hypernym-bananas"
+    "hypernym-bazookas"
+    "hypernym-cabinets"
+    "hypernym-cars"
+    "hypernym-chairs"
+    "hypernym-crows"
+    "hypernym-diapers"
+    "hypernym-dogs"
     "hypernym-dolls"
     "hypernym-ducklings"
     "hypernym-elephants"
@@ -109,20 +109,6 @@ echo "========================================"
 #    --total_samples $TOTAL_SAMPLES
 
 # Config 2: train_g_or_d=g, delta=0.15, with length normalization
-echo "--- Config 2: g, delta=0.15, without typcorr ---"
-CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
-    --model $MODEL \
-    --num_epochs $NUM_EPOCHS \
-            --task "$TASK" \
-    --train_g_or_d g \
-    --split_type random \
-    --nll_validator_weight 1 \
-    --nll_generator_weight 1 \
-    --all \
-    --delta 0.15 \
-    --total_samples $TOTAL_SAMPLES \
-
-# Config: with typcorr and length normalization
 echo "--- Config 2: g, delta=0.15, with typcorr ---"
 CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --model $MODEL \
@@ -135,10 +121,40 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
+    --typicality-correction
+
+# Config: with typcorr and length normalization
+echo "--- Config 4: g, delta=0.15, with typcorr and length normalization ---"
+CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
+    --model $MODEL \
+    --num_epochs $NUM_EPOCHS \
+            --task "$TASK" \
+    --train_g_or_d g \
+    --split_type random \
+    --nll_validator_weight 1 \
+    --nll_generator_weight 1 \
+    --all \
+    --delta 0.15 \
+    --total_samples $TOTAL_SAMPLES \
     --typicality-correction \
+    --length-normalize
+
+echo "--- Config 2: g, delta=0.15, with length normalization ---"
+CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
+    --model $MODEL \
+    --num_epochs $NUM_EPOCHS \
+            --task "$TASK" \
+    --train_g_or_d g \
+    --split_type random \
+    --nll_validator_weight 1 \
+    --nll_generator_weight 1 \
+    --all \
+    --delta 0.15 \
+    --total_samples $TOTAL_SAMPLES \
+    --length-normalize
 
 # Config 3: train_g_or_d=d, delta=2.5, no typicality correction
-#echo "--- Config 3: d, delta=2.5, no typcorr ---"
+#echo "--- Config 3: d, delta=2.5, no typcorr, with length normalization ---"
 #CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
 #    --model $MODEL \
 #    --num_epochs $NUM_EPOCHS \
@@ -149,7 +165,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
 #    --nll_generator_weight 1 \
 #    --all \
 #    --delta 2.5 \
-#    --total_samples $TOTAL_SAMPLES
+#    --total_samples $TOTAL_SAMPLES \
+#    --length-normalize
 
 # Config 4: train_g_or_d=d, delta=2.5, with length normalization
 #echo "--- Config 4: d, delta=2.5, with typcorr ---"

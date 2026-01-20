@@ -40,7 +40,9 @@ PORT = int(os.environ.get('PORT', 8888))
 ALL_DATASETS = ['bananas', 'bazookas', 'cabinets', 'cars', 'chairs', 'crows', 'diapers', 'dogs']
 
 # Heatmap configuration
-MODEL_ROWS = ['Base', 'Rankalign', '+tc', '+lenorm', '+tc+lenorm']
+# +tc = old typcorr (applied only during pair selection)
+# +tco = tc-online (applied during training loop)
+MODEL_ROWS = ['Base', 'Rankalign', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
 EVAL_COLS = ['raw', 'tc', 'lenorm', 'tc+lenorm']
 METRICS = ['Accuracy', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg']
 
@@ -82,10 +84,17 @@ def discover_scores_files():
                 direction = 'FT'
             
             # Check for training flags (before _full-completion)
-            has_typcorr = '_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name
-            has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name
+            # tc-online = new online typicality correction (applied during training)
+            # typcorr = old typicality correction (applied only during pair selection)
+            has_tc_online = '_tc-online_full-completion' in name or '_tc-online_lenorm_full-completion' in name
+            has_typcorr = ('_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name) and not has_tc_online
+            has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name or '_tc-online_lenorm_full-completion' in name
             
-            if has_typcorr and has_lenorm:
+            if has_tc_online and has_lenorm:
+                suffix = '+tco+lenorm'
+            elif has_tc_online:
+                suffix = '+tco'
+            elif has_typcorr and has_lenorm:
                 suffix = '+tc+lenorm'
             elif has_typcorr:
                 suffix = '+tc'
@@ -195,7 +204,8 @@ def parse_model_config(filename):
     if not is_finetuned:
         dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
         dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
-        return 'base', False, False, False, dataset_name
+        # Return: direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, dataset_name
+        return 'base', False, False, False, False, dataset_name
     
     if '_g2d_' in name:
         direction = 'g2d'
@@ -205,19 +215,26 @@ def parse_model_config(filename):
         direction = 'unknown'
     
     # Check for typcorr and lenorm training flags (before _full-completion)
-    has_typcorr = '_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name
-    has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name
+    # tc-online = new online typicality correction (applied during training)
+    # typcorr = old typicality correction (applied only during pair selection)
+    has_tc_online = '_tc-online_full-completion' in name or '_tc-online_lenorm_full-completion' in name
+    has_typcorr = ('_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name) and not has_tc_online
+    has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name or '_tc-online_lenorm_full-completion' in name
     
     dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
     dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
     
-    return direction, is_finetuned, has_typcorr, has_lenorm, dataset_name
+    return direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, dataset_name
 
 
-def get_model_row_label(is_finetuned, has_typcorr, has_lenorm):
+def get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm):
     """Map model config to row label."""
     if not is_finetuned:
         return 'Base'
+    elif has_tc_online and has_lenorm:
+        return '+tco+lenorm'
+    elif has_tc_online:
+        return '+tco'
     elif has_typcorr and has_lenorm:
         return '+tc+lenorm'
     elif has_typcorr:
@@ -254,8 +271,8 @@ def discover_heatmap_data(dataset_name, split='test'):
     }
     
     for csv_file in OUTPUTS_DIR.glob(f"scores_*hypernym-{dataset_name}*_{split}_*.csv"):
-        direction, is_finetuned, has_typcorr, has_lenorm, ds_name = parse_model_config(csv_file.stem)
-        model_row = get_model_row_label(is_finetuned, has_typcorr, has_lenorm)
+        direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, ds_name = parse_model_config(csv_file.stem)
+        model_row = get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm)
         metric_type = 'log-odds' if 'log-odds' in csv_file.stem else 'log-probs'
         
         try:
@@ -420,7 +437,7 @@ def create_aggregated_bar_plot(all_heatmap_data, metric, direction):
     
     fig = go.Figure()
     
-    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A']
+    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692']
     
     x_positions = []
     x_labels = []
@@ -515,10 +532,17 @@ for f in scores_files:
         else:
             direction = 'FT'
         
-        has_typcorr = '_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name
-        has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name
+        # tc-online = new online typicality correction (applied during training)
+        # typcorr = old typicality correction (applied only during pair selection)
+        has_tc_online = '_tc-online_full-completion' in name or '_tc-online_lenorm_full-completion' in name
+        has_typcorr = ('_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name) and not has_tc_online
+        has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name or '_tc-online_lenorm_full-completion' in name
         
-        if has_typcorr and has_lenorm:
+        if has_tc_online and has_lenorm:
+            suffix = '+tco+lenorm'
+        elif has_tc_online:
+            suffix = '+tco'
+        elif has_typcorr and has_lenorm:
             suffix = '+tc+lenorm'
         elif has_typcorr:
             suffix = '+tc'

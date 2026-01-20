@@ -23,6 +23,7 @@ import argparse
 import wandb
 
 from datasets import load_dataset
+from sklearn.metrics import roc_curve
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
@@ -30,6 +31,38 @@ sys.path.append(src_path)
 import utils
 from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_ifeval, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
 from task_registry import get_task, get_all_task_names
+
+def compute_optimal_threshold(scores, labels):
+    """
+    Compute the threshold that maximizes accuracy for binary classification.
+    
+    Args:
+        scores: list/array of scores (higher = more likely positive)
+        labels: list/array of binary labels (1=positive, 0=negative)
+    
+    Returns:
+        optimal_threshold: the threshold that maximizes accuracy
+        best_accuracy: the accuracy achieved at the optimal threshold
+    """
+    import numpy as np
+    scores = np.array(scores)
+    labels = np.array(labels)
+    
+    # Get unique thresholds from ROC curve
+    fpr, tpr, thresholds = roc_curve(labels, scores)
+    
+    # Compute accuracy at each threshold
+    # accuracy = (TP + TN) / N = tpr * P(pos) + (1-fpr) * P(neg)
+    n_pos = labels.sum()
+    n_neg = len(labels) - n_pos
+    accuracies = (tpr * n_pos + (1 - fpr) * n_neg) / len(labels)
+    
+    # Find threshold with maximum accuracy
+    best_idx = np.argmax(accuracies)
+    optimal_threshold = thresholds[best_idx]
+    best_accuracy = accuracies[best_idx]
+    
+    return optimal_threshold, best_accuracy
 
 # good_pair, alpha_fun_1, get_alpha are used for "both" mode
 def good_pair(log_prob_i, log_prob_j, label_i, label_j):
@@ -373,21 +406,23 @@ def save_tracked_scores(results, output_path):
 
 def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
                                 typicality_correction, length_normalize, use_full_completion,
-                                nll_validator_weight, nll_generator_weight, force_same_x=False):
+                                nll_validator_weight, nll_generator_weight, force_same_x=False,
+                                boost_initial_val=False):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
     alpha_str = f"-alpha{alpha}" if isinstance(alpha, (int, float)) else f"-alpha-{alpha}"
-    typcorr_str = "-typcorr" if typicality_correction else ""
+    typcorr_str = "-tc-online" if typicality_correction else ""  # tc = typicality correction, online = applied during training
     lenorm_str = "-lenorm" if length_normalize else ""
     full_completion_str = "-full-completion" if use_full_completion else ""
     nll_v_str = f"-nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
     nll_g_str = f"-nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
     force_same_x_str = "-force-same-x" if force_same_x else ""
+    valboost_str = "-valboost" if boost_initial_val else ""
     
     base_name = (f"v5-{model_name.replace('/', '--')}-delta{delta}--{task}{all_str}"
                  f"--{direction_str}--{split_type}{alpha_str}{typcorr_str}{lenorm_str}"
-                 f"{full_completion_str}{nll_v_str}{nll_g_str}{force_same_x_str}")
+                 f"{full_completion_str}{nll_v_str}{nll_g_str}{force_same_x_str}{valboost_str}")
     return base_name
 
 
@@ -422,7 +457,8 @@ def main(args):
         tracking_base_name = get_tracking_base_filename(
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
-            nll_validator_weight, nll_generator_weight, args.force_same_x
+            nll_validator_weight, nll_generator_weight, args.force_same_x,
+            args.boost_initial_val
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
                                     "outputs", "training-logs")
@@ -1118,10 +1154,14 @@ def main(args):
     else:
         raise ValueError("Task unsupported!")
 
-    # Apply typicality correction if requested
-    if args.typicality_correction and train_g_or_d in ['d', 'both']:
+    # Compute typicality scores if requested (for ALL modes)
+    # Note: typicality_scores will be used during training to correct generator scores
+    # For pair selection, we only apply the correction to logprobs_last_layer in 'd' and 'both' modes
+    typicality_scores = None  # Initialize to None (will be list if computed)
+    
+    if args.typicality_correction:
         print("\n" + "="*60)
-        print("APPLYING TYPICALITY CORRECTION")
+        print("COMPUTING TYPICALITY SCORES")
         print("="*60)
         
         # Extract completions based on task
@@ -1157,33 +1197,112 @@ def main(args):
         
         # Compute GPT-2 typicality scores
         typicality_scores = compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device)
+        print(f"  Computed typicality scores for {len(typicality_scores)} examples")
+        print(f"  Typicality mean: {sum(typicality_scores)/len(typicality_scores):.4f}")
         
-        # Apply correction to generator logprobs
-        print("\nApplying correction: Generator - GPT-2 P(completion)")
-        if train_g_or_d == 'both':
-            # For 'both' mode, logprobs_last_layer contains tuples (log_prob_d, log_prob_g)
-            # We correct log_prob_d (generator logprob for discriminator path)
-            logprobs_original = logprobs_last_layer.copy()
-            logprobs_last_layer = [(lp[0] - typicality_scores[i], lp[1]) for i, lp in enumerate(logprobs_last_layer)]
-            original_means_d = sum([lp[0] for lp in logprobs_original]) / len(logprobs_original)
-            corrected_means_d = sum([lp[0] for lp in logprobs_last_layer]) / len(logprobs_last_layer)
-            print(f"  Original generator mean (d): {original_means_d:.4f}")
-            print(f"  Corrected generator mean (d): {corrected_means_d:.4f}")
+        # Apply correction to logprobs_last_layer ONLY for pair selection in 'd' and 'both' modes
+        # (In 'g' mode, logprobs_last_layer contains validator scores, not generator scores)
+        if train_g_or_d in ['d', 'both']:
+            print("\nApplying correction to pair selection scores (for 'd'/'both' modes)")
+            if train_g_or_d == 'both':
+                # For 'both' mode, logprobs_last_layer contains tuples (log_prob_d, log_prob_g)
+                # We correct log_prob_d (generator logprob for discriminator path)
+                logprobs_original = logprobs_last_layer.copy()
+                logprobs_last_layer = [(lp[0] - typicality_scores[i], lp[1]) for i, lp in enumerate(logprobs_last_layer)]
+                original_means_d = sum([lp[0] for lp in logprobs_original]) / len(logprobs_original)
+                corrected_means_d = sum([lp[0] for lp in logprobs_last_layer]) / len(logprobs_last_layer)
+                print(f"  Original generator mean (d): {original_means_d:.4f}")
+                print(f"  Corrected generator mean (d): {corrected_means_d:.4f}")
+            else:
+                # For 'd' mode, logprobs_last_layer is just a list of floats (generator scores)
+                logprobs_original = logprobs_last_layer.copy()
+                logprobs_last_layer = [lp - typicality_scores[i] for i, lp in enumerate(logprobs_last_layer)]
+                original_mean = sum(logprobs_original) / len(logprobs_original)
+                corrected_mean = sum(logprobs_last_layer) / len(logprobs_last_layer)
+                print(f"  Original generator mean: {original_mean:.4f}")
+                print(f"  Corrected generator mean: {corrected_mean:.4f}")
+            print(f"  Correction applied to {len(logprobs_last_layer)} examples for pair selection")
         else:
-            # For 'd' or 'g' mode, logprobs_last_layer is just a list of floats
-            logprobs_original = logprobs_last_layer.copy()
-            logprobs_last_layer = [lp - typicality_scores[i] for i, lp in enumerate(logprobs_last_layer)]
-            original_mean = sum(logprobs_original) / len(logprobs_original)
-            corrected_mean = sum(logprobs_last_layer) / len(logprobs_last_layer)
-            print(f"  Original generator mean: {original_mean:.4f}")
-            print(f"  Corrected generator mean: {corrected_mean:.4f}")
-        
-        print(f"  Correction applied to {len(logprobs_last_layer)} examples")
+            print("\n  (In 'g' mode: typicality will be applied during training, not pair selection)")
         
         # Clean up GPT-2 model
         del model_gpt2, tokenizer_gpt2
         torch.cuda.empty_cache()
         
+        print("="*60 + "\n")
+
+    # Compute val_boost_theta if requested
+    # This shifts validator scores so the optimal classification threshold is 0
+    val_boost_theta = 0.0  # Default: no boost
+    
+    if args.boost_initial_val:
+        print("\n" + "="*60)
+        print("COMPUTING VALIDATOR BOOST (--boost-initial-val)")
+        print("="*60)
+        
+        # Extract validator scores based on mode
+        if train_g_or_d == 'g':
+            # In 'g' mode, logprobs_last_layer contains validator scores directly
+            val_scores = logprobs_last_layer
+        elif train_g_or_d == 'both':
+            # In 'both' mode, logprobs_last_layer contains tuples (gen_score, val_score)
+            val_scores = [lp[1] for lp in logprobs_last_layer]
+        elif train_g_or_d == 'd':
+            # In 'd' mode, validator scores are not precomputed
+            # We need to compute them here for the purpose of finding the optimal threshold
+            print("  Computing validator scores for 'd' mode...")
+            val_scores = []
+            target_text_yes = space_prefix + "Yes"
+            target_tokens_yes = tokenizer.encode(target_text_yes)
+            target_token_yes = target_tokens_yes[0] if len(target_tokens_yes) == 1 else target_tokens_yes[1]
+            
+            model.eval()
+            with torch.no_grad():
+                for idx in tqdm(range(len(L_train_all)), desc="Computing validator scores"):
+                    # Get the discriminator prompt (which asks Yes/No)
+                    prompt = p_train_tune[idx].prompt
+                    
+                    # Compute log P("Yes") using get_final_logit_prob
+                    # Note: get_final_logit_prob returns full log-prob distribution [vocab_size]
+                    log_probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob_yes = log_probs[target_token_yes].item()
+                    val_scores.append(log_prob_yes)
+            # Note: model.train() called later in training loop (line ~1980)
+        else:
+            raise ValueError(f"Unknown mode: {train_g_or_d}")
+        
+        # Get ground truth labels
+        labels = []
+        for item in L_train_all:
+            # Check task registry first (for new extensible tasks)
+            task_config_boost = get_task(task)
+            if task_config_boost is not None:
+                label = task_config_boost['get_label'](item)
+            elif task in ['hypernym', 'hypernym-car']:
+                label = item.taxonomic.strip().lower()
+            elif task == 'trivia-qa':
+                label = item['correct'].strip().lower()
+            elif task == 'swords':
+                label = item.synonym.strip().lower()
+            elif task == 'lambada':
+                label = item['correct'].strip().lower()
+            elif task == 'ifeval':
+                label = item['correct'].strip().lower()
+            elif task == 'collie':
+                label = item['correct'].strip().lower() if 'correct' in item else 'yes'
+            else:
+                raise ValueError(f"Task {task} not supported for boost_initial_val")
+            labels.append(1 if label == 'yes' else 0)
+        
+        # Compute optimal threshold
+        optimal_threshold, best_accuracy = compute_optimal_threshold(val_scores, labels)
+        val_boost_theta = -optimal_threshold
+        
+        print(f"  Validator scores: min={min(val_scores):.4f}, max={max(val_scores):.4f}, mean={sum(val_scores)/len(val_scores):.4f}")
+        print(f"  Labels: {sum(labels)} positive, {len(labels)-sum(labels)} negative")
+        print(f"  Optimal threshold: {optimal_threshold:.4f}")
+        print(f"  Best accuracy at threshold: {best_accuracy:.4f}")
+        print(f"  val_boost_theta (= -threshold): {val_boost_theta:.4f}")
         print("="*60 + "\n")
 
     if with_chat and has_system_role:
@@ -1215,10 +1334,13 @@ def main(args):
             max_context_length = max(len(hf_train_gold[0]['input_ids']), max_context_length)
     print("MAX CONTEXT LENGTH: ", max_context_length)
 
+    # Prepare typicality scores for inclusion in Z (use zeros if not computed)
+    typ_scores_for_z = typicality_scores if typicality_scores is not None else [0.0] * len(L_train_all)
+    
     if train_g_or_d == 'both':
-        # Create tuples of (discriminator_prompt, generator_prompt, logprobs)
+        # Create tuples of (discriminator_prompt, generator_prompt, logprobs, typicality)
         # Note: logprobs_last_layer contains tuples of (log_prob_d, log_prob_g)
-        Z = list(zip(p_train_tune, p_train_gold, logprobs_last_layer))
+        Z = list(zip(p_train_tune, p_train_gold, logprobs_last_layer, typ_scores_for_z))
         
         # Sort based on discriminator logprob (first element of the logprobs tuple)
         Z = sorted(Z, key=lambda i: i[2][0])  # Using i[2][0] to get the discriminator logprob
@@ -1302,7 +1424,8 @@ def main(args):
     else:
         #Z = list(zip(prompts_pos, gen_logprobs_last_layer))
         # Include L_train_all to access ground truth labels (e.g., .taxonomic)
-        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all))
+        # Also include typicality scores (index 3)
+        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z))
         Z = sorted(Z, key = lambda i: i[1])  # Sort by logprob (index 1)
 
         # Calculate delta based on range of logprobs
@@ -1490,7 +1613,8 @@ def main(args):
                      (completion_text, completion_text),  # completion for ranking (always "Yes")
                      (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                      (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
+                     (pair[0][3], pair[1][3])  # typicality scores
                  )
                  for pair in pairs_ if pair[1][1] - pair[0][1] > delta
              ]
@@ -1501,7 +1625,8 @@ def main(args):
                     (completion_text, completion_text),  # completion for ranking (always "Yes")
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
+                    (pair[0][3], pair[1][3])  # typicality scores
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1515,7 +1640,8 @@ def main(args):
                     (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
+                    (pair[0][3], pair[1][3])  # typicality scores
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1526,7 +1652,8 @@ def main(args):
                     (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task))  # indicators (1=positive, 0=negative)
+                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
+                    (pair[0][3], pair[1][3])  # typicality scores
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1537,21 +1664,25 @@ def main(args):
         if with_chat:
             # Create pairs with both discriminator and generator prompts, applying chat formatting
             # NOTE verify fixed
+            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality) - typicality at index 3
             pairs = [
                 (
                     ((format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)), (completion_text, completion_text)),  # discriminator pair
                     ((format_with_inst(pair[0][1].prompt), format_with_inst(pair[1][1].prompt)), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
-                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   )
-                ) for pair in pairs_ if pair[1][-1][0] - pair[0][-1][0] > delta
+                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
+                    (pair[0][3], pair[1][3])  # typicality scores
+                ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
             ]
         else:
             # Create pairs with both discriminator and generator prompts
+            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality) - typicality at index 3
             pairs = [
                 (
                     ((pair[0][0].prompt, pair[1][0].prompt), (completion_text, completion_text)),  # discriminator pair
                     ((pair[0][1].prompt, pair[1][1].prompt), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
-                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   )
-                ) for pair in pairs_ if pair[1][-1][0] - pair[0][-1][0] > delta
+                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
+                    (pair[0][3], pair[1][3])  # typicality scores
+                ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
             ]
 
     else:
@@ -1594,15 +1725,16 @@ def main(args):
 
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
-                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j) = self.pairs[idx]
+                # 4-element structure: (disc_pair, gen_pair, labels, typicality)
+                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j), (typicality_i, typicality_j) = self.pairs[idx]
                 if not self.use_full_completion:
                     completion_i_disc = self.tokenizer.decode(self.tokenizer.encode(completion_i_disc)[-1])
                     completion_j_disc = self.tokenizer.decode(self.tokenizer.encode(completion_j_disc)[-1])
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
-                # Unified 5-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators)
-                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j) = self.pairs[idx]
+                # Unified 6-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators, typicality)
+                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j) = self.pairs[idx]
                 
                 if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
@@ -1752,7 +1884,9 @@ def main(args):
                     'token_correct_j': token_correct_j.squeeze(0),  # validator correct answer
                     'token_gen_j': token_gen_j.squeeze(0),  # generator completion
                     'indicator_j': torch.tensor(indicator_j, dtype=torch.float),  # 1 if positive, 0 if negative
-                    'label': torch.tensor(1.0, dtype=torch.float)
+                    'label': torch.tensor(1.0, dtype=torch.float),
+                    'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
+                    'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
                 }
             else:
                 item = {
@@ -1769,8 +1903,10 @@ def main(args):
                     'attention_mask_j_gen': enc_j_gen['attention_mask'].squeeze(0),
                     'token_id_j_gen': token_j_gen.squeeze(0),
                     'label_i': torch.tensor(1.0 if label_i == "yes" else 0.0, dtype=torch.float),
-                    'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float)
-            }
+                    'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float),
+                    'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
+                    'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
+                }
             return item
 
 
@@ -1937,10 +2073,22 @@ def main(args):
                     score_i_disc = sum_completion_logprobs(log_probs_i_disc, token_id_i_disc)   
                     score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
                 
+                # Apply validator boost (shift scores so optimal threshold is 0)
+                if args.boost_initial_val:
+                    score_i_disc = score_i_disc + val_boost_theta
+                    score_j_disc = score_j_disc + val_boost_theta
+                
                 # Generator always uses log-probs (completion can be multi-token)
                 # Apply length normalization if flag is set
                 score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen, length_normalize=args.length_normalize)
                 score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen, length_normalize=args.length_normalize)
+                
+                # Apply typicality correction to generator scores (online, during training)
+                if args.typicality_correction:
+                    typicality_i = batch["typicality_i"].to(device)
+                    typicality_j = batch["typicality_j"].to(device)
+                    score_i_gen = score_i_gen - typicality_i
+                    score_j_gen = score_j_gen - typicality_j
 
                 # Use frozen reference model if needed
                 if WITH_REF:
@@ -2078,6 +2226,20 @@ def main(args):
                     use_lenorm = args.length_normalize and train_g_or_d == 'g'
                     score_i = sum_completion_logprobs(log_probs_i, token_id_i, length_normalize=use_lenorm)  # [B]
                     score_j = sum_completion_logprobs(log_probs_j, token_id_j, length_normalize=use_lenorm)  # [B]
+                
+                # Apply typicality correction to generator scores (online, during training)
+                # Only for 'g' mode where score_i/score_j are generator scores
+                if args.typicality_correction and train_g_or_d == 'g':
+                    typicality_i = batch["typicality_i"].to(device)
+                    typicality_j = batch["typicality_j"].to(device)
+                    score_i = score_i - typicality_i
+                    score_j = score_j - typicality_j
+                
+                # Apply validator boost (shift scores so optimal threshold is 0)
+                # Only for 'd' mode where score_i/score_j are validator scores
+                if args.boost_initial_val and train_g_or_d == 'd':
+                    score_i = score_i + val_boost_theta
+                    score_j = score_j + val_boost_theta
 
                 # Use frozen reference model
                 if WITH_REF:
@@ -2235,14 +2397,15 @@ def main(args):
             split_type_str = "--"+ split_type
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
-            typcorr_str = "--typcorr" if args.typicality_correction else ""
+            typcorr_str = "--tc-online" if args.typicality_correction else ""  # tc = typicality correction, online = applied during training
             lenorm_str = "--lenorm" if args.length_normalize else ""
             single_token_str = "--single-token-data" if args.single_token_data_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
-            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str
+            valboost_str = "--valboost" if args.boost_initial_val else ""
+            save_directory = "../models/v5-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2321,6 +2484,7 @@ if __name__ == "__main__":
     parser.add_argument("--track-scores", action="store_true", default=False, help="Track gen/val scores for all datapoints during training")
     parser.add_argument("--track-scores-freq", type=int, default=10, help="Frequency (in steps) to track scores when --track-scores is enabled")
     parser.add_argument("--force-same-x", action="store_true", default=False, help="Only pair examples with the same generator prompt (same 'x'). Ensures pairs compare different completions for the same input.")
+    parser.add_argument("--boost-initial-val", action="store_true", default=False, help="Shift validator scores so optimal classification threshold is 0. Computes theta = -optimal_threshold and adds it to all validator scores during training.")
     args = parser.parse_args()
     
     # Convert alpha to float if it's a number
