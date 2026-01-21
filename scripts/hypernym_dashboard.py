@@ -42,7 +42,9 @@ ALL_DATASETS = ['bananas', 'bazookas', 'cabinets', 'cars', 'chairs', 'crows', 'd
 # Heatmap configuration
 # +tc = old typcorr (applied only during pair selection)
 # +tco = tc-online (applied during training loop)
-MODEL_ROWS = ['Base', 'Rankalign', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
+# Rankalign U = universal model (trained on concat task)
+# Rankalign U+tc = universal model with typcorr
+MODEL_ROWS = ['Base', 'Rankalign U+tc', 'Rankalign U', 'Rankalign', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
 EVAL_COLS = ['raw', 'tc', 'lenorm', 'tc+lenorm']
 METRICS = ['Accuracy', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg']
 
@@ -204,8 +206,8 @@ def parse_model_config(filename):
     if not is_finetuned:
         dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
         dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
-        # Return: direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, dataset_name
-        return 'base', False, False, False, False, dataset_name
+        # Return: direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, is_universal, dataset_name
+        return 'base', False, False, False, False, False, dataset_name
     
     if '_g2d_' in name:
         direction = 'g2d'
@@ -214,6 +216,9 @@ def parse_model_config(filename):
     else:
         direction = 'unknown'
     
+    # Check if this is a universal model (trained on concat task, evaluated on individual tasks)
+    is_universal = 'hypernym-concat' in name
+    
     # Check for typcorr and lenorm training flags (before _full-completion)
     # tc-online = new online typicality correction (applied during training)
     # typcorr = old typicality correction (applied only during pair selection)
@@ -221,16 +226,33 @@ def parse_model_config(filename):
     has_typcorr = ('_typcorr_full-completion' in name or '_typcorr_lenorm_full-completion' in name) and not has_tc_online
     has_lenorm = '_lenorm_full-completion' in name or '_typcorr_lenorm_full-completion' in name or '_tc-online_lenorm_full-completion' in name
     
-    dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
-    dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
+    # For universal models, extract the evaluated dataset name (comes after the model name)
+    # e.g., "..._force-same-x_hypernym-diapers_test_..." -> diapers
+    if is_universal:
+        # Find the task being evaluated (after force-same-x or after the model training task)
+        eval_match = re.search(r'force-same-x_hypernym-([a-zA-Z]+)_', name)
+        if eval_match:
+            dataset_name = eval_match.group(1)
+        else:
+            dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
+            dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
+    else:
+        dataset_match = re.search(r'hypernym-([a-zA-Z]+)', name)
+        dataset_name = dataset_match.group(1) if dataset_match else 'unknown'
     
-    return direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, dataset_name
+    return direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, is_universal, dataset_name
 
 
-def get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm):
+def get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm, is_universal=False):
     """Map model config to row label."""
     if not is_finetuned:
         return 'Base'
+    elif is_universal:
+        # Universal models (trained on concat, evaluated on individual tasks)
+        if has_typcorr:
+            return 'Rankalign U+tc'
+        else:
+            return 'Rankalign U'
     elif has_tc_online and has_lenorm:
         return '+tco+lenorm'
     elif has_tc_online:
@@ -271,8 +293,8 @@ def discover_heatmap_data(dataset_name, split='test'):
     }
     
     for csv_file in OUTPUTS_DIR.glob(f"scores_*hypernym-{dataset_name}*_{split}_*.csv"):
-        direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, ds_name = parse_model_config(csv_file.stem)
-        model_row = get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm)
+        direction, is_finetuned, has_typcorr, has_tc_online, has_lenorm, is_universal, ds_name = parse_model_config(csv_file.stem)
+        model_row = get_model_row_label(is_finetuned, has_typcorr, has_tc_online, has_lenorm, is_universal)
         metric_type = 'log-odds' if 'log-odds' in csv_file.stem else 'log-probs'
         
         try:
@@ -437,7 +459,7 @@ def create_aggregated_bar_plot(all_heatmap_data, metric, direction):
     
     fig = go.Figure()
     
-    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692']
+    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FECB52']
     
     x_positions = []
     x_labels = []
@@ -476,14 +498,35 @@ def create_aggregated_bar_plot(all_heatmap_data, metric, direction):
         
         current_x += 0.5  # Gap between model groups
     
+    # Set y-axis range based on metric type
+    is_correlation = metric in ['Correlation', 'Corr-Pos', 'Corr-Neg']
+    if is_correlation:
+        yaxis_config = dict(
+            title=metric,
+            showgrid=True,
+            gridcolor='lightgray',
+            gridwidth=1,
+            dtick=20  # Gridlines every 20 units for correlation
+        )
+    else:
+        yaxis_config = dict(
+            title=metric,
+            range=[40, 100],
+            showgrid=True,
+            gridcolor='lightgray',
+            gridwidth=1,
+            dtick=10  # Gridlines every 10 units
+        )
+    
     fig.update_layout(
         title=f'{dir_label} - {metric}',
         xaxis=dict(
             tickvals=x_positions,
             ticktext=x_labels,
-            tickangle=45
+            tickangle=45,
+            showgrid=False  # No vertical gridlines
         ),
-        yaxis=dict(title=metric),
+        yaxis=yaxis_config,
         height=300,
         margin=dict(l=60, r=20, t=50, b=80),
         paper_bgcolor='white',
