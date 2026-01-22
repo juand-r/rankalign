@@ -800,7 +800,7 @@ def main(args):
                         getattr(item, 'noun2', getattr(item, 'fixed_hypernym_generator', '')),
                         num_toks,
                         item_strategy,
-                        labels[i] if i < len(labels) else '',
+                        item.taxonomic,
                         float(gen_score_raw),
                         float(gen_score_typcorr_val) if gen_scores_typcorr is not None else '',
                         float(gen_score_lenorm),
