@@ -1835,7 +1835,7 @@ def generate_all_heatmaps(config, files_info):
     
     # Get all unique tasks and splits
     all_tasks = sorted(set(f['task'] for f in files_info))
-    all_splits = sorted(set(f['split'] for f in files_info), reverse=True)
+    all_splits = sorted(set(f['split'] for f in files_info))
     
     training_rows = get_training_variant_rows(files_info, config)
     eval_columns = config.get('eval_columns', {})
