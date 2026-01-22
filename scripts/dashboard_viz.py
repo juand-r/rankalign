@@ -1855,11 +1855,14 @@ def generate_all_heatmaps(config, files_info):
         split_color = '#2e7d32' if split == 'test' else '#c62828'
         split_bg = '#e8f5e9' if split == 'test' else '#ffebee'
         
-        children.append(html.H2(
+        # Collect all content for this split in a separate list
+        split_children = []
+        
+        split_children.append(html.H2(
             f'{"🧪" if split == "test" else "🏋️"} {split_label} SET RESULTS',
-            style={'marginTop': '20px', 'marginBottom': '20px', 'color': split_color,
+            style={'marginTop': '0px', 'marginBottom': '20px', 'color': split_color,
                    'borderBottom': f'3px solid {split_color}', 'paddingBottom': '10px',
-                   'backgroundColor': split_bg, 'padding': '15px', 'borderRadius': '8px'}
+                   'padding': '15px', 'borderRadius': '8px'}
         ))
         
         # Load heatmap data for all tasks in this split (by direction)
@@ -1878,41 +1881,41 @@ def generate_all_heatmaps(config, files_info):
             
             if len(tasks_with_data) > 1:
                 try:
-                    children.append(html.H3(
+                    split_children.append(html.H3(
                         f'📊 {group_name} - {split_label} (Mean across {len(tasks_with_data)} tasks)',
                         style={'marginTop': '20px', 'marginBottom': '10px', 'color': '#1a5f7a',
                                'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
                     ))
                     
                     # Create two heatmaps: one for V2G, one for G2V
-                    children.append(html.H4('Aggregated Heatmaps', style={'marginTop': '15px', 'color': '#333'}))
+                    split_children.append(html.H4('Aggregated Heatmaps', style={'marginTop': '15px', 'color': '#333'}))
                     for direction, dir_label in directions:
                         fig_agg = create_aggregated_direction_heatmap(
                             all_heatmap_data_by_dir, tasks_with_data, training_rows, eval_cols,
                             f'{dir_label} Models (Mean across datasets)', metrics_list, direction, dir_label
                         )
                         if fig_agg is not None:
-                            children.append(dcc.Graph(figure=fig_agg, style={'height': '280px'}))
+                            split_children.append(dcc.Graph(figure=fig_agg, style={'height': '280px'}))
                     
                     # Bar plots for ALL metrics - one per direction (like hypernym_dashboard.py)
-                    children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
+                    split_children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
                     for metric in metrics_list:
-                        children.append(html.H5(f'{metric}', style={'marginTop': '15px', 'color': '#555'}))
+                        split_children.append(html.H5(f'{metric}', style={'marginTop': '15px', 'color': '#555'}))
                         for direction, dir_label in directions:
                             fig_bar = create_direction_bar_plot(
                                 all_heatmap_data_by_dir, tasks_with_data, training_rows, eval_cols,
                                 metric, direction, dir_label
                             )
-                            children.append(dcc.Graph(figure=fig_bar, style={'height': '320px'}))
+                            split_children.append(dcc.Graph(figure=fig_bar, style={'height': '320px'}))
                 
                 except Exception as e:
-                    children.append(html.Div(
+                    split_children.append(html.Div(
                         f"⚠️ Error generating aggregated view for {group_name}: {e}",
                         style={'color': '#c62828', 'padding': '10px', 'backgroundColor': '#ffebee', 'borderRadius': '5px'}
                     ))
         
         # === PER-TASK SECTION ===
-        children.append(html.H3(
+        split_children.append(html.H3(
             f'📋 Per-Task Results - {split_label}',
             style={'marginTop': '30px', 'marginBottom': '10px', 'color': '#1a5f7a',
                    'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
@@ -1922,7 +1925,7 @@ def generate_all_heatmaps(config, files_info):
             if task not in all_heatmap_data_by_dir:
                 continue
             
-            children.append(html.H4(
+            split_children.append(html.H4(
                 f'{task}',
                 style={'marginTop': '15px', 'marginBottom': '5px', 'color': '#333',
                        'borderBottom': '1px solid #ddd', 'paddingBottom': '5px'}
@@ -1937,12 +1940,23 @@ def generate_all_heatmaps(config, files_info):
                         f'{dir_label} Models', metrics_list, dir_label
                     )
                     if fig is not None:
-                        children.append(dcc.Graph(figure=fig, style={'height': '280px', 'marginTop': '0px'}))
+                        split_children.append(dcc.Graph(figure=fig, style={'height': '280px', 'marginTop': '0px'}))
             except Exception as e:
-                children.append(html.Div(
+                split_children.append(html.Div(
                     f"⚠️ Error generating heatmap for {task}: {e}",
                     style={'color': '#c62828', 'padding': '5px'}
                 ))
+        
+        # Wrap split content - only TRAIN gets background color
+        if split == 'train':
+            children.append(html.Div(
+                split_children,
+                style={'backgroundColor': split_bg, 'padding': '20px', 'borderRadius': '10px',
+                       'marginTop': '20px', 'marginBottom': '20px'}
+            ))
+        else:
+            # TEST section - no background wrapper, just add children directly
+            children.extend(split_children)
     
     return children
 
