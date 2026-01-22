@@ -79,7 +79,7 @@ DEFAULT_CONFIG = {
     'aggregation_groups': {
         'All Hypernym': 'hypernym-*'  # pattern-based: aggregate all matching tasks
     },
-    'metrics': ['Accuracy', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg'],
+    'metrics': ['Val Acc', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg'],
     'eval_columns': {
         'raw': 'gen_score',
         'tc': 'gen_score_typcorr',
@@ -234,19 +234,24 @@ def auto_detect_config(outputs_dir=None):
     # Build aggregation groups based on tasks found
     config['aggregation_groups'] = {}
     
-    # Group by task type prefix
-    task_prefixes = set()
+    # Group by task type prefix (e.g., "hypernym" from "hypernym-bananas")
+    # Only create aggregation groups for task types that have subtasks (contain a hyphen)
+    # and where there are multiple subtasks to aggregate
+    task_prefixes = {}
     for task in tasks_found:
         if '-' in task:
-            prefix = task.split('-')[0]
-            task_prefixes.add(prefix)
+            # Split only on first hyphen to handle cases like "trivia-qa" correctly
+            prefix = task.split('-', 1)[0]
+            if prefix not in task_prefixes:
+                task_prefixes[prefix] = []
+            task_prefixes[prefix].append(task)
     
-    for prefix in task_prefixes:
-        matching_tasks = [t for t in tasks_found if t.startswith(f"{prefix}-")]
+    for prefix, matching_tasks in task_prefixes.items():
         if len(matching_tasks) > 1:
             config['aggregation_groups'][f'All {prefix.capitalize()}'] = f"{prefix}-*"
     
     # Read one CSV to detect label column
+    label_detection_warning = None
     try:
         sample_df = pd.read_csv(csv_files[0], nrows=5)
         # Check for common label columns
@@ -264,9 +269,11 @@ def auto_detect_config(outputs_dir=None):
                     config['label_map'] = None
                 break
     except Exception as e:
-        pass  # Use defaults
+        label_detection_warning = f" (Warning: could not auto-detect label column from CSV: {e})"
     
     info_msg = f"Auto-detected from {len(csv_files)} files: {len(tasks_found)} tasks, splits: {list(config['split_patterns'].keys())}"
+    if label_detection_warning:
+        info_msg += label_detection_warning
     return config, info_msg
 
 
@@ -573,12 +580,7 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
         list: training_variant_rows (shared across directions)
         list: eval_cols
     """
-    eval_columns = config.get('eval_columns', {
-        'raw': 'gen_score',
-        'tc': 'gen_score_typcorr',
-        'lenorm': 'gen_score_lenorm',
-        'tc+lenorm': 'gen_score_typcorr_lenorm'
-    })
+    eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
     
     training_variant_rows = get_training_variant_rows(files_info, config)
     eval_cols = list(eval_columns.keys())
@@ -627,12 +629,7 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
 
 def discover_heatmap_data(task, split, files_info, config):
     """Discover and load heatmap data for a task and split (legacy interface)."""
-    eval_columns = config.get('eval_columns', {
-        'raw': 'gen_score',
-        'tc': 'gen_score_typcorr',
-        'lenorm': 'gen_score_lenorm',
-        'tc+lenorm': 'gen_score_typcorr_lenorm'
-    })
+    eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
     
     model_rows = get_model_rows(files_info)
     eval_cols = list(eval_columns.keys())
@@ -670,7 +667,7 @@ def create_heatmap_figure(heatmap_data, model_rows, eval_cols, title, metrics_li
                         horizontal_spacing=0.03)
     
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
@@ -735,7 +732,7 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
                         horizontal_spacing=0.03)
     
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
@@ -807,7 +804,7 @@ def create_aggregated_heatmap(all_heatmap_data, tasks, model_rows, eval_cols, ti
                         horizontal_spacing=0.03)
     
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
@@ -880,7 +877,7 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
                         horizontal_spacing=0.03)
     
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
@@ -954,7 +951,7 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
 def create_aggregated_bar_plot(all_heatmap_data, tasks, model_rows, eval_cols, metric, title):
     """Create bar plot with standard error for a single metric."""
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     metric_key = metric_key_map.get(metric, metric.lower())
@@ -1002,7 +999,7 @@ def create_aggregated_bar_plot(all_heatmap_data, tasks, model_rows, eval_cols, m
     
     is_correlation = metric in ['Correlation', 'Corr-Pos', 'Corr-Neg']
     if is_correlation:
-        yaxis_config = dict(title=metric, showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=20)
+        yaxis_config = dict(title=metric, showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=10)
     else:
         yaxis_config = dict(title=metric, range=[40, 100], showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=10)
     
@@ -1035,7 +1032,7 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
         direction_label: 'V2G' or 'G2V' for title
     """
     metric_key_map = {
-        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Val Acc': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     metric_key = metric_key_map.get(metric, metric.lower())
@@ -1094,7 +1091,7 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     
     is_correlation = metric in ['Correlation', 'Corr-Pos', 'Corr-Neg']
     if is_correlation:
-        yaxis_config = dict(title=metric, showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=20)
+        yaxis_config = dict(title=metric, showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=10)
     else:
         yaxis_config = dict(title=metric, range=[40, 100], showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=10)
     
@@ -1142,9 +1139,13 @@ app.layout = html.Div([
                                   'backgroundColor': '#2196F3', 'color': 'white', 'border': 'none',
                                   'borderRadius': '5px', 'cursor': 'pointer'}),
                 html.Button('💾 Save Config to JSON', id='save-json-btn',
-                           style={'padding': '10px 20px', 'fontSize': '14px',
+                           style={'marginRight': '10px', 'padding': '10px 20px', 'fontSize': '14px',
                                   'backgroundColor': '#FF9800', 'color': 'white', 'border': 'none',
                                   'borderRadius': '5px', 'cursor': 'pointer'}),
+                html.Button('🚀 Load Dashboard', id='load-dashboard-btn-top',
+                           style={'padding': '10px 20px', 'fontSize': '14px',
+                                  'backgroundColor': '#673AB7', 'color': 'white', 'border': 'none',
+                                  'borderRadius': '5px', 'cursor': 'pointer', 'fontWeight': 'bold'}),
             ], style={'marginBottom': '20px', 'textAlign': 'center'}),
             
             # Status message
@@ -1302,7 +1303,12 @@ app.layout = html.Div([
         # Heatmaps section
         html.Details([
             html.Summary('🔥 Heatmaps (All Tasks)', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
-            html.Div(id='all-heatmaps-container')
+            dcc.Loading(
+                id='heatmaps-loading',
+                type='default',  # Options: 'graph', 'cube', 'circle', 'dot', 'default'
+                children=html.Div(id='all-heatmaps-container'),
+                style={'minHeight': '200px'}
+            )
         ], open=True, style={'margin': '20px'}),
         
     ], style={'padding': '20px', 'backgroundColor': 'white', 'minHeight': '100vh', 'display': 'none'})
@@ -1438,6 +1444,7 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col,
      Output('model-selector', 'options'),
      Output('model-selector', 'value')],
     [Input('load-dashboard-btn', 'n_clicks'),
+     Input('load-dashboard-btn-top', 'n_clicks'),
      Input('back-to-config-btn', 'n_clicks')],
     [State('config-outputs-dir', 'value'),
      State('config-task-pattern', 'value'),
@@ -1449,7 +1456,7 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col,
      State('config-eval-cols', 'value')],
     prevent_initial_call=True
 )
-def toggle_pages(load_clicks, back_clicks, outputs_dir, task_pattern, split_patterns,
+def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pattern, split_patterns,
                  label_col, label_map, model_detection, aggregation, eval_cols):
     """Toggle between config page and viz page."""
     ctx = dash.callback_context
@@ -1457,6 +1464,10 @@ def toggle_pages(load_clicks, back_clicks, outputs_dir, task_pattern, split_patt
         raise PreventUpdate
     
     button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+    
+    # Both load buttons do the same thing
+    if button_id == 'load-dashboard-btn-top':
+        button_id = 'load-dashboard-btn'
     
     config_visible = {'padding': '40px', 'backgroundColor': 'white', 'minHeight': '100vh'}
     config_hidden = {'display': 'none'}
@@ -1491,7 +1502,7 @@ def toggle_pages(load_clicks, back_clicks, outputs_dir, task_pattern, split_patt
         
         # Build dropdown options
         all_tasks = sorted(set(f['task'] for f in files_info))
-        all_splits = sorted(set(f['split'] for f in files_info), reverse=True)
+        all_splits = sorted(set(f['split'] for f in files_info))  # test before train alphabetically
         all_models = sorted(set(f['model_type'] for f in files_info), key=lambda x: (0 if x == 'Base' else 1, x))
         
         task_options = [{'label': t, 'value': t} for t in all_tasks]
@@ -1680,19 +1691,31 @@ def update_visualizations(task, split, model_type, config, files_info):
         strat_pos = strat_mask & pos_mask
         strat_neg = strat_mask & neg_mask
         
+        pos_below = ((labels == 1) & strat_mask & (val_scores < threshold)).sum()
+        total_pos = strat_pos.sum()
+        
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_pos], y=val_scores[strat_pos],
                        mode='markers', marker=dict(color='orange', size=6, opacity=0.6),
-                       showlegend=(idx == 0), name='Positive'),
+                       name=f'Pos ({total_pos})', showlegend=(idx == 0)),
             row=row, col=col
         )
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_neg], y=val_scores[strat_neg],
                        mode='markers', marker=dict(color='blue', size=6, opacity=0.6),
-                       showlegend=(idx == 0), name='Negative'),
+                       name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0)),
             row=row, col=col
         )
         faceted_fig.add_hline(y=threshold, line=dict(color='red', dash='dash'), row=row, col=col)
+        
+        # Add annotation for misclassified
+        faceted_fig.add_annotation(
+            x=0.02, y=0.98, xref=f'x{idx+1 if idx > 0 else ""} domain', 
+            yref=f'y{idx+1 if idx > 0 else ""} domain',
+            text=f'Pos<thresh: {pos_below}/{total_pos}',
+            showarrow=False, font=dict(size=9),
+            bgcolor='white', bordercolor='gray', borderwidth=1
+        )
     
     x_pad = (x_max - x_min) * 0.05
     y_pad = (y_max - y_min) * 0.05
@@ -1709,14 +1732,23 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     pca_fig = make_subplots(rows=1, cols=2, subplot_titles=['Standardized Scores', 'PCA'])
     
+    # Left: Standardized scores
     pca_fig.add_trace(go.Scatter(x=X_std[pos_mask, 0], y=X_std[pos_mask, 1], mode='markers', 
                                   marker=dict(color='orange', size=6, opacity=0.5), name='Positive'), row=1, col=1)
     pca_fig.add_trace(go.Scatter(x=X_std[neg_mask, 0], y=X_std[neg_mask, 1], mode='markers',
                                   marker=dict(color='blue', size=6, opacity=0.5), name='Negative'), row=1, col=1)
+    pca_fig.add_trace(go.Scatter(x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
+                                  marker=dict(symbol='x', size=10, color=outlier_colors),
+                                  name='Outliers', showlegend=False), row=1, col=1)
+    
+    # Right: PCA
     pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask, 0], y=X_pca[pos_mask, 1], mode='markers',
                                   marker=dict(color='orange', size=6, opacity=0.5), showlegend=False), row=1, col=2)
     pca_fig.add_trace(go.Scatter(x=X_pca[neg_mask, 0], y=X_pca[neg_mask, 1], mode='markers',
                                   marker=dict(color='blue', size=6, opacity=0.5), showlegend=False), row=1, col=2)
+    pca_fig.add_trace(go.Scatter(x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
+                                  marker=dict(symbol='x', size=10, color=outlier_colors),
+                                  showlegend=False), row=1, col=2)
     
     pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
     pca_fig.update_xaxes(title_text='Generator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray')
@@ -1726,12 +1758,7 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     # === COMPARE CORRECTIONS 2x2 ===
     # Use eval_columns from config (maps display_name -> column_name)
-    eval_columns = config.get('eval_columns', {
-        'raw': 'gen_score',
-        'tc': 'gen_score_typcorr',
-        'lenorm': 'gen_score_lenorm',
-        'tc+lenorm': 'gen_score_typcorr_lenorm'
-    })
+    eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
     # Convert to (column_name, display_name) format, max 4 for 2x2 grid
     gen_variants = [(col, name.replace('_', ' ').title()) for name, col in list(eval_columns.items())[:4]]
     
@@ -1759,6 +1786,21 @@ def update_visualizations(task, split, model_type, config, files_info):
                     row=row, col=col
                 )
                 compare_fig.add_hline(y=threshold, line=dict(color='red', dash='dash'), row=row, col=col)
+                
+                # Compute metrics for this variant
+                m = compute_metrics(gen_vals, val_scores, labels, metric_type)
+                metrics_text = (f"corr={m['corr']*100:.1f}\ncorr-pos={m['corr_pos']*100:.1f}\n"
+                               f"corr-neg={m['corr_neg']*100:.1f}\nAcc={m['acc']*100:.1f}\n"
+                               f"Val ROC={m['val_roc']*100:.1f}\nGen ROC={m['gen_roc']*100:.1f}")
+                
+                compare_fig.add_annotation(
+                    x=0.02, y=0.98,
+                    xref=f'x{idx+1 if idx > 0 else ""} domain',
+                    yref=f'y{idx+1 if idx > 0 else ""} domain',
+                    text=metrics_text, showarrow=False, font=dict(size=9),
+                    bgcolor='white', bordercolor='gray', align='left',
+                    xanchor='left', yanchor='top'
+                )
     
     compare_fig.update_xaxes(showgrid=True, gridcolor='lightgray')
     compare_fig.update_yaxes(showgrid=True, gridcolor='lightgray')
@@ -1792,7 +1834,7 @@ def generate_all_heatmaps(config, files_info):
     training_rows = get_training_variant_rows(files_info, config)
     eval_columns = config.get('eval_columns', {})
     eval_cols = list(eval_columns.keys())
-    metrics_list = config.get('metrics', ['Accuracy', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg'])
+    metrics_list = config.get('metrics', ['Val Acc', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg'])
     aggregation_groups = config.get('aggregation_groups', {})
     
     # Direction display mapping from config
