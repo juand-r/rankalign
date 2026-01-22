@@ -100,6 +100,12 @@ DEFAULT_VARIANT_DISPLAY = {
 
 DEFAULT_ROW_ORDER = ['Base', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
 
+# Visualization colors for positive/negative classes
+POS_CLASS_COLOR = 'orangered'
+NEG_CLASS_COLOR = 'blue'
+POS_OUTLIER_COLOR = 'red'      # For outlier X markers (positive class)
+NEG_OUTLIER_COLOR = 'purple'   # For outlier X markers (negative class)
+
 
 # =============================================================================
 # CONFIG MANAGEMENT
@@ -1619,13 +1625,13 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     main_fig.add_trace(
         go.Scatter(x=gen_scores[pos_mask], y=val_scores[pos_mask],
-                   mode='markers', marker=dict(color='orange', size=8, opacity=0.6),
+                   mode='markers', marker=dict(color=POS_CLASS_COLOR, size=8, opacity=0.6),
                    name='Positive', legendgroup='pos'),
         row=2, col=1
     )
     main_fig.add_trace(
         go.Scatter(x=gen_scores[neg_mask], y=val_scores[neg_mask],
-                   mode='markers', marker=dict(color='blue', size=8, opacity=0.6),
+                   mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=8, opacity=0.6),
                    name='Negative', legendgroup='neg'),
         row=2, col=1
     )
@@ -1639,7 +1645,7 @@ def update_visualizations(task, split, model_type, config, files_info):
     distances = np.sqrt(X_std[:, 0]**2 + X_std[:, 1]**2)
     outlier_indices = np.argsort(distances)[-40:]
     
-    outlier_colors = ['orange' if labels[i] == 1 else 'purple' for i in outlier_indices]
+    outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     
     # Try to get display columns for outlier labels
     display_cols = ['noun1', 'noun2']  # Default
@@ -1663,10 +1669,10 @@ def update_visualizations(task, split, model_type, config, files_info):
     )
     
     # Histograms
-    main_fig.add_trace(go.Histogram(x=gen_scores[pos_mask], marker_color='orange', opacity=0.6, showlegend=False), row=1, col=1)
-    main_fig.add_trace(go.Histogram(x=gen_scores[neg_mask], marker_color='blue', opacity=0.6, showlegend=False), row=1, col=1)
-    main_fig.add_trace(go.Histogram(y=val_scores[pos_mask], marker_color='orange', opacity=0.6, showlegend=False), row=2, col=2)
-    main_fig.add_trace(go.Histogram(y=val_scores[neg_mask], marker_color='blue', opacity=0.6, showlegend=False), row=2, col=2)
+    main_fig.add_trace(go.Histogram(x=gen_scores[pos_mask], marker_color=POS_CLASS_COLOR, opacity=0.6, showlegend=False), row=1, col=1)
+    main_fig.add_trace(go.Histogram(x=gen_scores[neg_mask], marker_color=NEG_CLASS_COLOR, opacity=0.6, showlegend=False), row=1, col=1)
+    main_fig.add_trace(go.Histogram(y=val_scores[pos_mask], marker_color=POS_CLASS_COLOR, opacity=0.6, showlegend=False), row=2, col=2)
+    main_fig.add_trace(go.Histogram(y=val_scores[neg_mask], marker_color=NEG_CLASS_COLOR, opacity=0.6, showlegend=False), row=2, col=2)
     
     main_fig.update_layout(title='Generator vs Validator Scores', paper_bgcolor='white', plot_bgcolor='white', showlegend=True)
     main_fig.update_xaxes(title_text='Generator log-probs', row=2, col=1, showgrid=True, gridcolor='lightgray')
@@ -1696,13 +1702,13 @@ def update_visualizations(task, split, model_type, config, files_info):
         
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_pos], y=val_scores[strat_pos],
-                       mode='markers', marker=dict(color='orange', size=6, opacity=0.6),
+                       mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.6),
                        name=f'Pos ({total_pos})', showlegend=(idx == 0)),
             row=row, col=col
         )
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_neg], y=val_scores[strat_neg],
-                       mode='markers', marker=dict(color='blue', size=6, opacity=0.6),
+                       mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.6),
                        name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0)),
             row=row, col=col
         )
@@ -1734,18 +1740,18 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     # Left: Standardized scores
     pca_fig.add_trace(go.Scatter(x=X_std[pos_mask, 0], y=X_std[pos_mask, 1], mode='markers', 
-                                  marker=dict(color='orange', size=6, opacity=0.5), name='Positive'), row=1, col=1)
+                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive'), row=1, col=1)
     pca_fig.add_trace(go.Scatter(x=X_std[neg_mask, 0], y=X_std[neg_mask, 1], mode='markers',
-                                  marker=dict(color='blue', size=6, opacity=0.5), name='Negative'), row=1, col=1)
+                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative'), row=1, col=1)
     pca_fig.add_trace(go.Scatter(x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
                                   marker=dict(symbol='x', size=10, color=outlier_colors),
                                   name='Outliers', showlegend=False), row=1, col=1)
     
     # Right: PCA
     pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask, 0], y=X_pca[pos_mask, 1], mode='markers',
-                                  marker=dict(color='orange', size=6, opacity=0.5), showlegend=False), row=1, col=2)
+                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False), row=1, col=2)
     pca_fig.add_trace(go.Scatter(x=X_pca[neg_mask, 0], y=X_pca[neg_mask, 1], mode='markers',
-                                  marker=dict(color='blue', size=6, opacity=0.5), showlegend=False), row=1, col=2)
+                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False), row=1, col=2)
     pca_fig.add_trace(go.Scatter(x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
                                   marker=dict(symbol='x', size=10, color=outlier_colors),
                                   showlegend=False), row=1, col=2)
@@ -1775,13 +1781,13 @@ def update_visualizations(task, split, model_type, config, files_info):
             if valid_mask.sum() > 0:
                 compare_fig.add_trace(
                     go.Scatter(x=gen_vals[pos_mask & valid_mask], y=val_scores[pos_mask & valid_mask],
-                               mode='markers', marker=dict(color='orange', size=6, opacity=0.5),
+                               mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5),
                                showlegend=(idx == 0), name='Positive'),
                     row=row, col=col
                 )
                 compare_fig.add_trace(
                     go.Scatter(x=gen_vals[neg_mask & valid_mask], y=val_scores[neg_mask & valid_mask],
-                               mode='markers', marker=dict(color='blue', size=6, opacity=0.5),
+                               mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5),
                                showlegend=(idx == 0), name='Negative'),
                     row=row, col=col
                 )
