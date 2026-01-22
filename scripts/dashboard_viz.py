@@ -62,6 +62,11 @@ DEFAULT_CONFIG = {
             'd2g': '_d2g_',
             'g2d': '_g2d_'
         },
+        # Display labels for directions (used in heatmap titles, bar plots, etc.)
+        'direction_display': {
+            'd2g': 'V2G',
+            'g2d': 'G2V'
+        },
         'variant_patterns': {
             'typcorr_lenorm': '_typcorr_lenorm_full-completion',
             'tc-online_lenorm': '_tc-online_lenorm_full-completion',
@@ -82,6 +87,18 @@ DEFAULT_CONFIG = {
         'tc+lenorm': 'gen_score_typcorr_lenorm'
     }
 }
+
+# Internal defaults (not configurable)
+DEFAULT_VARIANT_DISPLAY = {
+    'typcorr_lenorm': '+tc+lenorm',
+    'tc-online_lenorm': '+tco+lenorm',
+    'typcorr': '+tc',
+    'tc-online': '+tco',
+    'lenorm': '+lenorm',
+    'vanilla': ''  # Empty string = use direction label (V2G/G2V)
+}
+
+DEFAULT_ROW_ORDER = ['Base', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
 
 
 # =============================================================================
@@ -188,13 +205,16 @@ def auto_detect_config(outputs_dir=None):
         'base_pattern': r'^scores_gemma-2-2b_' if has_base else None,
         'finetuned_marker': 'v5-' if has_finetuned else None,
         'direction_patterns': {},
+        'direction_display': {},
         'variant_patterns': {}
     }
     
     if has_d2g:
         config['model_detection']['direction_patterns']['d2g'] = '_d2g_'
+        config['model_detection']['direction_display']['d2g'] = 'V2G'
     if has_g2d:
         config['model_detection']['direction_patterns']['g2d'] = '_g2d_'
+        config['model_detection']['direction_display']['g2d'] = 'G2V'
     
     # Add all variant patterns that exist
     # Note: Order matters for detection - more specific patterns first
@@ -298,9 +318,9 @@ def parse_filename(csv_file, config):
             split = split_name
             break
     
-    # Extract model type
+    # Extract model info (direction, training variant, model type)
     model_detection = config.get('model_detection', {})
-    model_type = determine_model_type(name, model_detection)
+    direction, training_variant, model_type = determine_model_info(name, model_detection)
     
     display_name = f'{task} | {split} | {model_type}'
     
@@ -310,16 +330,28 @@ def parse_filename(csv_file, config):
         'task': task,
         'dataset': dataset,
         'split': split,
-        'model_type': model_type
+        'direction': direction,  # 'd2g', 'g2d', or 'base'
+        'training_variant': training_variant,  # 'Base', 'V2G', '+tc', etc.
+        'model_type': model_type  # Combined label for dropdown
     }
 
 
-def determine_model_type(filename, model_detection):
-    """Determine model type from filename based on detection config."""
+def determine_model_info(filename, model_detection):
+    """Determine model direction and training variant from filename.
+    
+    Returns:
+        tuple: (direction, training_variant, model_type)
+            - direction: 'd2g', 'g2d', or 'base'
+            - training_variant: 'Base', 'V2G'/'G2V' (vanilla), '+tc', '+tco', '+lenorm', etc.
+            - model_type: combined label like 'V2G+tc' for dropdown display
+    """
     base_pattern = model_detection.get('base_pattern')
     finetuned_marker = model_detection.get('finetuned_marker')
     direction_patterns = model_detection.get('direction_patterns', {})
+    direction_display = model_detection.get('direction_display', {'d2g': 'V2G', 'g2d': 'G2V'})
     variant_patterns = model_detection.get('variant_patterns', {})
+    # Use internal default for variant_display (not configurable)
+    variant_display = DEFAULT_VARIANT_DISPLAY
     
     # Check if base model
     is_base = False
@@ -330,53 +362,53 @@ def determine_model_type(filename, model_detection):
     is_finetuned = finetuned_marker and finetuned_marker in filename
     
     if is_base and not is_finetuned:
-        return 'Base'
+        return 'base', 'Base', 'Base'
     
     if not is_finetuned:
-        return 'Base'
+        return 'base', 'Base', 'Base'
     
-    # Determine direction
-    # Map internal names to display names: d2g -> V2G, g2d -> G2V
-    direction_display = {'d2g': 'V2G', 'g2d': 'G2V'}
-    direction = ''
+    # Determine direction using config
+    direction = 'unknown'
     for dir_name, pattern in direction_patterns.items():
         if pattern in filename:
-            direction = direction_display.get(dir_name, dir_name.upper())
+            direction = dir_name
             break
     
-    # Determine variants by checking patterns
-    # Check combined patterns first (more specific), then individual ones
-    has_tc_online_lenorm = '_tc-online_lenorm_full-completion' in filename
-    has_typcorr_lenorm = '_typcorr_lenorm_full-completion' in filename
-    has_tc_online = '_tc-online_full-completion' in filename and not has_tc_online_lenorm
-    has_typcorr = '_typcorr_full-completion' in filename and not has_typcorr_lenorm and '_tc-online' not in filename
-    has_lenorm = '_lenorm_full-completion' in filename and not has_typcorr_lenorm and not has_tc_online_lenorm and '_typcorr' not in filename and '_tc-online' not in filename
+    dir_label = direction_display.get(direction, direction.upper())
     
-    # Check if vanilla (no corrections at all)
-    is_vanilla = '_full-completion_' in filename and not any([
-        has_tc_online_lenorm, has_typcorr_lenorm, has_tc_online, has_typcorr, has_lenorm
-    ])
+    # Check variant patterns in order (more specific first - combined patterns before single)
+    # Sort by pattern length (longer = more specific) to check combined patterns first
+    sorted_variants = sorted(variant_patterns.items(), key=lambda x: -len(x[1]))
     
-    # Build suffix
-    if has_tc_online_lenorm:
-        suffix = '+tco+lenorm'
-    elif has_tc_online:
-        suffix = '+tco'
-    elif has_typcorr_lenorm:
-        suffix = '+tc+lenorm'
-    elif has_typcorr:
-        suffix = '+tc'
-    elif has_lenorm:
-        suffix = '+lenorm'
-    elif is_vanilla:
-        suffix = ''  # vanilla rankalign, no suffix
+    matched_variant = None
+    for variant_name, pattern in sorted_variants:
+        if pattern in filename:
+            matched_variant = variant_name
+            break
+    
+    # Build training variant label using config's variant_display
+    if matched_variant:
+        suffix = variant_display.get(matched_variant, '')
+        if suffix:
+            training_variant = suffix
+        else:
+            # Vanilla or unknown - use direction label
+            training_variant = dir_label
     else:
+        # No match - treat as vanilla
+        training_variant = dir_label
         suffix = ''
     
-    if direction:
-        return f'{direction}{suffix}' if suffix else direction
-    else:
-        return f'Rankalign{suffix}' if suffix else 'Rankalign'
+    # Build model_type for dropdown display (includes direction)
+    model_type = f'{dir_label}{suffix}' if suffix else dir_label
+    
+    return direction, training_variant, model_type
+
+
+def determine_model_type(filename, model_detection):
+    """Determine model type from filename (for backward compatibility)."""
+    _, _, model_type = determine_model_info(filename, model_detection)
+    return model_type
 
 
 def load_scores_data(csv_path, config):
@@ -473,12 +505,38 @@ def get_model_row_label(model_type):
 
 
 def get_model_rows(files_info):
-    """Get unique model types for heatmap rows."""
+    """Get unique model types for heatmap rows (for dropdown)."""
     model_types = set(f['model_type'] for f in files_info)
     
     # Sort with Base first, then alphabetically
     sorted_types = sorted(model_types, key=lambda x: (0 if x == 'Base' else 1, x))
     return sorted_types
+
+
+def get_training_variant_rows(files_info, config=None):
+    """Get unique training variants for heatmap rows (direction-agnostic).
+    
+    Args:
+        files_info: List of file info dicts
+        config: Optional config dict (unused, kept for compatibility)
+    
+    Returns rows like: ['Base', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
+    where V2G/G2V represent vanilla finetuned models.
+    """
+    variants = set()
+    for f in files_info:
+        variants.add(f.get('training_variant', f['model_type']))
+    
+    # Use internal default for row order (not configurable)
+    order = DEFAULT_ROW_ORDER
+    
+    # Sort: items in order list first (by their position), then others alphabetically
+    def sort_key(x):
+        if x in order:
+            return (0, order.index(x))
+        return (1, x)
+    
+    return sorted(variants, key=sort_key)
 
 
 def expand_aggregation_pattern(pattern, all_tasks):
@@ -503,8 +561,72 @@ def expand_aggregation_pattern(pattern, all_tasks):
 # HEATMAP FUNCTIONS
 # =============================================================================
 
+def discover_heatmap_data_by_direction(task, split, files_info, config):
+    """Discover and load heatmap data for a task and split, organized by direction.
+    
+    Returns:
+        dict: {
+            'd2g': {training_variant: {eval_col: metrics, ...}, ...},
+            'g2d': {training_variant: {eval_col: metrics, ...}, ...},
+            'base': {training_variant: {eval_col: metrics, ...}, ...}
+        }
+        list: training_variant_rows (shared across directions)
+        list: eval_cols
+    """
+    eval_columns = config.get('eval_columns', {
+        'raw': 'gen_score',
+        'tc': 'gen_score_typcorr',
+        'lenorm': 'gen_score_lenorm',
+        'tc+lenorm': 'gen_score_typcorr_lenorm'
+    })
+    
+    training_variant_rows = get_training_variant_rows(files_info, config)
+    eval_cols = list(eval_columns.keys())
+    
+    # Get direction keys from config
+    direction_patterns = config.get('model_detection', {}).get('direction_patterns', {'d2g': '_d2g_', 'g2d': '_g2d_'})
+    
+    # Initialize data structure for each direction
+    data = {dir_key: {row: {col: None for col in eval_cols} for row in training_variant_rows} 
+            for dir_key in direction_patterns.keys()}
+    data['base'] = {row: {col: None for col in eval_cols} for row in training_variant_rows}
+    
+    # Find matching files
+    matching_files = [f for f in files_info if f['task'] == task and f['split'] == split]
+    
+    for file_info in matching_files:
+        direction = file_info.get('direction', 'base')
+        training_variant = file_info.get('training_variant', file_info['model_type'])
+        
+        try:
+            df = load_scores_data(file_info['path'], config)
+            metric_type = 'log-odds' if 'log-odds' in file_info['path'] else 'log-probs'
+            
+            for eval_col, gen_col in eval_columns.items():
+                if gen_col in df.columns and 'val_score' in df.columns and 'label' in df.columns:
+                    gen_scores = df[gen_col].values
+                    val_scores = df['val_score'].values
+                    labels = df['label'].values
+                    metrics = compute_metrics(gen_scores, val_scores, labels, metric_type)
+                    
+                    if direction in data and training_variant in data[direction]:
+                        data[direction][training_variant][eval_col] = metrics
+        except Exception as e:
+            print(f"Error loading {file_info['path']}: {e}")
+            continue
+    
+    # Copy base model data to all directions (base model is shared)
+    for dir_key in direction_patterns.keys():
+        for eval_col in eval_cols:
+            if data['base'].get('Base', {}).get(eval_col) is not None:
+                if dir_key in data:
+                    data[dir_key]['Base'][eval_col] = data['base']['Base'][eval_col]
+    
+    return data, training_variant_rows, eval_cols
+
+
 def discover_heatmap_data(task, split, files_info, config):
-    """Discover and load heatmap data for a task and split."""
+    """Discover and load heatmap data for a task and split (legacy interface)."""
     eval_columns = config.get('eval_columns', {
         'raw': 'gen_score',
         'tc': 'gen_score_typcorr',
@@ -589,8 +711,89 @@ def create_heatmap_figure(heatmap_data, model_rows, eval_cols, title, metrics_li
     
     fig.update_layout(
         title=title,
-        height=max(200, 50 + 25 * len(model_rows)),
-        margin=dict(l=100, r=20, t=50, b=30),
+        height=250,  # Fixed height like hypernym_dashboard.py
+        margin=dict(l=80, r=20, t=50, b=30),  # Same margin as hypernym_dashboard.py
+        paper_bgcolor='white',
+        plot_bgcolor='white'
+    )
+    
+    return fig
+
+
+def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, title, metrics_list, direction_label):
+    """Create a heatmap figure for a specific direction (V2G or G2V).
+    
+    Args:
+        direction_data: dict mapping training_variant -> {eval_col: metrics}
+        training_rows: list of training variant labels (e.g., ['V2G', '+tc', '+lenorm', ...])
+        eval_cols: list of eval column names
+        title: figure title
+        metrics_list: list of metrics to display
+        direction_label: 'V2G' or 'G2V' for vanilla row labeling
+    """
+    fig = make_subplots(rows=1, cols=len(metrics_list), subplot_titles=metrics_list,
+                        horizontal_spacing=0.03)
+    
+    metric_key_map = {
+        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
+    }
+    
+    # Include all relevant rows for this direction (Base, direction_label for vanilla, and +variants)
+    # Show empty rows if no data - don't filter them out
+    relevant_rows = []
+    for row in training_rows:
+        if row == 'Base':
+            relevant_rows.append(row)
+        elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
+            relevant_rows.append(row)
+        elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
+            relevant_rows.append(row)
+        # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
+    
+    if not relevant_rows:
+        # No relevant rows at all
+        return None
+    
+    for m_idx, metric in enumerate(metrics_list):
+        metric_key = metric_key_map.get(metric, metric.lower())
+        
+        z = []
+        text = []
+        for row in relevant_rows:
+            z_row = []
+            text_row = []
+            for col in eval_cols:
+                metrics = direction_data.get(row, {}).get(col)
+                if metrics is not None and not np.isnan(metrics.get(metric_key, np.nan)):
+                    val = metrics[metric_key] * 100
+                    z_row.append(val)
+                    text_row.append(f'{val:.1f}')
+                else:
+                    z_row.append(None)
+                    text_row.append('')
+            z.append(z_row)
+            text.append(text_row)
+        
+        fig.add_trace(
+            go.Heatmap(
+                z=z, x=eval_cols, y=relevant_rows,
+                text=text, texttemplate='%{text}', textfont={'size': 10},
+                colorscale='RdYlGn', zmin=0, zmax=100,
+                showscale=(m_idx == len(metrics_list) - 1),
+                hovertemplate='%{y} / %{x}: %{z:.1f}<extra></extra>'
+            ),
+            row=1, col=m_idx + 1
+        )
+    
+    # Only show y-axis labels on the first heatmap
+    for m_idx in range(len(metrics_list)):
+        fig.update_yaxes(showticklabels=(m_idx == 0), row=1, col=m_idx + 1)
+    
+    fig.update_layout(
+        title=title,
+        height=250,  # Fixed height like hypernym_dashboard.py
+        margin=dict(l=80, r=20, t=50, b=30),  # Same margin as hypernym_dashboard.py
         paper_bgcolor='white',
         plot_bgcolor='white'
     )
@@ -650,8 +853,97 @@ def create_aggregated_heatmap(all_heatmap_data, tasks, model_rows, eval_cols, ti
     
     fig.update_layout(
         title=title,
-        height=max(200, 50 + 25 * len(model_rows)),
-        margin=dict(l=100, r=20, t=50, b=30),
+        height=250,  # Fixed height like hypernym_dashboard.py
+        margin=dict(l=80, r=20, t=50, b=30),  # Same margin as hypernym_dashboard.py
+        paper_bgcolor='white',
+        plot_bgcolor='white'
+    )
+    
+    return fig
+
+
+def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training_rows, eval_cols, 
+                                        title, metrics_list, direction, direction_label):
+    """Create aggregated heatmap for a specific direction showing mean across tasks.
+    
+    Args:
+        all_heatmap_data_by_dir: dict of {task: {direction: {training_variant: {eval_col: metrics}}}}
+        tasks: list of tasks to aggregate
+        training_rows: list of training variant labels
+        eval_cols: list of eval column names
+        title: figure title
+        metrics_list: list of metrics to display
+        direction: 'd2g' or 'g2d'
+        direction_label: 'V2G' or 'G2V' for vanilla row labeling
+    """
+    fig = make_subplots(rows=1, cols=len(metrics_list), subplot_titles=metrics_list,
+                        horizontal_spacing=0.03)
+    
+    metric_key_map = {
+        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
+    }
+    
+    # Include all relevant rows for this direction (Base, direction_label for vanilla, and +variants)
+    # Show empty rows if no data - don't filter them out
+    relevant_rows = []
+    for row in training_rows:
+        if row == 'Base':
+            relevant_rows.append(row)
+        elif row == direction_label:  # Vanilla for this direction
+            relevant_rows.append(row)
+        elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
+            relevant_rows.append(row)
+        # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
+    
+    if not relevant_rows:
+        return None
+    
+    for m_idx, metric in enumerate(metrics_list):
+        metric_key = metric_key_map.get(metric, metric.lower())
+        
+        z = []
+        text = []
+        for row in relevant_rows:
+            z_row = []
+            text_row = []
+            for col in eval_cols:
+                values = []
+                for task in tasks:
+                    if task in all_heatmap_data_by_dir:
+                        dir_data = all_heatmap_data_by_dir[task].get(direction, {})
+                        metrics = dir_data.get(row, {}).get(col)
+                        if metrics is not None and not np.isnan(metrics.get(metric_key, np.nan)):
+                            values.append(metrics[metric_key] * 100)
+                
+                if values:
+                    mean_val = np.mean(values)
+                    z_row.append(mean_val)
+                    text_row.append(f'{mean_val:.1f}')
+                else:
+                    z_row.append(None)
+                    text_row.append('')
+            z.append(z_row)
+            text.append(text_row)
+        
+        fig.add_trace(
+            go.Heatmap(
+                z=z, x=eval_cols, y=relevant_rows,
+                text=text, texttemplate='%{text}', textfont={'size': 10},
+                colorscale='RdYlGn', zmin=0, zmax=100,
+                showscale=(m_idx == len(metrics_list) - 1),
+                hovertemplate='%{y} / %{x}: %{z:.1f}<extra></extra>'
+            ),
+            row=1, col=m_idx + 1
+        )
+    
+    for m_idx in range(len(metrics_list)):
+        fig.update_yaxes(showticklabels=(m_idx == 0), row=1, col=m_idx + 1)
+    
+    fig.update_layout(
+        title=title,
+        height=250,  # Fixed height like hypernym_dashboard.py
+        margin=dict(l=80, r=20, t=50, b=30),  # Same margin as hypernym_dashboard.py
         paper_bgcolor='white',
         plot_bgcolor='white'
     )
@@ -716,6 +1008,98 @@ def create_aggregated_bar_plot(all_heatmap_data, tasks, model_rows, eval_cols, m
     
     fig.update_layout(
         title=title,
+        xaxis=dict(tickvals=x_positions, ticktext=x_labels, tickangle=45, showgrid=False),
+        yaxis=yaxis_config,
+        height=300,
+        margin=dict(l=60, r=20, t=50, b=80),
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        barmode='overlay',
+        showlegend=True,
+        legend=dict(orientation='h', y=1.15)
+    )
+    
+    return fig
+
+
+def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eval_cols, metric, direction, direction_label):
+    """Create bar plot for a specific direction (like hypernym_dashboard.py).
+    
+    Args:
+        all_heatmap_data_by_dir: dict of {task: {direction: {training_variant: {eval_col: metrics}}}}
+        tasks: list of tasks to aggregate
+        training_rows: list of training variant labels (e.g., ['Base', 'V2G', '+tc', ...])
+        eval_cols: list of eval column names
+        metric: metric name
+        direction: 'd2g' or 'g2d'
+        direction_label: 'V2G' or 'G2V' for title
+    """
+    metric_key_map = {
+        'Accuracy': 'acc', 'Val ROC': 'val_roc', 'Gen ROC': 'gen_roc',
+        'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
+    }
+    metric_key = metric_key_map.get(metric, metric.lower())
+    
+    fig = go.Figure()
+    
+    colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FECB52']
+    
+    # Filter rows relevant to this direction
+    relevant_rows = []
+    for row in training_rows:
+        if row == 'Base':
+            relevant_rows.append(row)
+        elif row == direction_label:  # Vanilla for this direction
+            relevant_rows.append(row)
+        elif row.startswith('+'):  # Training variants
+            relevant_rows.append(row)
+    
+    x_positions = []
+    x_labels = []
+    current_x = 0
+    
+    for row_idx, row in enumerate(relevant_rows):
+        for col_idx, col in enumerate(eval_cols):
+            values = []
+            for task in tasks:
+                if task in all_heatmap_data_by_dir:
+                    dir_data = all_heatmap_data_by_dir[task].get(direction, {})
+                    metrics = dir_data.get(row, {}).get(col)
+                    if metrics is not None and not np.isnan(metrics.get(metric_key, np.nan)):
+                        values.append(metrics[metric_key] * 100)
+            
+            if values:
+                mean_val = np.mean(values)
+                std_err = np.std(values) / np.sqrt(len(values)) if len(values) > 1 else 0
+            else:
+                mean_val = 0
+                std_err = 0
+            
+            fig.add_trace(go.Bar(
+                x=[current_x],
+                y=[mean_val],
+                error_y=dict(type='data', array=[std_err], visible=True),
+                marker_color=colors[row_idx % len(colors)],
+                name=row if col_idx == 0 else None,
+                showlegend=(col_idx == 0),
+                legendgroup=row,
+                hovertemplate=f'{row} / {col}: {mean_val:.1f} ± {std_err:.1f}<extra></extra>'
+            ))
+            
+            x_positions.append(current_x)
+            x_labels.append(col)
+            current_x += 1
+        
+        current_x += 0.5
+    
+    is_correlation = metric in ['Correlation', 'Corr-Pos', 'Corr-Neg']
+    if is_correlation:
+        yaxis_config = dict(title=metric, showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=20)
+    else:
+        yaxis_config = dict(title=metric, range=[40, 100], showgrid=True, gridcolor='lightgray', gridwidth=1, dtick=10)
+    
+    fig.update_layout(
+        title=f'{direction_label} - {metric}',
         xaxis=dict(tickvals=x_positions, ticktext=x_labels, tickangle=45, showgrid=False),
         yaxis=yaxis_config,
         height=300,
@@ -1080,7 +1464,8 @@ def toggle_pages(load_clicks, back_clicks, outputs_dir, task_pattern, split_patt
     viz_hidden = {'display': 'none'}
     
     if button_id == 'back-to-config-btn':
-        return (config_visible, viz_hidden, dash.no_update, dash.no_update,
+        # Clear the stores when going back to config to force refresh on next load
+        return (config_visible, viz_hidden, None, None,
                 dash.no_update, dash.no_update, dash.no_update, dash.no_update,
                 dash.no_update, dash.no_update)
     
@@ -1340,16 +1725,15 @@ def update_visualizations(task, split, model_type, config, files_info):
     pca_fig.update_yaxes(title_text=f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)', row=1, col=2, showgrid=True, gridcolor='lightgray')
     
     # === COMPARE CORRECTIONS 2x2 ===
-    eval_columns = config.get('eval_columns', {})
-    gen_variants = [(col, name) for name, col in eval_columns.items()][:4]  # Max 4 for 2x2
-    
-    if len(gen_variants) < 4:
-        gen_variants = [
-            ('gen_score', 'Raw'),
-            ('gen_score_typcorr', 'Typicality Corrected'),
-            ('gen_score_lenorm', 'Length Normalized'),
-            ('gen_score_typcorr_lenorm', 'Typcorr + Lenorm'),
-        ]
+    # Use eval_columns from config (maps display_name -> column_name)
+    eval_columns = config.get('eval_columns', {
+        'raw': 'gen_score',
+        'tc': 'gen_score_typcorr',
+        'lenorm': 'gen_score_lenorm',
+        'tc+lenorm': 'gen_score_typcorr_lenorm'
+    })
+    # Convert to (column_name, display_name) format, max 4 for 2x2 grid
+    gen_variants = [(col, name.replace('_', ' ').title()) for name, col in list(eval_columns.items())[:4]]
     
     compare_fig = make_subplots(rows=2, cols=2, subplot_titles=[v[1] for v in gen_variants])
     
@@ -1390,7 +1774,12 @@ def update_visualizations(task, split, model_type, config, files_info):
      Input('files-store', 'data')]
 )
 def generate_all_heatmaps(config, files_info):
-    """Generate all heatmaps based on config."""
+    """Generate all heatmaps based on config.
+    
+    Creates two separate heatmaps per task/aggregate:
+    - One for V2G (d2g direction): rows are training variants (V2G, +tc, +lenorm, etc.)
+    - One for G2V (g2d direction): rows are training variants (G2V, +tc, +lenorm, etc.)
+    """
     if not config or not files_info:
         return html.Div("No data loaded", style={'color': '#999', 'textAlign': 'center', 'padding': '20px'})
     
@@ -1400,11 +1789,18 @@ def generate_all_heatmaps(config, files_info):
     all_tasks = sorted(set(f['task'] for f in files_info))
     all_splits = sorted(set(f['split'] for f in files_info), reverse=True)
     
-    model_rows = get_model_rows(files_info)
+    training_rows = get_training_variant_rows(files_info, config)
     eval_columns = config.get('eval_columns', {})
     eval_cols = list(eval_columns.keys())
     metrics_list = config.get('metrics', ['Accuracy', 'Val ROC', 'Gen ROC', 'Correlation', 'Corr-Pos', 'Corr-Neg'])
     aggregation_groups = config.get('aggregation_groups', {})
+    
+    # Direction display mapping from config
+    model_detection = config.get('model_detection', {})
+    direction_patterns = model_detection.get('direction_patterns', {'d2g': '_d2g_', 'g2d': '_g2d_'})
+    direction_display = model_detection.get('direction_display', {'d2g': 'V2G', 'g2d': 'G2V'})
+    directions = [(dir_key, direction_display.get(dir_key, dir_key.upper())) 
+                  for dir_key in direction_patterns.keys()]
     
     for split in all_splits:
         split_label = split.upper()
@@ -1418,19 +1814,19 @@ def generate_all_heatmaps(config, files_info):
                    'backgroundColor': split_bg, 'padding': '15px', 'borderRadius': '8px'}
         ))
         
-        # Load heatmap data for all tasks in this split
-        all_heatmap_data = {}
+        # Load heatmap data for all tasks in this split (by direction)
+        all_heatmap_data_by_dir = {}
         for task in all_tasks:
             try:
-                hm_data, _, _ = discover_heatmap_data(task, split, files_info, config)
-                all_heatmap_data[task] = hm_data
+                dir_data, _, _ = discover_heatmap_data_by_direction(task, split, files_info, config)
+                all_heatmap_data_by_dir[task] = dir_data
             except Exception as e:
                 print(f"Error loading heatmap data for {task}/{split}: {e}")
         
         # === AGGREGATED SECTION ===
         for group_name, pattern in aggregation_groups.items():
             tasks_in_group = expand_aggregation_pattern(pattern, all_tasks)
-            tasks_with_data = [t for t in tasks_in_group if t in all_heatmap_data]
+            tasks_with_data = [t for t in tasks_in_group if t in all_heatmap_data_by_dir]
             
             if len(tasks_with_data) > 1:
                 try:
@@ -1440,19 +1836,24 @@ def generate_all_heatmaps(config, files_info):
                                'borderBottom': '2px solid #1a5f7a', 'paddingBottom': '10px'}
                     ))
                     
-                    # Aggregated heatmap
-                    fig_agg = create_aggregated_heatmap(
-                        all_heatmap_data, tasks_with_data, model_rows, eval_cols,
-                        f'{group_name} (Mean)', metrics_list
-                    )
-                    children.append(dcc.Graph(figure=fig_agg, style={'height': '280px'}))
+                    # Create two heatmaps: one for V2G, one for G2V
+                    children.append(html.H4('Aggregated Heatmaps', style={'marginTop': '15px', 'color': '#333'}))
+                    for direction, dir_label in directions:
+                        fig_agg = create_aggregated_direction_heatmap(
+                            all_heatmap_data_by_dir, tasks_with_data, training_rows, eval_cols,
+                            f'{dir_label} Models (Mean across datasets)', metrics_list, direction, dir_label
+                        )
+                        if fig_agg is not None:
+                            children.append(dcc.Graph(figure=fig_agg, style={'height': '280px'}))
                     
-                    # Bar plots for key metrics
-                    for metric in ['Accuracy', 'Val ROC']:
-                        if metric in metrics_list:
-                            fig_bar = create_aggregated_bar_plot(
-                                all_heatmap_data, tasks_with_data, model_rows, eval_cols,
-                                metric, f'{group_name} - {metric}'
+                    # Bar plots for ALL metrics - one per direction (like hypernym_dashboard.py)
+                    children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
+                    for metric in metrics_list:
+                        children.append(html.H5(f'{metric}', style={'marginTop': '15px', 'color': '#555'}))
+                        for direction, dir_label in directions:
+                            fig_bar = create_direction_bar_plot(
+                                all_heatmap_data_by_dir, tasks_with_data, training_rows, eval_cols,
+                                metric, direction, dir_label
                             )
                             children.append(dcc.Graph(figure=fig_bar, style={'height': '320px'}))
                 
@@ -1470,7 +1871,7 @@ def generate_all_heatmaps(config, files_info):
         ))
         
         for task in all_tasks:
-            if task not in all_heatmap_data:
+            if task not in all_heatmap_data_by_dir:
                 continue
             
             children.append(html.H4(
@@ -1480,11 +1881,15 @@ def generate_all_heatmaps(config, files_info):
             ))
             
             try:
-                fig = create_heatmap_figure(
-                    all_heatmap_data[task], model_rows, eval_cols,
-                    task, metrics_list
-                )
-                children.append(dcc.Graph(figure=fig, style={'height': '280px', 'marginTop': '0px'}))
+                # Create two heatmaps: one for V2G, one for G2V
+                dir_data = all_heatmap_data_by_dir[task]
+                for direction, dir_label in directions:
+                    fig = create_direction_heatmap_figure(
+                        dir_data.get(direction, {}), training_rows, eval_cols,
+                        f'{dir_label} Models', metrics_list, dir_label
+                    )
+                    if fig is not None:
+                        children.append(dcc.Graph(figure=fig, style={'height': '280px', 'marginTop': '0px'}))
             except Exception as e:
                 children.append(html.Div(
                     f"⚠️ Error generating heatmap for {task}: {e}",
