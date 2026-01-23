@@ -1382,7 +1382,7 @@ app.layout = html.Div([
     # Visualization Page (hidden initially)
     html.Div(id='viz-page', children=[
         html.Div([
-            html.H1('📊 Visualization Dashboard', style={'textAlign': 'center', 'color': '#333', 'display': 'inline-block'}),
+            html.H1('⚖️ Generator-Validator Dashboard', style={'textAlign': 'center', 'color': '#333', 'display': 'inline-block'}),
             html.Button('⚙️ Back to Config', id='back-to-config-btn',
                        style={'marginLeft': '20px', 'padding': '8px 16px', 'fontSize': '12px',
                               'backgroundColor': '#9E9E9E', 'color': 'white', 'border': 'none',
