@@ -76,6 +76,13 @@ DEFAULT_CONFIG = {
             'vanilla': '_full-completion_'
         }
     },
+    # Union models: trained on combined/union task, evaluated on individual tasks
+    # Set to empty dict {} to disable union model detection
+    'union_models': {
+        'training_task': 'hypernym-concat-bananas-to-dogs',  # The training task name for union models
+        'eval_task_pattern': r'force-same-x_(hypernym-[a-zA-Z]+)_',  # Pattern to extract eval task
+        'row_prefix': 'Union'  # Prefix for row labels (e.g., "Union", "Union+tc")
+    },
     'aggregation_groups': {
         'All Hypernym': 'hypernym-*'  # pattern-based: aggregate all matching tasks
     },
@@ -98,7 +105,7 @@ DEFAULT_VARIANT_DISPLAY = {
     'vanilla': ''  # Empty string = use direction label (V2G/G2V)
 }
 
-DEFAULT_ROW_ORDER = ['Base', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
+DEFAULT_ROW_ORDER = ['Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -237,6 +244,18 @@ def auto_detect_config(outputs_dir=None):
     if has_vanilla:
         config['model_detection']['variant_patterns']['vanilla'] = '_full-completion_'
     
+    # Detect union models (trained on combined task, evaluated on individual tasks)
+    # Look for files with "concat" or combined task names and "force-same-x" eval pattern
+    has_union = any('hypernym-concat-bananas-to-dogs' in f and 'force-same-x_' in f for f in filenames)
+    if has_union:
+        config['union_models'] = {
+            'training_task': 'hypernym-concat-bananas-to-dogs',
+            'eval_task_pattern': r'force-same-x_(hypernym-[a-zA-Z]+)_',
+            'row_prefix': 'Union'
+        }
+    else:
+        config['union_models'] = {}
+    
     # Build aggregation groups based on tasks found
     config['aggregation_groups'] = {}
     
@@ -302,26 +321,91 @@ def discover_scores_files(config):
 
 
 def parse_filename(csv_file, config):
-    """Parse filename to extract task, split, model info based on config."""
-    name = csv_file.stem
+    """Parse filename to extract task, split, model info based on config.
     
-    # Extract task/dataset
+    For Union models:
+    scores_v5-google_..._hypernym-concat-bananas-to-dogs-v2-all_d2g_..._force-same-x_hypernym-diapers_test_...
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                          ^^^^^^^^^^^^^^^
+                        training task (union)                                       eval task
+    
+    For regular models, we extract both training and eval tasks and only include
+    if they match (to exclude cross-task evaluations).
+    """
+    name = csv_file.stem
     task_pattern = config.get('task_pattern', r'hypernym-([a-zA-Z]+)')
-    task_match = re.search(task_pattern, name)
-    if task_match:
-        if task_match.groups():
-            # Pattern has capture group - use it as dataset name
-            base_task = task_pattern.split('(')[0].rstrip('-').rstrip('_')
-            if not base_task:
-                base_task = 'task'
-            dataset = task_match.group(1)
-            task = f"{base_task}-{dataset}" if base_task else dataset
+    
+    # Check for union model first
+    union_config = config.get('union_models', {})
+    is_union = False
+    
+    if union_config:
+        union_training_task = union_config.get('training_task', '')
+        eval_pattern = union_config.get('eval_task_pattern', '')
+        
+        if union_training_task and union_training_task in name:
+            # This is a union model - extract the evaluated task
+            if eval_pattern:
+                eval_match = re.search(eval_pattern, name)
+                if eval_match:
+                    is_union = True
+                    if eval_match.groups():
+                        # Pattern has capture group
+                        task = eval_match.group(1)
+                        # Try to get full task name (e.g., hypernym-diapers)
+                        full_match = re.search(r'(hypernym-[a-zA-Z]+)', eval_match.group(0))
+                        if full_match:
+                            task = full_match.group(1)
+                        dataset = task.split('-')[-1] if '-' in task else task
+                    else:
+                        task = eval_match.group(0)
+                        dataset = task
+    
+    # If not union, extract both training and eval tasks and verify they match
+    if not is_union:
+        # Find all matches of the task pattern
+        all_matches = list(re.finditer(task_pattern, name))
+        
+        if len(all_matches) >= 2:
+            # Multiple matches - first is training task, last is eval task
+            training_match = all_matches[0]
+            eval_match = all_matches[-1]
+            
+            if training_match.groups() and eval_match.groups():
+                training_task = training_match.group(1)
+                eval_task = eval_match.group(1)
+                
+                if training_task == eval_task:
+                    # Tasks match - use the eval task
+                    base_task = task_pattern.split('(')[0].rstrip('-').rstrip('_')
+                    if not base_task:
+                        base_task = 'task'
+                    dataset = eval_task
+                    task = f"{base_task}-{dataset}" if base_task else dataset
+                else:
+                    # Training and eval tasks don't match - skip this file
+                    return None
+            else:
+                # No capture group - use full match
+                if training_match.group(0) == eval_match.group(0):
+                    task = eval_match.group(0)
+                    dataset = task
+                else:
+                    return None
+        elif len(all_matches) == 1:
+            # Only one match - use it (likely base model or simple case)
+            match = all_matches[0]
+            if match.groups():
+                base_task = task_pattern.split('(')[0].rstrip('-').rstrip('_')
+                if not base_task:
+                    base_task = 'task'
+                dataset = match.group(1)
+                task = f"{base_task}-{dataset}" if base_task else dataset
+            else:
+                task = match.group(0)
+                dataset = task
         else:
-            task = task_match.group(0)
-            dataset = task
-    else:
-        task = 'unknown'
-        dataset = 'unknown'
+            task = 'unknown'
+            dataset = 'unknown'
     
     # Extract split
     split = 'unknown'
@@ -333,7 +417,9 @@ def parse_filename(csv_file, config):
     
     # Extract model info (direction, training variant, model type)
     model_detection = config.get('model_detection', {})
-    direction, training_variant, model_type = determine_model_info(name, model_detection)
+    direction, training_variant, model_type = determine_model_info(
+        name, model_detection, is_union=is_union, union_config=union_config
+    )
     
     display_name = f'{task} | {split} | {model_type}'
     
@@ -344,18 +430,26 @@ def parse_filename(csv_file, config):
         'dataset': dataset,
         'split': split,
         'direction': direction,  # 'd2g', 'g2d', or 'base'
-        'training_variant': training_variant,  # 'Base', 'V2G', '+tc', etc.
-        'model_type': model_type  # Combined label for dropdown
+        'training_variant': training_variant,  # 'Base', 'V2G', '+tc', 'Union', etc.
+        'model_type': model_type,  # Combined label for dropdown
+        'is_union': is_union  # Flag for union models
     }
 
 
-def determine_model_info(filename, model_detection):
+def determine_model_info(filename, model_detection, is_union=False, union_config=None):
     """Determine model direction and training variant from filename.
+    
+    Args:
+        filename: The filename to parse
+        model_detection: Config dict for model detection patterns
+        is_union: Whether this is a union/combined model
+        union_config: Config dict for union models (required if is_union=True)
     
     Returns:
         tuple: (direction, training_variant, model_type)
             - direction: 'd2g', 'g2d', or 'base'
-            - training_variant: 'Base', 'V2G'/'G2V' (vanilla), '+tc', '+tco', '+lenorm', etc.
+            - training_variant: 'Base', 'V2G'/'G2V' (vanilla), '+tc', '+tco', '+lenorm',
+                               or 'Union', 'Union+tc', etc. for union models
             - model_type: combined label like 'V2G+tc' for dropdown display
     """
     base_pattern = model_detection.get('base_pattern')
@@ -394,6 +488,7 @@ def determine_model_info(filename, model_detection):
     sorted_variants = sorted(variant_patterns.items(), key=lambda x: -len(x[1]))
     
     matched_variant = None
+    suffix = ''
     for variant_name, pattern in sorted_variants:
         if pattern in filename:
             matched_variant = variant_name
@@ -410,10 +505,21 @@ def determine_model_info(filename, model_detection):
     else:
         # No match - treat as vanilla
         training_variant = dir_label
-        suffix = ''
     
-    # Build model_type for dropdown display (includes direction)
-    model_type = f'{dir_label}{suffix}' if suffix else dir_label
+    # Handle union models - override training_variant with prefix
+    if is_union and union_config:
+        row_prefix = union_config.get('row_prefix', 'Union')
+        if suffix:
+            # Has variant (e.g., +tc) -> "Union+tc"
+            training_variant = f'{row_prefix}{suffix}'
+        else:
+            # Vanilla union model -> "Union"
+            training_variant = row_prefix
+        # Model type for dropdown also uses prefix
+        model_type = training_variant
+    else:
+        # Build model_type for dropdown display (includes direction)
+        model_type = f'{dir_label}{suffix}' if suffix else dir_label
     
     return direction, training_variant, model_type
 
@@ -742,7 +848,11 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
-    # Include all relevant rows for this direction (Base, direction_label for vanilla, and +variants)
+    # Include all relevant rows for this direction:
+    # - Base model
+    # - Vanilla for this direction (e.g., 'V2G' for d2g)
+    # - Training variants like +tc, +tco, +lenorm
+    # - Union models (e.g., 'Union', 'Union+tc')
     # Show empty rows if no data - don't filter them out
     relevant_rows = []
     for row in training_rows:
@@ -751,6 +861,8 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
+            relevant_rows.append(row)
+        elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
         # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
     
@@ -887,7 +999,11 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
         'Correlation': 'corr', 'Corr-Pos': 'corr_pos', 'Corr-Neg': 'corr_neg'
     }
     
-    # Include all relevant rows for this direction (Base, direction_label for vanilla, and +variants)
+    # Include all relevant rows for this direction:
+    # - Base model
+    # - Vanilla for this direction (e.g., 'V2G' for d2g)
+    # - Training variants like +tc, +tco, +lenorm
+    # - Union models (e.g., 'Union', 'Union+tc')
     # Show empty rows if no data - don't filter them out
     relevant_rows = []
     for row in training_rows:
@@ -896,6 +1012,8 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
+            relevant_rows.append(row)
+        elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
         # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
     
@@ -1047,7 +1165,11 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     
     colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FECB52']
     
-    # Filter rows relevant to this direction
+    # Filter rows relevant to this direction:
+    # - Base model
+    # - Vanilla for this direction (e.g., 'V2G' for d2g)
+    # - Training variants like +tc, +tco, +lenorm
+    # - Union models (e.g., 'Union', 'Union+tc')
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
@@ -1055,6 +1177,8 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants
+            relevant_rows.append(row)
+        elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
     
     x_positions = []
@@ -1228,6 +1352,17 @@ app.layout = html.Div([
                                 value=json.dumps(DEFAULT_CONFIG['eval_columns'], indent=2),
                                 style={'width': '100%', 'height': '100px', 'padding': '8px', 'borderRadius': '4px',
                                        'border': '1px solid #ccc', 'fontFamily': 'monospace'})
+                ], style={'marginBottom': '15px'}),
+                
+                # Union models config
+                html.Div([
+                    html.Label('Union Models (JSON, or {} to disable):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Textarea(id='config-union-models',
+                                value=json.dumps(DEFAULT_CONFIG['union_models'], indent=2),
+                                style={'width': '100%', 'height': '100px', 'padding': '8px', 'borderRadius': '4px',
+                                       'border': '1px solid #ccc', 'fontFamily': 'monospace'}),
+                    html.Small('Models trained on combined task, evaluated on individual tasks. Set to {} to disable.', 
+                              style={'color': '#666'})
                 ], style={'marginBottom': '25px'}),
                 
             ], style={'maxWidth': '800px', 'margin': '0 auto', 'padding': '20px',
@@ -1334,6 +1469,7 @@ app.layout = html.Div([
      Output('config-model-detection', 'value'),
      Output('config-aggregation', 'value'),
      Output('config-eval-cols', 'value'),
+     Output('config-union-models', 'value'),
      Output('config-status', 'children'),
      Output('config-status', 'style')],
     [Input('auto-detect-btn', 'n_clicks'),
@@ -1363,6 +1499,7 @@ def handle_config_buttons(auto_clicks, load_clicks):
             json.dumps(config.get('model_detection', {}), indent=2),
             json.dumps(config.get('aggregation_groups', {})),
             json.dumps(config.get('eval_columns', {}), indent=2),
+            json.dumps(config.get('union_models', {}), indent=2),
             f"✅ {msg}",
             style
         )
@@ -1374,6 +1511,7 @@ def handle_config_buttons(auto_clicks, load_clicks):
             return (
                 dash.no_update, dash.no_update, dash.no_update, dash.no_update,
                 dash.no_update, dash.no_update, dash.no_update, dash.no_update,
+                dash.no_update,
                 f"⚠️ {error}",
                 style
             )
@@ -1388,6 +1526,7 @@ def handle_config_buttons(auto_clicks, load_clicks):
             json.dumps(config.get('model_detection', {}), indent=2),
             json.dumps(config.get('aggregation_groups', {})),
             json.dumps(config.get('eval_columns', {}), indent=2),
+            json.dumps(config.get('union_models', {}), indent=2),
             f"✅ Loaded config from {CONFIG_FILE}",
             style
         )
@@ -1406,11 +1545,12 @@ def handle_config_buttons(auto_clicks, load_clicks):
      State('config-label-map', 'value'),
      State('config-model-detection', 'value'),
      State('config-aggregation', 'value'),
-     State('config-eval-cols', 'value')],
+     State('config-eval-cols', 'value'),
+     State('config-union-models', 'value')],
     prevent_initial_call=True
 )
 def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, 
-                label_map, model_detection, aggregation, eval_cols):
+                label_map, model_detection, aggregation, eval_cols, union_models):
     """Save current config to JSON file."""
     if not n_clicks:
         raise PreventUpdate
@@ -1426,7 +1566,8 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col,
             'label_map': json.loads(label_map) if label_map else None,
             'model_detection': json.loads(model_detection) if model_detection else {},
             'aggregation_groups': json.loads(aggregation) if aggregation else {},
-            'eval_columns': json.loads(eval_cols) if eval_cols else {}
+            'eval_columns': json.loads(eval_cols) if eval_cols else {},
+            'union_models': json.loads(union_models) if union_models else {}
         }
         
         save_config_to_file(config)
@@ -1459,11 +1600,12 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col,
      State('config-label-map', 'value'),
      State('config-model-detection', 'value'),
      State('config-aggregation', 'value'),
-     State('config-eval-cols', 'value')],
+     State('config-eval-cols', 'value'),
+     State('config-union-models', 'value')],
     prevent_initial_call=True
 )
 def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pattern, split_patterns,
-                 label_col, label_map, model_detection, aggregation, eval_cols):
+                 label_col, label_map, model_detection, aggregation, eval_cols, union_models):
     """Toggle between config page and viz page."""
     ctx = dash.callback_context
     if not ctx.triggered:
@@ -1497,6 +1639,7 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pa
             'model_detection': json.loads(model_detection) if model_detection else {},
             'aggregation_groups': json.loads(aggregation) if aggregation else {},
             'eval_columns': json.loads(eval_cols) if eval_cols else {},
+            'union_models': json.loads(union_models) if union_models else {},
             'metrics': DEFAULT_CONFIG['metrics']
         }
         
