@@ -1781,12 +1781,15 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     main_fig.add_hline(y=threshold, line=dict(color='red', dash='dash', width=2), row=2, col=1)
     
-    # Outliers
+    # Outliers: points furthest from line of best fit (orthogonal distance)
+    # Using PCA: PC2 scores = perpendicular distance from PC1 line
     X = np.column_stack([gen_scores, val_scores])
     scaler = StandardScaler()
     X_std = scaler.fit_transform(X)
-    distances = np.sqrt(X_std[:, 0]**2 + X_std[:, 1]**2)
-    outlier_indices = np.argsort(distances)[-40:]
+    pca_outlier = PCA(n_components=2)
+    X_pca = pca_outlier.fit_transform(X_std)
+    orthogonal_distances = np.abs(X_pca[:, 1])  # Distance from PC1 line
+    outlier_indices = np.argsort(orthogonal_distances)[-40:]
     
     outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     
@@ -1876,8 +1879,8 @@ def update_visualizations(task, split, model_type, config, files_info):
     faceted_fig.update_layout(title='Faceted by Strategy', paper_bgcolor='white', plot_bgcolor='white', height=400 * n_rows)
     
     # === PCA PLOT ===
-    pca = PCA(n_components=2)
-    X_pca = pca.fit_transform(X_std)
+    # Reuse the PCA from outlier detection for consistency
+    pca = pca_outlier
     
     pca_fig = make_subplots(rows=1, cols=2, subplot_titles=['Standardized Scores', 'PCA'])
     
@@ -1890,6 +1893,17 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   marker=dict(symbol='x', size=10, color=outlier_colors),
                                   name='Outliers', showlegend=False), row=1, col=1)
     
+    # Add line of best fit (PC1 direction) to standardized scores plot
+    # PC1 direction vector gives the line of best fit in standardized space
+    pc1_direction = pca.components_[0]  # [dx, dy] unit vector
+    # Extend line across the plot range
+    std_range = max(np.abs(X_std).max(), 3)  # Ensure line extends far enough
+    line_x = np.array([-std_range, std_range]) * pc1_direction[0]
+    line_y = np.array([-std_range, std_range]) * pc1_direction[1]
+    pca_fig.add_trace(go.Scatter(x=line_x, y=line_y, mode='lines',
+                                  line=dict(color='gray', dash='dot', width=2),
+                                  name='Best fit (PC1)', showlegend=True), row=1, col=1)
+    
     # Right: PCA
     pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask, 0], y=X_pca[pos_mask, 1], mode='markers',
                                   marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False), row=1, col=2)
@@ -1900,10 +1914,15 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   showlegend=False), row=1, col=2)
     
     pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
-    pca_fig.update_xaxes(title_text='Generator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray')
-    pca_fig.update_yaxes(title_text='Validator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray')
-    pca_fig.update_xaxes(title_text=f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)', row=1, col=2, showgrid=True, gridcolor='lightgray')
-    pca_fig.update_yaxes(title_text=f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)', row=1, col=2, showgrid=True, gridcolor='lightgray')
+    # Add zeroline (axis lines) for both plots
+    pca_fig.update_xaxes(title_text='Generator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray',
+                         zeroline=True, zerolinecolor='black', zerolinewidth=1)
+    pca_fig.update_yaxes(title_text='Validator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray',
+                         zeroline=True, zerolinecolor='black', zerolinewidth=1)
+    pca_fig.update_xaxes(title_text=f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)', row=1, col=2, showgrid=True, gridcolor='lightgray',
+                         zeroline=True, zerolinecolor='black', zerolinewidth=1)
+    pca_fig.update_yaxes(title_text=f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)', row=1, col=2, showgrid=True, gridcolor='lightgray',
+                         zeroline=True, zerolinecolor='black', zerolinewidth=1)
     
     # === COMPARE CORRECTIONS 2x2 ===
     # Use eval_columns from config (maps display_name -> column_name)
