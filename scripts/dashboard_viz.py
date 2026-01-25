@@ -1766,23 +1766,9 @@ def update_visualizations(task, split, model_type, config, files_info):
                [{"type": "scatter"}, {"type": "histogram"}]]
     )
     
-    main_fig.add_trace(
-        go.Scatter(x=gen_scores[pos_mask], y=val_scores[pos_mask],
-                   mode='markers', marker=dict(color=POS_CLASS_COLOR, size=8, opacity=0.6),
-                   name='Positive', legendgroup='pos'),
-        row=2, col=1
-    )
-    main_fig.add_trace(
-        go.Scatter(x=gen_scores[neg_mask], y=val_scores[neg_mask],
-                   mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=8, opacity=0.6),
-                   name='Negative', legendgroup='neg'),
-        row=2, col=1
-    )
-    
-    main_fig.add_hline(y=threshold, line=dict(color='red', dash='dash', width=2), row=2, col=1)
-    
     # Outliers: points furthest from line of best fit (orthogonal distance)
     # Using PCA: PC2 scores = perpendicular distance from PC1 line
+    # Compute outliers FIRST so we can exclude them from regular dot traces
     X = np.column_stack([gen_scores, val_scores])
     scaler = StandardScaler()
     X_std = scaler.fit_transform(X)
@@ -1793,23 +1779,53 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     
-    # Try to get display columns for outlier labels
-    display_cols = ['noun1', 'noun2']  # Default
-    outlier_texts = []
+    # Create mask for non-outlier points
+    outlier_set = set(outlier_indices)
+    non_outlier_mask = np.array([i not in outlier_set for i in range(len(labels))])
+    
+    # Create hover text for all points: (gen, val) noun2
+    has_noun2 = 'noun2' in df.columns
+    hover_texts = []
+    for i in range(len(gen_scores)):
+        noun2_str = f" {df['noun2'].iloc[i]}" if has_noun2 else ""
+        hover_texts.append(f"({gen_scores[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
+    hover_texts = np.array(hover_texts)
+    
+    # Add scatter traces (excluding outliers)
+    main_fig.add_trace(
+        go.Scatter(x=gen_scores[pos_mask & non_outlier_mask], y=val_scores[pos_mask & non_outlier_mask],
+                   mode='markers', marker=dict(color=POS_CLASS_COLOR, size=8, opacity=0.6),
+                   name='Positive', legendgroup='pos',
+                   hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'),
+        row=2, col=1
+    )
+    main_fig.add_trace(
+        go.Scatter(x=gen_scores[neg_mask & non_outlier_mask], y=val_scores[neg_mask & non_outlier_mask],
+                   mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=8, opacity=0.6),
+                   name='Negative', legendgroup='neg',
+                   hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'),
+        row=2, col=1
+    )
+    
+    main_fig.add_hline(y=threshold, line=dict(color='red', dash='dash', width=2), row=2, col=1)
+    
+    # Outlier display text (shown next to X markers) - just noun2
+    outlier_display_texts = []
     for i in outlier_indices:
-        if 'noun1' in df.columns and 'noun2' in df.columns:
-            outlier_texts.append(f"{df['noun1'].iloc[i][:6]}/{df['noun2'].iloc[i][:6]}")
+        if has_noun2:
+            outlier_display_texts.append(df['noun2'].iloc[i][:8])
         else:
-            outlier_texts.append('')
+            outlier_display_texts.append('')
     
     main_fig.add_trace(
         go.Scatter(
             x=gen_scores[outlier_indices], y=val_scores[outlier_indices],
             mode='markers+text',
-            marker=dict(symbol='x', size=12, color=outlier_colors, line=dict(width=2)),
-            text=outlier_texts,
+            marker=dict(symbol='x', size=9, color=outlier_colors),
+            text=outlier_display_texts,
             textposition='top right', textfont=dict(size=8),
-            name='Outliers', showlegend=False
+            name='Outliers', showlegend=False,
+            hovertext=hover_texts[outlier_indices], hoverinfo='text'
         ),
         row=2, col=1
     )
@@ -1849,13 +1865,15 @@ def update_visualizations(task, split, model_type, config, files_info):
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_pos], y=val_scores[strat_pos],
                        mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.6),
-                       name=f'Pos ({total_pos})', showlegend=(idx == 0)),
+                       name=f'Pos ({total_pos})', showlegend=(idx == 0),
+                       hovertext=hover_texts[strat_pos], hoverinfo='text'),
             row=row, col=col
         )
         faceted_fig.add_trace(
             go.Scatter(x=gen_scores[strat_neg], y=val_scores[strat_neg],
                        mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.6),
-                       name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0)),
+                       name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0),
+                       hovertext=hover_texts[strat_neg], hoverinfo='text'),
             row=row, col=col
         )
         faceted_fig.add_hline(y=threshold, line=dict(color='red', dash='dash'), row=row, col=col)
@@ -1884,14 +1902,17 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     pca_fig = make_subplots(rows=1, cols=2, subplot_titles=['Standardized Scores', 'PCA'])
     
-    # Left: Standardized scores
-    pca_fig.add_trace(go.Scatter(x=X_std[pos_mask, 0], y=X_std[pos_mask, 1], mode='markers', 
-                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive'), row=1, col=1)
-    pca_fig.add_trace(go.Scatter(x=X_std[neg_mask, 0], y=X_std[neg_mask, 1], mode='markers',
-                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative'), row=1, col=1)
+    # Left: Standardized scores (exclude outliers from regular dots)
+    pca_fig.add_trace(go.Scatter(x=X_std[pos_mask & non_outlier_mask, 0], y=X_std[pos_mask & non_outlier_mask, 1], mode='markers', 
+                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive',
+                                  hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'), row=1, col=1)
+    pca_fig.add_trace(go.Scatter(x=X_std[neg_mask & non_outlier_mask, 0], y=X_std[neg_mask & non_outlier_mask, 1], mode='markers',
+                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative',
+                                  hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=1)
     pca_fig.add_trace(go.Scatter(x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
                                   marker=dict(symbol='x', size=10, color=outlier_colors),
-                                  name='Outliers', showlegend=False), row=1, col=1)
+                                  name='Outliers', showlegend=False,
+                                  hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=1)
     
     # Add line of best fit (PC1 direction) to standardized scores plot
     # PC1 direction vector gives the line of best fit in standardized space
@@ -1904,14 +1925,17 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   line=dict(color='gray', dash='dot', width=2),
                                   name='Best fit (PC1)', showlegend=True), row=1, col=1)
     
-    # Right: PCA
-    pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask, 0], y=X_pca[pos_mask, 1], mode='markers',
-                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False), row=1, col=2)
-    pca_fig.add_trace(go.Scatter(x=X_pca[neg_mask, 0], y=X_pca[neg_mask, 1], mode='markers',
-                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False), row=1, col=2)
+    # Right: PCA (exclude outliers from regular dots)
+    pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask & non_outlier_mask, 0], y=X_pca[pos_mask & non_outlier_mask, 1], mode='markers',
+                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
+                                  hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'), row=1, col=2)
+    pca_fig.add_trace(go.Scatter(x=X_pca[neg_mask & non_outlier_mask, 0], y=X_pca[neg_mask & non_outlier_mask, 1], mode='markers',
+                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
+                                  hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=2)
     pca_fig.add_trace(go.Scatter(x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
                                   marker=dict(symbol='x', size=10, color=outlier_colors),
-                                  showlegend=False), row=1, col=2)
+                                  showlegend=False,
+                                  hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=2)
     
     pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
     # Add zeroline (axis lines) for both plots
@@ -1941,18 +1965,77 @@ def update_visualizations(task, split, model_type, config, files_info):
             valid_mask = ~np.isnan(gen_vals)
             
             if valid_mask.sum() > 0:
+                # Create hover text for this variant (uses gen_vals for x)
+                compare_hover = []
+                for i in range(len(gen_vals)):
+                    noun2_str = f" {df['noun2'].iloc[i]}" if has_noun2 else ""
+                    compare_hover.append(f"({gen_vals[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
+                compare_hover = np.array(compare_hover)
+                
+                # Compute outliers for this variant using PCA (orthogonal distance from line of best fit)
+                X_var = np.column_stack([gen_vals[valid_mask], val_scores[valid_mask]])
+                scaler_var = StandardScaler()
+                X_var_std = scaler_var.fit_transform(X_var)
+                pca_var = PCA(n_components=2)
+                X_var_pca = pca_var.fit_transform(X_var_std)
+                var_orthogonal_dist = np.abs(X_var_pca[:, 1])
+                # Get indices within valid_mask subset, then map back to original indices
+                valid_indices = np.where(valid_mask)[0]
+                n_outliers = min(40, len(valid_indices))
+                var_outlier_local = np.argsort(var_orthogonal_dist)[-n_outliers:]
+                var_outlier_indices = valid_indices[var_outlier_local]
+                var_outlier_set = set(var_outlier_indices)
+                var_non_outlier_mask = np.array([i not in var_outlier_set for i in range(len(labels))])
+                var_outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in var_outlier_indices]
+                
+                # Add scatter traces (excluding outliers)
                 compare_fig.add_trace(
-                    go.Scatter(x=gen_vals[pos_mask & valid_mask], y=val_scores[pos_mask & valid_mask],
+                    go.Scatter(x=gen_vals[pos_mask & valid_mask & var_non_outlier_mask], 
+                               y=val_scores[pos_mask & valid_mask & var_non_outlier_mask],
                                mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5),
-                               showlegend=(idx == 0), name='Positive'),
+                               showlegend=(idx == 0), name='Positive',
+                               hovertext=compare_hover[pos_mask & valid_mask & var_non_outlier_mask], hoverinfo='text'),
                     row=row, col=col
                 )
                 compare_fig.add_trace(
-                    go.Scatter(x=gen_vals[neg_mask & valid_mask], y=val_scores[neg_mask & valid_mask],
+                    go.Scatter(x=gen_vals[neg_mask & valid_mask & var_non_outlier_mask], 
+                               y=val_scores[neg_mask & valid_mask & var_non_outlier_mask],
                                mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5),
-                               showlegend=(idx == 0), name='Negative'),
+                               showlegend=(idx == 0), name='Negative',
+                               hovertext=compare_hover[neg_mask & valid_mask & var_non_outlier_mask], hoverinfo='text'),
                     row=row, col=col
                 )
+                
+                # Add outliers as X markers
+                compare_fig.add_trace(
+                    go.Scatter(x=gen_vals[var_outlier_indices], y=val_scores[var_outlier_indices],
+                               mode='markers', marker=dict(symbol='x', size=10, color=var_outlier_colors, line=dict(width=2)),
+                               showlegend=False,
+                               hovertext=compare_hover[var_outlier_indices], hoverinfo='text'),
+                    row=row, col=col
+                )
+                
+                # Add line of best fit (in original space)
+                pc1_dir = pca_var.components_[0]
+                mean_gen = scaler_var.mean_[0]
+                mean_val = scaler_var.mean_[1]
+                std_gen = scaler_var.scale_[0]
+                std_val = scaler_var.scale_[1]
+                dir_gen = pc1_dir[0] * std_gen
+                dir_val = pc1_dir[1] * std_val
+                # Normalize direction and extend line across data range
+                dir_norm = np.sqrt(dir_gen**2 + dir_val**2)
+                gen_range = gen_vals[valid_mask].max() - gen_vals[valid_mask].min()
+                t_vals = np.array([-0.6, 0.6]) * gen_range  # Extend 60% of range in each direction
+                line_gen = mean_gen + t_vals * dir_gen / dir_norm
+                line_val = mean_val + t_vals * dir_val / dir_norm
+                compare_fig.add_trace(
+                    go.Scatter(x=line_gen, y=line_val, mode='lines',
+                               line=dict(color='gray', dash='dot', width=2),
+                               showlegend=False, hoverinfo='skip'),
+                    row=row, col=col
+                )
+                
                 compare_fig.add_hline(y=threshold, line=dict(color='red', dash='dash'), row=row, col=col)
                 
                 # Compute metrics for this variant
