@@ -1766,16 +1766,15 @@ def update_visualizations(task, split, model_type, config, files_info):
                [{"type": "scatter"}, {"type": "histogram"}]]
     )
     
-    # Outliers: points furthest from line of best fit (orthogonal distance)
-    # Using PCA: PC2 scores = perpendicular distance from PC1 line
+    # Outliers: points furthest from line y=x (after standardizing)
+    # This identifies points where generator and validator scores disagree the most
     # Compute outliers FIRST so we can exclude them from regular dot traces
     X = np.column_stack([gen_scores, val_scores])
     scaler = StandardScaler()
     X_std = scaler.fit_transform(X)
-    pca_outlier = PCA(n_components=2)
-    X_pca = pca_outlier.fit_transform(X_std)
-    orthogonal_distances = np.abs(X_pca[:, 1])  # Distance from PC1 line
-    outlier_indices = np.argsort(orthogonal_distances)[-40:]
+    # Perpendicular distance from y=x line: |y - x| / sqrt(2)
+    identity_distances = np.abs(X_std[:, 1] - X_std[:, 0]) / np.sqrt(2)
+    outlier_indices = np.argsort(identity_distances)[-40:]
     
     outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     
@@ -1897,8 +1896,9 @@ def update_visualizations(task, split, model_type, config, files_info):
     faceted_fig.update_layout(title='Faceted by Strategy', paper_bgcolor='white', plot_bgcolor='white', height=400 * n_rows)
     
     # === PCA PLOT ===
-    # Reuse the PCA from outlier detection for consistency
-    pca = pca_outlier
+    # Compute PCA for the right subplot
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X_std)
     
     pca_fig = make_subplots(rows=1, cols=2, subplot_titles=['Standardized Scores', 'PCA'])
     
@@ -1910,20 +1910,15 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative',
                                   hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=1)
     pca_fig.add_trace(go.Scatter(x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
-                                  marker=dict(symbol='x', size=10, color=outlier_colors),
+                                  marker=dict(symbol='x', size=8, color=outlier_colors),
                                   name='Outliers', showlegend=False,
                                   hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=1)
     
-    # Add line of best fit (PC1 direction) to standardized scores plot
-    # PC1 direction vector gives the line of best fit in standardized space
-    pc1_direction = pca.components_[0]  # [dx, dy] unit vector
-    # Extend line across the plot range
-    std_range = max(np.abs(X_std).max(), 3)  # Ensure line extends far enough
-    line_x = np.array([-std_range, std_range]) * pc1_direction[0]
-    line_y = np.array([-std_range, std_range]) * pc1_direction[1]
-    pca_fig.add_trace(go.Scatter(x=line_x, y=line_y, mode='lines',
+    # Add y=x identity line to standardized scores plot
+    std_range = max(np.abs(X_std).max(), 3)
+    pca_fig.add_trace(go.Scatter(x=[-std_range, std_range], y=[-std_range, std_range], mode='lines',
                                   line=dict(color='gray', dash='dot', width=2),
-                                  name='Best fit (PC1)', showlegend=True), row=1, col=1)
+                                  name='y=x', showlegend=True), row=1, col=1)
     
     # Right: PCA (exclude outliers from regular dots)
     pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask & non_outlier_mask, 0], y=X_pca[pos_mask & non_outlier_mask, 1], mode='markers',
@@ -1933,7 +1928,7 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
                                   hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=2)
     pca_fig.add_trace(go.Scatter(x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
-                                  marker=dict(symbol='x', size=10, color=outlier_colors),
+                                  marker=dict(symbol='x', size=8, color=outlier_colors),
                                   showlegend=False,
                                   hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=2)
     
@@ -1972,17 +1967,16 @@ def update_visualizations(task, split, model_type, config, files_info):
                     compare_hover.append(f"({gen_vals[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
                 compare_hover = np.array(compare_hover)
                 
-                # Compute outliers for this variant using PCA (orthogonal distance from line of best fit)
+                # Compute outliers for this variant using distance from y=x line (after standardizing)
                 X_var = np.column_stack([gen_vals[valid_mask], val_scores[valid_mask]])
                 scaler_var = StandardScaler()
                 X_var_std = scaler_var.fit_transform(X_var)
-                pca_var = PCA(n_components=2)
-                X_var_pca = pca_var.fit_transform(X_var_std)
-                var_orthogonal_dist = np.abs(X_var_pca[:, 1])
+                # Perpendicular distance from y=x line: |y - x| / sqrt(2)
+                var_identity_dist = np.abs(X_var_std[:, 1] - X_var_std[:, 0]) / np.sqrt(2)
                 # Get indices within valid_mask subset, then map back to original indices
                 valid_indices = np.where(valid_mask)[0]
                 n_outliers = min(40, len(valid_indices))
-                var_outlier_local = np.argsort(var_orthogonal_dist)[-n_outliers:]
+                var_outlier_local = np.argsort(var_identity_dist)[-n_outliers:]
                 var_outlier_indices = valid_indices[var_outlier_local]
                 var_outlier_set = set(var_outlier_indices)
                 var_non_outlier_mask = np.array([i not in var_outlier_set for i in range(len(labels))])
@@ -2009,26 +2003,23 @@ def update_visualizations(task, split, model_type, config, files_info):
                 # Add outliers as X markers
                 compare_fig.add_trace(
                     go.Scatter(x=gen_vals[var_outlier_indices], y=val_scores[var_outlier_indices],
-                               mode='markers', marker=dict(symbol='x', size=10, color=var_outlier_colors, line=dict(width=2)),
+                               mode='markers', marker=dict(symbol='x', size=8, color=var_outlier_colors),
                                showlegend=False,
                                hovertext=compare_hover[var_outlier_indices], hoverinfo='text'),
                     row=row, col=col
                 )
                 
-                # Add line of best fit (in original space)
-                pc1_dir = pca_var.components_[0]
+                # Add y=x line (in original space) - line through mean with slope = std_val/std_gen
                 mean_gen = scaler_var.mean_[0]
                 mean_val = scaler_var.mean_[1]
                 std_gen = scaler_var.scale_[0]
                 std_val = scaler_var.scale_[1]
-                dir_gen = pc1_dir[0] * std_gen
-                dir_val = pc1_dir[1] * std_val
-                # Normalize direction and extend line across data range
-                dir_norm = np.sqrt(dir_gen**2 + dir_val**2)
-                gen_range = gen_vals[valid_mask].max() - gen_vals[valid_mask].min()
-                t_vals = np.array([-0.6, 0.6]) * gen_range  # Extend 60% of range in each direction
-                line_gen = mean_gen + t_vals * dir_gen / dir_norm
-                line_val = mean_val + t_vals * dir_val / dir_norm
+                gen_min = gen_vals[valid_mask].min()
+                gen_max = gen_vals[valid_mask].max()
+                # y=x in standardized space means: (val - mean_val)/std_val = (gen - mean_gen)/std_gen
+                # So: val = mean_val + std_val * (gen - mean_gen) / std_gen
+                line_gen = np.array([gen_min, gen_max])
+                line_val = mean_val + std_val * (line_gen - mean_gen) / std_gen
                 compare_fig.add_trace(
                     go.Scatter(x=line_gen, y=line_val, mode='lines',
                                line=dict(color='gray', dash='dot', width=2),
