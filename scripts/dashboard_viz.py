@@ -1997,29 +1997,55 @@ def update_visualizations(task, split, model_type, config, files_info):
                 
                 if outlier_method == 'identity':
                     var_outlier_scores = np.abs(X_var_std[:, 1] - X_var_std[:, 0]) / np.sqrt(2)
+                    var_type1_scores = None
+                    var_type2_scores = None
                 elif outlier_method == 'kendall':
                     gen_valid = gen_vals[valid_mask]
                     val_valid = val_scores[valid_mask]
                     n_var = len(gen_valid)
-                    var_outlier_scores = np.zeros(n_var)
+                    var_type1_scores = np.zeros(n_var)  # bottom_right: x>a but y<b
+                    var_type2_scores = np.zeros(n_var)  # top_left: x<a but y>b
                     for i in range(n_var):
-                        discordant = 0
+                        type1_count = 0
+                        type2_count = 0
                         for j in range(n_var):
                             if i != j:
                                 x_diff = gen_valid[i] - gen_valid[j]
                                 y_diff = val_valid[i] - val_valid[j]
-                                if x_diff * y_diff < 0:
-                                    discordant += 1
-                        var_outlier_scores[i] = discordant / (n_var - 1)
+                                if x_diff > 0 and y_diff < 0:
+                                    type1_count += 1
+                                elif x_diff < 0 and y_diff > 0:
+                                    type2_count += 1
+                        var_type1_scores[i] = type1_count / (n_var - 1)
+                        var_type2_scores[i] = type2_count / (n_var - 1)
+                    var_outlier_scores = var_type1_scores + var_type2_scores
                 
                 # Get indices within valid_mask subset, then map back to original indices
                 valid_indices = np.where(valid_mask)[0]
                 n_outliers = min(40, len(valid_indices))
-                var_outlier_local = np.argsort(var_outlier_scores)[-n_outliers:]
-                var_outlier_indices = valid_indices[var_outlier_local]
+                sorted_by_score = np.argsort(var_outlier_scores)[::-1][:n_outliers]
+                var_outlier_indices = valid_indices[sorted_by_score]
                 var_outlier_set = set(var_outlier_indices)
                 var_non_outlier_mask = np.array([i not in var_outlier_set for i in range(len(labels))])
                 var_outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in var_outlier_indices]
+                
+                # Collect outlier words split by type (for annotation below plot)
+                if has_noun2 and outlier_method == 'kendall':
+                    top_left_words = []
+                    bottom_right_words = []
+                    for local_idx in sorted_by_score:
+                        orig_idx = valid_indices[local_idx]
+                        word = df['noun2'].iloc[orig_idx]
+                        is_pos = labels[orig_idx] == 1
+                        if var_type1_scores[local_idx] >= var_type2_scores[local_idx]:
+                            bottom_right_words.append((var_type1_scores[local_idx], word, is_pos))
+                        else:
+                            top_left_words.append((var_type2_scores[local_idx], word, is_pos))
+                    top_left_words.sort(reverse=True, key=lambda x: x[0])
+                    bottom_right_words.sort(reverse=True, key=lambda x: x[0])
+                    compare_outlier_info.append((idx,
+                        [(w, p) for _, w, p in top_left_words],
+                        [(w, p) for _, w, p in bottom_right_words]))
                 
                 # Add scatter traces (excluding outliers)
                 compare_fig.add_trace(
@@ -2085,6 +2111,32 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     compare_fig.update_xaxes(showgrid=True, gridcolor='lightgray')
     compare_fig.update_yaxes(showgrid=True, gridcolor='lightgray')
+    
+    # Add outlier words annotation below each subplot
+    def format_colored_words(word_list):
+        colored = []
+        for word, is_pos in word_list[:10]:
+            color = 'red' if is_pos else 'blue'
+            colored.append(f'<span style="color:{color}">{word}</span>')
+        return ', '.join(colored)
+    
+    for item in compare_outlier_info:
+        idx, top_left_words, bottom_right_words = item
+        lines = []
+        if top_left_words:
+            lines.append(f"<b>Top left:</b> {format_colored_words(top_left_words)}")
+        if bottom_right_words:
+            lines.append(f"<b>Bottom right:</b> {format_colored_words(bottom_right_words)}")
+        if lines:
+            words_text = '<br>'.join(lines)
+            x_ref = 'x domain' if idx == 0 else f'x{idx+1} domain'
+            y_ref = 'y domain' if idx == 0 else f'y{idx+1} domain'
+            compare_fig.add_annotation(
+                x=0.5, y=-0.15, xref=x_ref, yref=y_ref,
+                text=words_text, showarrow=False, font=dict(size=9),
+                align='left', xanchor='center', yanchor='top'
+            )
+    
     compare_fig.update_layout(title='Compare Score Corrections', paper_bgcolor='white', plot_bgcolor='white')
     
     file_status = f"Loaded: {Path(csv_path).name}"
