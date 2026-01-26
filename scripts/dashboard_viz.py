@@ -1766,15 +1766,36 @@ def update_visualizations(task, split, model_type, config, files_info):
                [{"type": "scatter"}, {"type": "histogram"}]]
     )
     
-    # Outliers: points furthest from line y=x (after standardizing)
-    # This identifies points where generator and validator scores disagree the most
-    # Compute outliers FIRST so we can exclude them from regular dot traces
+    # Outliers: Compute outliers FIRST so we can exclude them from regular dot traces
+    # outlier_method: 'identity' = distance from y=x line (after standardizing)
+    #                 'kendall' = fraction of discordant pairs (Kendall tau violations)
+    outlier_method = 'kendall'
+    
     X = np.column_stack([gen_scores, val_scores])
     scaler = StandardScaler()
     X_std = scaler.fit_transform(X)
-    # Perpendicular distance from y=x line: |y - x| / sqrt(2)
-    identity_distances = np.abs(X_std[:, 1] - X_std[:, 0]) / np.sqrt(2)
-    outlier_indices = np.argsort(identity_distances)[-40:]
+    
+    if outlier_method == 'identity':
+        # Distance from y=x line in standardized space: |y - x| / sqrt(2)
+        outlier_scores = np.abs(X_std[:, 1] - X_std[:, 0]) / np.sqrt(2)
+    elif outlier_method == 'kendall':
+        # Fraction of discordant pairs for each point (Kendall tau violations)
+        n = len(gen_scores)
+        outlier_scores = np.zeros(n)
+        for i in range(n):
+            discordant = 0
+            for j in range(n):
+                if i != j:
+                    # Discordant if x order doesn't match y order
+                    x_diff = gen_scores[i] - gen_scores[j]
+                    y_diff = val_scores[i] - val_scores[j]
+                    if x_diff * y_diff < 0:  # Different signs = discordant
+                        discordant += 1
+            outlier_scores[i] = discordant / (n - 1)
+    else:
+        raise ValueError(f"Unknown outlier_method: {outlier_method}")
+    
+    outlier_indices = np.argsort(outlier_scores)[-40:]
     
     outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     
@@ -1951,6 +1972,8 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     compare_fig = make_subplots(rows=2, cols=2, subplot_titles=[v[1] for v in gen_variants])
     
+    compare_outlier_info = []  # Collect outlier words for each subplot
+    
     for idx, (gen_col_name, label) in enumerate(gen_variants):
         row = idx // 2 + 1
         col = idx % 2 + 1
@@ -1967,16 +1990,32 @@ def update_visualizations(task, split, model_type, config, files_info):
                     compare_hover.append(f"({gen_vals[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
                 compare_hover = np.array(compare_hover)
                 
-                # Compute outliers for this variant using distance from y=x line (after standardizing)
+                # Compute outliers for this variant (reuse outlier_method from main plot)
                 X_var = np.column_stack([gen_vals[valid_mask], val_scores[valid_mask]])
                 scaler_var = StandardScaler()
                 X_var_std = scaler_var.fit_transform(X_var)
-                # Perpendicular distance from y=x line: |y - x| / sqrt(2)
-                var_identity_dist = np.abs(X_var_std[:, 1] - X_var_std[:, 0]) / np.sqrt(2)
+                
+                if outlier_method == 'identity':
+                    var_outlier_scores = np.abs(X_var_std[:, 1] - X_var_std[:, 0]) / np.sqrt(2)
+                elif outlier_method == 'kendall':
+                    gen_valid = gen_vals[valid_mask]
+                    val_valid = val_scores[valid_mask]
+                    n_var = len(gen_valid)
+                    var_outlier_scores = np.zeros(n_var)
+                    for i in range(n_var):
+                        discordant = 0
+                        for j in range(n_var):
+                            if i != j:
+                                x_diff = gen_valid[i] - gen_valid[j]
+                                y_diff = val_valid[i] - val_valid[j]
+                                if x_diff * y_diff < 0:
+                                    discordant += 1
+                        var_outlier_scores[i] = discordant / (n_var - 1)
+                
                 # Get indices within valid_mask subset, then map back to original indices
                 valid_indices = np.where(valid_mask)[0]
                 n_outliers = min(40, len(valid_indices))
-                var_outlier_local = np.argsort(var_identity_dist)[-n_outliers:]
+                var_outlier_local = np.argsort(var_outlier_scores)[-n_outliers:]
                 var_outlier_indices = valid_indices[var_outlier_local]
                 var_outlier_set = set(var_outlier_indices)
                 var_non_outlier_mask = np.array([i not in var_outlier_set for i in range(len(labels))])
