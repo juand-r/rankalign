@@ -1438,7 +1438,7 @@ app.layout = html.Div([
         # Compare corrections 2x2
         html.Details([
             html.Summary('🔄 Compare Score Corrections (2x2)', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
-            dcc.Graph(id='compare-plot', style={'height': '800px'})
+            dcc.Graph(id='compare-plot', style={'height': '1100px'})
         ], style={'margin': '20px'}),
         
         # Heatmaps section
@@ -1970,7 +1970,8 @@ def update_visualizations(task, split, model_type, config, files_info):
     # Convert to (column_name, display_name) format, max 4 for 2x2 grid
     gen_variants = [(col, name.replace('_', ' ').title()) for name, col in list(eval_columns.items())[:4]]
     
-    compare_fig = make_subplots(rows=2, cols=2, subplot_titles=[v[1] for v in gen_variants])
+    compare_fig = make_subplots(rows=2, cols=2, subplot_titles=[v[1] for v in gen_variants],
+                                 vertical_spacing=0.25, horizontal_spacing=0.1)
     
     compare_outlier_info = []  # Collect outlier words for each subplot
     
@@ -2112,32 +2113,45 @@ def update_visualizations(task, split, model_type, config, files_info):
     compare_fig.update_xaxes(showgrid=True, gridcolor='lightgray')
     compare_fig.update_yaxes(showgrid=True, gridcolor='lightgray')
     
-    # Add outlier words annotation below each subplot
-    def format_colored_words(word_list):
-        colored = []
-        for word, is_pos in word_list[:10]:
-            color = 'red' if is_pos else 'blue'
-            colored.append(f'<span style="color:{color}">{word}</span>')
-        return ', '.join(colored)
+    # Add outlier words annotation below each subplot (only for hypernym tasks)
+    if task and task.startswith('hypernym-'):
+        def format_colored_words(word_list, max_chars=120):
+            # Build lines with max_chars characters each (by word length, not HTML)
+            lines = []
+            current_line = []
+            current_len = 0
+            for word, is_pos in word_list:
+                word_len = len(word) + 2  # +2 for ", "
+                if current_len + word_len > max_chars and current_line:
+                    lines.append(', '.join(current_line))
+                    current_line = []
+                    current_len = 0
+                color = 'red' if is_pos else 'blue'
+                current_line.append(f'<span style="color:{color}">{word}</span>')
+                current_len += word_len
+            if current_line:
+                lines.append(', '.join(current_line))
+            return '<br>'.join(lines)
+        
+        for item in compare_outlier_info:
+            idx, top_left_words, bottom_right_words = item
+            parts = []
+            if top_left_words:
+                parts.append(f"<b>Top left:</b><br>{format_colored_words(top_left_words)}")
+            if bottom_right_words:
+                parts.append(f"<b>Bottom right:</b><br>{format_colored_words(bottom_right_words)}")
+            if parts:
+                words_text = '<br>'.join(parts)
+                x_ref = 'x domain' if idx == 0 else f'x{idx+1} domain'
+                y_ref = 'y domain' if idx == 0 else f'y{idx+1} domain'
+                compare_fig.add_annotation(
+                    x=0.5, y=-0.15, xref=x_ref, yref=y_ref,
+                    text=words_text, showarrow=False, font=dict(size=10),
+                    align='left', xanchor='center', yanchor='top'
+                )
     
-    for item in compare_outlier_info:
-        idx, top_left_words, bottom_right_words = item
-        lines = []
-        if top_left_words:
-            lines.append(f"<b>Top left:</b> {format_colored_words(top_left_words)}")
-        if bottom_right_words:
-            lines.append(f"<b>Bottom right:</b> {format_colored_words(bottom_right_words)}")
-        if lines:
-            words_text = '<br>'.join(lines)
-            x_ref = 'x domain' if idx == 0 else f'x{idx+1} domain'
-            y_ref = 'y domain' if idx == 0 else f'y{idx+1} domain'
-            compare_fig.add_annotation(
-                x=0.5, y=-0.15, xref=x_ref, yref=y_ref,
-                text=words_text, showarrow=False, font=dict(size=9),
-                align='left', xanchor='center', yanchor='top'
-            )
-    
-    compare_fig.update_layout(title='Compare Score Corrections', paper_bgcolor='white', plot_bgcolor='white')
+    compare_fig.update_layout(title='Compare Score Corrections', paper_bgcolor='white', plot_bgcolor='white', 
+                               height=1100, margin=dict(b=150))
     
     file_status = f"Loaded: {Path(csv_path).name}"
     return file_status, stats_text, main_fig, faceted_fig, pca_fig, compare_fig
