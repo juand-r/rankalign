@@ -106,7 +106,10 @@ DEFAULT_VARIANT_DISPLAY = {
     'vanilla': ''  # Empty string = use direction label (V2G/G2V)
 }
 
-DEFAULT_ROW_ORDER = ['Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm']
+# Variants that support vallogodds suffix
+VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
+
+DEFAULT_ROW_ORDER = ['Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -530,6 +533,13 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     # Use detected variant (which we know is in config)
     matched_variant = detected_variant
     
+    # Check for vallogodds suffix (only for specific variants)
+    has_vallogodds = False
+    if matched_variant in VALLOGDODS_VARIANTS:
+        # Check if _vallogodds appears in filename (after nllg1.0_)
+        if '_vallogodds' in filename:
+            has_vallogodds = True
+    
     # Map detected variant to display label using variant_display
     suffix = ''
     if matched_variant:
@@ -542,6 +552,17 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     else:
         # No variant detected - treat as vanilla, use direction label
         training_variant = dir_label
+    
+    # Append vallogodds suffix if detected
+    if has_vallogodds:
+        if not suffix:
+            # Vanilla with vallogodds: use direction-agnostic '+vallogodds' row
+            training_variant = '+vallogodds'
+            suffix = '+vallogodds'
+        else:
+            # Variant with vallogodds: append to existing suffix
+            training_variant = f'{training_variant}+vallogodds'
+            suffix = f'{suffix}+vallogodds'
     
     # Handle union models - override training_variant with prefix
     if is_union and union_config:
@@ -932,7 +953,9 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     # Include all relevant rows for this direction:
     # - Base model
     # - Vanilla for this direction (e.g., 'V2G' for d2g)
+    # - Vanilla with vallogodds for this direction (e.g., 'V2G+vallogodds' for d2g)
     # - Training variants like +tc, +tco, +lenorm
+    # - Training variants with vallogodds like +tco+vallogodds, +lenorm+vallogodds
     # - Union models (e.g., 'Union', 'Union+tc')
     # Show empty rows if no data - don't filter them out
     relevant_rows = []
@@ -941,7 +964,7 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
-        elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
+        elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm, +vallogodds, +tco+vallogodds, etc.
             relevant_rows.append(row)
         elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
