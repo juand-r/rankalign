@@ -54,5 +54,5 @@ from . import hyponym          # Hyponym task (reverse of hypernym)
 from . import hypernym_hyponyms  # Auto-registered hypernym tasks for each hyponym dataset
 from . import hypernym_concat   # Concatenated hypernym task (balanced sampling from all datasets)
 from . import hypernym_concat_subset  # Subset: bananas to dogs only
-from . import hypernym_concat_subset_v2  # Subset v2: bananas to dogs (fixed/grammar-corrected)
-
+# from . import hypernym_concat_subset_v2  # Subset v2: bananas to dogs (fixed/grammar-corrected)
+from . import ifeval_per_prompt  # Auto-registered IFEval tasks for each prompt

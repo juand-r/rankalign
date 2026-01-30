@@ -109,7 +109,7 @@ DEFAULT_VARIANT_DISPLAY = {
 # Variants that support vallogodds suffix
 VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
 
-DEFAULT_ROW_ORDER = ['Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
+DEFAULT_ROW_ORDER = ['Base', 'No Pref Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -159,17 +159,22 @@ def auto_detect_config(outputs_dir=None):
     # Analyze filenames to detect patterns
     filenames = [f.stem for f in csv_files]
     
-    # Detect tasks (look for common patterns like hypernym-X, trivia-qa, etc.)
+    # Detect tasks (look for common patterns like hypernym-X, ifeval-Y, trivia-qa, etc.)
     tasks_found = set()
     task_patterns_found = {}
     
     # Try common task patterns
     common_patterns = [
+        # Hypernym-style tasks with a dataset suffix (e.g., hypernym-bananas)
         (r'hypernym-([a-zA-Z]+)', 'hypernym'),
+        # IFEval-style per-prompt tasks, e.g. ifeval-prompt_1, ifeval-prompt_2
+        # We capture the portion after "ifeval-" so that the dataset name
+        # (e.g., "prompt_1") can be reconstructed consistently.
+        (r'ifeval-prompt_([0-9]+)', 'ifeval'),
+        # Other single-name tasks without a dataset suffix
         (r'trivia-qa', 'trivia-qa'),
         (r'swords', 'swords'),
         (r'lambada', 'lambada'),
-        (r'ifeval', 'ifeval'),
         (r'collie', 'collie'),
     ]
     
@@ -183,9 +188,14 @@ def auto_detect_config(outputs_dir=None):
                     tasks_found.add(task_type)
                 task_patterns_found[task_type] = pattern
     
-    # If hypernym tasks found, use that pattern
+    # If hypernym or ifeval tasks are found, prefer a pattern with a capture group
+    # so that we can extract the dataset / prompt identifier from filenames.
     if any(t.startswith('hypernym-') for t in tasks_found):
         config['task_pattern'] = r'hypernym-([a-zA-Z]+)'
+    elif any(t.startswith('ifeval-') for t in tasks_found):
+        # Matches e.g. "ifeval-prompt_1" in filenames like:
+        # scores_gemma-2-9b-it_ifeval-prompt_1_train_log-odds_...
+        config['task_pattern'] = r'ifeval-prompt_([0-9]+)'
     
     # Detect splits
     has_train = any('_train_' in f for f in filenames)
@@ -199,11 +209,26 @@ def auto_detect_config(outputs_dir=None):
     # Detect model variants
     variants_found = set()
     
-    # Check for base models: scores_v6-google_gemma-2-2b_... (no delta)
-    has_base = any(re.match(r'^scores_v6-google_gemma-2-2b_', f) and 'delta' not in f for f in filenames)
+    # Check for base models (not finetuned).
+    base_candidates = [
+        r'^scores_gemma-2-9b-it_',
+        r'^scores_gemma-2-2b_',
+    ]
+    detected_base_pattern = next(
+        (pat for pat in base_candidates if any(re.match(pat, f) and 'delta' not in f for f in filenames)),
+        None
+    )
+    has_base = detected_base_pattern is not None
     
-    # Check for finetuned models: scores_v6-google_gemma-2-2b-delta... (must start with v6- AND have delta)
-    has_finetuned = any(re.match(r'^scores_v6-google_gemma-2-2b-delta', f) for f in filenames)
+    finetuned_candidates = [
+        r'^scores_v6-google_gemma-2-9b-it-delta',
+        r'^scores_v6-google_gemma-2-2b-delta',
+    ]
+    detected_finetuned_pattern = next(
+        (pat for pat in finetuned_candidates if any(re.match(pat, f) for f in filenames)),
+        None
+    )
+    has_finetuned = detected_finetuned_pattern is not None
     
     # Check for directions
     has_d2g = any('_d2g_' in f for f in filenames)
@@ -219,9 +244,9 @@ def auto_detect_config(outputs_dir=None):
     
     # Update model detection config based on what we found
     config['model_detection'] = {
-        'base_pattern': r'^scores_v6-google_gemma-2-2b_' if has_base else None,
-        'finetuned_pattern': r'^scores_v6-google_gemma-2-2b-delta' if has_finetuned else None,
-        'finetuned_marker': 'delta' if has_finetuned else None,  # legacy fallback
+        'base_pattern': detected_base_pattern if has_base else None,
+        'finetuned_pattern': detected_finetuned_pattern if has_finetuned else None,
+        'finetuned_marker': 'delta' if not has_finetuned else None,
         'direction_patterns': {},
         'direction_display': {},
         'variant_patterns': {}
@@ -468,7 +493,7 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     direction_display = model_detection.get('direction_display', {'d2g': 'V2G', 'g2d': 'G2V'})
     # Use internal default for variant_display (not configurable)
     variant_display = DEFAULT_VARIANT_DISPLAY
-    
+
     # Check if base model vs finetuned
     # Base: scores_v6-google_gemma-2-2b_hypernym-bananas_... (no "delta")
     # Finetuned: scores_v6-google_gemma-2-2b-delta0.15-epoch2_hypernym-bananas-all_d2g_... (has "delta")
@@ -481,9 +506,21 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     
     # Base model: matches pattern AND not finetuned
     is_base = base_pattern and re.match(base_pattern, filename) and not is_finetuned
+
+    pref_match = re.search(r'(?:^|[_-])pref(?P<weight>\d+(?:\.\d+)?)', filename)
+    pref_weight = None
+    if pref_match:
+        try:
+            pref_weight = float(pref_match.group('weight'))
+        except ValueError:
+            pref_weight = None
+    no_pref = pref_weight is not None and pref_weight == 0.0
     
     if is_base:
         return 'base', 'Base', 'Base'
+
+    if no_pref:
+        return 'base', 'No Pref Base', 'No Pref Base'
     
     if not is_finetuned:
         # Doesn't match our expected format - skip it
@@ -786,6 +823,10 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
             # Base model: matches pattern AND no delta
             if base_pattern and re.match(base_pattern, filename) and 'delta' not in filename:
                 is_actual_base = True
+        elif training_variant == 'No Pref Base':
+            # No-pref base: allow pref0.0 runs even if they have delta
+            if re.search(r'(?:^|[_-])pref0(?:\.0+)?', filename):
+                is_actual_base = True
         
         try:
             df = load_scores_data(file_info['path'], config)
@@ -821,6 +862,13 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
                     # Track that this was copied from base direction
                     if ('base', 'Base', eval_col) in file_tracking:
                         file_tracking[(dir_key, 'Base', eval_col)] = file_tracking[('base', 'Base', eval_col)]
+
+            # Also copy "No Pref Base" if present
+            if data['base'].get('No Pref Base', {}).get(eval_col) is not None:
+                if dir_key in data:
+                    data[dir_key]['No Pref Base'][eval_col] = data['base']['No Pref Base'][eval_col]
+                    if ('base', 'No Pref Base', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'No Pref Base', eval_col)] = file_tracking[('base', 'No Pref Base', eval_col)]
     
     # Write file tracking to log file for debugging
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -961,6 +1009,8 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
+            relevant_rows.append(row)
+        if row == f'No Pref Base':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
@@ -1112,6 +1162,8 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
+            relevant_rows.append(row)
+        elif row == 'No Pref Base':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
@@ -1277,6 +1329,8 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
+            relevant_rows.append(row)
+        elif row == 'No Pref Base':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
@@ -1527,22 +1581,48 @@ app.layout = html.Div([
         # Main scatter plot
         dcc.Graph(id='main-scatter', style={'height': '700px'}),
         
+        # Click-to-view response panel for main scatter
+        html.Div(id='response-panel-main', style={
+            'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+            'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+            'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+            'whiteSpace': 'pre-wrap'
+        }, children="Click a point in the main scatter to view the full prompt/response here."),
+        
         # Faceted by strategy
         html.Details([
             html.Summary('📊 Faceted View by Strategy', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
-            dcc.Graph(id='faceted-plot', style={'height': '600px'})
+            dcc.Graph(id='faceted-plot', style={'height': '600px'}),
+            html.Div(id='response-panel-faceted', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap'
+            }, children="Click a point in the faceted plot to view the full prompt/response here.")
         ], style={'margin': '20px'}),
         
         # PCA/Standardized plot
         html.Details([
             html.Summary('🔬 Standardized Scores & PCA Analysis', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
-            dcc.Graph(id='pca-plot', style={'height': '500px'})
+            dcc.Graph(id='pca-plot', style={'height': '500px'}),
+            html.Div(id='response-panel-pca', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap'
+            }, children="Click a point in the PCA plots to view the full prompt/response here.")
         ], style={'margin': '20px'}),
         
         # Compare corrections 2x2
         html.Details([
             html.Summary('🔄 Compare Score Corrections (2x2)', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
-            dcc.Graph(id='compare-plot', style={'height': '1100px'})
+            dcc.Graph(id='compare-plot', style={'height': '1100px'}),
+            html.Div(id='response-panel-compare', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap'
+            }, children="Click a point in the compare plot to view the full prompt/response here.")
         ], style={'margin': '20px'}),
         
         # Heatmaps section
@@ -1734,13 +1814,20 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pa
     
     # Load dashboard
     try:
+        # Parse model_detection with better error handling
+        try:
+            model_detection_parsed = json.loads(model_detection) if model_detection else {}
+        except json.JSONDecodeError as e:
+            print(f"Warning: Failed to parse model_detection JSON: {e}")
+            model_detection_parsed = {}
+        
         config = {
             'outputs_dir': outputs_dir,
             'task_pattern': task_pattern,
             'split_patterns': json.loads(split_patterns) if split_patterns else {},
             'label_column': label_col,
             'label_map': json.loads(label_map) if label_map else None,
-            'model_detection': json.loads(model_detection) if model_detection else {},
+            'model_detection': model_detection_parsed,
             'aggregation_groups': json.loads(aggregation) if aggregation else {},
             'eval_columns': json.loads(eval_cols) if eval_cols else {},
             'union_models': json.loads(union_models) if union_models else {},
@@ -1907,27 +1994,46 @@ def update_visualizations(task, split, model_type, config, files_info):
     outlier_set = set(outlier_indices)
     non_outlier_mask = np.array([i not in outlier_set for i in range(len(labels))])
     
-    # Create hover text for all points: (gen, val) noun2
+    # Create hover text for all points.
+    # Always include (gen, val); optionally include noun2.
     has_noun2 = 'noun2' in df.columns
+    has_prompt = 'prompt' in df.columns
+    has_response = 'response' in df.columns
+    
+    full_prompts = df['prompt'].astype(str).fillna('') if has_prompt else pd.Series([''] * len(df))
+    full_responses = df['response'].astype(str).fillna('') if has_response else pd.Series([''] * len(df))
+    
     hover_texts = []
     for i in range(len(gen_scores)):
-        noun2_str = f" {df['noun2'].iloc[i]}" if has_noun2 else ""
-        hover_texts.append(f"({gen_scores[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
+        parts = [f"Gen={gen_scores[i]:.2f}", f"Val={val_scores[i]:.2f}"]
+        if has_noun2:
+            parts.append(f"Item={df['noun2'].iloc[i]}")
+        hover_text = " | ".join(parts)
+        hover_texts.append(hover_text)
     hover_texts = np.array(hover_texts)
+    
+    # Customdata for click: full prompt/response
+    customdata = np.column_stack([full_prompts.values, full_responses.values]) if (has_prompt or has_response) else None
     
     # Add scatter traces (excluding outliers)
     main_fig.add_trace(
-        go.Scatter(x=gen_scores[pos_mask & non_outlier_mask], y=val_scores[pos_mask & non_outlier_mask],
-                   mode='markers', marker=dict(color=POS_CLASS_COLOR, size=8, opacity=0.6),
-                   name='Positive', legendgroup='pos',
-                   hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'),
+        go.Scatter(
+            x=gen_scores[pos_mask & non_outlier_mask], y=val_scores[pos_mask & non_outlier_mask],
+            mode='markers', marker=dict(color=POS_CLASS_COLOR, size=8, opacity=0.6),
+            name='Positive', legendgroup='pos',
+            hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[pos_mask & non_outlier_mask] if customdata is not None else None
+        ),
         row=2, col=1
     )
     main_fig.add_trace(
-        go.Scatter(x=gen_scores[neg_mask & non_outlier_mask], y=val_scores[neg_mask & non_outlier_mask],
-                   mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=8, opacity=0.6),
-                   name='Negative', legendgroup='neg',
-                   hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'),
+        go.Scatter(
+            x=gen_scores[neg_mask & non_outlier_mask], y=val_scores[neg_mask & non_outlier_mask],
+            mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=8, opacity=0.6),
+            name='Negative', legendgroup='neg',
+            hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[neg_mask & non_outlier_mask] if customdata is not None else None
+        ),
         row=2, col=1
     )
     
@@ -1949,7 +2055,8 @@ def update_visualizations(task, split, model_type, config, files_info):
             text=outlier_display_texts,
             textposition='top right', textfont=dict(size=8),
             name='Outliers', showlegend=False,
-            hovertext=hover_texts[outlier_indices], hoverinfo='text'
+            hovertext=hover_texts[outlier_indices], hoverinfo='text',
+            customdata=customdata[outlier_indices] if customdata is not None else None
         ),
         row=2, col=1
     )
@@ -1987,17 +2094,23 @@ def update_visualizations(task, split, model_type, config, files_info):
         total_pos = strat_pos.sum()
         
         faceted_fig.add_trace(
-            go.Scatter(x=gen_scores[strat_pos], y=val_scores[strat_pos],
-                       mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.6),
-                       name=f'Pos ({total_pos})', showlegend=(idx == 0),
-                       hovertext=hover_texts[strat_pos], hoverinfo='text'),
+            go.Scatter(
+                x=gen_scores[strat_pos], y=val_scores[strat_pos],
+                mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.6),
+                name=f'Pos ({total_pos})', showlegend=(idx == 0),
+                hovertext=hover_texts[strat_pos], hoverinfo='text',
+                customdata=customdata[strat_pos] if customdata is not None else None
+            ),
             row=row, col=col
         )
         faceted_fig.add_trace(
-            go.Scatter(x=gen_scores[strat_neg], y=val_scores[strat_neg],
-                       mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.6),
-                       name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0),
-                       hovertext=hover_texts[strat_neg], hoverinfo='text'),
+            go.Scatter(
+                x=gen_scores[strat_neg], y=val_scores[strat_neg],
+                mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.6),
+                name=f'Neg ({strat_neg.sum()})', showlegend=(idx == 0),
+                hovertext=hover_texts[strat_neg], hoverinfo='text',
+                customdata=customdata[strat_neg] if customdata is not None else None
+            ),
             row=row, col=col
         )
         faceted_fig.add_hline(y=threshold, line=dict(color='red', dash='dash'), row=row, col=col)
@@ -2028,16 +2141,31 @@ def update_visualizations(task, split, model_type, config, files_info):
     pca_fig = make_subplots(rows=1, cols=2, subplot_titles=['Standardized Scores', 'PCA'])
     
     # Left: Standardized scores (exclude outliers from regular dots)
-    pca_fig.add_trace(go.Scatter(x=X_std[pos_mask & non_outlier_mask, 0], y=X_std[pos_mask & non_outlier_mask, 1], mode='markers', 
-                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive',
-                                  hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'), row=1, col=1)
-    pca_fig.add_trace(go.Scatter(x=X_std[neg_mask & non_outlier_mask, 0], y=X_std[neg_mask & non_outlier_mask, 1], mode='markers',
-                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative',
-                                  hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=1)
-    pca_fig.add_trace(go.Scatter(x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
-                                  marker=dict(symbol='x', size=8, color=outlier_colors),
-                                  name='Outliers', showlegend=False,
-                                  hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=1)
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_std[pos_mask & non_outlier_mask, 0], y=X_std[pos_mask & non_outlier_mask, 1], mode='markers',
+            marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive',
+            hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[pos_mask & non_outlier_mask] if customdata is not None else None
+        ), row=1, col=1
+    )
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_std[neg_mask & non_outlier_mask, 0], y=X_std[neg_mask & non_outlier_mask, 1], mode='markers',
+            marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative',
+            hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[neg_mask & non_outlier_mask] if customdata is not None else None
+        ), row=1, col=1
+    )
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
+            marker=dict(symbol='x', size=8, color=outlier_colors),
+            name='Outliers', showlegend=False,
+            hovertext=hover_texts[outlier_indices], hoverinfo='text',
+            customdata=customdata[outlier_indices] if customdata is not None else None
+        ), row=1, col=1
+    )
     
     # Add y=x identity line to standardized scores plot
     std_range = max(np.abs(X_std).max(), 3)
@@ -2046,16 +2174,31 @@ def update_visualizations(task, split, model_type, config, files_info):
                                   name='y=x', showlegend=True), row=1, col=1)
     
     # Right: PCA (exclude outliers from regular dots)
-    pca_fig.add_trace(go.Scatter(x=X_pca[pos_mask & non_outlier_mask, 0], y=X_pca[pos_mask & non_outlier_mask, 1], mode='markers',
-                                  marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
-                                  hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text'), row=1, col=2)
-    pca_fig.add_trace(go.Scatter(x=X_pca[neg_mask & non_outlier_mask, 0], y=X_pca[neg_mask & non_outlier_mask, 1], mode='markers',
-                                  marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
-                                  hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text'), row=1, col=2)
-    pca_fig.add_trace(go.Scatter(x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
-                                  marker=dict(symbol='x', size=8, color=outlier_colors),
-                                  showlegend=False,
-                                  hovertext=hover_texts[outlier_indices], hoverinfo='text'), row=1, col=2)
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_pca[pos_mask & non_outlier_mask, 0], y=X_pca[pos_mask & non_outlier_mask, 1], mode='markers',
+            marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
+            hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[pos_mask & non_outlier_mask] if customdata is not None else None
+        ), row=1, col=2
+    )
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_pca[neg_mask & non_outlier_mask, 0], y=X_pca[neg_mask & non_outlier_mask, 1], mode='markers',
+            marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), showlegend=False,
+            hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text',
+            customdata=customdata[neg_mask & non_outlier_mask] if customdata is not None else None
+        ), row=1, col=2
+    )
+    pca_fig.add_trace(
+        go.Scatter(
+            x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
+            marker=dict(symbol='x', size=8, color=outlier_colors),
+            showlegend=False,
+            hovertext=hover_texts[outlier_indices], hoverinfo='text',
+            customdata=customdata[outlier_indices] if customdata is not None else None
+        ), row=1, col=2
+    )
     
     pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
     # Add zeroline (axis lines) for both plots
@@ -2090,10 +2233,14 @@ def update_visualizations(task, split, model_type, config, files_info):
             if valid_mask.sum() > 0:
                 # Create hover text for this variant (uses gen_vals for x)
                 compare_hover = []
+                
                 for i in range(len(gen_vals)):
-                    noun2_str = f" {df['noun2'].iloc[i]}" if has_noun2 else ""
-                    compare_hover.append(f"({gen_vals[i]:.2f}, {val_scores[i]:.2f}){noun2_str}")
+                    parts = [f"Gen={gen_vals[i]:.2f}", f"Val={val_scores[i]:.2f}"]
+                    if has_noun2:
+                        parts.append(f"Item={df['noun2'].iloc[i]}")
+                    compare_hover.append(" | ".join(parts))
                 compare_hover = np.array(compare_hover)
+                compare_customdata = customdata if customdata is not None else None
                 
                 # Compute outliers for this variant (reuse outlier_method from main plot)
                 X_var = np.column_stack([gen_vals[valid_mask], val_scores[valid_mask]])
@@ -2154,28 +2301,37 @@ def update_visualizations(task, split, model_type, config, files_info):
                 
                 # Add scatter traces (excluding outliers)
                 compare_fig.add_trace(
-                    go.Scatter(x=gen_vals[pos_mask & valid_mask & var_non_outlier_mask], 
-                               y=val_scores[pos_mask & valid_mask & var_non_outlier_mask],
-                               mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5),
-                               showlegend=(idx == 0), name='Positive',
-                               hovertext=compare_hover[pos_mask & valid_mask & var_non_outlier_mask], hoverinfo='text'),
+                    go.Scatter(
+                        x=gen_vals[pos_mask & valid_mask & var_non_outlier_mask], 
+                        y=val_scores[pos_mask & valid_mask & var_non_outlier_mask],
+                        mode='markers', marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5),
+                        showlegend=(idx == 0), name='Positive',
+                        hovertext=compare_hover[pos_mask & valid_mask & var_non_outlier_mask], hoverinfo='text',
+                        customdata=compare_customdata[pos_mask & valid_mask & var_non_outlier_mask] if compare_customdata is not None else None
+                    ),
                     row=row, col=col
                 )
                 compare_fig.add_trace(
-                    go.Scatter(x=gen_vals[neg_mask & valid_mask & var_non_outlier_mask], 
-                               y=val_scores[neg_mask & valid_mask & var_non_outlier_mask],
-                               mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5),
-                               showlegend=(idx == 0), name='Negative',
-                               hovertext=compare_hover[neg_mask & valid_mask & var_non_outlier_mask], hoverinfo='text'),
+                    go.Scatter(
+                        x=gen_vals[neg_mask & valid_mask & var_non_outlier_mask], 
+                        y=val_scores[neg_mask & valid_mask & var_non_outlier_mask],
+                        mode='markers', marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5),
+                        showlegend=(idx == 0), name='Negative',
+                        hovertext=compare_hover[neg_mask & valid_mask & var_non_outlier_mask], hoverinfo='text',
+                        customdata=compare_customdata[neg_mask & valid_mask & var_non_outlier_mask] if compare_customdata is not None else None
+                    ),
                     row=row, col=col
                 )
                 
                 # Add outliers as X markers
                 compare_fig.add_trace(
-                    go.Scatter(x=gen_vals[var_outlier_indices], y=val_scores[var_outlier_indices],
-                               mode='markers', marker=dict(symbol='x', size=8, color=var_outlier_colors),
-                               showlegend=False,
-                               hovertext=compare_hover[var_outlier_indices], hoverinfo='text'),
+                    go.Scatter(
+                        x=gen_vals[var_outlier_indices], y=val_scores[var_outlier_indices],
+                        mode='markers', marker=dict(symbol='x', size=8, color=var_outlier_colors),
+                        showlegend=False,
+                        hovertext=compare_hover[var_outlier_indices], hoverinfo='text',
+                        customdata=compare_customdata[var_outlier_indices] if compare_customdata is not None else None
+                    ),
                     row=row, col=col
                 )
                 
@@ -2259,6 +2415,42 @@ def update_visualizations(task, split, model_type, config, files_info):
     
     file_status = f"Loaded: {Path(csv_path).name}"
     return file_status, stats_text, main_fig, faceted_fig, pca_fig, compare_fig
+
+
+@app.callback(
+    [Output('response-panel-main', 'children'),
+     Output('response-panel-faceted', 'children'),
+     Output('response-panel-pca', 'children'),
+     Output('response-panel-compare', 'children')],
+    [Input('main-scatter', 'clickData'),
+     Input('faceted-plot', 'clickData'),
+     Input('pca-plot', 'clickData'),
+     Input('compare-plot', 'clickData')]
+)
+def update_response_panels(main_click, faceted_click, pca_click, compare_click):
+    """Show full prompt/response text on click for each graph."""
+    def render_panel(click_data, empty_text):
+        if not click_data or 'points' not in click_data or not click_data['points']:
+            return empty_text
+        point = click_data['points'][0]
+        customdata = point.get('customdata')
+        if not customdata or len(customdata) < 2:
+            return "No prompt/response text available for this point."
+        prompt_text = customdata[0] or ""
+        response_text = customdata[1] or ""
+        return html.Div([
+            html.Div("Prompt:", style={'fontWeight': 'bold', 'marginBottom': '4px'}),
+            html.Pre(prompt_text, style={'whiteSpace': 'pre-wrap', 'marginTop': '0', 'marginBottom': '12px'}),
+            html.Div("Response:", style={'fontWeight': 'bold', 'marginBottom': '4px'}),
+            html.Pre(response_text, style={'whiteSpace': 'pre-wrap', 'marginTop': '0'})
+        ])
+    
+    return (
+        render_panel(main_click, "Click a point in the main scatter to view the full prompt/response here."),
+        render_panel(faceted_click, "Click a point in the faceted plot to view the full prompt/response here."),
+        render_panel(pca_click, "Click a point in the PCA plots to view the full prompt/response here."),
+        render_panel(compare_click, "Click a point in the compare plot to view the full prompt/response here.")
+    )
 
 
 @app.callback(

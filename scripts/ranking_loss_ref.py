@@ -406,8 +406,8 @@ def save_tracked_scores(results, output_path):
 
 def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
                                 typicality_correction, length_normalize, use_full_completion,
-                                nll_validator_weight, nll_generator_weight, force_same_x=False,
-                                boost_initial_val=False):
+                                preference_loss_weight, nll_validator_weight, nll_generator_weight,
+                                force_same_x=False, boost_initial_val=False):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
@@ -415,6 +415,7 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
     typcorr_str = "-tc-online" if typicality_correction else ""  # tc = typicality correction, online = applied during training
     lenorm_str = "-lenorm" if length_normalize else ""
     full_completion_str = "-full-completion" if use_full_completion else ""
+    pref_str = f"-pref{preference_loss_weight}" if preference_loss_weight != 1.0 else ""
     nll_v_str = f"-nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
     nll_g_str = f"-nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
     force_same_x_str = "-force-same-x" if force_same_x else ""
@@ -422,7 +423,7 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
     
     base_name = (f"v5-{model_name.replace('/', '--')}-delta{delta}--{task}{all_str}"
                  f"--{direction_str}--{split_type}{alpha_str}{typcorr_str}{lenorm_str}"
-                 f"{full_completion_str}{nll_v_str}{nll_g_str}{force_same_x_str}{valboost_str}")
+                 f"{full_completion_str}{pref_str}{nll_v_str}{nll_g_str}{force_same_x_str}{valboost_str}")
     return base_name
 
 
@@ -444,6 +445,7 @@ def main(args):
     gradient_checkpointing = args.gradient_checkpointing
     use_full_completion = not args.no_full_completion
     debug = args.debug
+    preference_loss_weight = args.preference_loss_weight
     nll_validator_weight = args.nll_validator_weight
     nll_generator_weight = args.nll_generator_weight
     use_wandb = not args.no_wandb
@@ -457,7 +459,7 @@ def main(args):
         tracking_base_name = get_tracking_base_filename(
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
-            nll_validator_weight, nll_generator_weight, args.force_same_x,
+            preference_loss_weight, nll_validator_weight, nll_generator_weight, args.force_same_x,
             args.boost_initial_val
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
@@ -476,7 +478,8 @@ def main(args):
         run_name = args.wandb_run_name
         if run_name is None:
             # Auto-generate run name from key parameters
-            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}-lr{lr}"
+            pref_str = f"-pref{preference_loss_weight}" if preference_loss_weight != 1.0 else ""
+            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}{pref_str}-lr{lr}"
         
         wandb.init(
             project="rankalign",
@@ -486,6 +489,7 @@ def main(args):
                 "task": task,
                 "train_g_or_d": train_g_or_d,
                 "delta": delta,
+                "preference_loss_weight": preference_loss_weight,
                 "nll_validator_weight": nll_validator_weight,
                 "nll_generator_weight": nll_generator_weight,
                 "learning_rate": lr,
@@ -2117,7 +2121,7 @@ def main(args):
                 
                 # Note: NLL loss not yet implemented for 'both' mode
                 # Use 'd' or 'g' mode with --nll_validator_weight or --nll_generator_weight
-                loss = preference_loss
+                loss = preference_loss_weight * preference_loss
 
                 loss.backward()
                 optimizer.step()
@@ -2316,7 +2320,11 @@ def main(args):
                 nll_generator_loss = -(score_gen_i * indicator_i + score_gen_j * indicator_j).mean() / 2
                 
                 # Total loss
-                loss = preference_loss + nll_validator_weight * nll_validator_loss + nll_generator_weight * nll_generator_loss
+                loss = (
+                    preference_loss_weight * preference_loss
+                    + nll_validator_weight * nll_validator_loss
+                    + nll_generator_weight * nll_generator_loss
+                )
                 
                 loss.backward()
                 optimizer.step()
@@ -2415,12 +2423,13 @@ def main(args):
             lenorm_str = "--lenorm" if args.length_normalize else ""
             single_token_str = "--single-token-data" if args.single_token_data_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
+            pref_str = f"--pref{preference_loss_weight}" if preference_loss_weight != 1.0 else ""
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
             valboost_str = "--valboost" if args.boost_initial_val else ""
             vallogodds_str = "--vallogodds" if validator_log_odds else ""
-            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str
+            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2489,6 +2498,7 @@ if __name__ == "__main__":
     parser.add_argument("--no-full-completion", default=False, action='store_true', help="Use only first token for scoring instead of full completion (full completion is default)")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_data_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
+    parser.add_argument("--preference_loss_weight", type=float, default=1.0, help="Weight for preference (pairwise) loss")
     parser.add_argument("--nll_validator_weight", type=float, default=0.0, help="Weight for NLL loss on validator (discriminator) correct answers")
     parser.add_argument("--nll_generator_weight", type=float, default=0.0, help="Weight for NLL loss on generator completions (only for positive examples)")
     parser.add_argument("--no-wandb", action="store_true", default=False, help="Disable Weights & Biases logging (enabled by default)")

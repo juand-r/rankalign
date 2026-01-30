@@ -26,6 +26,10 @@ def is_hypernym_task(task):
     """Check if task is any hypernym variant (hypernym, hypernym-cars, hypernym-fruit, etc.)"""
     return task == 'hypernym' or task.startswith('hypernym-')
 
+def is_ifeval_task(task):
+    """Check if task is any IFEval variant (ifeval, ifeval-<prompt_name>, etc.)"""
+    return task == 'ifeval' or task.startswith('ifeval-')
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -841,6 +845,72 @@ def main(args):
                     ])
             print(f"Detailed scores saved to: {scores_csv_filename}")
         
+        elif args.save_scores_csv and is_ifeval_task(task):
+            import csv
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            model_short = modelname.split('/')[-1].replace('--', '_')
+            split = "train"
+            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+            eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+            scores_csv_filename = f"../outputs/scores_{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+
+            def _get_field(obj, key, default=""):
+                if hasattr(obj, key):
+                    return getattr(obj, key)
+                try:
+                    return obj[key]
+                except Exception:
+                    return default
+
+            with open(scores_csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'prompt',
+                    'response',
+                    'num_tokens',
+                    'correct',
+                    'val_prompt',
+                    'val_score',
+                    'gen_score',
+                    'gen_score_typcorr',
+                    'gen_score_lenorm',
+                    'gen_score_typcorr_lenorm',
+                ])
+
+                for i, item in enumerate(LL):
+                    prompt = _get_field(item, 'prompt', '')
+                    response = _get_field(item, 'response', _get_field(item, 'generator-completion', ''))
+                    correct = _get_field(item, 'correct', _get_field(item, 'discriminator-gold-completion', ''))
+
+                    val_prompt = all_prompts_disc[i]
+
+                    num_toks = all_num_tokens[i]
+                    gen_score_raw = gen_scores_raw[i]
+                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                    gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                    if isinstance(correct, bool):
+                        correct = "Yes" if correct else "No"
+
+                    writer.writerow([
+                        prompt,
+                        response,
+                        num_toks,
+                        correct,
+                        val_prompt,
+                        disc_scores[i],
+                        gen_score_raw,
+                        gen_score_typcorr_val,
+                        gen_score_lenorm,
+                        gen_score_typcorr_lenorm,
+                    ])
+
+            print(f"Detailed scores saved to: {scores_csv_filename}")
+        
         return
 
     gc.collect()
@@ -994,6 +1064,87 @@ def main(args):
                     disc_prompt_final
                 ])
         
+        print(f"Detailed scores saved to: {scores_csv_filename}")
+
+    elif args.save_scores_csv and is_ifeval_task(task):
+        import csv
+        from datetime import datetime
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        model_short = modelname.split('/')[-1].replace('--', '_')
+        split = "train" if args.train else "test"
+        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+        # Add eval setting suffixes
+        eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+        scores_csv_filename = f"../outputs/scores_{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+
+        # Determine strategy string (kept for debugging/repro; not a required column for IFEval)
+        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+        if use_full_completion_logprobs:
+            strategy += "_fullcomp"
+        else:
+            strategy += "_singletoken"
+        strategy += "_logodds" if args.validator_log_odds else "_logprobs"
+        if args.typicality_correction:
+            strategy += "_typcorr"
+
+        def _get_field(obj, key, default=""):
+            if hasattr(obj, key):
+                return getattr(obj, key)
+            try:
+                return obj[key]
+            except Exception:
+                return default
+
+        with open(scores_csv_filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'prompt',
+                'response',
+                'num_tokens',
+                'correct',
+                'val_prompt',
+                'val_score',
+                'gen_score',
+                'gen_score_typcorr',
+                'gen_score_lenorm',
+                'gen_score_typcorr_lenorm',
+            ])
+
+            for i, item in enumerate(LL):
+                prompt = _get_field(item, 'prompt', '')
+                response = _get_field(item, 'response', _get_field(item, 'generator-completion', ''))
+                correct = _get_field(item, 'correct', _get_field(item, 'discriminator-gold-completion', ''))
+
+                # Prompts: keep full validator prompt (contains both prompt+response); generator prompt may
+                # include few-shot examples so we do not write it unless requested.
+                val_prompt = all_prompts_disc[i]
+
+                # Compute length-normalized scores
+                num_toks = all_num_tokens[i]
+                gen_score_raw = gen_scores_raw[i]
+                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                # Normalize correct to Yes/No if it's a bool
+                if isinstance(correct, bool):
+                    correct = "Yes" if correct else "No"
+
+                writer.writerow([
+                    prompt,
+                    response,
+                    num_toks,
+                    correct,
+                    val_prompt,
+                    disc_scores[i],
+                    gen_score_raw,
+                    gen_score_typcorr_val,
+                    gen_score_lenorm,
+                    gen_score_typcorr_lenorm,
+                ])
+
         print(f"Detailed scores saved to: {scores_csv_filename}")
 
 
