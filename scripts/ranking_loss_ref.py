@@ -2202,23 +2202,24 @@ def main(args):
                 outputs_j = model(input_ids=input_ids_j, attention_mask=attention_mask_j)
                 log_probs_j = F.log_softmax(outputs_j.logits, dim=-1)  # [B, seq_len, vocab_size]
                 
+                # Helper function to compute log-odds for yes vs no
+                def compute_logodds_simple(log_probs, token_ids):
+                    """Compute log-odds for yes vs no at the position predicting the completion."""
+                    batch_size = log_probs.shape[0]
+                    logodds_list = []
+                    for b in range(batch_size):
+                        comp_len = token_ids[b].size(0)
+                        pred_pos = -(comp_len + 1)
+                        probs_at_pos = torch.exp(log_probs[b, pred_pos, :])
+                        p_yes = probs_at_pos[yestoks].sum()
+                        p_no = probs_at_pos[notoks].sum()
+                        logodds = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
+                        logodds_list.append(logodds)
+                    return torch.stack(logodds_list)
+                
                 # Compute scores - use log-odds for discriminator mode if flag is set
                 if train_g_or_d == 'd' and validator_log_odds:
                     # Log-odds: log(sum P(yes_tokens)) - log(sum P(no_tokens))
-                    def compute_logodds_simple(log_probs, token_ids):
-                        """Compute log-odds for yes vs no at the position predicting the completion."""
-                        batch_size = log_probs.shape[0]
-                        logodds_list = []
-                        for b in range(batch_size):
-                            comp_len = token_ids[b].size(0)
-                            pred_pos = -(comp_len + 1)
-                            probs_at_pos = torch.exp(log_probs[b, pred_pos, :])
-                            p_yes = probs_at_pos[yestoks].sum()
-                            p_no = probs_at_pos[notoks].sum()
-                            logodds = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
-                            logodds_list.append(logodds)
-                        return torch.stack(logodds_list)
-                    
                     score_i = compute_logodds_simple(log_probs_i, token_id_i)
                     score_j = compute_logodds_simple(log_probs_j, token_id_j)
                 else:
@@ -2291,10 +2292,23 @@ def main(args):
                 diff = score_j - score_i - diff_ref
                 preference_loss = -torch.log(torch.sigmoid(diff) + 1e-12).mean()
                 
-                # Validator NLL: -log P(correct_answer | prompt) for both items
-                score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
-                score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                nll_validator_loss = -(score_correct_i + score_correct_j).mean() / 2
+                # Validator NLL loss
+                if validator_log_odds:
+                    # Use log-odds with binary cross-entropy (aligns training with evaluation)
+                    logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
+                    logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
+                    nll_validator_loss = (
+                        F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
+                        F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
+                    ).mean() / 2
+                    # For logging, compute score_correct as log-odds (signed by correct answer)
+                    score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
+                    score_correct_j = logodds_correct_j * (2 * indicator_j - 1)
+                else:
+                    # Original: -log P(correct_answer | prompt) for both items
+                    score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
+                    score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
+                    nll_validator_loss = -(score_correct_i + score_correct_j).mean() / 2
                 
                 # Generator NLL: -log P(completion | prompt) * indicator (only for positive examples)
                 score_gen_i = sum_completion_logprobs(log_probs_i, token_gen_i)
@@ -2405,7 +2419,8 @@ def main(args):
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
             valboost_str = "--valboost" if args.boost_initial_val else ""
-            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str
+            vallogodds_str = "--vallogodds" if validator_log_odds else ""
+            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str
             print("Saving to ", save_directory)
             
             if use_lora:
