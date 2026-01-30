@@ -56,8 +56,9 @@ DEFAULT_CONFIG = {
     'gen_score_col': 'gen_score',
     'val_score_col': 'val_score',
     'model_detection': {
-        'base_pattern': r'^scores_gemma-2-2b_',  # base model (not finetuned)
-        'finetuned_marker': 'v5-',  # marker for finetuned models
+        'base_pattern': r'^scores_v6-google_gemma-2-2b_',  # base model: scores_v6-google_gemma-2-2b_...
+        'finetuned_pattern': r'^scores_v6-google_gemma-2-2b-delta',  # finetuned: scores_v6-google_gemma-2-2b-delta...
+        'finetuned_marker': 'delta',  # legacy marker (used with finetuned_pattern now)
         'direction_patterns': {
             'd2g': '_d2g_',
             'g2d': '_g2d_'
@@ -195,11 +196,11 @@ def auto_detect_config(outputs_dir=None):
     # Detect model variants
     variants_found = set()
     
-    # Check for base models (not finetuned)
-    has_base = any(re.match(r'^scores_gemma-2-2b_', f) for f in filenames)
+    # Check for base models: scores_v6-google_gemma-2-2b_... (no delta)
+    has_base = any(re.match(r'^scores_v6-google_gemma-2-2b_', f) and 'delta' not in f for f in filenames)
     
-    # Check for finetuned models
-    has_finetuned = any('v5-' in f for f in filenames)
+    # Check for finetuned models: scores_v6-google_gemma-2-2b-delta... (must start with v6- AND have delta)
+    has_finetuned = any(re.match(r'^scores_v6-google_gemma-2-2b-delta', f) for f in filenames)
     
     # Check for directions
     has_d2g = any('_d2g_' in f for f in filenames)
@@ -215,8 +216,9 @@ def auto_detect_config(outputs_dir=None):
     
     # Update model detection config based on what we found
     config['model_detection'] = {
-        'base_pattern': r'^scores_gemma-2-2b_' if has_base else None,
-        'finetuned_marker': 'v5-' if has_finetuned else None,
+        'base_pattern': r'^scores_v6-google_gemma-2-2b_' if has_base else None,
+        'finetuned_pattern': r'^scores_v6-google_gemma-2-2b-delta' if has_finetuned else None,
+        'finetuned_marker': 'delta' if has_finetuned else None,  # legacy fallback
         'direction_patterns': {},
         'direction_display': {},
         'variant_patterns': {}
@@ -421,6 +423,10 @@ def parse_filename(csv_file, config):
         name, model_detection, is_union=is_union, union_config=union_config
     )
     
+    # Skip files that don't match expected format
+    if direction is None:
+        return None
+    
     display_name = f'{task} | {split} | {model_type}'
     
     return {
@@ -453,26 +459,32 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
             - model_type: combined label like 'V2G+tc' for dropdown display
     """
     base_pattern = model_detection.get('base_pattern')
-    finetuned_marker = model_detection.get('finetuned_marker')
+    finetuned_pattern = model_detection.get('finetuned_pattern')
+    finetuned_marker = model_detection.get('finetuned_marker')  # legacy fallback
     direction_patterns = model_detection.get('direction_patterns', {})
     direction_display = model_detection.get('direction_display', {'d2g': 'V2G', 'g2d': 'G2V'})
-    variant_patterns = model_detection.get('variant_patterns', {})
     # Use internal default for variant_display (not configurable)
     variant_display = DEFAULT_VARIANT_DISPLAY
     
-    # Check if base model
-    is_base = False
-    if base_pattern:
-        is_base = bool(re.match(base_pattern, filename))
+    # Check if base model vs finetuned
+    # Base: scores_v6-google_gemma-2-2b_hypernym-bananas_... (no "delta")
+    # Finetuned: scores_v6-google_gemma-2-2b-delta0.15-epoch2_hypernym-bananas-all_d2g_... (has "delta")
     
-    # Check if finetuned
-    is_finetuned = finetuned_marker and finetuned_marker in filename
+    # Finetuned models: use finetuned_pattern if available, else fall back to finetuned_marker
+    if finetuned_pattern:
+        is_finetuned = bool(re.match(finetuned_pattern, filename))
+    else:
+        is_finetuned = finetuned_marker and finetuned_marker in filename
     
-    if is_base and not is_finetuned:
+    # Base model: matches pattern AND not finetuned
+    is_base = base_pattern and re.match(base_pattern, filename) and not is_finetuned
+    
+    if is_base:
         return 'base', 'Base', 'Base'
     
     if not is_finetuned:
-        return 'base', 'Base', 'Base'
+        # Doesn't match our expected format - skip it
+        return None, None, None
     
     # Determine direction using config
     direction = 'unknown'
@@ -483,27 +495,52 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     
     dir_label = direction_display.get(direction, direction.upper())
     
-    # Check variant patterns in order (more specific first - combined patterns before single)
-    # Sort by pattern length (longer = more specific) to check combined patterns first
-    sorted_variants = sorted(variant_patterns.items(), key=lambda x: -len(x[1]))
+    # First, detect what variant the file actually is (using complete pattern set)
+    # Then check if that variant is in the config's variant_patterns
+    variant_patterns = model_detection.get('variant_patterns', {})
     
-    matched_variant = None
-    suffix = ''
-    for variant_name, pattern in sorted_variants:
+    # Complete pattern set for detection (all known variants)
+    all_variant_patterns = {
+        'typcorr_lenorm': '_typcorr_lenorm_full-completion',
+        'tc-online_lenorm': '_tc-online_lenorm_full-completion',
+        'typcorr': '_typcorr_full-completion',
+        'tc-online': '_tc-online_full-completion',
+        'lenorm': '_lenorm_full-completion',
+        'vanilla': '_full-completion_'
+    }
+    
+    # Detect actual variant from filename (using complete pattern set)
+    sorted_all_patterns = sorted(all_variant_patterns.items(), key=lambda x: -len(x[1]))
+    detected_variant = None
+    for variant_name, pattern in sorted_all_patterns:
         if pattern in filename:
-            matched_variant = variant_name
-            break
+            detected_variant = variant_name
+            break  # Use first (most specific) match
     
-    # Build training variant label using config's variant_display
+    # If no variant detected, skip the file (don't assume it's vanilla)
+    if not detected_variant:
+        return None, None, None
+    
+    # Only proceed if detected variant is in config's variant_patterns
+    # This ensures config controls what's shown
+    if detected_variant not in variant_patterns:
+        # File has a variant that's not in config - skip it
+        return None, None, None
+    
+    # Use detected variant (which we know is in config)
+    matched_variant = detected_variant
+    
+    # Map detected variant to display label using variant_display
+    suffix = ''
     if matched_variant:
         suffix = variant_display.get(matched_variant, '')
         if suffix:
             training_variant = suffix
         else:
-            # Vanilla or unknown - use direction label
+            # Vanilla or variant not in variant_display - use direction label
             training_variant = dir_label
     else:
-        # No match - treat as vanilla
+        # No variant detected - treat as vanilla, use direction label
         training_variant = dir_label
     
     # Handle union models - override training_variant with prefix
@@ -708,9 +745,26 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
     # Find matching files
     matching_files = [f for f in files_info if f['task'] == task and f['split'] == split]
     
+    # Check which files are actual base models (match base_pattern)
+    base_pattern = config.get('model_detection', {}).get('base_pattern')
+    
+    # Track which files are used for each row/column (for debugging)
+    file_tracking = {}  # {(direction, training_variant, eval_col): filepath}
+    
     for file_info in matching_files:
         direction = file_info.get('direction', 'base')
         training_variant = file_info.get('training_variant', file_info['model_type'])
+        
+        # Only store in 'base' direction if this is an actual base model file
+        # (matches base_pattern or versioned base pattern), not a misclassified finetuned model
+        filename = Path(file_info['path']).name
+        finetuned_marker = config.get('model_detection', {}).get('finetuned_marker')
+        
+        is_actual_base = False
+        if training_variant == 'Base':
+            # Base model: matches pattern AND no delta
+            if base_pattern and re.match(base_pattern, filename) and 'delta' not in filename:
+                is_actual_base = True
         
         try:
             df = load_scores_data(file_info['path'], config)
@@ -723,18 +777,45 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
                     labels = df['label'].values
                     metrics = compute_metrics(gen_scores, val_scores, labels, metric_type)
                     
+                    # Store in the appropriate direction
                     if direction in data and training_variant in data[direction]:
+                        # Only store in 'base' direction if this is an actual base model
+                        if direction == 'base' and not is_actual_base:
+                            # Skip storing misclassified finetuned models in base direction
+                            continue
                         data[direction][training_variant][eval_col] = metrics
+                        # Track which file was used
+                        file_tracking[(direction, training_variant, eval_col)] = file_info['path']
         except Exception as e:
             print(f"Error loading {file_info['path']}: {e}")
             continue
     
     # Copy base model data to all directions (base model is shared)
+    # Only copy from actual base models stored in data['base']['Base']
     for dir_key in direction_patterns.keys():
         for eval_col in eval_cols:
             if data['base'].get('Base', {}).get(eval_col) is not None:
                 if dir_key in data:
                     data[dir_key]['Base'][eval_col] = data['base']['Base'][eval_col]
+                    # Track that this was copied from base direction
+                    if ('base', 'Base', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'Base', eval_col)] = file_tracking[('base', 'Base', eval_col)]
+    
+    # Write file tracking to log file for debugging
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    log_file = CONFIG_DIR / 'dashboard_file_tracking.log'
+    from datetime import datetime
+    with open(log_file, 'a') as f:
+        f.write(f"\n=== File tracking for {task} / {split} ({datetime.now().strftime('%Y-%m-%d %H:%M:%S')}) ===\n")
+        for direction in sorted(set(d for d, _, _ in file_tracking.keys())):
+            f.write(f"\n{direction.upper()} direction:\n")
+            for training_variant in sorted(set(tv for d, tv, _ in file_tracking.keys() if d == direction)):
+                f.write(f"  {training_variant}:\n")
+                for eval_col in sorted(set(ec for d, tv, ec in file_tracking.keys() if d == direction and tv == training_variant)):
+                    filepath = file_tracking.get((direction, training_variant, eval_col), 'NOT FOUND')
+                    filename = Path(filepath).name if filepath != 'NOT FOUND' else 'NOT FOUND'
+                    f.write(f"    {eval_col}: {filename}\n")
+        f.write("\n")
     
     return data, training_variant_rows, eval_cols
 
