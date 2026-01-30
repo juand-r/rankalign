@@ -253,7 +253,17 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
     
     # Generate filename with metric type and eval settings
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_short = modelname.split('/')[-1].replace('--', '_')
+    # Normalize model name for consistent filenames:
+    # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
+    # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
+    if '/' in modelname and not modelname.startswith('.'):
+        # Base model path like "google/gemma-2-2b" - add v6- prefix for consistency
+        model_short = 'v6-' + modelname.replace('/', '_')
+    else:
+        # Fine-tuned model path like "../models/v6-google--gemma-2-2b-delta..."
+        model_short = modelname.split('/')[-1]  # Get last part of path
+        # Replace -- with _ (google--gemma -> google_gemma)
+        model_short = model_short.replace('--', '_')
     split = "train" if args.train else "test"
     v2_suffix = "_v2" if not args.no_v2 else ""
     eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
@@ -308,7 +318,17 @@ def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_
 
     # Output filename
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    model_short = modelname.split('/')[-1].replace('--', '_')
+    # Normalize model name for consistent filenames:
+    # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
+    # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
+    if '/' in modelname and not modelname.startswith('.'):
+        # Base model path like "google/gemma-2-2b" - add v6- prefix for consistency
+        model_short = 'v6-' + modelname.replace('/', '_')
+    else:
+        # Fine-tuned model path like "../models/v6-google--gemma-2-2b-delta..."
+        model_short = modelname.split('/')[-1]  # Get last part of path
+        # Replace -- with _ (google--gemma -> google_gemma)
+        model_short = model_short.replace('--', '_')
     split = "train" if args.train else "test"
     v2_suffix = "_v2" if not args.no_v2 else ""
     filename = f"../outputs/viz_interactive_{model_short}_{task}_{split}_{metric_type}{v2_suffix}_{timestamp}.html"
@@ -757,7 +777,17 @@ def main(args):
             from datetime import datetime
             
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            model_short = modelname.split('/')[-1].replace('--', '_')
+            # Normalize model name for consistent filenames:
+            # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
+            # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
+            if '/' in modelname and not modelname.startswith('.'):
+                # Base model path like "google/gemma-2-2b" - add v6- prefix for consistency
+                model_short = 'v6-' + modelname.replace('/', '_')
+            else:
+                # Fine-tuned model path like "../models/v6-google--gemma-2-2b-delta..."
+                model_short = modelname.split('/')[-1]  # Get last part of path
+                # Replace -- with _ (google--gemma -> google_gemma)
+                model_short = model_short.replace('--', '_')
             split = "train"
             v2_suffix = "_v2" if not args.no_v2 else ""
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
@@ -897,7 +927,17 @@ def main(args):
         from datetime import datetime
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_short = modelname.split('/')[-1].replace('--', '_')
+        # Normalize model name for consistent filenames:
+        # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
+        # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
+        if '/' in modelname and not modelname.startswith('.'):
+            # Base model path like "google/gemma-2-2b" - add v6- prefix for consistency
+            model_short = 'v6-' + modelname.replace('/', '_')
+        else:
+            # Fine-tuned model path like "../models/v6-google--gemma-2-2b-delta..."
+            model_short = modelname.split('/')[-1]  # Get last part of path
+            # Replace -- with _ (google--gemma -> google_gemma)
+            model_short = model_short.replace('--', '_')
         split = "train" if args.train else "test"
         v2_suffix = "_v2" if not args.no_v2 else ""
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
