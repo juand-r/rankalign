@@ -42,19 +42,18 @@ EPOCH=2
 # Hypernym tasks
 TASKS=(
     "hypernym-bananas"
-    "hypernym-bazookas"
+ #   "hypernym-bazookas"
     "hypernym-cabinets"
     "hypernym-cars"
     "hypernym-chairs"
-    "hypernym-crows"
-    "hypernym-diapers"
-    "hypernym-dogs"
-    "hypernym-kites"
-    "hypernym-jackets"
-    "hypernym-elephants"
-    "hypernym-ducklings"
-    "hypernym-dolls"
-    "hypernym-diapers"
+ #   "hypernym-crows"
+ #   "hypernym-diapers"
+ #   "hypernym-dogs"
+ #   "hypernym-kites"
+ #   "hypernym-jackets"
+ #   "hypernym-elephants"
+ #   "hypernym-ducklings"
+ #   "hypernym-dolls"
 )
 
 mkdir -p logs
@@ -94,28 +93,28 @@ run_task_evals() {
     # ========================================
     # BASE MODEL (google/gemma-2-2b)
     # ========================================
-    echo "[GPU $GPU] Evaluating: Base model (google/gemma-2-2b)"
-    CUDA_VISIBLE_DEVICES=$GPU python eval.py \
-        --model "google/gemma-2-2b" \
-        --task "$TASK" \
-        --split_type random \
-        --validator-log-odds \
-        --typicality-correction \
-        --save-scores-csv \
-        --viz \
-        >> "$LOG_FILE" 2>&1
+#    echo "[GPU $GPU] Evaluating: Base model (google/gemma-2-2b)"
+#    CUDA_VISIBLE_DEVICES=$GPU python eval.py \
+#        --model "google/gemma-2-2b" \
+#        --task "$TASK" \
+#        --split_type random \
+#        --validator-log-odds \
+#        --typicality-correction \
+#        --save-scores-csv \
+#        --viz \
+#        >> "$LOG_FILE" 2>&1
     
     # ========================================
     # d2g (delta=0.15) variants
     # ========================================
     
     # d2g vanilla (no corrections)
-    #MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0"
-    #if [ -d "$MODEL" ]; then
-    #    run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-    #else
-    #    echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-    #fi
+#    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--vallogodds"
+#    if [ -d "$MODEL" ]; then
+#        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+#    else
+#        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+#    fi
     
     # d2g with typcorr only (OLD - commented out)
     # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--full-completion--nllv1.0--nllg1.0"
@@ -126,7 +125,7 @@ run_task_evals() {
     # fi
     
     # d2g with tc-online only
-    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0"
+    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0--vallogodds"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
@@ -134,12 +133,12 @@ run_task_evals() {
     fi
     
     # d2g with lenorm only (already evaluated)
-    # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0"
-    # if [ -d "$MODEL" ]; then
-    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-    # else
-    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-    # fi
+    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
+    if [ -d "$MODEL" ]; then
+        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    else
+        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    fi
     
     # d2g with typcorr + lenorm (OLD - commented out)
     # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
@@ -150,7 +149,7 @@ run_task_evals() {
     # fi
     
     # d2g with tc-online + lenorm
-    MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--lenorm--full-completion--nllv1.0--nllg1.0"
+    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else

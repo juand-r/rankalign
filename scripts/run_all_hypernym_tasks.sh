@@ -36,25 +36,25 @@ TOTAL_SAMPLES=5110
 
 # All 33 hypernym-X tasks (32 individual + 1 concat)
 TASKS=(
-    "hypernym-bananas"
-    "hypernym-bazookas"
-    "hypernym-cabinets"
-    "hypernym-cars"
-    "hypernym-chairs"
+#    "hypernym-bananas"
+#    "hypernym-bazookas"
+#    "hypernym-cabinets"
+#    "hypernym-cars"
+#    "hypernym-chairs"
     "hypernym-crows"
     "hypernym-diapers"
     "hypernym-dogs"
     "hypernym-dolls"
     "hypernym-ducklings"
     "hypernym-elephants"
-#    "hypernym-guns"
-#    "hypernym-hammers"
-#    "hypernym-helmets"
+    "hypernym-guns"
+    "hypernym-hammers"
+    "hypernym-helmets"
     "hypernym-jackets"
-#    "hypernym-kayaks"
+    "hypernym-kayaks"
     "hypernym-kites"
 #    "hypernym-magnifying glasses"
-    "hypernym-mirrors"
+#    "hypernym-mirrors"
 #    "hypernym-nuts"
 #    "hypernym-olives"
 #    "hypernym-oysters"
@@ -95,18 +95,19 @@ echo "Running task: $TASK on GPU $DN"
 echo "========================================"
 
 # Config 1: train_g_or_d=g, delta=0.15, no typicality correction
-#echo "--- Config 1: g, delta=0.15, no typcorr ---"
-#CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
-#    --model $MODEL \
-#    --num_epochs $NUM_EPOCHS \
-#            --task "$TASK" \
-#    --train_g_or_d g \
-#    --split_type random \
-#    --nll_validator_weight 1 \
-#    --nll_generator_weight 1 \
-#    --all \
-#    --delta 0.15 \
-#    --total_samples $TOTAL_SAMPLES
+echo "--- Config 1: g, delta=0.15, no typcorr ---"
+CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
+    --model $MODEL \
+    --num_epochs $NUM_EPOCHS \
+            --task "$TASK" \
+    --train_g_or_d g \
+    --split_type random \
+    --nll_validator_weight 1 \
+    --nll_generator_weight 1 \
+    --all \
+    --delta 0.15 \
+    --total_samples $TOTAL_SAMPLES \
+    --validator-log-odds
 
 # Config 2: train_g_or_d=g, delta=0.15, with length normalization
 echo "--- Config 2: g, delta=0.15, with typcorr ---"
@@ -121,7 +122,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
-    --typicality-correction
+    --typicality-correction \
+    --validator-log-odds
 
 # Config: with typcorr and length normalization
 echo "--- Config 4: g, delta=0.15, with typcorr and length normalization ---"
@@ -137,7 +139,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
     --typicality-correction \
-    --length-normalize
+    --length-normalize \
+    --validator-log-odds
 
 echo "--- Config 2: g, delta=0.15, with length normalization ---"
 CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
@@ -151,7 +154,8 @@ CUDA_VISIBLE_DEVICES=$DN python ranking_loss_ref.py \
     --all \
     --delta 0.15 \
     --total_samples $TOTAL_SAMPLES \
-    --length-normalize
+    --length-normalize \
+    --validator-log-odds
 
 # Config 3: train_g_or_d=d, delta=2.5, no typicality correction
 #echo "--- Config 3: d, delta=2.5, no typcorr, with length normalization ---"
@@ -205,45 +209,45 @@ echo "Finished task: $TASK"
     } >> "$LOG_FILE" 2>&1
 }
 
-# Function to run multiple tasks sequentially on one GPU
-run_gpu_tasks() {
-    local DN=$1
-    shift
-    local GPU_TASKS=("$@")
-    
-    for TASK in "${GPU_TASKS[@]}"; do
-        run_task "$DN" "$TASK"
-    done
-    
-    echo "[GPU $DN] All tasks completed!"
-}
+# Distribute tasks to GPUs (round-robin assignment)
+declare -a GPU_TASK_LISTS
 
-# Distribute tasks to GPUs
-declare -A GPU_TASK_LISTS
-
-for i in "${!TASKS[@]}"; do
-    GPU_IDX=$((i % NUM_GPUS))
-    GPU_NUM=${GPUS[$GPU_IDX]}
-    GPU_TASK_LISTS[$GPU_NUM]+="${TASKS[$i]}"$'\n'
+# Initialize empty task lists for each GPU
+for i in "${!GPUS[@]}"; do
+    GPU_TASK_LISTS[$i]=""
 done
 
-# Launch all GPUs in parallel
+# Assign tasks round-robin to GPUs
+for i in "${!TASKS[@]}"; do
+    GPU_IDX=$((i % NUM_GPUS))
+    if [ -z "${GPU_TASK_LISTS[$GPU_IDX]}" ]; then
+        GPU_TASK_LISTS[$GPU_IDX]="${TASKS[$i]}"
+    else
+        GPU_TASK_LISTS[$GPU_IDX]+=$'\n'"${TASKS[$i]}"
+    fi
+done
+
+# Launch one worker per GPU - each worker processes its tasks sequentially
 echo "Launching training on all GPUs..."
 echo ""
 
-for GPU in "${GPUS[@]}"; do
-    # Convert newline-separated string back to array
-    IFS=$'\n' read -ra TASK_ARRAY <<< "${GPU_TASK_LISTS[$GPU]}"
+for i in "${!GPUS[@]}"; do
+    GPU=${GPUS[$i]}
+    TASK_LIST="${GPU_TASK_LISTS[$i]}"
     
-    # Filter out empty entries
-    FILTERED_TASKS=()
-    for t in "${TASK_ARRAY[@]}"; do
-        [[ -n "$t" ]] && FILTERED_TASKS+=("$t")
-    done
-    
-    if [ ${#FILTERED_TASKS[@]} -gt 0 ]; then
-        echo "GPU $GPU will train: ${FILTERED_TASKS[*]}"
-        run_gpu_tasks "$GPU" "${FILTERED_TASKS[@]}" &
+    if [ -n "$TASK_LIST" ]; then
+        # Convert newline-separated string to array
+        IFS=$'\n' read -ra TASK_ARRAY <<< "$TASK_LIST"
+        
+        echo "GPU $GPU will train sequentially: ${TASK_ARRAY[*]}"
+        
+        # Launch a background worker for this GPU that processes tasks one at a time
+        (
+            for TASK in "${TASK_ARRAY[@]}"; do
+                [[ -n "$TASK" ]] && run_task "$GPU" "$TASK"
+            done
+            echo "[GPU $GPU] All tasks completed!"
+        ) &
     fi
 done
 
