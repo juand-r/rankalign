@@ -623,11 +623,19 @@ def make_prompt_hypernymy_v2(item, style="generator", shots="zero", neg=False, g
             raise NotImplementedError(f"v2 discriminator only supports variation=0, got variation={variation}")
         
         # Few-shot prefix + discriminator_sentence from the CSV
+        # v1 few-shot (animate bias - Yes for animals):
+        # few_shot_prefix = (
+        #     "Do you think bees are furniture? Answer: No\n\n"
+        #     "Do you think corgis are dogs? Answer: Yes\n\n"
+        #     "Do you think trucks are a fruit? Answer: No\n\n"
+        #     "Do you think robins are birds? Answer: Yes\n\n"
+        # )
+        # v2 few-shot (balanced - Yes for both animate and inanimate):
         few_shot_prefix = (
-            "Do you think bees are furniture? Answer: No\n\n"
+            "Do you think bees are dolphins? Answer: No\n\n"
             "Do you think corgis are dogs? Answer: Yes\n\n"
-            "Do you think trucks are a fruit? Answer: No\n\n"
-            "Do you think robins are birds? Answer: Yes\n\n"
+            "Do you think robins are fruit? Answer: No\n\n"
+            "Do you think trucks are vehicles? Answer: Yes\n\n"
         )
         # discriminator_sentence already contains the question (e.g., "Do you think bananas are a food?")
         prompt = few_shot_prefix + item.discriminator_sentence + " Answer:"
