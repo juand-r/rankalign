@@ -109,7 +109,11 @@ DEFAULT_VARIANT_DISPLAY = {
 # Variants that support vallogodds suffix
 VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
 
-DEFAULT_ROW_ORDER = ['Base', 'SFT', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
+DEFAULT_ROW_ORDER = ['Base', 'SFT', 'SFT+vallogodds', 'Pref only', 'Pref only+vallogodds', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
+
+# Rows to hide from heatmaps and barplots
+#HIDDEN_ROWS = {'+tco', 'V2G'}
+HIDDEN_ROWS = set()
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -516,10 +520,31 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
             pref_weight = None
     no_pref = pref_weight is not None and pref_weight == 0.0
     
+    # Parse nll weights (nllv = validator, nllg = generator)
+    nllv_match = re.search(r'nllv(?P<weight>\d+(?:\.\d+)?)', filename)
+    nllg_match = re.search(r'nllg(?P<weight>\d+(?:\.\d+)?)', filename)
+    nllv_weight = float(nllv_match.group('weight')) if nllv_match else None
+    nllg_weight = float(nllg_match.group('weight')) if nllg_match else None
+    
+    # "Pref only" = pref weight is 1.0 and both nll weights are 0.0
+    pref_only = (pref_weight is not None and pref_weight == 1.0 and
+                 nllv_weight is not None and nllv_weight == 0.0 and
+                 nllg_weight is not None and nllg_weight == 0.0)
+    
+    # Check for vallogodds suffix (used for SFT and Pref only variants)
+    has_vallogodds = '_vallogodds' in filename
+    
     if is_base:
         return 'base', 'Base', 'Base'
 
+    if pref_only:
+        if has_vallogodds:
+            return 'base', 'Pref only+vallogodds', 'Pref only+vallogodds'
+        return 'base', 'Pref only', 'Pref only'
+
     if no_pref:
+        if has_vallogodds:
+            return 'base', 'SFT+vallogodds', 'SFT+vallogodds'
         return 'base', 'SFT', 'SFT'
     
     if not is_finetuned:
@@ -823,9 +848,13 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
             # Base model: matches pattern AND no delta
             if base_pattern and re.match(base_pattern, filename) and 'delta' not in filename:
                 is_actual_base = True
-        elif training_variant == 'SFT':
+        elif training_variant in ('SFT', 'SFT+vallogodds'):
             # No-pref base: allow pref0.0 runs even if they have delta
             if re.search(r'(?:^|[_-])pref0(?:\.0+)?', filename):
+                is_actual_base = True
+        elif training_variant in ('Pref only', 'Pref only+vallogodds'):
+            # Pref-only: pref=1.0 and nll weights=0.0
+            if re.search(r'pref1(?:\.0+)?', filename) and re.search(r'nllv0(?:\.0+)?', filename) and re.search(r'nllg0(?:\.0+)?', filename):
                 is_actual_base = True
         
         try:
@@ -866,9 +895,40 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
             # Also copy "SFT" if present
             if data['base'].get('SFT', {}).get(eval_col) is not None:
                 if dir_key in data:
+                    # Ensure the SFT dict exists in this direction
+                    if 'SFT' not in data[dir_key]:
+                        data[dir_key]['SFT'] = {col: None for col in eval_cols}
                     data[dir_key]['SFT'][eval_col] = data['base']['SFT'][eval_col]
                     if ('base', 'SFT', eval_col) in file_tracking:
                         file_tracking[(dir_key, 'SFT', eval_col)] = file_tracking[('base', 'SFT', eval_col)]
+
+            # Also copy "SFT+vallogodds" if present
+            if data['base'].get('SFT+vallogodds', {}).get(eval_col) is not None:
+                if dir_key in data:
+                    if 'SFT+vallogodds' not in data[dir_key]:
+                        data[dir_key]['SFT+vallogodds'] = {col: None for col in eval_cols}
+                    data[dir_key]['SFT+vallogodds'][eval_col] = data['base']['SFT+vallogodds'][eval_col]
+                    if ('base', 'SFT+vallogodds', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'SFT+vallogodds', eval_col)] = file_tracking[('base', 'SFT+vallogodds', eval_col)]
+
+            # Also copy "Pref only" if present
+            if data['base'].get('Pref only', {}).get(eval_col) is not None:
+                if dir_key in data:
+                    # Ensure the Pref only dict exists in this direction
+                    if 'Pref only' not in data[dir_key]:
+                        data[dir_key]['Pref only'] = {col: None for col in eval_cols}
+                    data[dir_key]['Pref only'][eval_col] = data['base']['Pref only'][eval_col]
+                    if ('base', 'Pref only', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'Pref only', eval_col)] = file_tracking[('base', 'Pref only', eval_col)]
+
+            # Also copy "Pref only+vallogodds" if present
+            if data['base'].get('Pref only+vallogodds', {}).get(eval_col) is not None:
+                if dir_key in data:
+                    if 'Pref only+vallogodds' not in data[dir_key]:
+                        data[dir_key]['Pref only+vallogodds'] = {col: None for col in eval_cols}
+                    data[dir_key]['Pref only+vallogodds'][eval_col] = data['base']['Pref only+vallogodds'][eval_col]
+                    if ('base', 'Pref only+vallogodds', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'Pref only+vallogodds', eval_col)] = file_tracking[('base', 'Pref only+vallogodds', eval_col)]
     
     # Write file tracking to log file for debugging
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -1010,7 +1070,9 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        if row == 'SFT':
+        elif row in ('SFT', 'SFT+vallogodds'):
+            relevant_rows.append(row)
+        elif row in ('Pref only', 'Pref only+vallogodds'):
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
@@ -1019,6 +1081,9 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
         elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
         # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
+    
+    # Filter out hidden rows
+    relevant_rows = [r for r in relevant_rows if r not in HIDDEN_ROWS]
     
     if not relevant_rows:
         # No relevant rows at all
@@ -1163,7 +1228,9 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        elif row == 'SFT':
+        elif row in ('SFT', 'SFT+vallogodds'):
+            relevant_rows.append(row)
+        elif row in ('Pref only', 'Pref only+vallogodds'):
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
@@ -1172,6 +1239,9 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
         elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
         # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
+    
+    # Filter out hidden rows
+    relevant_rows = [r for r in relevant_rows if r not in HIDDEN_ROWS]
     
     if not relevant_rows:
         return None
@@ -1330,7 +1400,9 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        elif row == 'SFT':
+        elif row in ('SFT', 'SFT+vallogodds'):
+            relevant_rows.append(row)
+        elif row in ('Pref only', 'Pref only+vallogodds'):
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
@@ -1338,6 +1410,9 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
             relevant_rows.append(row)
         elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
+    
+    # Filter out hidden rows
+    relevant_rows = [r for r in relevant_rows if r not in HIDDEN_ROWS]
     
     x_positions = []
     x_labels = []
