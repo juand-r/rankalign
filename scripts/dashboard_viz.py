@@ -112,8 +112,9 @@ VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
 DEFAULT_ROW_ORDER = ['Base', 'SFT', 'SFT+vallogodds', 'Pref only', 'Pref only+vallogodds', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
 
 # Rows to hide from heatmaps and barplots
-#HIDDEN_ROWS = {'+tco', 'V2G'}
-HIDDEN_ROWS = set()
+HIDDEN_ROWS = {'+tco', 'V2G'}
+
+#HIDDEN_ROWS = set()
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
