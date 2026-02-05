@@ -109,7 +109,7 @@ DEFAULT_VARIANT_DISPLAY = {
 # Variants that support vallogodds suffix
 VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
 
-DEFAULT_ROW_ORDER = ['Base', 'No Pref Base', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
+DEFAULT_ROW_ORDER = ['Base', 'SFT', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -520,7 +520,7 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
         return 'base', 'Base', 'Base'
 
     if no_pref:
-        return 'base', 'No Pref Base', 'No Pref Base'
+        return 'base', 'SFT', 'SFT'
     
     if not is_finetuned:
         # Doesn't match our expected format - skip it
@@ -823,7 +823,7 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
             # Base model: matches pattern AND no delta
             if base_pattern and re.match(base_pattern, filename) and 'delta' not in filename:
                 is_actual_base = True
-        elif training_variant == 'No Pref Base':
+        elif training_variant == 'SFT':
             # No-pref base: allow pref0.0 runs even if they have delta
             if re.search(r'(?:^|[_-])pref0(?:\.0+)?', filename):
                 is_actual_base = True
@@ -863,12 +863,12 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
                     if ('base', 'Base', eval_col) in file_tracking:
                         file_tracking[(dir_key, 'Base', eval_col)] = file_tracking[('base', 'Base', eval_col)]
 
-            # Also copy "No Pref Base" if present
-            if data['base'].get('No Pref Base', {}).get(eval_col) is not None:
+            # Also copy "SFT" if present
+            if data['base'].get('SFT', {}).get(eval_col) is not None:
                 if dir_key in data:
-                    data[dir_key]['No Pref Base'][eval_col] = data['base']['No Pref Base'][eval_col]
-                    if ('base', 'No Pref Base', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'No Pref Base', eval_col)] = file_tracking[('base', 'No Pref Base', eval_col)]
+                    data[dir_key]['SFT'][eval_col] = data['base']['SFT'][eval_col]
+                    if ('base', 'SFT', eval_col) in file_tracking:
+                        file_tracking[(dir_key, 'SFT', eval_col)] = file_tracking[('base', 'SFT', eval_col)]
     
     # Write file tracking to log file for debugging
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -1010,7 +1010,7 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        if row == f'No Pref Base':
+        if row == 'SFT':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
@@ -1163,7 +1163,7 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        elif row == 'No Pref Base':
+        elif row == 'SFT':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
@@ -1330,7 +1330,7 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     for row in training_rows:
         if row == 'Base':
             relevant_rows.append(row)
-        elif row == 'No Pref Base':
+        elif row == 'SFT':
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
