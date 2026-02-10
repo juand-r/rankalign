@@ -34,10 +34,10 @@ EPOCH=1
 
 # ifeval tasks
 TASKS=(
-    "ifeval-prompt_1"
-    "ifeval-prompt_2"
-    "ifeval-prompt_3"
-    "ifeval-prompt_4"
+    # "ifeval-prompt_1"
+    # "ifeval-prompt_2"
+    # "ifeval-prompt_3"
+    # "ifeval-prompt_4"
     "ifeval-prompt_5"
 )
 
@@ -83,27 +83,27 @@ run_task_evals() {
     # BASE MODEL (google/gemma-2-9b-it)
     # ========================================
     # #Base model
-    # MODEL="google/gemma-2-9b-it"
-    # run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    MODEL="google/gemma-2-9b-it"
+    run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
 
     # #No preference loss
-    # MODEL="../models/v5-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0_merged"
-    # run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    MODEL="../models/v6-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0_merged"
+    run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
 
     # ========================================
     # d2g (delta=0.15) variants
     # ========================================
     
     # d2g vanilla (no corrections)
-    # MODEL="../models/v5-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0_merged"
-    # if [ -d "$MODEL" ]; then
-    #     run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-    # else
-    #     echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-    # fi
+    MODEL="../models/v6-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0_merged"
+    if [ -d "$MODEL" ]; then
+        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    else
+        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    fi
     
     # d2g with typcorr
-    MODEL="../models/v5-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0_merged"
+    MODEL="../models/v6-google--gemma-2-9b-it-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0_merged"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else

@@ -19,6 +19,7 @@ import utils
 # Data directory
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data')
 IFEVAL_PROMPT_DATA_DIR = os.path.join(DATA_DIR, 'fixed-prompts-ifeval')
+SEED = 0
 
 
 # Named tuple matching the expected format
@@ -35,9 +36,10 @@ HypernymItemV2 = namedtuple('HypernymItemV2', [
 def create_load_data_func(prompt_name):
     """Factory function to create load_data for a specific prompt."""
     def load_data(seed=0, split_type='random', sample_negative=False, v2=True, **kwargs):
-        """Load train/test data for this hyponym."""
+        """Load train/test data for this prompt with a fixed split."""
         dataset = utils.read_data('../data/fixed-prompts-ifeval/gpt_ifeval_results_{}.jsonl'.format(prompt_name))
-        return utils.split_train_test(dataset, seed=seed, subsample=False, num_train=math.floor(len(dataset) * 3 / 4))
+        num_train = math.floor(len(dataset) * 3 / 4)
+        return utils.split_train_test(dataset, seed=SEED, subsample=False, num_train=num_train)
     return load_data
 
 

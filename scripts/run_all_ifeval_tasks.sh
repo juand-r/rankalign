@@ -1,4 +1,4 @@
-#!/bin/bash
+ #!/bin/bash
 set -euo pipefail
 
 # Run ranking loss training for all ifeval per prompt tasks
@@ -36,10 +36,10 @@ NUM_EPOCHS=2
 TOTAL_SAMPLES=5110
 
 TASKS=(
-    "ifeval-prompt_1"
-    "ifeval-prompt_2"
-    "ifeval-prompt_3"
-    "ifeval-prompt_4"
+    # "ifeval-prompt_1"
+    # "ifeval-prompt_2"
+    # "ifeval-prompt_3"
+    # "ifeval-prompt_4"
     "ifeval-prompt_5"
 )
 
