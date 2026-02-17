@@ -273,9 +273,13 @@ def compute_metrics(task, L, logodds_gen, disc_scores, ranks, ranks_dataset=None
     logodds_gen_neg = [logodds_gen[i] for i in range(len(logodds_gen)) if golds[i] == 0]
     disc_scores_pos = [disc_scores[i] for i in range(len(disc_scores)) if golds[i] == 1]
     disc_scores_neg = [disc_scores[i] for i in range(len(disc_scores)) if golds[i] == 0]
-    corr_pos = pearsonr(logodds_gen_pos, disc_scores_pos).statistic
-    spear_pos = spearmanr(logodds_gen_pos, disc_scores_pos).statistic
-    if len(logodds_gen_neg) == 0:
+    if len(logodds_gen_pos) < 2:
+        corr_pos = np.nan
+        spear_pos = np.nan
+    else:
+        corr_pos = pearsonr(logodds_gen_pos, disc_scores_pos).statistic
+        spear_pos = spearmanr(logodds_gen_pos, disc_scores_pos).statistic
+    if len(logodds_gen_neg) < 2:
         corr_neg = np.nan
         spear_neg = np.nan
     else:
