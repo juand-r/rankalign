@@ -660,10 +660,14 @@ def build_heatmap(data, row_labels, eval_cols, title, metrics_list):
     for m_idx in range(len(metrics_list)):
         fig.update_yaxes(showticklabels=(m_idx == 0), row=1, col=m_idx + 1)
 
+    # Force all y-axis labels to show (prevent Plotly auto-culling)
+    for m_idx in range(len(metrics_list)):
+        fig.update_yaxes(dtick=1, row=1, col=m_idx + 1)
+
     fig.update_layout(
         title=title,
-        height=max(250, 30 * len(row_labels) + 100),
-        margin=dict(l=160, r=20, t=50, b=30),
+        height=max(300, 45 * len(row_labels) + 120),
+        margin=dict(l=180, r=20, t=50, b=30),
         paper_bgcolor='white',
         plot_bgcolor='white'
     )
@@ -1443,17 +1447,22 @@ def update_visualizations(task, split, row_label, config, files_data):
 
     # Hover text
     has_noun2 = 'noun2' in df.columns
-    has_prompt = 'prompt' in df.columns
-    has_response = 'response' in df.columns
+    has_prompt = 'prompt' in df.columns or 'val_prompt' in df.columns
+    has_response = 'response' in df.columns or 'answer' in df.columns
 
-    full_prompts = df['prompt'].astype(str).fillna('') if has_prompt else pd.Series([''] * len(df))
-    full_responses = df['response'].astype(str).fillna('') if has_response else pd.Series([''] * len(df))
+    prompt_col = 'prompt' if 'prompt' in df.columns else ('val_prompt' if 'val_prompt' in df.columns else None)
+    response_col = 'response' if 'response' in df.columns else ('answer' if 'answer' in df.columns else None)
+
+    full_prompts = df[prompt_col].astype(str).fillna('') if prompt_col else pd.Series([''] * len(df))
+    full_responses = df[response_col].astype(str).fillna('') if response_col else pd.Series([''] * len(df))
 
     hover_texts = []
     for i in range(len(gen_scores)):
         parts = [f"Gen={gen_scores[i]:.2f}", f"Val={val_scores[i]:.2f}"]
         if has_noun2:
             parts.append(f"Item={df['noun2'].iloc[i]}")
+        elif response_col == 'answer':
+            parts.append(f"Answer={df['answer'].iloc[i]}")
         hover_texts.append(" | ".join(parts))
     hover_texts = np.array(hover_texts)
 
@@ -1983,7 +1992,7 @@ def generate_all_heatmaps(config, files_data):
                         f'Mean across datasets', metrics_list
                     )
                     if fig_agg is not None:
-                        split_children.append(dcc.Graph(figure=fig_agg, style={'height': '280px'}))
+                        split_children.append(dcc.Graph(figure=fig_agg))
 
                     # Bar plots for all metrics
                     split_children.append(html.H4('Bar Plots with Standard Error', style={'marginTop': '25px', 'color': '#333'}))
@@ -2025,7 +2034,7 @@ def generate_all_heatmaps(config, files_data):
                     f'{task}', metrics_list
                 )
                 if fig is not None:
-                    split_children.append(dcc.Graph(figure=fig, style={'height': '280px', 'marginTop': '0px'}))
+                    split_children.append(dcc.Graph(figure=fig, style={'marginTop': '0px'}))
             except Exception as e:
                 split_children.append(html.Div(
                     f"⚠️ Error generating heatmap for {task}: {e}",
