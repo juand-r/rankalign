@@ -34,6 +34,10 @@ def is_ambigqa_task(task):
     """Check if task is any AmbigQA variant."""
     return task.startswith('ambigqa-')
 
+def is_plausibleqa_task(task):
+    """Check if task is any PlausibleQA variant."""
+    return task.startswith('plausibleqa-')
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -915,7 +919,7 @@ def main(args):
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
 
-        elif args.save_scores_csv and is_ambigqa_task(task):
+        elif args.save_scores_csv and (is_ambigqa_task(task) or is_plausibleqa_task(task)):
             import csv
             from datetime import datetime
 
@@ -954,7 +958,7 @@ def main(args):
                     correct = _get_field(item, 'correct', '').strip().lower()
                     correct_label = 'yes' if correct in ('yes', 'true', '1') else 'no'
 
-                    val_prompt = all_prompts_disc[i]
+                    val_prompt = all_prompts_disc[i].split("\n")[-1]
                     num_toks = all_num_tokens[i]
                     gen_score_raw = gen_scores_raw[i]
                     gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
@@ -1206,7 +1210,7 @@ def main(args):
 
         print(f"Detailed scores saved to: {scores_csv_filename}")
 
-    elif args.save_scores_csv and is_ambigqa_task(task):
+    elif args.save_scores_csv and (is_ambigqa_task(task) or is_plausibleqa_task(task)):
         import csv
         from datetime import datetime
 
@@ -1252,7 +1256,7 @@ def main(args):
                 correct = _get_field(item, 'correct', '').strip().lower()
                 correct_label = 'yes' if correct in ('yes', 'true', '1') else 'no'
 
-                val_prompt = all_prompts_disc[i]
+                val_prompt = all_prompts_disc[i].split("\n")[-1]
 
                 num_toks = all_num_tokens[i]
                 gen_score_raw = gen_scores_raw[i]
