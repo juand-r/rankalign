@@ -1388,26 +1388,33 @@ def main(args):
             
             print(f"Total valid pairs (after delta filter): {total_valid_pairs}")
             
-            # Sample proportionally from each group
-            num_groups = len(prompt_to_valid_pairs)
-            samples_per_group = total_samples // num_groups
-            remainder = total_samples % num_groups
+            if total_valid_pairs == 0:
+                raise ValueError(
+                    f"No valid pairs after delta filter (delta={delta}). "
+                    f"All {len(prompt_to_valid_pairs)} prompt groups have 0 pairs. Try reducing --delta."
+                )
             
-            print(f"\nPairs in train set per category:")
+            if total_samples > total_valid_pairs:
+                print(f"\nWARNING: Reducing total_samples from {total_samples} to {total_valid_pairs} "
+                      f"(not enough valid pairs)")
+                total_samples = total_valid_pairs
+            
+            # Sample proportionally to each group's available pairs
             pair_inds = []
-            for i, (prompt, pairs) in enumerate(prompt_to_valid_pairs.items()):
-                # Distribute remainder across first few groups
-                n_samples = samples_per_group + (1 if i < remainder else 0)
-                print(f"{prompt[:80]}...\t{n_samples}")
-                if len(pairs) < n_samples:
-                    raise ValueError(
-                        f"Not enough pairs for prompt '{prompt[:60]}...': "
-                        f"need {n_samples}, have {len(pairs)}. "
-                        f"Try reducing --total_samples or --delta."
-                    )
+            remaining_budget = total_samples
+            print(f"\nPairs in train set per category:")
+            sorted_groups = sorted(prompt_to_valid_pairs.items(), key=lambda x: len(x[1]))
+            remaining_groups = len(sorted_groups)
+            for prompt, pairs in sorted_groups:
+                fair_share = remaining_budget // remaining_groups
+                n_samples = min(len(pairs), fair_share)
+                print(f"{prompt[:80]}...\t{n_samples}/{len(pairs)}")
                 pair_inds.extend(random.sample(pairs, n_samples))
+                remaining_budget -= n_samples
+                remaining_groups -= 1
             
             random.shuffle(pair_inds)
+            print(f"\nTotal pairs sampled: {len(pair_inds)}")
             
             # Debug: show sample pairs
             print(f"\n--- Sample pairs (first 3) ---")
@@ -1471,26 +1478,33 @@ def main(args):
             
             print(f"Total valid pairs (after delta filter): {total_valid_pairs}")
             
-            # Sample proportionally from each group
-            num_groups = len(prompt_to_valid_pairs)
-            samples_per_group = total_samples // num_groups
-            remainder = total_samples % num_groups
+            if total_valid_pairs == 0:
+                raise ValueError(
+                    f"No valid pairs after delta filter (delta={delta}). "
+                    f"All {len(prompt_to_valid_pairs)} prompt groups have 0 pairs. Try reducing --delta."
+                )
             
-            print(f"\nPairs in train set per category:")
+            if total_samples > total_valid_pairs:
+                print(f"\nWARNING: Reducing total_samples from {total_samples} to {total_valid_pairs} "
+                      f"(not enough valid pairs)")
+                total_samples = total_valid_pairs
+            
+            # Sample proportionally to each group's available pairs
             pair_inds = []
-            for i, (prompt, pairs) in enumerate(prompt_to_valid_pairs.items()):
-                # Distribute remainder across first few groups
-                n_samples = samples_per_group + (1 if i < remainder else 0)
-                print(f"{prompt[:80]}...\t{n_samples}")
-                if len(pairs) < n_samples:
-                    raise ValueError(
-                        f"Not enough pairs for prompt '{prompt[:60]}...': "
-                        f"need {n_samples}, have {len(pairs)}. "
-                        f"Try reducing --total_samples or --delta."
-                    )
+            remaining_budget = total_samples
+            print(f"\nPairs in train set per category:")
+            sorted_groups = sorted(prompt_to_valid_pairs.items(), key=lambda x: len(x[1]))
+            remaining_groups = len(sorted_groups)
+            for prompt, pairs in sorted_groups:
+                fair_share = remaining_budget // remaining_groups
+                n_samples = min(len(pairs), fair_share)
+                print(f"{prompt[:80]}...\t{n_samples}/{len(pairs)}")
                 pair_inds.extend(random.sample(pairs, n_samples))
+                remaining_budget -= n_samples
+                remaining_groups -= 1
             
             random.shuffle(pair_inds)
+            print(f"\nTotal pairs sampled: {len(pair_inds)}")
             
             # Debug: show sample pairs
             print(f"\n--- Sample pairs (first 3) ---")
