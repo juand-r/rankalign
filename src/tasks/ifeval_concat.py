@@ -33,8 +33,8 @@ def discover_ifeval_datasets():
             # Must match exact pattern: gpt_ifeval_results_{name}.jsonl
             if filename.startswith(prefix) and filename.endswith(suffix):
                 prompt_name = filename[len(prefix):-len(suffix)]
-                # Exclude prompts named 'prompt_1' through 'prompt_20'
-                if prompt_name and not (prompt_name.startswith('prompt_') and prompt_name[7:].isdigit() and 1 <= int(prompt_name[7:]) <= 20):
+                # Exclude prompts named 'prompt_1' through 'prompt_21'
+                if prompt_name and not (prompt_name.startswith('prompt_') and prompt_name[7:].isdigit() and 1 <= int(prompt_name[7:]) <= 21):
                     prompts.add(prompt_name)
 
     return sorted(prompts)
