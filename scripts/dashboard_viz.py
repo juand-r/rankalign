@@ -109,12 +109,22 @@ DEFAULT_VARIANT_DISPLAY = {
 # Variants that support vallogodds suffix
 VALLOGDODS_VARIANTS = {'tc-online', 'lenorm', 'vanilla', 'tc-online_lenorm'}
 
-DEFAULT_ROW_ORDER = ['Base', 'SFT', 'SFT+vallogodds', 'Pref only', 'Pref only+vallogodds', 'Union+tc', 'Union', 'V2G', 'G2V', '+tc', '+tco', '+lenorm', '+tc+lenorm', '+tco+lenorm', '+vallogodds', '+tco+vallogodds', '+lenorm+vallogodds', '+tco+lenorm+vallogodds']
+DEFAULT_ROW_ORDER = [
+    'Base', 'Base+force-same-x', 'SFT', 'SFT+force-same-x', 'SFT+vallogodds', 'SFT+vallogodds+force-same-x',
+    'Pref only', 'Pref only+force-same-x', 'Pref only+vallogodds', 'Pref only+vallogodds+force-same-x',
+    'Union+tc', 'Union', 'V2G', 'V2G+force-same-x', 'G2V', 'G2V+force-same-x',
+    '+tc', '+tco', '+tco+force-same-x',
+    '+lenorm', '+tc+lenorm', '+tco+lenorm',
+    '+vallogodds', '+vallogodds+force-same-x',
+    '+tco+vallogodds', '+tco+vallogodds+force-same-x',
+    '+lenorm+vallogodds',
+    '+tco+lenorm+vallogodds'
+]
 
 # Rows to hide from heatmaps and barplots
-HIDDEN_ROWS = {'+tco', 'V2G'}
+# HIDDEN_ROWS = {'+tco', 'V2G'}
 
-#HIDDEN_ROWS = set()
+HIDDEN_ROWS = set()
 
 # Visualization colors for positive/negative classes
 POS_CLASS_COLOR = 'orangered'
@@ -173,9 +183,9 @@ def auto_detect_config(outputs_dir=None):
         # Hypernym-style tasks with a dataset suffix (e.g., hypernym-bananas)
         (r'hypernym-([a-zA-Z]+)', 'hypernym'),
         # IFEval-style per-prompt tasks, e.g. ifeval-prompt_1, ifeval-prompt_2
-        # We capture the portion after "ifeval-" so that the dataset name
-        # (e.g., "prompt_1") can be reconstructed consistently.
+        # and ifeval-concat (all prompts in one). Hyphen after "ifeval" only.
         (r'ifeval-prompt_([0-9]+)', 'ifeval'),
+        (r'ifeval-concat', 'ifeval'),
         # Other single-name tasks without a dataset suffix
         (r'trivia-qa', 'trivia-qa'),
         (r'swords', 'swords'),
@@ -197,10 +207,12 @@ def auto_detect_config(outputs_dir=None):
     # so that we can extract the dataset / prompt identifier from filenames.
     if any(t.startswith('hypernym-') for t in tasks_found):
         config['task_pattern'] = r'hypernym-([a-zA-Z]+)'
-    elif any(t.startswith('ifeval-') for t in tasks_found):
-        # Matches e.g. "ifeval-prompt_1" in filenames like:
-        # scores_gemma-2-9b-it_ifeval-prompt_1_train_log-odds_...
-        config['task_pattern'] = r'ifeval-prompt_([0-9]+)'
+    elif any(t.startswith('ifeval-') for t in tasks_found) or 'ifeval' in tasks_found:
+        # Match ifeval-prompt_N and ifeval-concat (tried in order)
+        config['task_pattern'] = [
+            r'ifeval-prompt_([0-9]+)',
+            r'ifeval-concat',
+        ]
     
     # Detect splits
     has_train = any('_train_' in f for f in filenames)
@@ -368,6 +380,19 @@ def parse_filename(csv_file, config):
     """
     name = csv_file.stem
     task_pattern = config.get('task_pattern', r'hypernym-([a-zA-Z]+)')
+    # If task_pattern is a list (e.g. ifeval with prompt_N and concat), use first that matches
+    if isinstance(task_pattern, list):
+        all_matches = []
+        effective_pattern = None
+        for p in task_pattern:
+            matches = list(re.finditer(p, name))
+            if matches:
+                all_matches = matches
+                effective_pattern = p
+                break
+        task_pattern = effective_pattern if effective_pattern is not None else task_pattern[0]
+    else:
+        all_matches = list(re.finditer(task_pattern, name))
     
     # Check for union model first
     union_config = config.get('union_models', {})
@@ -397,9 +422,6 @@ def parse_filename(csv_file, config):
     
     # If not union, extract both training and eval tasks and verify they match
     if not is_union:
-        # Find all matches of the task pattern
-        all_matches = list(re.finditer(task_pattern, name))
-        
         if len(all_matches) >= 2:
             # Multiple matches - first is training task, last is eval task
             training_match = all_matches[0]
@@ -534,19 +556,32 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
     
     # Check for vallogodds suffix (used for SFT and Pref only variants)
     has_vallogodds = '_vallogodds' in filename
+    # Check for force-same-x eval variant (separate row: SFT+force-same-x, etc.)
+    # Match any filename containing "force-same-x" (scores CSV comes from model path: ...nllg1.0_force-same-x_merged_...)
+    has_force_same_x = 'force-same-x' in filename
+    
+    def _with_force_same_x(tv, mt):
+        if has_force_same_x:
+            return f'{tv}+force-same-x', f'{mt}+force-same-x'
+        return tv, mt
     
     if is_base:
-        return 'base', 'Base', 'Base'
+        tv, mt = _with_force_same_x('Base', 'Base')
+        return 'base', tv, mt
 
     if pref_only:
         if has_vallogodds:
-            return 'base', 'Pref only+vallogodds', 'Pref only+vallogodds'
-        return 'base', 'Pref only', 'Pref only'
+            tv, mt = _with_force_same_x('Pref only+vallogodds', 'Pref only+vallogodds')
+            return 'base', tv, mt
+        tv, mt = _with_force_same_x('Pref only', 'Pref only')
+        return 'base', tv, mt
 
     if no_pref:
         if has_vallogodds:
-            return 'base', 'SFT+vallogodds', 'SFT+vallogodds'
-        return 'base', 'SFT', 'SFT'
+            tv, mt = _with_force_same_x('SFT+vallogodds', 'SFT+vallogodds')
+            return 'base', tv, mt
+        tv, mt = _with_force_same_x('SFT', 'SFT')
+        return 'base', tv, mt
     
     if not is_finetuned:
         # Doesn't match our expected format - skip it
@@ -626,6 +661,11 @@ def determine_model_info(filename, model_detection, is_union=False, union_config
             # Variant with vallogodds: append to existing suffix
             training_variant = f'{training_variant}+vallogodds'
             suffix = f'{suffix}+vallogodds'
+    
+    # Append force-same-x suffix so these show as a separate row (e.g. V2G+force-same-x)
+    if has_force_same_x:
+        training_variant = f'{training_variant}+force-same-x'
+        suffix = f'{suffix}+force-same-x' if suffix else '+force-same-x'
     
     # Handle union models - override training_variant with prefix
     if is_union and union_config:
@@ -845,15 +885,15 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
         finetuned_marker = config.get('model_detection', {}).get('finetuned_marker')
         
         is_actual_base = False
-        if training_variant == 'Base':
+        if training_variant in ('Base', 'Base+force-same-x'):
             # Base model: matches pattern AND no delta
             if base_pattern and re.match(base_pattern, filename) and 'delta' not in filename:
                 is_actual_base = True
-        elif training_variant in ('SFT', 'SFT+vallogodds'):
+        elif training_variant in ('SFT', 'SFT+vallogodds', 'SFT+force-same-x', 'SFT+vallogodds+force-same-x'):
             # No-pref base: allow pref0.0 runs even if they have delta
             if re.search(r'(?:^|[_-])pref0(?:\.0+)?', filename):
                 is_actual_base = True
-        elif training_variant in ('Pref only', 'Pref only+vallogodds'):
+        elif training_variant in ('Pref only', 'Pref only+vallogodds', 'Pref only+force-same-x', 'Pref only+vallogodds+force-same-x'):
             # Pref-only: pref=1.0 and nll weights=0.0
             if re.search(r'pref1(?:\.0+)?', filename) and re.search(r'nllv0(?:\.0+)?', filename) and re.search(r'nllg0(?:\.0+)?', filename):
                 is_actual_base = True
@@ -883,53 +923,21 @@ def discover_heatmap_data_by_direction(task, split, files_info, config):
             continue
     
     # Copy base model data to all directions (base model is shared)
-    # Only copy from actual base models stored in data['base']['Base']
+    # Rows that live in 'base' direction and are copied to every direction (incl. force-same-x variants)
+    base_shared_rows = (
+        'Base', 'Base+force-same-x',
+        'SFT', 'SFT+force-same-x', 'SFT+vallogodds', 'SFT+vallogodds+force-same-x',
+        'Pref only', 'Pref only+force-same-x', 'Pref only+vallogodds', 'Pref only+vallogodds+force-same-x'
+    )
     for dir_key in direction_patterns.keys():
         for eval_col in eval_cols:
-            if data['base'].get('Base', {}).get(eval_col) is not None:
-                if dir_key in data:
-                    data[dir_key]['Base'][eval_col] = data['base']['Base'][eval_col]
-                    # Track that this was copied from base direction
-                    if ('base', 'Base', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'Base', eval_col)] = file_tracking[('base', 'Base', eval_col)]
-
-            # Also copy "SFT" if present
-            if data['base'].get('SFT', {}).get(eval_col) is not None:
-                if dir_key in data:
-                    # Ensure the SFT dict exists in this direction
-                    if 'SFT' not in data[dir_key]:
-                        data[dir_key]['SFT'] = {col: None for col in eval_cols}
-                    data[dir_key]['SFT'][eval_col] = data['base']['SFT'][eval_col]
-                    if ('base', 'SFT', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'SFT', eval_col)] = file_tracking[('base', 'SFT', eval_col)]
-
-            # Also copy "SFT+vallogodds" if present
-            if data['base'].get('SFT+vallogodds', {}).get(eval_col) is not None:
-                if dir_key in data:
-                    if 'SFT+vallogodds' not in data[dir_key]:
-                        data[dir_key]['SFT+vallogodds'] = {col: None for col in eval_cols}
-                    data[dir_key]['SFT+vallogodds'][eval_col] = data['base']['SFT+vallogodds'][eval_col]
-                    if ('base', 'SFT+vallogodds', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'SFT+vallogodds', eval_col)] = file_tracking[('base', 'SFT+vallogodds', eval_col)]
-
-            # Also copy "Pref only" if present
-            if data['base'].get('Pref only', {}).get(eval_col) is not None:
-                if dir_key in data:
-                    # Ensure the Pref only dict exists in this direction
-                    if 'Pref only' not in data[dir_key]:
-                        data[dir_key]['Pref only'] = {col: None for col in eval_cols}
-                    data[dir_key]['Pref only'][eval_col] = data['base']['Pref only'][eval_col]
-                    if ('base', 'Pref only', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'Pref only', eval_col)] = file_tracking[('base', 'Pref only', eval_col)]
-
-            # Also copy "Pref only+vallogodds" if present
-            if data['base'].get('Pref only+vallogodds', {}).get(eval_col) is not None:
-                if dir_key in data:
-                    if 'Pref only+vallogodds' not in data[dir_key]:
-                        data[dir_key]['Pref only+vallogodds'] = {col: None for col in eval_cols}
-                    data[dir_key]['Pref only+vallogodds'][eval_col] = data['base']['Pref only+vallogodds'][eval_col]
-                    if ('base', 'Pref only+vallogodds', eval_col) in file_tracking:
-                        file_tracking[(dir_key, 'Pref only+vallogodds', eval_col)] = file_tracking[('base', 'Pref only+vallogodds', eval_col)]
+            for row in base_shared_rows:
+                if data['base'].get(row, {}).get(eval_col) is not None and dir_key in data:
+                    if row not in data[dir_key]:
+                        data[dir_key][row] = {col: None for col in eval_cols}
+                    data[dir_key][row][eval_col] = data['base'][row][eval_col]
+                    if ('base', row, eval_col) in file_tracking:
+                        file_tracking[(dir_key, row, eval_col)] = file_tracking[('base', row, eval_col)]
     
     # Write file tracking to log file for debugging
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -1065,6 +1073,7 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     # - Vanilla with vallogodds for this direction (e.g., 'V2G+vallogodds' for d2g)
     # - Training variants like +tc, +tco, +lenorm
     # - Training variants with vallogodds like +tco+vallogodds, +lenorm+vallogodds
+    # - Force-same-x variants (e.g. SFT+force-same-x, V2G+force-same-x)
     # - Union models (e.g., 'Union', 'Union+tc')
     # Show empty rows if no data - don't filter them out
     relevant_rows = []
@@ -1077,6 +1086,8 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction (e.g., 'V2G' for d2g)
             relevant_rows.append(row)
+        elif row.endswith('+force-same-x'):  # SFT+force-same-x, V2G+force-same-x, Base+force-same-x, etc.
+            relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm, +vallogodds, +tco+vallogodds, etc.
             relevant_rows.append(row)
         elif row.startswith('Union'):  # Union models
@@ -1085,7 +1096,7 @@ def create_direction_heatmap_figure(direction_data, training_rows, eval_cols, ti
     
     # Filter out hidden rows
     relevant_rows = [r for r in relevant_rows if r not in HIDDEN_ROWS]
-    
+
     if not relevant_rows:
         # No relevant rows at all
         return None
@@ -1220,11 +1231,7 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
     }
     
     # Include all relevant rows for this direction:
-    # - Base model
-    # - Vanilla for this direction (e.g., 'V2G' for d2g)
-    # - Training variants like +tc, +tco, +lenorm
-    # - Union models (e.g., 'Union', 'Union+tc')
-    # Show empty rows if no data - don't filter them out
+    # - Base model, SFT, Pref only, vanilla (direction_label), +variants, force-same-x variants, Union
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
@@ -1235,18 +1242,19 @@ def create_aggregated_direction_heatmap(all_heatmap_data_by_dir, tasks, training
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
             relevant_rows.append(row)
+        elif row.endswith('+force-same-x'):
+            relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants like +tc, +tco, +lenorm
             relevant_rows.append(row)
         elif row.startswith('Union'):  # Union models
             relevant_rows.append(row)
-        # Skip other direction's vanilla (e.g., skip 'G2V' when direction_label is 'V2G')
     
     # Filter out hidden rows
     relevant_rows = [r for r in relevant_rows if r not in HIDDEN_ROWS]
-    
+
     if not relevant_rows:
         return None
-    
+
     for m_idx, metric in enumerate(metrics_list):
         metric_key = metric_key_map.get(metric, metric.lower())
         
@@ -1393,10 +1401,7 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
     colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FECB52']
     
     # Filter rows relevant to this direction:
-    # - Base model
-    # - Vanilla for this direction (e.g., 'V2G' for d2g)
-    # - Training variants like +tc, +tco, +lenorm
-    # - Union models (e.g., 'Union', 'Union+tc')
+    # - Base model, SFT, Pref only, vanilla (direction_label), +variants, force-same-x variants, Union
     relevant_rows = []
     for row in training_rows:
         if row == 'Base':
@@ -1406,6 +1411,8 @@ def create_direction_bar_plot(all_heatmap_data_by_dir, tasks, training_rows, eva
         elif row in ('Pref only', 'Pref only+vallogodds'):
             relevant_rows.append(row)
         elif row == direction_label:  # Vanilla for this direction
+            relevant_rows.append(row)
+        elif row.endswith('+force-same-x'):
             relevant_rows.append(row)
         elif row.startswith('+'):  # Training variants
             relevant_rows.append(row)
@@ -1750,9 +1757,12 @@ def handle_config_buttons(auto_clicks, load_clicks):
         config, msg = auto_detect_config()
         style = {**base_style, 'backgroundColor': '#e8f5e9', 'color': '#2e7d32'}
         
+        tp = config.get('task_pattern', '')
+        if isinstance(tp, list):
+            tp = json.dumps(tp)
         return (
             config['outputs_dir'],
-            config.get('task_pattern', ''),
+            tp,
             json.dumps(config.get('split_patterns', {})),
             config.get('label_column', 'gpt4_ground_truth'),
             json.dumps(config.get('label_map')) if config.get('label_map') else '',
@@ -1777,9 +1787,12 @@ def handle_config_buttons(auto_clicks, load_clicks):
             )
         
         style = {**base_style, 'backgroundColor': '#e8f5e9', 'color': '#2e7d32'}
+        tp = config.get('task_pattern', '')
+        if isinstance(tp, list):
+            tp = json.dumps(tp)
         return (
             config.get('outputs_dir', str(DEFAULT_OUTPUTS_DIR)),
-            config.get('task_pattern', ''),
+            tp,
             json.dumps(config.get('split_patterns', {})),
             config.get('label_column', 'gpt4_ground_truth'),
             json.dumps(config.get('label_map')) if config.get('label_map') else '',
@@ -1818,9 +1831,14 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col,
     base_style = {'padding': '10px', 'marginBottom': '20px', 'borderRadius': '5px', 'textAlign': 'center'}
     
     try:
+        try:
+            tp_parsed = json.loads(task_pattern) if task_pattern else None
+            tp = tp_parsed if isinstance(tp_parsed, list) else task_pattern
+        except (json.JSONDecodeError, TypeError):
+            tp = task_pattern
         config = {
             'outputs_dir': outputs_dir,
-            'task_pattern': task_pattern,
+            'task_pattern': tp,
             'split_patterns': json.loads(split_patterns) if split_patterns else {},
             'label_column': label_col,
             'label_map': json.loads(label_map) if label_map else None,
@@ -1890,6 +1908,12 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pa
     
     # Load dashboard
     try:
+        # Parse task_pattern: may be JSON array for ifeval (multiple patterns)
+        try:
+            tp_parsed = json.loads(task_pattern) if task_pattern else None
+            task_pattern_parsed = tp_parsed if isinstance(tp_parsed, list) else task_pattern
+        except (json.JSONDecodeError, TypeError):
+            task_pattern_parsed = task_pattern
         # Parse model_detection with better error handling
         try:
             model_detection_parsed = json.loads(model_detection) if model_detection else {}
@@ -1899,7 +1923,7 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks, outputs_dir, task_pa
         
         config = {
             'outputs_dir': outputs_dir,
-            'task_pattern': task_pattern,
+            'task_pattern': task_pattern_parsed,
             'split_patterns': json.loads(split_patterns) if split_patterns else {},
             'label_column': label_col,
             'label_map': json.loads(label_map) if label_map else None,
