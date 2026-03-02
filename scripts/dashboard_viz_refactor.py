@@ -233,17 +233,17 @@ def parse_filename(csv_file, config):
     nllv_weight = _extract_float(r'nllv(?P<weight>\d+(?:\.\d+)?)', stem)
     nllg_weight = _extract_float(r'nllg(?P<weight>\d+(?:\.\d+)?)', stem)
 
-    # Skip finetuned files that lack nllv/nllg entirely
-    if nllv_weight is None or nllg_weight is None:
-        print(f"  [SKIP] Finetuned file missing nllv/nllg, skipping: {name}")
-        return None
+    # ranking_loss_ref.py omits weights from the filename when they equal
+    # their "inactive" default: pref omitted when 1.0, nllv/nllg omitted when 0.0.
+    # Apply these defaults so pref-only models (all weights absent) are recognized.
+    eff_pref = pref_weight if pref_weight is not None else 1.0
+    eff_nllv = nllv_weight if nllv_weight is not None else 0.0
+    eff_nllg = nllg_weight if nllg_weight is not None else 0.0
 
     # Classify training mode (mutually exclusive)
-    is_sft = (pref_weight is not None and pref_weight == 0.0
-              and nllv_weight == 1.0 and nllg_weight == 1.0)
-    is_pref_only = (nllv_weight == 0.0 and nllg_weight == 0.0)
-    is_pref_nll = (nllv_weight == 1.0 and nllg_weight == 1.0
-                   and (pref_weight is None or pref_weight == 1.0))
+    is_sft = (eff_pref == 0.0 and eff_nllv == 1.0 and eff_nllg == 1.0)
+    is_pref_only = (eff_nllv == 0.0 and eff_nllg == 0.0)
+    is_pref_nll = (eff_nllv == 1.0 and eff_nllg == 1.0 and eff_pref == 1.0)
 
     modes_matched = sum([is_sft, is_pref_only, is_pref_nll])
     if modes_matched != 1:
@@ -790,9 +790,18 @@ def build_bar_plot(all_task_data, tasks, row_labels, eval_cols, metric, title):
 # =============================================================================
 
 def expand_aggregation_pattern(pattern, all_tasks):
-    """Expand aggregation pattern to list of tasks."""
+    """Expand aggregation pattern to list of tasks.
+
+    Supports three pattern types:
+      - list of task names:  ["task-a", "task-b"]
+      - glob string:         "task-*"
+      - regex string:        "regex:task-(foo|bar)_\\d+"
+    """
     if isinstance(pattern, list):
         return [t for t in pattern if t in all_tasks]
+    elif isinstance(pattern, str) and pattern.startswith('regex:'):
+        rx = re.compile(pattern[len('regex:'):])
+        return [t for t in all_tasks if rx.search(t)]
     elif isinstance(pattern, str) and '*' in pattern:
         return [t for t in all_tasks if fnmatch.fnmatch(t, pattern)]
     elif isinstance(pattern, str):
