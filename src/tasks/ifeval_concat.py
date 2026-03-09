@@ -68,7 +68,7 @@ def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
             print(f"[ifeval-concat] Warning: Skipping {prompt_name} - missing data")
             continue
 
-        num_train = math.floor(len(dataset) * 3 / 4)
+        num_train = math.floor(len(dataset) * 0.5)
         train_items, test_items = utils.split_train_test(dataset, seed=SEED, subsample=False, num_train=num_train)
 
         if not train_items or not test_items:

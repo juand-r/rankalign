@@ -38,7 +38,11 @@ def create_load_data_func(prompt_name):
     def load_data(seed=0, split_type='random', sample_negative=False, v2=True, **kwargs):
         """Load train/test data for this prompt with a fixed split."""
         dataset = utils.read_data('../data/fixed-prompts-ifeval/gpt_ifeval_results_{}.jsonl'.format(prompt_name))
-        num_train = math.floor(len(dataset) * 3 / 4)
+
+        if prompt_name and (prompt_name.startswith('prompt_') and prompt_name[7:].isdigit() and 1 <= int(prompt_name[7:]) <= 21):
+            num_train = 0
+        else:
+            num_train = math.floor(len(dataset) * 0.5)
         return utils.split_train_test(dataset, seed=SEED, subsample=False, num_train=num_train)
     return load_data
 
