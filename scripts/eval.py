@@ -832,7 +832,7 @@ def main(args):
                     item_strategy = getattr(item, 'strategy', strategy)
                     
                     num_toks = all_num_tokens[i]
-                    gen_score_raw = gen_scores[i]
+                    gen_score_raw = gen_scores_raw[i]
                     gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
                     gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
                     gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
