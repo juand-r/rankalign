@@ -15,7 +15,8 @@ from tqdm import tqdm
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer, AutoModelForCausalLM, AdamW
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from torch.optim import AdamW
 from peft import LoraConfig, get_peft_model
 import math
 import random
