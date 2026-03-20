@@ -425,12 +425,10 @@ def main(args):
     # Determine first_sw_token based on whether the tokenizer prepends a BOS token.
     # Gemma and Llama prepend BOS: encode("a X") = [BOS, a, X] -> first_sw_token=2 (base), 1 (chat)
     # Qwen does NOT prepend BOS: encode("a X") = [a, X] -> first_sw_token=1 (base), 0 (chat)
-    has_bos = getattr(tokenizer, 'add_bos_token', True)  # Qwen sets this to False
-    if not has_bos:
-        # Double-check by encoding a test string
-        test_enc = tokenizer.encode("a test")
-        if test_enc[0] != tokenizer.bos_token_id:
-            has_bos = False
+    # NOTE: tokenizer.add_bos_token is unreliable (Gemma-it and Llama-it report False but DO prepend BOS).
+    # Always use empirical test.
+    test_enc = tokenizer.encode("a test")
+    has_bos = (tokenizer.bos_token_id is not None and len(test_enc) > 0 and test_enc[0] == tokenizer.bos_token_id)
     first_sw_token = 2 if has_bos else 1
 
     model_is_chat = False
