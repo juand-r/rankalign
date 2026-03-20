@@ -180,6 +180,34 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
     return typicality_scores
 
 
+def compute_self_typicality_training(completions, model, tokenizer, device,
+                                     is_chat=False, has_system_role=False):
+    """
+    Compute self-typicality: unconditional log P_model(completion) using the
+    scoring model itself (instead of GPT-2).
+
+    For each completion, computes log P(completion | null_context) where
+    null_context is BOS (base models) or a chat-formatted empty prompt
+    (instruction-tuned models).
+    """
+    typicality_scores = []
+
+    print("\nComputing self-typicality scores (using scoring model itself)...")
+    with torch.no_grad():
+        for completion in tqdm(completions, desc="Self typicality"):
+            token_logprobs = get_completion_token_logprobs(
+                "", completion, model, tokenizer, device,
+                is_chat=is_chat, has_system_role=has_system_role
+            )
+            typicality_scores.append(float(token_logprobs.sum().item()))
+
+    print(f"  Computed {len(typicality_scores)} self-typicality scores")
+    if len(typicality_scores) > 0:
+        print(f"  Mean self-typicality: {sum(typicality_scores)/len(typicality_scores):.4f}")
+
+    return typicality_scores
+
+
 def track_all_scores(model, tokenizer, L_train_all, task, device, yestoks, notoks, 
                      length_normalize=False, use_full_completion=True, task_config=None,
                      validator_log_odds=True, is_chat=False, has_system_role=False,
@@ -407,12 +435,18 @@ def save_tracked_scores(results, output_path):
 def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
                                 typicality_correction, length_normalize, use_full_completion,
                                 preference_loss_weight, nll_validator_weight, nll_generator_weight,
-                                force_same_x=False, boost_initial_val=False):
+                                force_same_x=False, boost_initial_val=False,
+                                self_typicality=False):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
     alpha_str = f"-alpha{alpha}" if isinstance(alpha, (int, float)) else f"-alpha-{alpha}"
-    typcorr_str = "-tc-online" if typicality_correction else ""  # tc = typicality correction, online = applied during training
+    if self_typicality:
+        typcorr_str = "-tc-self"
+    elif typicality_correction:
+        typcorr_str = "-tc-online"
+    else:
+        typcorr_str = ""
     lenorm_str = "-lenorm" if length_normalize else ""
     full_completion_str = "-full-completion" if use_full_completion else ""
     pref_str = f"-pref{preference_loss_weight}" if preference_loss_weight != 1.0 else ""
@@ -460,7 +494,7 @@ def main(args):
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
             preference_loss_weight, nll_validator_weight, nll_generator_weight, args.force_same_x,
-            args.boost_initial_val
+            args.boost_initial_val, self_typicality=args.self_typicality
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
                                     "outputs", "training-logs")
@@ -503,6 +537,8 @@ def main(args):
                 "gradient_checkpointing": gradient_checkpointing,
                 "use_full_completion": use_full_completion,
                 "single_token_data_only": args.single_token_data_only,
+                "typicality_correction": args.typicality_correction,
+                "self_typicality": args.self_typicality,
             }
         )
         print(f"Weights & Biases initialized: rankalign/{run_name}")
@@ -1191,16 +1227,23 @@ def main(args):
         else:
             raise ValueError(f"Task {task} not supported for typicality correction")
         
-        # Load GPT-2 for typicality computation
-        print("\nLoading GPT-2 for typicality correction...")
-        tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
-        model_gpt2 = AutoModelForCausalLM.from_pretrained("gpt2")
-        model_gpt2 = model_gpt2.to(device)
-        model_gpt2.eval()
-        print(f"  ✓ GPT-2 loaded on {device}")
-        
-        # Compute GPT-2 typicality scores
-        typicality_scores = compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device)
+        if args.self_typicality:
+            # Self-typicality: use the scoring model itself
+            print("\nUsing SELF-TYPICALITY (scoring model as its own prior)")
+            typicality_scores = compute_self_typicality_training(
+                completions, model, tokenizer, device,
+                is_chat=with_chat, has_system_role=has_system_role
+            )
+        else:
+            # GPT-2 typicality: load GPT-2 as the prior
+            print("\nLoading GPT-2 for typicality correction...")
+            tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
+            model_gpt2 = AutoModelForCausalLM.from_pretrained("gpt2")
+            model_gpt2 = model_gpt2.to(device)
+            model_gpt2.eval()
+            print(f"  GPT-2 loaded on {device}")
+            typicality_scores = compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device)
+
         print(f"  Computed typicality scores for {len(typicality_scores)} examples")
         print(f"  Typicality mean: {sum(typicality_scores)/len(typicality_scores):.4f}")
         
@@ -1209,8 +1252,6 @@ def main(args):
         if train_g_or_d in ['d', 'both']:
             print("\nApplying correction to pair selection scores (for 'd'/'both' modes)")
             if train_g_or_d == 'both':
-                # For 'both' mode, logprobs_last_layer contains tuples (log_prob_d, log_prob_g)
-                # We correct log_prob_d (generator logprob for discriminator path)
                 logprobs_original = logprobs_last_layer.copy()
                 logprobs_last_layer = [(lp[0] - typicality_scores[i], lp[1]) for i, lp in enumerate(logprobs_last_layer)]
                 original_means_d = sum([lp[0] for lp in logprobs_original]) / len(logprobs_original)
@@ -1218,7 +1259,6 @@ def main(args):
                 print(f"  Original generator mean (d): {original_means_d:.4f}")
                 print(f"  Corrected generator mean (d): {corrected_means_d:.4f}")
             else:
-                # For 'd' mode, logprobs_last_layer is just a list of floats (generator scores)
                 logprobs_original = logprobs_last_layer.copy()
                 logprobs_last_layer = [lp - typicality_scores[i] for i, lp in enumerate(logprobs_last_layer)]
                 original_mean = sum(logprobs_original) / len(logprobs_original)
@@ -1229,9 +1269,9 @@ def main(args):
         else:
             print("\n  (In 'g' mode: typicality will be applied during training, not pair selection)")
         
-        # Clean up GPT-2 model
-        del model_gpt2, tokenizer_gpt2
-        torch.cuda.empty_cache()
+        if not args.self_typicality:
+            del model_gpt2, tokenizer_gpt2
+            torch.cuda.empty_cache()
         
         print("="*60 + "\n")
 
@@ -2433,7 +2473,12 @@ def main(args):
             split_type_str = "--"+ split_type
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
-            typcorr_str = "--tc-online" if args.typicality_correction else ""  # tc = typicality correction, online = applied during training
+            if args.self_typicality:
+                typcorr_str = "--tc-self"
+            elif args.typicality_correction:
+                typcorr_str = "--tc-online"
+            else:
+                typcorr_str = ""
             lenorm_str = "--lenorm" if args.length_normalize else ""
             single_token_str = "--single-token-data" if args.single_token_data_only else ""
             full_completion_str = "--full-completion" if use_full_completion else ""
@@ -2509,6 +2554,7 @@ if __name__ == "__main__":
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
+    parser.add_argument("--self-typicality", action='store_true', help="Use the scoring model itself for typicality correction instead of GPT-2. Implies --typicality-correction.")
     parser.add_argument("--no-full-completion", default=False, action='store_true', help="Use only first token for scoring instead of full completion (full completion is default)")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_data_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
@@ -2525,6 +2571,9 @@ if __name__ == "__main__":
     parser.add_argument("--force-same-x", action="store_true", default=False, help="Only pair examples with the same generator prompt (same 'x'). Ensures pairs compare different completions for the same input.")
     parser.add_argument("--boost-initial-val", action="store_true", default=False, help="Shift validator scores so optimal classification threshold is 0. Computes theta = -optimal_threshold and adds it to all validator scores during training.")
     args = parser.parse_args()
+
+    if args.self_typicality:
+        args.typicality_correction = True
     
     # Convert alpha to float if it's a number
     try:
