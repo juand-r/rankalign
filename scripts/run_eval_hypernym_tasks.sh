@@ -42,13 +42,13 @@ EPOCH=2
 # Hypernym tasks
 TASKS=(
     "hypernym-bananas"
- #   "hypernym-bazookas"
+    "hypernym-bazookas"
     "hypernym-cabinets"
     "hypernym-cars"
     "hypernym-chairs"
- #   "hypernym-crows"
- #   "hypernym-diapers"
- #   "hypernym-dogs"
+    "hypernym-crows"
+    "hypernym-diapers"
+    "hypernym-dogs"
  #   "hypernym-kites"
  #   "hypernym-jackets"
  #   "hypernym-elephants"
@@ -109,12 +109,13 @@ run_task_evals() {
     # ========================================
     
     # d2g vanilla (no corrections)
-#    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--vallogodds"
-#    if [ -d "$MODEL" ]; then
-#        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-#    else
-#        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-#    fi
+    #MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--vallogodds"
+    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds"
+    if [ -d "$MODEL" ]; then
+        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+    else
+        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+    fi
     
     # d2g with typcorr only (OLD - commented out)
     # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--full-completion--nllv1.0--nllg1.0"
@@ -125,7 +126,8 @@ run_task_evals() {
     # fi
     
     # d2g with tc-online only
-    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0--vallogodds"
+    #MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--nllv1.0--nllg1.0--vallogodds"
+    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds"
     if [ -d "$MODEL" ]; then
         run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
     else
@@ -133,12 +135,12 @@ run_task_evals() {
     fi
     
     # d2g with lenorm only (already evaluated)
-    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
-    if [ -d "$MODEL" ]; then
-        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-    else
-        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-    fi
+#    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
+#    if [ -d "$MODEL" ]; then
+#        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+#    else
+#        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+#    fi
     
     # d2g with typcorr + lenorm (OLD - commented out)
     # MODEL="../models/v5-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--typcorr--lenorm--full-completion--nllv1.0--nllg1.0"
@@ -149,12 +151,12 @@ run_task_evals() {
     # fi
     
     # d2g with tc-online + lenorm
-    MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
-    if [ -d "$MODEL" ]; then
-        run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
-    else
-        echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
-    fi
+ #   MODEL="../models/v6-google--gemma-2-2b-delta0.15-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0--tc-online--lenorm--full-completion--nllv1.0--nllg1.0--vallogodds"
+ #   if [ -d "$MODEL" ]; then
+ #       run_eval "$GPU" "$MODEL" "$TASK" "" "$LOG_FILE"
+ #   else
+ #       echo "  [SKIP] Model not found: $MODEL" >> "$LOG_FILE"
+ #   fi
     
     # ========================================
     # g2d (delta=2.5) variants
