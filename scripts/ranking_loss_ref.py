@@ -568,7 +568,7 @@ def main(args):
         print(f"Using standard formatting for model: {model_name}")
 
     has_system_role = False
-    if 'llama' in model_name.lower():
+    if 'llama' in model_name.lower() or 'qwen' in model_name.lower():
         has_system_role = True
         print("Model has system role!")
 

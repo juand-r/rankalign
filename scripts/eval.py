@@ -422,20 +422,29 @@ def main(args):
     
 
 
-    #NOTE assume we just do llama or gemma. Same situation in both:
-    first_sw_token = 2
+    # Determine first_sw_token based on whether the tokenizer prepends a BOS token.
+    # Gemma and Llama prepend BOS: encode("a X") = [BOS, a, X] -> first_sw_token=2 (base), 1 (chat)
+    # Qwen does NOT prepend BOS: encode("a X") = [a, X] -> first_sw_token=1 (base), 0 (chat)
+    has_bos = getattr(tokenizer, 'add_bos_token', True)  # Qwen sets this to False
+    if not has_bos:
+        # Double-check by encoding a test string
+        test_enc = tokenizer.encode("a test")
+        if test_enc[0] != tokenizer.bos_token_id:
+            has_bos = False
+    first_sw_token = 2 if has_bos else 1
 
     model_is_chat = False
     model_has_system_role = False
     if 'instruct' in modelname.lower() or '-it' in modelname.lower():
         model_is_chat = True
-        first_sw_token = 1
+        first_sw_token = first_sw_token - 1  # Chat models don't use "a " prefix
         print("Model is chat model!")
-    if 'llama' in modelname.lower():
+    if 'llama' in modelname.lower() or 'qwen' in modelname.lower():
         model_has_system_role = True
         print("Model has system role!")
     if "gpt" in modelname.lower():
         raise ValueError("If you are using GPT then rewrite this bit!")
+    print(f"first_sw_token={first_sw_token}, has_bos={has_bos}")
 
     yestoks = [tokenizer.encode(i)[-1] for i in yes_words]
     notoks = [tokenizer.encode(i)[-1] for i in no_words]
