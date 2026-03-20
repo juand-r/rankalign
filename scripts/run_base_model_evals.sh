@@ -34,12 +34,12 @@ HYPERNYM_TASKS=(
     hypernym-chairs hypernym-crows hypernym-diapers hypernym-dogs
     hypernym-dolls hypernym-ducklings hypernym-elephants hypernym-guns
     hypernym-hammers hypernym-helmets hypernym-jackets hypernym-kayaks
-    hypernym-kites "hypernym-magnifying glasses" hypernym-mirrors
-    hypernym-nuts hypernym-olives hypernym-oysters hypernym-penguins
-    hypernym-puppies "hypernym-rocking horses" hypernym-scallions
-    hypernym-spatulas hypernym-spinach hypernym-strollers hypernym-swords
-    hypernym-turkeys hypernym-wagons
+    hypernym-kites hypernym-mirrors
+    hypernym-wagons
 )
+# NOTE: removed hypernyms without v2 grammar-corrected data:
+# magnifying glasses, nuts, olives, oysters, penguins, puppies,
+# rocking horses, scallions, spatulas, spinach, strollers, swords, turkeys
 
 PLAUSIBLEQA_TASKS=(
     plausibleqa-nq_1114 plausibleqa-nq_1324 plausibleqa-nq_1328 plausibleqa-nq_1369
@@ -130,12 +130,18 @@ run_eval() {
         return 0
     fi
 
-    echo "  [RUN] $MODEL_KEY / $TASK"
+    # IFEval uses zero-shot discriminator (few-shot not implemented)
+    local DISC_SHOTS="few"
+    if [[ "$TASK" == ifeval-* ]]; then
+        DISC_SHOTS="zero"
+    fi
+
+    echo "  [RUN] $MODEL_KEY / $TASK (disc=$DISC_SHOTS)"
     python eval_by_claude.py \
         --model "$MODEL_PATH" \
         --task "$TASK" \
         --split_type random \
-        --disc-shots few \
+        --disc-shots "$DISC_SHOTS" \
         --gen-shots zero \
         --validator-log-odds \
         --self-typicality \
