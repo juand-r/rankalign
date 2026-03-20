@@ -196,6 +196,11 @@ def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False
         input_ids = prefix_ids.unsqueeze(0)
     else:
         input_ids = tokenizer("", return_tensors="pt")["input_ids"]
+        # If tokenizer produces no tokens for empty string (e.g., Qwen — no BOS),
+        # use eos/pad token as minimal context for unconditional distribution.
+        if input_ids.shape[1] == 0:
+            fallback_id = tokenizer.eos_token_id or tokenizer.pad_token_id or 0
+            input_ids = torch.tensor([[fallback_id]])
 
     with torch.no_grad():
         outputs = model(input_ids.to(model_device), use_cache=False)
