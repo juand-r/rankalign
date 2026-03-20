@@ -747,7 +747,6 @@ def main(args):
         print(f"  Original score mean: {np.mean(gen_scores_raw):.4f}")
         print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
         print(f"  Correction applied to {len(gen_scores)} examples")
-        if not use_full_completion_logprobs:
         if not use_full_completion_logprobs and P_gen_corrected is not None:
             print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
             # Replace P_gen with corrected version for rank computation
