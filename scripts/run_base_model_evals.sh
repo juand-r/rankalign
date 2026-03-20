@@ -82,7 +82,10 @@ run_eval() {
     local LOG_FILE="$LOGDIR/eval_${MODEL_KEY}_${TASK// /_}.log"
 
     # Skip if scores file already exists for this model+task
-    local EXISTING=$(ls ../outputs/self-*${MODEL_KEY}*_${TASK// /_}_test_*log-odds*.csv 2>/dev/null | head -1)
+    # Filename pattern: scores_self-v6-{model_path_with_underscores}_{task}_test_*
+    local MODEL_SLUG=$(echo "$MODEL_PATH" | sed 's|/|_|g')
+    local TASK_SLUG="${TASK// /_}"
+    local EXISTING=$(ls ../outputs/scores_self-v6-${MODEL_SLUG}_${TASK_SLUG}_test_*log-odds*.csv 2>/dev/null | head -1)
     if [ -n "$EXISTING" ]; then
         echo "  [SKIP] $MODEL_KEY / $TASK — scores file exists"
         return 0
