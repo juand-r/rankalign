@@ -698,25 +698,30 @@ def main(args):
                 )
             else:
                 # Load precomputed GPT-2 vocab probabilities
+                # Only available for vocab sizes that have been precomputed (e.g., Gemma 256K).
                 vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
-                if vocab_logprobs is None:
-                    raise ValueError("Typicality correction requires precomputed GPT-2 vocab probabilities")
 
-            # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
-            vocab_logprobs = vocab_logprobs.to(P_gen[0].device)
+            if vocab_logprobs is not None:
+                # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
+                vocab_logprobs = vocab_logprobs.to(P_gen[0].device)
 
-            # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_prior
-            # In log space: log P_corrected = log P_model - log P_prior
-            print(f"\nApplying PMI correction to probability distributions (prior: {typ_source})...")
-            P_gen_corrected = []
-            for ii, probs in enumerate(P_gen):
-                # probs shape: (vocab_size,) - probability distribution over all tokens
-                log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
-                log_probs_corrected = log_probs_model - vocab_logprobs
-                # Keep in log space - no need to exponentiate!
-                # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
-                # get_rank() only sorts, so we can work directly with log-probs for efficiency.
-                P_gen_corrected.append(log_probs_corrected)
+                # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_prior
+                # In log space: log P_corrected = log P_model - log P_prior
+                print(f"\nApplying PMI correction to probability distributions (prior: {typ_source})...")
+                P_gen_corrected = []
+                for ii, probs in enumerate(P_gen):
+                    # probs shape: (vocab_size,) - probability distribution over all tokens
+                    log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
+                    log_probs_corrected = log_probs_model - vocab_logprobs
+                    # Keep in log space - no need to exponentiate!
+                    # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
+                    # get_rank() only sorts, so we can work directly with log-probs for efficiency.
+                    P_gen_corrected.append(log_probs_corrected)
+            else:
+                P_gen_corrected = None
+                print("\n  WARNING: No precomputed GPT-2 vocab probs for this tokenizer vocab size.")
+                print("  Rank-based metrics (gen_acc, gen_mrr) will use UNCORRECTED distributions.")
+                print("  Per-completion gen_score_typcorr will still be computed correctly.")
 
         # Also compute per-completion typicality scores for the log-odds metric
         completions = []
@@ -745,6 +750,7 @@ def main(args):
         print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
         print(f"  Correction applied to {len(gen_scores)} examples")
         if not use_full_completion_logprobs:
+        if not use_full_completion_logprobs and P_gen_corrected is not None:
             print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
             # Replace P_gen with corrected version for rank computation
             P_gen = P_gen_corrected
