@@ -4,7 +4,10 @@ For more information, see https://nnsight.net/notebooks/tutorials/logit_lens/
 
 """
 
-from nnsight import LanguageModel
+try:
+    from nnsight import LanguageModel
+except ImportError:
+    LanguageModel = None  # nnsight only needed for logit lens visualization, not eval
 import torch
 import seaborn as sns
 import numpy as np
