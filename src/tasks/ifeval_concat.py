@@ -1,5 +1,5 @@
 """
-Concatenated ifeval task that merges all ifeval prompt datasets. (except for prompt_1 - prompt_5)
+Concatenated ifeval task that merges all ifeval prompt datasets.
 """
 
 import os
@@ -33,11 +33,19 @@ def discover_ifeval_datasets():
             # Must match exact pattern: gpt_ifeval_results_{name}.jsonl
             if filename.startswith(prefix) and filename.endswith(suffix):
                 prompt_name = filename[len(prefix):-len(suffix)]
-                # Exclude prompts named 'prompt_1' through 'prompt_21'
-                if prompt_name and not (prompt_name.startswith('prompt_') and prompt_name[7:].isdigit() and 1 <= int(prompt_name[7:]) <= 21):
+                if prompt_name:
                     prompts.add(prompt_name)
 
     return sorted(prompts)
+
+
+def is_test_only_prompt(prompt_name):
+    """True if prompt_1 through prompt_21 (all data goes to test set)."""
+    return (
+        prompt_name.startswith('prompt_')
+        and prompt_name[7:].isdigit()
+        and 1 <= int(prompt_name[7:]) <= 21
+    )
 
 
 def load_ifeval_data_raw(prompt_name):
@@ -68,15 +76,19 @@ def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
             print(f"[ifeval-concat] Warning: Skipping {prompt_name} - missing data")
             continue
 
-        num_train = math.floor(len(dataset) * 0.5)
-        train_items, test_items = utils.split_train_test(dataset, seed=SEED, subsample=False, num_train=num_train)
+        if is_test_only_prompt(prompt_name):
+            # Prompts 1-21: put all in test set
+            L_test.extend(dataset)
+        else:
+            num_train = math.floor(len(dataset) * 0.5)
+            train_items, test_items = utils.split_train_test(dataset, seed=SEED, subsample=False, num_train=num_train)
 
-        if not train_items or not test_items:
-            print(f"[ifeval-concat] Warning: Skipping {prompt_name} - empty split")
-            continue
+            if not train_items or not test_items:
+                print(f"[ifeval-concat] Warning: Skipping {prompt_name} - empty split")
+                continue
 
-        L_train.extend(train_items)
-        L_test.extend(test_items)
+            L_train.extend(train_items)
+            L_test.extend(test_items)
     
     # Shuffle the combined datasets
     rng.shuffle(L_train)
