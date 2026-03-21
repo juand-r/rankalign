@@ -15,7 +15,8 @@ from tqdm import tqdm
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer, AutoModelForCausalLM, AdamW
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from torch.optim import AdamW
 from peft import LoraConfig, get_peft_model
 import math
 import random
@@ -567,7 +568,7 @@ def main(args):
         print(f"Using standard formatting for model: {model_name}")
 
     has_system_role = False
-    if 'llama' in model_name.lower():
+    if 'llama' in model_name.lower() or 'qwen' in model_name.lower():
         has_system_role = True
         print("Model has system role!")
 
