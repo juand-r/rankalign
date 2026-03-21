@@ -35,11 +35,10 @@ HYPERNYM_TASKS=(
     hypernym-dolls hypernym-ducklings hypernym-elephants hypernym-guns
     hypernym-hammers hypernym-helmets hypernym-jackets hypernym-kayaks
     hypernym-kites hypernym-mirrors
-    hypernym-wagons
 )
 # NOTE: removed hypernyms without v2 grammar-corrected data:
 # magnifying glasses, nuts, olives, oysters, penguins, puppies,
-# rocking horses, scallions, spatulas, spinach, strollers, swords, turkeys
+# rocking horses, scallions, spatulas, spinach, strollers, swords, turkeys, wagons
 
 PLAUSIBLEQA_TASKS=(
     plausibleqa-nq_1114 plausibleqa-nq_1324 plausibleqa-nq_1328 plausibleqa-nq_1369
