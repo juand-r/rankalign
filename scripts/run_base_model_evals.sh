@@ -20,10 +20,16 @@ mkdir -p "$LOGDIR"
 # MODELS
 # ============================================================================
 declare -A MODELS
+# Base models
 MODELS[gemma-2b]="google/gemma-2-2b"
 MODELS[gemma-9b]="google/gemma-2-9b"
 MODELS[llama-8b]="meta-llama/Llama-3.1-8B"
 MODELS[qwen-7b]="Qwen/Qwen2.5-7B"
+# Instruct models
+MODELS[gemma-2b-it]="google/gemma-2-2b-it"
+MODELS[gemma-9b-it]="google/gemma-2-9b-it"
+MODELS[llama-8b-it]="meta-llama/Llama-3.1-8B-Instruct"
+MODELS[qwen-7b-it]="Qwen/Qwen2.5-7B-Instruct"
 
 # ============================================================================
 # TASKS — hardcoded to avoid stdout pollution from task registration
