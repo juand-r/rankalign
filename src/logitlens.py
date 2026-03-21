@@ -4,7 +4,10 @@ For more information, see https://nnsight.net/notebooks/tutorials/logit_lens/
 
 """
 
-from nnsight import LanguageModel
+try:
+    from nnsight import LanguageModel
+except ImportError:
+    LanguageModel = None  # nnsight only needed for logit lens visualization, not eval
 import torch
 import seaborn as sns
 import numpy as np
@@ -41,7 +44,10 @@ def get_logitlens_output(prompt, model, modelname_short):
     """
     if modelname_short in ["gpt2-xl"]:
         layers = model.transformer.h
-    if modelname_short in ["gemma-2-2b", "Meta-Llama-3-8B-Instruct"] or 'llama' in modelname_short.lower():
+    elif modelname_short in ["gemma-2-2b", "Meta-Llama-3-8B-Instruct"] or 'llama' in modelname_short.lower() or 'gemma' in modelname_short.lower() or 'qwen' in modelname_short.lower():
+        layers = model.model.layers
+    else:
+        # Default: try the common HF architecture
         layers = model.model.layers
 
     probs_layers = []
@@ -54,14 +60,14 @@ def get_logitlens_output(prompt, model, modelname_short):
                     layer_output = model.lm_head(
                         model.transformer.ln_f(layer.output[0])
                     )
-                elif modelname_short in [
-                    "gemma-2-2b",
-                    "Meta-Llama-3-8B-Instruct",
-                    "Llama-3.2-3B-Instruct"
-                ]:
+                elif (modelname_short in ["gemma-2-2b", "Meta-Llama-3-8B-Instruct", "Llama-3.2-3B-Instruct"]
+                      or 'gemma' in modelname_short.lower()
+                      or 'llama' in modelname_short.lower()
+                      or 'qwen' in modelname_short.lower()):
                     layer_output = model.lm_head(model.model.norm(layer.output[0]))
                 else:
-                    raise NotImplementedError("Model not implemented.")
+                    # Default: try HF standard architecture (lm_head + model.norm)
+                    layer_output = model.lm_head(model.model.norm(layer.output[0]))
 
                 probs = torch.nn.functional.softmax(layer_output, dim=-1).save()
                 probs_layers.append(probs)

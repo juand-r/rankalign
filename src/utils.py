@@ -1146,6 +1146,12 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
         else:
             prompt_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            # If prompt produces no tokens (e.g., Qwen with empty string — no BOS token),
+            # prepend eos/pad token as minimal context so the first completion token has
+            # something to condition on.
+            if len(prompt_ids) == 0:
+                fallback_id = tokenizer.eos_token_id or tokenizer.pad_token_id or 0
+                prompt_ids = torch.tensor([fallback_id])
             input_ids = torch.tensor([prompt_ids.tolist() + completion_ids])
             prefix_len = prompt_ids.shape[0]
 

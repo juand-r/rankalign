@@ -422,20 +422,27 @@ def main(args):
     
 
 
-    #NOTE assume we just do llama or gemma. Same situation in both:
-    first_sw_token = 2
+    # Determine first_sw_token based on whether the tokenizer prepends a BOS token.
+    # Gemma and Llama prepend BOS: encode("a X") = [BOS, a, X] -> first_sw_token=2 (base), 1 (chat)
+    # Qwen does NOT prepend BOS: encode("a X") = [a, X] -> first_sw_token=1 (base), 0 (chat)
+    # NOTE: tokenizer.add_bos_token is unreliable (Gemma-it and Llama-it report False but DO prepend BOS).
+    # Always use empirical test.
+    test_enc = tokenizer.encode("a test")
+    has_bos = (tokenizer.bos_token_id is not None and len(test_enc) > 0 and test_enc[0] == tokenizer.bos_token_id)
+    first_sw_token = 2 if has_bos else 1
 
     model_is_chat = False
     model_has_system_role = False
     if 'instruct' in modelname.lower() or '-it' in modelname.lower():
         model_is_chat = True
-        first_sw_token = 1
+        first_sw_token = first_sw_token - 1  # Chat models don't use "a " prefix
         print("Model is chat model!")
-    if 'llama' in modelname.lower():
+    if 'llama' in modelname.lower() or 'qwen' in modelname.lower():
         model_has_system_role = True
         print("Model has system role!")
     if "gpt" in modelname.lower():
         raise ValueError("If you are using GPT then rewrite this bit!")
+    print(f"first_sw_token={first_sw_token}, has_bos={has_bos}")
 
     yestoks = [tokenizer.encode(i)[-1] for i in yes_words]
     notoks = [tokenizer.encode(i)[-1] for i in no_words]
@@ -598,26 +605,31 @@ def main(args):
         print("="*60)
         
         if not use_full_completion_logprobs:
-            # Load precomputed GPT-2 vocab probabilities
+            # Load precomputed GPT-2 vocab probabilities for full-distribution PMI correction
+            # This is only available for vocab sizes that have been precomputed (e.g., Gemma 256K).
+            # For other models, rank-based metrics (gen_acc, gen_mrr) will use uncorrected P_gen.
             gpt2_vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
-            if gpt2_vocab_logprobs is None:
-                raise ValueError("Typicality correction requires precomputed GPT-2 vocab probabilities")
-            
-            # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
-            gpt2_vocab_logprobs = gpt2_vocab_logprobs.to(P_gen[0].device)
-            
-            # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_gpt2
-            # In log space: log P_corrected = log P_model - log P_gpt2
-            print("\nApplying PMI correction to probability distributions...")
-            P_gen_corrected = []
-            for ii, probs in enumerate(P_gen):
-                # probs shape: (vocab_size,) - probability distribution over all tokens
-                log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
-                log_probs_corrected = log_probs_model - gpt2_vocab_logprobs
-                # Keep in log space - no need to exponentiate!
-                # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
-                # get_rank() only sorts, so we can work directly with log-probs for efficiency.
-                P_gen_corrected.append(log_probs_corrected)
+            if gpt2_vocab_logprobs is not None:
+                # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
+                gpt2_vocab_logprobs = gpt2_vocab_logprobs.to(P_gen[0].device)
+
+                # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_gpt2
+                # In log space: log P_corrected = log P_model - log P_gpt2
+                print("\nApplying PMI correction to probability distributions...")
+                P_gen_corrected = []
+                for ii, probs in enumerate(P_gen):
+                    # probs shape: (vocab_size,) - probability distribution over all tokens
+                    log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
+                    log_probs_corrected = log_probs_model - gpt2_vocab_logprobs
+                    # Keep in log space - no need to exponentiate!
+                    # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
+                    # get_rank() only sorts, so we can work directly with log-probs for efficiency.
+                    P_gen_corrected.append(log_probs_corrected)
+            else:
+                P_gen_corrected = None
+                print("\n  WARNING: No precomputed GPT-2 vocab probs for this tokenizer vocab size.")
+                print("  Rank-based metrics (gen_acc, gen_mrr) will use UNCORRECTED distributions.")
+                print("  Per-completion gen_score_typcorr will still be computed correctly.")
         
         # Also compute per-completion typicality scores for the log-odds metric
         completions = []
@@ -638,7 +650,7 @@ def main(args):
         print(f"  Original score mean: {np.mean(gen_scores_raw):.4f}")
         print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
         print(f"  Correction applied to {len(gen_scores)} examples")
-        if not use_full_completion_logprobs:
+        if not use_full_completion_logprobs and P_gen_corrected is not None:
             print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
             # Replace P_gen with corrected version for rank computation
             P_gen = P_gen_corrected
