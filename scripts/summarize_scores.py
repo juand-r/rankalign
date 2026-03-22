@@ -189,11 +189,23 @@ def extract_metadata(filename):
     # Check if finetuned (has -delta in model name)
     finetuned = bool(re.search(r'-delta', model_part))
 
-    # For finetuned models, extract the training config after task
+    # For finetuned models, separate base model from training config
+    # e.g. "v6-google_gemma-2-2b-delta0.15-epoch2_plausibleqa-all_d2g_..._force-same-x"
+    # → base_model = "v6-google_gemma-2-2b", training_config = "delta0.15-epoch2_plausibleqa-all_..."
     training_config = ''
+    if finetuned:
+        delta_match = re.search(r'-delta', model_part)
+        if delta_match:
+            base_model = model_part[:delta_match.start()]
+            training_config = model_part[delta_match.start() + 1:]  # skip the leading '-'
+            model_part = base_model
+
+    # Also capture anything after the eval task as extra config
     after_task = rest[task_match_start + len(task):]
     if after_task:
-        training_config = after_task.strip('_')
+        extra = after_task.strip('_')
+        if extra:
+            training_config = (training_config + '_' + extra).strip('_') if training_config else extra
 
     return {
         'model': model_part,
