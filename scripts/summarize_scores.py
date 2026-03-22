@@ -32,10 +32,10 @@ DEFAULT_OUTPUTS_DIR = SCRIPT_DIR.parent / 'outputs'
 # Known task patterns, ordered so more specific patterns match first.
 # Each entry: (regex matching the task+dataset portion, task_prefix)
 TASK_PATTERNS = [
-    (r'(hypernym-[a-zA-Z]+)', None),          # hypernym-bananas, etc.
-    (r'(plausibleqa-[a-zA-Z]+)', None),        # plausibleqa-nq, plausibleqa-trivia, etc.
-    (r'(ambigqa-[a-zA-Z]+)', None),            # ambigqa-american, etc.
+    (r'(plausibleqa-[a-zA-Z]+_\d+)', None),   # plausibleqa-nq_1114, plausibleqa-trivia_3043, plausibleqa-webq_134
     (r'(ifeval-prompt_\d+)', None),            # ifeval-prompt_1, etc.
+    (r'(ambigqa-[a-zA-Z]+)', None),            # ambigqa-american, etc.
+    (r'(hypernym-[a-zA-Z][a-zA-Z ]+)', None),  # hypernym-bananas, hypernym-magnifying glasses, etc.
 ]
 
 # Eval score column variants (gen_score variants; val_score is always val_score)
