@@ -5,6 +5,9 @@ Val Acc for ALL scores_*.csv files in outputs/ and writes a single summary CSV.
 
 Handles all file types: base model, self-TC, finetuned, multi-model, all tasks.
 
+Reuses filename parsing from score_file_parsing.py (shared with
+dashboard_viz_refactor.py) — one set of task extraction regexes, not two.
+
 Usage:
     cd rankalign-longform
     python scripts/summarize_scores.py                          # use defaults
@@ -21,6 +24,13 @@ from pathlib import Path
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_auc_score, accuracy_score
 
+from score_file_parsing import (
+    _extract_task,
+    _extract_split,
+    _extract_timestamp,
+    _extract_float,
+)
+
 
 # =============================================================================
 # DEFAULTS
@@ -29,13 +39,34 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 SCRIPT_DIR = Path(__file__).parent
 DEFAULT_OUTPUTS_DIR = SCRIPT_DIR.parent / 'outputs'
 
-# Known task patterns, ordered so more specific patterns match first.
-# Each entry: (regex matching the task+dataset portion, task_prefix)
-TASK_PATTERNS = [
-    (r'(plausibleqa-[a-zA-Z]+_\d+)', None),   # plausibleqa-nq_1114, plausibleqa-trivia_3043, plausibleqa-webq_134
-    (r'(ifeval-prompt_\d+)', None),            # ifeval-prompt_1, etc.
-    (r'(ambigqa-[a-zA-Z]+)', None),            # ambigqa-american, etc.
-    (r'(hypernym-[a-zA-Z][a-zA-Z ]+)', None),  # hypernym-bananas, hypernym-magnifying glasses, etc.
+# Task family configs — each defines how to find and parse files for one family.
+# task_pattern: regex with a capture group for the dataset-specific part.
+# split_patterns: substring -> split name mapping.
+TASK_FAMILY_CONFIGS = [
+    {
+        'name': 'plausibleqa',
+        'task_pattern': r'plausibleqa-((?:nq|webq|trivia)_\d+)',
+        'file_pattern': 'scores_*plausibleqa*.csv',
+        'split_patterns': {'test': '_test_', 'train': '_train_'},
+    },
+    {
+        'name': 'ifeval',
+        'task_pattern': r'ifeval-(prompt_\d+)',
+        'file_pattern': 'scores_*ifeval*.csv',
+        'split_patterns': {'test': '_test_', 'train': '_train_'},
+    },
+    {
+        'name': 'ambigqa',
+        'task_pattern': r'ambigqa-([a-zA-Z]+)',
+        'file_pattern': 'scores_*ambigqa*.csv',
+        'split_patterns': {'test': '_test_', 'train': '_train_'},
+    },
+    {
+        'name': 'hypernym',
+        'task_pattern': r'hypernym-([a-zA-Z][a-zA-Z ]+)',
+        'file_pattern': 'scores_*hypernym*.csv',
+        'split_patterns': {'test': '_test_', 'train': '_train_'},
+    },
 ]
 
 # Eval score column variants (gen_score variants; val_score is always val_score)
@@ -54,10 +85,11 @@ LABEL_COLUMNS = [
 
 
 # =============================================================================
-# METRIC COMPUTATION (unchanged)
+# METRIC COMPUTATION
 # =============================================================================
 
 def compute_metrics(gen_scores, val_scores, labels, metric_type='log-odds'):
+    """Compute ROC-AUC, accuracy, and correlation metrics."""
     gen_scores_np = np.array(gen_scores)
     val_scores_np = np.array(val_scores)
     labels_np = np.array(labels)
@@ -113,37 +145,46 @@ def compute_metrics(gen_scores, val_scores, labels, metric_type='log-odds'):
 # FILENAME METADATA EXTRACTION
 # =============================================================================
 
-def extract_metadata(filename):
-    """Extract metadata from a scores_*.csv filename.
+def extract_metadata(csv_file, task_configs):
+    """Extract metadata from a scores CSV file path.
+
+    Uses the shared _extract_task, _extract_split, _extract_timestamp helpers
+    from score_file_parsing.py (same code the dashboard uses).
+
+    Handles features the dashboard doesn't need:
+    - self- prefix (self-typicality-corrected models)
+    - Multiple model families (Gemma, Llama, Qwen) with varying name formats
+    - Finetuned model detection via -delta (without requiring specific base patterns)
 
     Returns a dict with: model, task, split, self_tc, eval_tc, finetuned,
-    metric_type, timestamp.  Returns None if the file can't be parsed.
+    metric_type, timestamp, training_config.  Returns None if unparseable.
     """
-    stem = Path(filename).stem  # without .csv
+    filename = Path(csv_file).name
+    stem = Path(csv_file).stem
 
-    # Must start with scores_
     if not stem.startswith('scores_'):
         return None
 
-    rest = stem[len('scores_'):]  # strip scores_ prefix
+    rest = stem[len('scores_'):]
 
-    # Self-TC prefix
+    # --- Self-TC prefix ---
     self_tc = rest.startswith('self-')
     if self_tc:
         rest = rest[len('self-'):]
 
-    # Timestamp: last _YYYYMMDD_HHMMSS
+    # --- Timestamp (shared helper) ---
+    timestamp = _extract_timestamp(filename)
+    # Strip timestamp from rest for further parsing
     ts_match = re.search(r'_(\d{8}_\d{6})$', rest)
-    timestamp = ts_match.group(1) if ts_match else '00000000_000000'
     if ts_match:
         rest = rest[:ts_match.start()]
 
-    # eval_tc: _evaltc suffix (before timestamp)
+    # --- eval_tc suffix ---
     eval_tc = rest.endswith('_evaltc')
     if eval_tc:
         rest = rest[:-len('_evaltc')]
 
-    # metric_type: _log-odds or _log-probs
+    # --- metric_type ---
     metric_type = 'log-odds'
     if '_log-odds' in rest:
         rest = rest.replace('_log-odds', '', 1)
@@ -151,57 +192,61 @@ def extract_metadata(filename):
         metric_type = 'log-probs'
         rest = rest.replace('_log-probs', '', 1)
 
-    # Split: _test_ or _train_ (also handle _test_v2_ for hypernym)
+    # --- Split (shared helper) ---
+    # Handle _test_v2 pattern (hypernym test sets) before generic split detection
     split = None
-    # Handle _test_v2 pattern (hypernym test sets)
     if '_test_v2' in rest:
         split = 'test'
         rest = rest.replace('_test_v2', '')
-    elif '_test' in rest:
-        split = 'test'
-        rest = rest.replace('_test', '', 1)
-    elif '_train' in rest:
-        split = 'train'
-        rest = rest.replace('_train', '', 1)
+    else:
+        split_patterns = {'test': '_test', 'train': '_train'}
+        for split_name, pattern in split_patterns.items():
+            if pattern in rest:
+                split = split_name
+                rest = rest.replace(pattern, '', 1)
+                break
 
     if split is None:
         return None
 
-    # Now rest should be: <model_part>_<task_part>[_extra_stuff]
-    # Find the task using known patterns
+    # --- Task extraction (shared helper, try each family config) ---
     task = None
     task_match_start = None
-    for pattern, _ in TASK_PATTERNS:
-        m = re.search(pattern, rest)
-        if m:
-            task = m.group(1)
-            task_match_start = m.start()
-            break
+    for cfg in task_configs:
+        task_pattern = cfg['task_pattern']
+        found_task, found_dataset = _extract_task(rest, task_pattern, {})
+        if found_task is not None:
+            # Find the match position in rest for model extraction
+            all_matches = list(re.finditer(task_pattern, rest))
+            if all_matches:
+                task = found_task
+                task_match_start = all_matches[-1].start()
+                # Grab full match span for after-task extraction
+                task_match_end = all_matches[-1].end()
+                break
 
     if task is None:
         return None
 
-    # Model is everything before the task match
+    # --- Model extraction ---
     model_part = rest[:task_match_start].rstrip('_')
     if not model_part:
         return None
 
-    # Check if finetuned (has -delta in model name)
+    # --- Finetuned detection ---
     finetuned = bool(re.search(r'-delta', model_part))
 
     # For finetuned models, separate base model from training config
-    # e.g. "v6-google_gemma-2-2b-delta0.15-epoch2_plausibleqa-all_d2g_..._force-same-x"
-    # → base_model = "v6-google_gemma-2-2b", training_config = "delta0.15-epoch2_plausibleqa-all_..."
     training_config = ''
     if finetuned:
         delta_match = re.search(r'-delta', model_part)
         if delta_match:
             base_model = model_part[:delta_match.start()]
-            training_config = model_part[delta_match.start() + 1:]  # skip the leading '-'
+            training_config = model_part[delta_match.start() + 1:]  # skip leading '-'
             model_part = base_model
 
-    # Also capture anything after the eval task as extra config
-    after_task = rest[task_match_start + len(task):]
+    # Capture anything after the eval task as extra config
+    after_task = rest[task_match_end:]
     if after_task:
         extra = after_task.strip('_')
         if extra:
@@ -250,11 +295,11 @@ def discover_and_summarize(outputs_dir):
 
     print(f"Found {len(csv_files)} scores_*.csv files in {outputs_path}")
 
-    # Phase 1: parse all filenames, group for dedup
+    # Phase 1: parse all filenames
     parsed = []
     skipped = 0
     for csv_file in csv_files:
-        meta = extract_metadata(csv_file.name)
+        meta = extract_metadata(csv_file, TASK_FAMILY_CONFIGS)
         if meta is None:
             skipped += 1
             continue
@@ -264,7 +309,7 @@ def discover_and_summarize(outputs_dir):
 
     print(f"Parsed {len(parsed)} files, skipped {skipped} (unrecognized pattern)")
 
-    # Phase 2: dedup — group by (model, task, split, self_tc, eval_tc, training_config), keep newest
+    # Phase 2: dedup — group by identity key, keep newest
     groups = {}
     for meta in parsed:
         key = (meta['model'], meta['task'], meta['split'], meta['self_tc'],
@@ -375,6 +420,22 @@ def main():
     print(f"Self-TC files: {summary['self_tc'].sum()} rows")
     print(f"Finetuned files: {summary['finetuned'].sum()} rows")
 
+    # Per-family task counts for base models (non-self, non-finetuned)
+    base_nonselfeval = summary[
+        (~summary['finetuned']) & (~summary['self_tc']) &
+        (summary['eval_variant'] == 'raw') & (summary['split'] == 'test')
+    ]
+    if not base_nonselfeval.empty:
+        print("\n--- Tasks per base model (raw, test, non-self) ---")
+        for model in sorted(base_nonselfeval['model'].unique()):
+            tasks = base_nonselfeval[base_nonselfeval['model'] == model]['task']
+            by_family = {}
+            for t in tasks:
+                fam = t.split('-')[0]
+                by_family[fam] = by_family.get(fam, 0) + 1
+            counts = ', '.join(f"{fam}={n}" for fam, n in sorted(by_family.items()))
+            print(f"  {model}: {len(tasks)} tasks ({counts})")
+
     # Compact view: Gen ROC for raw scores, test split, base models
     raw_test = summary[
         (summary['eval_variant'] == 'raw') &
@@ -392,7 +453,6 @@ def main():
             values='gen_roc',
             aggfunc='first',
         )
-        # Show only first 10 task columns to keep it readable
         if pivot.shape[1] > 10:
             print(pivot.iloc[:, :10].to_string())
             print(f"  ... ({pivot.shape[1]} tasks total)")
