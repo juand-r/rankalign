@@ -71,6 +71,7 @@ def run_validation(
     split_name: str,
     LL: list,
     make_prompt,
+    disc_shots: str = "zero",
 ):
     """
     Run validator on all (or max_samples) items for the given split.
@@ -87,7 +88,7 @@ def run_validation(
 
     for i in tqdm(range(n), desc=f"{task_name} ({split_name})", leave=False):
         item = LL[i]
-        prompt_disc = make_prompt(item, style="discriminator", shots="zero").prompt
+        prompt_disc = make_prompt(item, style="discriminator", shots=disc_shots).prompt
         probs_disc = get_final_logit_prob(
             prompt_disc,
             model,
@@ -149,6 +150,12 @@ def main():
         default=0.05,
         help="Tolerance: flag p_yes+p_no outside [1-tol, 1+tol] as outliers (default: 0.05)",
     )
+    parser.add_argument(
+        "--disc-shots",
+        type=str,
+        default="zero",
+        help="Discriminator shots: 'zero' or 'few' (default: zero)",
+    )
     args = parser.parse_args()
 
     # Resolve task list
@@ -203,6 +210,7 @@ def main():
                     split_name,
                     LL,
                     make_prompt,
+                    disc_shots=args.disc_shots,
                 )
                 task_p_sums.extend(p_sums)
                 task_n_skipped += n_skipped
