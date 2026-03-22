@@ -30,6 +30,9 @@ MODELS[gemma-2b-it]="google/gemma-2-2b-it"
 MODELS[gemma-9b-it]="google/gemma-2-9b-it"
 MODELS[llama-8b-it]="meta-llama/Llama-3.1-8B-Instruct"
 MODELS[qwen-7b-it]="Qwen/Qwen2.5-7B-Instruct"
+# Large models
+MODELS[gemma-27b]="google/gemma-2-27b"
+MODELS[gemma-27b-it]="google/gemma-2-27b-it"
 
 # ============================================================================
 # TASKS — hardcoded to avoid stdout pollution from task registration
