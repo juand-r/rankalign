@@ -433,11 +433,31 @@ def save_tracked_scores(results, output_path):
     print(f"  Saved tracked scores to {output_path}")
 
 
+def split_prompts_labeled_unlabeled(prompts, ratio, seed):
+    """Split unique prompts into labeled/unlabeled sets.
+    
+    Args:
+        prompts: list of prompt strings (one per training item, may repeat)
+        ratio: fraction of unique prompts to mark as labeled
+        seed: random seed for reproducibility
+    
+    Returns:
+        labeled_set: set of prompt strings that are labeled
+    """
+    unique_prompts = sorted(set(prompts))
+    rng = random.Random(seed)
+    rng.shuffle(unique_prompts)
+    n_labeled = max(1, int(len(unique_prompts) * ratio))
+    labeled_set = set(unique_prompts[:n_labeled])
+    return labeled_set
+
+
 def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
                                 typicality_correction, length_normalize, use_full_completion,
                                 preference_loss_weight, nll_validator_weight, nll_generator_weight,
                                 force_same_x=False, boost_initial_val=False,
-                                self_typicality=False):
+                                self_typicality=False,
+                                semi_supervised=None, labeled_only=None):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
@@ -455,10 +475,16 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
     nll_g_str = f"-nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
     force_same_x_str = "-force-same-x" if force_same_x else ""
     valboost_str = "-valboost" if boost_initial_val else ""
+    if semi_supervised is not None:
+        semi_str = f"-semi{semi_supervised}"
+    elif labeled_only is not None:
+        semi_str = f"-labelonly{labeled_only}"
+    else:
+        semi_str = ""
     
     base_name = (f"v5-{model_name.replace('/', '--')}-delta{delta}--{task}{all_str}"
                  f"--{direction_str}--{split_type}{alpha_str}{typcorr_str}{lenorm_str}"
-                 f"{full_completion_str}{pref_str}{nll_v_str}{nll_g_str}{force_same_x_str}{valboost_str}")
+                 f"{full_completion_str}{pref_str}{nll_v_str}{nll_g_str}{force_same_x_str}{valboost_str}{semi_str}")
     return base_name
 
 
@@ -495,7 +521,8 @@ def main(args):
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
             preference_loss_weight, nll_validator_weight, nll_generator_weight, args.force_same_x,
-            args.boost_initial_val, self_typicality=args.self_typicality
+            args.boost_initial_val, self_typicality=args.self_typicality,
+            semi_supervised=args.semi_supervised, labeled_only=args.labeled_only
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
                                     "outputs", "training-logs")
@@ -514,7 +541,13 @@ def main(args):
         if run_name is None:
             # Auto-generate run name from key parameters
             pref_str = f"-pref{preference_loss_weight}" if preference_loss_weight != 1.0 else ""
-            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}{pref_str}-lr{lr}"
+            if args.semi_supervised is not None:
+                semi_str = f"-semi{args.semi_supervised}"
+            elif args.labeled_only is not None:
+                semi_str = f"-labelonly{args.labeled_only}"
+            else:
+                semi_str = ""
+            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}{pref_str}{semi_str}-lr{lr}"
         
         wandb.init(
             project="rankalign",
@@ -540,6 +573,9 @@ def main(args):
                 "single_token_data_only": args.single_token_data_only,
                 "typicality_correction": args.typicality_correction,
                 "self_typicality": args.self_typicality,
+                "semi_supervised": args.semi_supervised,
+                "labeled_only": args.labeled_only,
+                "split_seed": args.split_seed,
             }
         )
         print(f"Weights & Biases initialized: rankalign/{run_name}")
@@ -1381,11 +1417,41 @@ def main(args):
 
     # Prepare typicality scores for inclusion in Z (use zeros if not computed)
     typ_scores_for_z = typicality_scores if typicality_scores is not None else [0.0] * len(L_train_all)
-    
+
+    # --- Semi-supervised / labeled-only prompt split ---
+    is_labeled_flags = [True] * len(L_train_all)
+    if args.semi_supervised is not None or args.labeled_only is not None:
+        ratio = args.semi_supervised if args.semi_supervised is not None else args.labeled_only
+        all_prompts = [pt.prompt for pt in p_train_tune]
+        labeled_set = split_prompts_labeled_unlabeled(all_prompts, ratio, args.split_seed)
+        is_labeled_flags = [pt.prompt in labeled_set for pt in p_train_tune]
+
+        n_labeled = sum(is_labeled_flags)
+        n_unlabeled = len(is_labeled_flags) - n_labeled
+        unique_labeled = len(labeled_set)
+        unique_total = len(set(all_prompts))
+        mode_name = "semi-supervised" if args.semi_supervised is not None else "labeled-only"
+        print(f"\n{'='*60}")
+        print(f"PROMPT SPLIT ({mode_name}, ratio={ratio}, seed={args.split_seed})")
+        print(f"{'='*60}")
+        print(f"Unique prompts: {unique_total} total, {unique_labeled} labeled, {unique_total - unique_labeled} unlabeled")
+        print(f"Items: {len(is_labeled_flags)} total, {n_labeled} labeled, {n_unlabeled} unlabeled")
+
+        if args.labeled_only is not None:
+            keep = [i for i, flag in enumerate(is_labeled_flags) if flag]
+            L_train_all = [L_train_all[i] for i in keep]
+            p_train_tune = [p_train_tune[i] for i in keep]
+            p_train_gold = [p_train_gold[i] for i in keep]
+            logprobs_last_layer = [logprobs_last_layer[i] for i in keep]
+            typ_scores_for_z = [typ_scores_for_z[i] for i in keep]
+            is_labeled_flags = [True] * len(L_train_all)
+            print(f"Filtered to {len(L_train_all)} labeled items")
+        print(f"{'='*60}\n")
+
     if train_g_or_d == 'both':
-        # Create tuples of (discriminator_prompt, generator_prompt, logprobs, typicality)
+        # Create tuples of (discriminator_prompt, generator_prompt, logprobs, typicality, is_labeled)
         # Note: logprobs_last_layer contains tuples of (log_prob_d, log_prob_g)
-        Z = list(zip(p_train_tune, p_train_gold, logprobs_last_layer, typ_scores_for_z))
+        Z = list(zip(p_train_tune, p_train_gold, logprobs_last_layer, typ_scores_for_z, is_labeled_flags))
         
         # Sort based on discriminator logprob (first element of the logprobs tuple)
         Z = sorted(Z, key=lambda i: i[2][0])  # Using i[2][0] to get the discriminator logprob
@@ -1477,7 +1543,8 @@ def main(args):
         #Z = list(zip(prompts_pos, gen_logprobs_last_layer))
         # Include L_train_all to access ground truth labels (e.g., .taxonomic)
         # Also include typicality scores (index 3)
-        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z))
+        # (p_train_tune, logprobs, L_train_all, typicality, is_labeled)
+        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z, is_labeled_flags))
         Z = sorted(Z, key = lambda i: i[1])  # Sort by logprob (index 1)
 
         # Calculate delta based on range of logprobs
@@ -1673,7 +1740,8 @@ def main(args):
                      (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                      (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
                      (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                     (pair[0][3], pair[1][3])  # typicality scores
+                     (pair[0][3], pair[1][3]),  # typicality scores
+                     (pair[0][4], pair[1][4]),  # is_labeled flags
                  )
                  for pair in pairs_ if pair[1][1] - pair[0][1] > delta
              ]
@@ -1685,7 +1753,8 @@ def main(args):
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                    (pair[0][3], pair[1][3])  # typicality scores
+                    (pair[0][3], pair[1][3]),  # typicality scores
+                    (pair[0][4], pair[1][4]),  # is_labeled flags
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1700,7 +1769,8 @@ def main(args):
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                    (pair[0][3], pair[1][3])  # typicality scores
+                    (pair[0][3], pair[1][3]),  # typicality scores
+                    (pair[0][4], pair[1][4]),  # is_labeled flags
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1712,7 +1782,8 @@ def main(args):
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                    (pair[0][3], pair[1][3])  # typicality scores
+                    (pair[0][3], pair[1][3]),  # typicality scores
+                    (pair[0][4], pair[1][4]),  # is_labeled flags
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1722,25 +1793,26 @@ def main(args):
         completion_text = space_prefix +"Yes"
         if with_chat:
             # Create pairs with both discriminator and generator prompts, applying chat formatting
-            # NOTE verify fixed
-            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality) - typicality at index 3
+            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality, is_labeled)
             pairs = [
                 (
                     ((format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)), (completion_text, completion_text)),  # discriminator pair
                     ((format_with_inst(pair[0][1].prompt), format_with_inst(pair[1][1].prompt)), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
                     (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
-                    (pair[0][3], pair[1][3])  # typicality scores
+                    (pair[0][3], pair[1][3]),  # typicality scores
+                    (pair[0][4], pair[1][4]),  # is_labeled flags
                 ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
             ]
         else:
             # Create pairs with both discriminator and generator prompts
-            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality) - typicality at index 3
+            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality, is_labeled)
             pairs = [
                 (
                     ((pair[0][0].prompt, pair[1][0].prompt), (completion_text, completion_text)),  # discriminator pair
                     ((pair[0][1].prompt, pair[1][1].prompt), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
                     (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
-                    (pair[0][3], pair[1][3])  # typicality scores
+                    (pair[0][3], pair[1][3]),  # typicality scores
+                    (pair[0][4], pair[1][4]),  # is_labeled flags
                 ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
             ]
 
@@ -1784,16 +1856,16 @@ def main(args):
 
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
-                # 4-element structure: (disc_pair, gen_pair, labels, typicality)
-                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j), (typicality_i, typicality_j) = self.pairs[idx]
+                # 5-element structure: (disc_pair, gen_pair, labels, typicality, is_labeled)
+                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j) = self.pairs[idx]
                 if not self.use_full_completion:
                     completion_i_disc = self.tokenizer.decode(self.tokenizer.encode(completion_i_disc)[-1])
                     completion_j_disc = self.tokenizer.decode(self.tokenizer.encode(completion_j_disc)[-1])
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
-                # Unified 6-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators, typicality)
-                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j) = self.pairs[idx]
+                # 7-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators, typicality, is_labeled)
+                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j) = self.pairs[idx]
                 
                 if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
@@ -1930,6 +2002,7 @@ def main(args):
 
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
+                pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
                 item = {
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
                     'attention_mask_i': enc_i['attention_mask'].squeeze(0),
@@ -1946,8 +2019,10 @@ def main(args):
                     'label': torch.tensor(1.0, dtype=torch.float),
                     'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
                     'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
+                    'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
                 }
             else:
+                pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
                 item = {
                     'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
                     'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
@@ -1965,6 +2040,7 @@ def main(args):
                     'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float),
                     'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
                     'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
+                    'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
                 }
             return item
 
@@ -2016,6 +2092,16 @@ def main(args):
 
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    if batch_size > 1 and (args.semi_supervised is not None or args.labeled_only is not None):
+        raise NotImplementedError(
+            "Semi-supervised / labeled-only with batch_size > 1 has known bugs:\n"
+            "  Bug 1: F.binary_cross_entropy_with_logits uses reduction='mean', so pair_is_labeled\n"
+            "         masks the batch-averaged BCE instead of per-example. Fix: add reduction='none'.\n"
+            "  Bug 2: In the semi-supervised total loss, labeled_loss and unlabeled_loss are scalars\n"
+            "         but pair_is_labeled is [B], making loss non-scalar. Fix: compute per-example\n"
+            "         preference loss before .mean(), do weighted combination per-example, then .mean().\n"
+            "  Both bugs only matter with batch_size > 1. Current batch_size={batch_size}."
+        )
     print("\n\nDone making dataloader\n\n")
     optimizer = AdamW(model.parameters(), lr=lr)
 
@@ -2248,6 +2334,7 @@ def main(args):
                 token_correct_j = batch["token_correct_j"].to(device)  # validator correct answer
                 token_gen_j = batch["token_gen_j"].to(device)  # generator completion
                 indicator_j = batch["indicator_j"].to(device)  # 1 if positive, 0 if negative
+                pair_is_labeled = batch["is_labeled"].to(device)  # 1.0 if both items labeled, 0.0 otherwise
 
                 label = batch["label"].to(device)
 
@@ -2357,8 +2444,8 @@ def main(args):
                     logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
                     logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
                     nll_validator_loss = (
-                        F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
-                        F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
+                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
+                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
                     ).mean() / 2
                     # For logging, compute score_correct as log-odds (signed by correct answer)
                     score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
@@ -2367,19 +2454,30 @@ def main(args):
                     # Original: -log P(correct_answer | prompt) for both items
                     score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
                     score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                    nll_validator_loss = -(score_correct_i + score_correct_j).mean() / 2
+                    nll_validator_loss = -(pair_is_labeled * (score_correct_i + score_correct_j)).mean() / 2
                 
                 # Generator NLL: -log P(completion | prompt) * indicator (only for positive examples)
                 score_gen_i = sum_completion_logprobs(log_probs_i, token_gen_i)
                 score_gen_j = sum_completion_logprobs(log_probs_j, token_gen_j)
-                nll_generator_loss = -(score_gen_i * indicator_i + score_gen_j * indicator_j).mean() / 2
+                nll_generator_loss = -(pair_is_labeled * (score_gen_i * indicator_i + score_gen_j * indicator_j)).mean() / 2
                 
                 # Total loss
-                loss = (
-                    preference_loss_weight * preference_loss
-                    + nll_validator_weight * nll_validator_loss
-                    + nll_generator_weight * nll_generator_loss
-                )
+                if args.semi_supervised is not None:
+                    # Labeled pairs: use specified weights (comb, sft, or pref)
+                    # Unlabeled pairs: preference loss only (weight 1.0)
+                    labeled_loss = (
+                        preference_loss_weight * preference_loss
+                        + nll_validator_weight * nll_validator_loss
+                        + nll_generator_weight * nll_generator_loss
+                    )
+                    unlabeled_loss = preference_loss
+                    loss = pair_is_labeled * labeled_loss + (1 - pair_is_labeled) * unlabeled_loss
+                else:
+                    loss = (
+                        preference_loss_weight * preference_loss
+                        + nll_validator_weight * nll_validator_loss
+                        + nll_generator_weight * nll_generator_loss
+                    )
                 
                 loss.backward()
                 optimizer.step()
@@ -2489,7 +2587,13 @@ def main(args):
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
             valboost_str = "--valboost" if args.boost_initial_val else ""
             vallogodds_str = "--vallogodds" if validator_log_odds else ""
-            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str
+            if args.semi_supervised is not None:
+                semi_str = f"--semi{args.semi_supervised}"
+            elif args.labeled_only is not None:
+                semi_str = f"--labelonly{args.labeled_only}"
+            else:
+                semi_str = ""
+            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2571,7 +2675,16 @@ if __name__ == "__main__":
     parser.add_argument("--track-scores-freq", type=int, default=10, help="Frequency (in steps) to track scores when --track-scores is enabled")
     parser.add_argument("--force-same-x", action="store_true", default=False, help="Only pair examples with the same generator prompt (same 'x'). Ensures pairs compare different completions for the same input.")
     parser.add_argument("--boost-initial-val", action="store_true", default=False, help="Shift validator scores so optimal classification threshold is 0. Computes theta = -optimal_threshold and adds it to all validator scores during training.")
+    parser.add_argument("--semi-supervised", type=float, default=None, metavar="RATIO", help="Semi-supervised training: RATIO (0,1) of prompts are labeled (full loss), rest are unlabeled (preference-only). Mutually exclusive with --labeled-only.")
+    parser.add_argument("--labeled-only", type=float, default=None, metavar="RATIO", help="Train only on labeled subset: RATIO (0,1) of prompts are kept, rest discarded. Mutually exclusive with --semi-supervised.")
+    parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
     args = parser.parse_args()
+
+    if args.semi_supervised is not None and args.labeled_only is not None:
+        parser.error("--semi-supervised and --labeled-only are mutually exclusive")
+    for flag_name, flag_val in [("--semi-supervised", args.semi_supervised), ("--labeled-only", args.labeled_only)]:
+        if flag_val is not None and not (0 < flag_val < 1):
+            parser.error(f"{flag_name} must be between 0 and 1 (exclusive), got {flag_val}")
 
     if args.self_typicality:
         args.typicality_correction = True
