@@ -1,5 +1,5 @@
 {
-  "outputs_dir": "/data2/users/jocelynz/rankalign/outputs",
+  "outputs_dir": "/datastor2/jocelyn/rankalign/outputs",
   "task_pattern": "ifeval-prompt_([0-9]+)",
   "split_patterns": {
     "train": "_train_",
@@ -12,16 +12,16 @@
   },
   "gen_score_col": "gen_score",
   "val_score_col": "val_score",
-  "base_pattern": "^scores_v6-google_gemma-2-9b-it",
+  "base_pattern": "^scores_gemma-2-9b-it",
   "finetuned_pattern": "^scores_v6-google_gemma-2-9b-it-delta",
   "union_models": {
     "training_task": "ifeval-concat",
     "eval_task_pattern": "force-same-x_vallogodds_merged_(ifeval-prompt_[0-9]+)_"
   },
-    "aggregation_groups": {
-      "Out Distribution": "ifeval-prompt-1[1-9]*",
-      "In Distribution": "ifeval-prompt-2[1-9]*"
-    },
+  "aggregation_groups": {
+    "out-of-domain": "regex:^ifeval-prompt-([1-9]|1\\d|2[0-1])$",
+    "in-domain": "regex:^ifeval-prompt-(2[2-9]|[3-9]\\d|\\d{3,})$"
+  },
   "eval_columns": {
     "raw": "gen_score",
     "tc": "gen_score_typcorr",
@@ -38,7 +38,8 @@
   ],
   "visible_categories": [
     "Base",
-    "S"
+    "S",
+    "U"
   ],
   "visible_modes": [
     "Comb",

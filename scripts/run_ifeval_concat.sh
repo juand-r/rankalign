@@ -123,7 +123,8 @@ run_train_variant() {
     local NLLG_W=$4
     local USE_TC=$5
     local USE_VALIDATOR_LOG_ODDS=${6:-0}
-    local GPU_PAIR=${7:-$TRAIN_GPU}
+    local USE_LENORM=${7:-0}
+    local GPU_PAIR=${8:-$TRAIN_GPU}
     local GPU_LOG=$(echo "$GPU_PAIR" | tr ',' '-')
     local LOG_FILE="logs/train_${TASK_CONCAT}_${NAME}_gpu${GPU_LOG}.log"
 
@@ -277,8 +278,8 @@ run_train_worker() {
     local idx=0
     for spec in "${TRAIN_SPECS[@]}"; do
         if [ $((idx % NUM_WORKERS)) -eq "$worker_idx" ]; then
-            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS <<< "$spec"
-            run_train_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_TC" "$USE_VALLOGODDS" "$gpu_pair"
+            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS USE_LENORM <<< "$spec"
+            run_train_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_TC" "$USE_VALLOGODDS" "$USE_LENORM" "$gpu_pair"
         fi
         idx=$((idx + 1))
     done

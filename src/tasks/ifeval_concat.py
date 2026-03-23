@@ -127,7 +127,7 @@ register_task({
     'make_prompt': make_prompt,
     'get_completion': get_completion,
     'get_label': get_label,
-    'batch_size': {'with_ref': 1, 'without_ref': 6},
+    'batch_size': {'with_ref': 1, 'without_ref': 16},
     'supports_split_types': ['random'],
     'description': 'Concatenated ifeval task merging all prompt datasets',
 })
