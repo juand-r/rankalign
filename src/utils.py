@@ -785,8 +785,18 @@ def make_prompt_ifeval(item, style="generator", shots="zero", gen_response=None,
         
         # original prompt
         prompt = Template(
-                "You will be given a prompt and a response. Determine if the response follows the instructions in the prompt (Yes/No). \n\nPrompt: $prompt \n\nResponse: $response \n\nDoes the response follow the prompt instructions?"
-                ).substitute(prompt=item['prompt'], response=curr_response)
+            "You are a strict binary validator.\n\n"
+            "You will be given a prompt and a response. Determine if the response follows ALL instructions in the prompt exactly.\n\n"
+            "Rules:\n"
+            "- Every constraint must be satisfied perfectly.\n"
+            "- If ANY constraint is violated, output NO.\n"
+            "- Do not give partial credit.\n"
+            "- Do not infer or assume missing requirements.\n"
+            "- If you are uncertain, output NO.\n\n"
+            "Prompt: $prompt\n\n"
+            "Response: $response\n\n"
+            "Output exactly one word: YES or NO."
+        ).substitute(prompt=item['prompt'], response=curr_response)
         
         # properties = [map_ifeval_instruction(instr, args) for instr, args in zip(item['instruction_id_list'], item['kwargs'])]
         # properties_str = "\n".join(f"- {prop}" for prop in properties)
