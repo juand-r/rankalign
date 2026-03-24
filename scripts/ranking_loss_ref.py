@@ -603,6 +603,10 @@ def main(args):
         space_prefix = " "
         print(f"Using standard formatting for model: {model_name}")
 
+    if args.disc_shots is not None:
+        disc_shots = args.disc_shots
+        print(f"Overriding disc_shots to: {disc_shots}")
+
     has_system_role = False
     if 'llama' in model_name.lower() or 'qwen' in model_name.lower():
         has_system_role = True
@@ -2678,6 +2682,7 @@ if __name__ == "__main__":
     parser.add_argument("--semi-supervised", type=float, default=None, metavar="RATIO", help="Semi-supervised training: RATIO (0,1) of prompts are labeled (full loss), rest are unlabeled (preference-only). Mutually exclusive with --labeled-only.")
     parser.add_argument("--labeled-only", type=float, default=None, metavar="RATIO", help="Train only on labeled subset: RATIO (0,1) of prompts are kept, rest discarded. Mutually exclusive with --semi-supervised.")
     parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
+    parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
     args = parser.parse_args()
 
     if args.semi_supervised is not None and args.labeled_only is not None:
