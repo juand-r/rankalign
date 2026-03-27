@@ -32,7 +32,7 @@
 .reveal h1, .reveal h2, .reveal h3 { font-weight: 700; text-transform: none; color: var(--text); }
 .reveal h2 { font-size: 1.35em; margin-bottom: 0.5em; }
 .reveal h3 { font-size: 1.05em; }
-.reveal section { text-align: left; padding-bottom: 50px !important; }
+.reveal section { text-align: left; }
 .reveal .center-text { text-align: center; }
 .reveal .dim { color: var(--text-dim); }
 .reveal .small { font-size: 0.72em; }
@@ -115,12 +115,11 @@
 .cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .citation {
-  position: fixed;
-  bottom: 12px; left: 24px; right: 24px;
+  position: absolute;
+  bottom: 18px; left: 24px; right: 24px;
   font-size: 0.42em;
   color: #aaa;
   line-height: 1.5;
-  z-index: 10;
 }
 </style>
 </head>
@@ -157,11 +156,11 @@
     <div>"Is a <strong>bee</strong> a kind of <strong>furniture</strong>? Answer: <span class="dim">___</span>" &rarr; look at Yes/No log-odds.</div>
   </div>
 
-  <p class="fragment small" style="margin-top:14px;">
-    A well-calibrated model should rank these consistently.
+  <p class="fragment small" style="margin-top:14px;" data-fragment-index="1">
+    A well-calibrated model should rank these consistently — but often it doesn't.
   </p>
 
-  <div class="citation">
+  <div class="citation fragment fade-out" data-fragment-index="1">
     Li et al., Benchmarking and Improving Generator-Validator Consistency of Language Models. ICLR 2024<br>
     Rodriguez et al., RankAlign: A Ranking View of the Generator-Validator Gap in Large Language Models. COLM 2025
   </div>
@@ -187,17 +186,16 @@
   </div>
 
   <div class="fragment" style="margin-top:18px;">
-    <p class="small">We measure the gap via <strong>Pearson correlation</strong> between gen and val scores across candidate answers for each question.</p>
+    <p class="small">We measure the gap via <strong>Pearson correlation</strong> between gen and val scores across candidate answers for each prompt.</p>
   </div>
 </section>
 
 <!-- Slide 3: Interactive scatter — gen vs val -->
 <section>
   <h2>The Generator–Validator Gap</h2>
-  <p class="small">Click a category to see how gen and val scores diverge.</p>
 
   <div class="interactive-container">
-    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;" id="gv-buttons"></div>
+    <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;" id="gv-buttons"></div>
     <canvas id="gv-canvas" width="860" height="330"></canvas>
     <div id="gv-info" class="small" style="margin-top:8px;color:var(--text-dim);"></div>
   </div>
@@ -205,23 +203,23 @@
   <script>
   (function(){
     const data = {
-      "insect": {
-        answers: ["bee","ant","spider","butterfly","wasp","cockroach","fly","mosquito","ladybug","moth"],
-        gen:  [0.82, 0.78, 0.45, 0.71, 0.65, 0.55, 0.60, 0.52, 0.48, 0.58],
-        val:  [0.91, 0.88, 0.30, 0.85, 0.83, 0.72, 0.70, 0.68, 0.65, 0.75],
-        label:[1,1,0,1,1,1,1,1,1,1]
+      "cars": {
+        answers: ["vehicle","transport","machine","technology","car","tool","mobile","truck","motorcycle","bus","disease"],
+        gen:  [-2.828,-3.203,-4.219,-4.594,-5.219,-6.594,-5.594,-7.344,-7.844,-8.188,-10.062],
+        val:  [0.632,0.629,0.507,0.379,0.632,0.129,0.002,-0.374,-0.754,-0.500,-1.001],
+        label:[1,1,1,1,1,1,0,0,0,0,0]
       },
-      "furniture": {
-        answers: ["chair","table","bee","lamp","sofa","cat","desk","bookshelf","door","car"],
-        gen:  [0.85, 0.80, 0.12, 0.55, 0.78, 0.20, 0.72, 0.60, 0.35, 0.28],
-        val:  [0.90, 0.88, -0.85, 0.62, 0.87, -0.70, 0.80, 0.70, 0.15, -0.55],
-        label:[1,1,0,1,1,0,1,1,0,0]
+      "dogs": {
+        answers: ["mammal","animal","pet","dog","cat","companion","livestock","wolf","beast","person","bear","fruit","protector","dinosaur","tree"],
+        gen:  [-1.469,-2.594,-3.469,-4.094,-4.719,-5.469,-6.219,-6.719,-7.719,-9.125,-9.375,-9.625,-12.062,-10.250,-12.125],
+        val:  [1.130,1.008,0.880,1.007,-0.625,1.255,-0.374,0.255,-0.249,-0.249,-0.877,-0.751,0.885,-0.500,-0.874],
+        label:[1,1,1,1,0,1,0,1,1,0,0,0,1,0,0]
       },
-      "vehicle": {
-        answers: ["car","bus","bicycle","horse","train","boat","airplane","skateboard","elevator","shoe"],
-        gen:  [0.88, 0.75, 0.62, 0.35, 0.80, 0.68, 0.82, 0.42, 0.25, 0.10],
-        val:  [0.92, 0.85, 0.78, -0.20, 0.88, 0.72, 0.90, 0.55, -0.40, -0.80],
-        label:[1,1,1,0,1,1,1,0,0,0]
+      "bananas": {
+        answers: ["fruit","food","carbohydrate","herb","dessert","seed","fish","treat","grass","snack","evidence","potato"],
+        gen:  [-0.770,-4.656,-7.531,-8.125,-8.375,-8.625,-8.875,-9.000,-9.125,-9.375,-9.625,-9.812],
+        val:  [0.626,0.754,-0.124,-0.375,-0.750,-0.250,-1.006,-0.250,-0.872,0.002,-0.751,-0.874],
+        label:[1,1,1,1,0,0,0,1,1,0,0,0]
       }
     };
 
@@ -239,6 +237,10 @@
       btnBox.appendChild(btn);
       if(i===0) setTimeout(() => { activeCat = cat; updateBtns(); draw(cat); }, 200);
     });
+    const legend = document.createElement('span');
+    legend.style.cssText = 'margin-left:auto;margin-right:12px;font-size:0.6em;color:#999;white-space:nowrap;';
+    legend.innerHTML = '<span style="color:#3a8a4e">●</span> correct &ensp;<span style="color:#c0392b">●</span> incorrect';
+    btnBox.appendChild(legend);
 
     function updateBtns(){
       btnBox.querySelectorAll('.cat-btn').forEach(b =>
@@ -260,31 +262,32 @@
       ctx.fillStyle = 'rgba(0,0,0,0.02)';
       ctx.fillRect(pad.l, pad.t, pw, ph);
 
+      const gMin = Math.min(...d.gen) - 0.5, gMax = Math.max(...d.gen) + 0.5;
+      const vMin = Math.min(...d.val) - 0.15, vMax = Math.max(...d.val) + 0.15;
+
       ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
-      for(let i=0;i<=4;i++){
-        const x = pad.l + (pw*i/4);
+      const gStep = Math.ceil((gMax-gMin)/5);
+      for(let g=Math.ceil(gMin);g<=gMax;g+=gStep){
+        const x = pad.l + ((g-gMin)/(gMax-gMin))*pw;
         ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke();
         ctx.fillStyle = '#999'; ctx.font = '11px Source Sans 3, system-ui'; ctx.textAlign = 'center';
-        ctx.fillText((-1+i*0.5).toFixed(1), x, H-pad.b+18);
+        ctx.fillText(g.toFixed(0), x, H-pad.b+18);
       }
-      for(let i=0;i<=4;i++){
-        const y = pad.t + ph - (ph*i/4);
+      const vStep = 0.5;
+      for(let v=Math.ceil(vMin/vStep)*vStep;v<=vMax;v+=vStep){
+        const y = pad.t + ph - ((v-vMin)/(vMax-vMin))*ph;
         ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
         ctx.fillStyle = '#999'; ctx.font = '11px Source Sans 3, system-ui'; ctx.textAlign = 'right';
-        ctx.fillText((-1+i*0.5).toFixed(1), pad.l-8, y+4);
+        ctx.fillText(v.toFixed(1), pad.l-8, y+4);
       }
 
       ctx.fillStyle = '#888'; ctx.font = '12px Source Sans 3, system-ui'; ctx.textAlign = 'center';
-      ctx.fillText('Generator Score', W/2, H-4);
+      ctx.fillText('Generator Score (log prob)', W/2, H-4);
       ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2);
-      ctx.fillText('Validator Score', 0, 0); ctx.restore();
+      ctx.fillText('Validator Score (log-odds)', 0, 0); ctx.restore();
 
-      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.setLineDash([5,5]);
-      ctx.beginPath(); ctx.moveTo(pad.l, pad.t+ph); ctx.lineTo(pad.l+pw, pad.t); ctx.stroke();
-      ctx.setLineDash([]);
-
-      const toX = v => pad.l + ((v+1)/2)*pw;
-      const toY = v => pad.t + ph - ((v+1)/2)*ph;
+      const toX = v => pad.l + ((v-gMin)/(gMax-gMin))*pw;
+      const toY = v => pad.t + ph - ((v-vMin)/(vMax-vMin))*ph;
 
       d.answers.forEach((ans, i) => {
         const x = toX(d.gen[i]), y = toY(d.val[i]);
@@ -298,11 +301,9 @@
       });
 
       const corr = pearson(d.gen, d.val);
-      info.innerHTML = 'Category: <strong style="color:#2d2d2d">"A ___ is a kind of ' + cat + '"</strong> · '
+      info.innerHTML = '"<strong style="color:#2d2d2d">' + cat + '</strong> are a kind of ___" · '
         + 'Pearson <em>r</em> = <strong style="color:#2d2d2d">' + corr.toFixed(3) + '</strong> · '
-        + '<span style="color:#3a8a4e">●</span> correct '
-        + '<span style="color:#c0392b">●</span> incorrect '
-        + '<span class="dim">dashed = perfect agreement</span>';
+        + '<span class="dim">(Gemma-2-2B)</span>';
     }
 
     function pearson(x,y){
@@ -319,8 +320,8 @@
 <!-- Slide 4: The Typicality Confound — decomposition + PMI -->
 <!-- ============================================================ -->
 <section>
-  <h2>The Typicality Confound</h2>
-  <p class="small">Raw generator scores are confounded by unconditional word frequency ("typicality"):</p>
+  <h2>The Frequency Confound</h2>
+  <p class="small">Raw generator scores are confounded by string frequency:</p>
 
   <div class="eq-highlight" style="margin-top:14px;">
     <span id="eq-typ"></span>
@@ -478,7 +479,7 @@
 <script>
 Reveal.initialize({
   hash: true, width: 960, height: 700, margin: 0.05,
-  transition: 'slide', backgroundTransition: 'fade',
+  transition: 'none', backgroundTransition: 'none',
   center: false,
   slideNumber: function(slide) {
     var idx = Reveal.getIndices(slide).h;
@@ -493,8 +494,8 @@ Reveal.initialize({
     var el = document.getElementById(id);
     if(el && typeof katex !== 'undefined') katex.render(tex, el, {displayMode: display !== false, throwOnError: false});
   }
-  rEq('eq-gen', '\\text{gen}(y|x) = \\log P_{\\text{LLM}}(y \\mid x)');
-  rEq('eq-val', '\\text{val}(y|x) = \\log \\frac{P(\\text{Yes} \\mid \\text{``Is }y\\text{ correct?"})}{P(\\text{No} \\mid \\cdot)}');
+  rEq('eq-gen', '\\text{gen}(x,y) = \\log P_{\\text{LLM}}(y \\mid x)');
+  rEq('eq-val', '\\text{val}(x,y) = \\log \\frac{P_{\\text{LLM}}(\\text{Yes} \\mid \\text{``Is }y\\text{ the correct answer to }x\\text{?"})}{P(\\text{No} \\mid \\cdot)}');
   rEq('eq-typ', '\\log P(y \\mid x) \\;\\approx\\; \\underbrace{\\log P_{\\text{val}}(y|x)}_{\\text{correctness}} + \\underbrace{\\log P(y)}_{\\text{typicality}}');
   rEq('eq-pmi', '\\text{PMI}(y;\\, x) = \\log P(y|x) - \\log P(y)');
   rEq('eq-typ-gpt2', '\\text{typ}(y) = \\log P_{\\text{GPT-2}}(y)', false);
