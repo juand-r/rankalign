@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Generator-Validator Gap and Frequency Correction</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --bg-white: #ffffff;
+  --text: #2d2d2d;
+  --text-dim: #7a7570;
+  --gen-color: #2b7ab8;
+  --val-color: #d4842a;
+  --pos-color: #3a8a4e;
+  --neg-color: #c0392b;
+  --accent: #8b5e8b;
+  --rose: #c9736e;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.reveal {
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+  color: var(--text);
+}
+.reveal .slides section { background: var(--bg); }
+.reveal h1, .reveal h2, .reveal h3 { font-weight: 700; text-transform: none; color: var(--text); }
+.reveal h2 { font-size: 1.35em; margin-bottom: 0.5em; }
+.reveal h3 { font-size: 1.05em; }
+.reveal section { text-align: left; padding-bottom: 50px !important; }
+.reveal .center-text { text-align: center; }
+.reveal .dim { color: var(--text-dim); }
+.reveal .small { font-size: 0.72em; }
+.reveal ul, .reveal ol { margin-left: 0.5em; }
+.reveal li { margin-bottom: 0.3em; }
+.reveal strong { color: var(--text); }
+.reveal em { font-style: italic; }
+
+.prompt-box {
+  background: var(--bg-white);
+  border-left: 4px solid var(--gen-color);
+  padding: 12px 18px;
+  margin: 10px 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.82em;
+  box-shadow: var(--card-shadow);
+}
+.prompt-box.val { border-left-color: var(--val-color); }
+.prompt-box .label {
+  font-weight: 700; font-size: 0.7em;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;
+}
+.prompt-box .label.gen { color: var(--gen-color); }
+.prompt-box .label.val { color: var(--val-color); }
+
+.interactive-container {
+  background: var(--bg-white);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 10px 0;
+  box-shadow: var(--card-shadow);
+}
+
+.eq-highlight {
+  background: var(--bg-white);
+  border-left: 4px solid var(--rose);
+  border-radius: 0 8px 8px 0;
+  padding: 5px 16px;
+  margin: 6px 0;
+  text-align: center;
+  box-shadow: var(--card-shadow);
+}
+.eq-highlight .katex { font-size: 0.72em; }
+
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 4px;
+  font-size: 0.68em; font-weight: 600;
+}
+.tag.gen { background: rgba(43,122,184,0.12); color: var(--gen-color); }
+.tag.val { background: rgba(212,132,42,0.12); color: var(--val-color); }
+
+.two-col { display: flex; gap: 24px; align-items: flex-start; }
+.two-col > * { flex: 1; }
+
+.metric-card {
+  display: inline-block; background: var(--bg-white); border-radius: 8px;
+  padding: 12px 20px; margin: 6px; text-align: center; min-width: 130px;
+  box-shadow: var(--card-shadow);
+}
+.metric-card .value { font-size: 1.6em; font-weight: 700; }
+.metric-card .mlab { font-size: 0.6em; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.slider-group {
+  display: flex; align-items: center; gap: 12px; margin: 8px 0;
+}
+.slider-group label { font-size: 0.8em; font-weight: 600; min-width: 40px; }
+.slider-group input[type="range"] { flex: 1; accent-color: var(--accent); }
+.slider-group .val-display {
+  font-family: 'Source Sans 3', monospace; font-size: 0.85em;
+  min-width: 50px; text-align: right; font-weight: 600;
+}
+
+.cat-btn {
+  background: var(--bg-white); border: 1px solid #d5d0c8;
+  color: var(--text); padding: 6px 16px; border-radius: 20px; cursor: pointer;
+  font-size: 0.76em; font-family: inherit; font-weight: 600;
+  transition: all 0.15s;
+}
+.cat-btn:hover { background: #ece7df; border-color: #bbb5ab; }
+.cat-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.citation {
+  position: fixed;
+  bottom: 12px; left: 24px; right: 24px;
+  font-size: 0.42em;
+  color: #aaa;
+  line-height: 1.5;
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- Slide 0: Title -->
+<!-- ============================================================ -->
+<section>
+  <div class="center-text" style="padding-top:60px;">
+    <h1 style="margin-bottom:0.15em;font-size:1.8em;">The Generator–Validator Gap<br>and Frequency Correction</h1>
+    <p class="dim" style="font-size:0.75em;margin-top:1.4em;">Juan Diego Rodriguez</p>
+    <p class="dim" style="font-size:0.6em;margin-top:0.3em;">March 27, 2026</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- Slide 1: The Generator–Validator Gap — two probing modes -->
+<!-- ============================================================ -->
+<section>
+  <h2>The Generator–Validator Gap</h2>
+  <p class="small">Language models can be probed for the same knowledge in two ways.</p>
+  <p class="small" style="margin-bottom:12px;">Example: hypernymy ("a bee is a kind of <u>&ensp;&ensp;&ensp;</u>").</p>
+
+  <div class="prompt-box">
+    <div class="label gen">Generator</div>
+    <div>"A <strong>bee</strong> is a kind of <span class="dim">___</span>" &rarr; look at next-token probabilities.</div>
+  </div>
+
+  <div class="prompt-box val">
+    <div class="label val">Validator</div>
+    <div>"Is a <strong>bee</strong> a kind of <strong>furniture</strong>? Answer: <span class="dim">___</span>" &rarr; look at Yes/No log-odds.</div>
+  </div>
+
+  <p class="fragment small" style="margin-top:14px;">
+    A well-calibrated model should rank these consistently.
+  </p>
+
+  <div class="citation">
+    Li et al., Benchmarking and Improving Generator-Validator Consistency of Language Models. ICLR 2024<br>
+    Rodriguez et al., RankAlign: A Ranking View of the Generator-Validator Gap in Large Language Models. COLM 2025
+  </div>
+</section>
+
+<!-- Slide 2: Formal definitions -->
+<section>
+  <h2>The Generator–Validator Gap</h2>
+  <p class="small">Formally, for question <em>x</em> and candidate answer <em>y</em>:</p>
+
+  <div style="margin-top:14px;">
+    <div class="tag gen">Generator</div>
+    <div class="eq-highlight" style="margin-top:8px;">
+      <span id="eq-gen"></span>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:12px;">
+    <div class="tag val">Validator</div>
+    <div class="eq-highlight" style="margin-top:8px;">
+      <span id="eq-val"></span>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:18px;">
+    <p class="small">We measure the gap via <strong>Pearson correlation</strong> between gen and val scores across candidate answers for each question.</p>
+  </div>
+</section>
+
+<!-- Slide 3: Interactive scatter — gen vs val -->
+<section>
+  <h2>The Generator–Validator Gap</h2>
+  <p class="small">Click a category to see how gen and val scores diverge.</p>
+
+  <div class="interactive-container">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;" id="gv-buttons"></div>
+    <canvas id="gv-canvas" width="860" height="330"></canvas>
+    <div id="gv-info" class="small" style="margin-top:8px;color:var(--text-dim);"></div>
+  </div>
+
+  <script>
+  (function(){
+    const data = {
+      "insect": {
+        answers: ["bee","ant","spider","butterfly","wasp","cockroach","fly","mosquito","ladybug","moth"],
+        gen:  [0.82, 0.78, 0.45, 0.71, 0.65, 0.55, 0.60, 0.52, 0.48, 0.58],
+        val:  [0.91, 0.88, 0.30, 0.85, 0.83, 0.72, 0.70, 0.68, 0.65, 0.75],
+        label:[1,1,0,1,1,1,1,1,1,1]
+      },
+      "furniture": {
+        answers: ["chair","table","bee","lamp","sofa","cat","desk","bookshelf","door","car"],
+        gen:  [0.85, 0.80, 0.12, 0.55, 0.78, 0.20, 0.72, 0.60, 0.35, 0.28],
+        val:  [0.90, 0.88, -0.85, 0.62, 0.87, -0.70, 0.80, 0.70, 0.15, -0.55],
+        label:[1,1,0,1,1,0,1,1,0,0]
+      },
+      "vehicle": {
+        answers: ["car","bus","bicycle","horse","train","boat","airplane","skateboard","elevator","shoe"],
+        gen:  [0.88, 0.75, 0.62, 0.35, 0.80, 0.68, 0.82, 0.42, 0.25, 0.10],
+        val:  [0.92, 0.85, 0.78, -0.20, 0.88, 0.72, 0.90, 0.55, -0.40, -0.80],
+        label:[1,1,1,0,1,1,1,0,0,0]
+      }
+    };
+
+    const canvas = document.getElementById('gv-canvas');
+    const ctx = canvas.getContext('2d');
+    const btnBox = document.getElementById('gv-buttons');
+    const info = document.getElementById('gv-info');
+    let activeCat = null;
+
+    Object.keys(data).forEach((cat, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.className = 'cat-btn';
+      btn.onclick = () => { activeCat = cat; updateBtns(); draw(cat); };
+      btnBox.appendChild(btn);
+      if(i===0) setTimeout(() => { activeCat = cat; updateBtns(); draw(cat); }, 200);
+    });
+
+    function updateBtns(){
+      btnBox.querySelectorAll('.cat-btn').forEach(b =>
+        b.classList.toggle('active', b.textContent === activeCat));
+    }
+
+    function draw(cat){
+      const d = data[cat];
+      const W = 860, H = 330;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = W*dpr; canvas.height = H*dpr;
+      canvas.style.width = W+'px'; canvas.style.height = H+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,W,H);
+
+      const pad = {l:60, r:20, t:28, b:48};
+      const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.02)';
+      ctx.fillRect(pad.l, pad.t, pw, ph);
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 1;
+      for(let i=0;i<=4;i++){
+        const x = pad.l + (pw*i/4);
+        ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke();
+        ctx.fillStyle = '#999'; ctx.font = '11px Source Sans 3, system-ui'; ctx.textAlign = 'center';
+        ctx.fillText((-1+i*0.5).toFixed(1), x, H-pad.b+18);
+      }
+      for(let i=0;i<=4;i++){
+        const y = pad.t + ph - (ph*i/4);
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle = '#999'; ctx.font = '11px Source Sans 3, system-ui'; ctx.textAlign = 'right';
+        ctx.fillText((-1+i*0.5).toFixed(1), pad.l-8, y+4);
+      }
+
+      ctx.fillStyle = '#888'; ctx.font = '12px Source Sans 3, system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('Generator Score', W/2, H-4);
+      ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText('Validator Score', 0, 0); ctx.restore();
+
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.setLineDash([5,5]);
+      ctx.beginPath(); ctx.moveTo(pad.l, pad.t+ph); ctx.lineTo(pad.l+pw, pad.t); ctx.stroke();
+      ctx.setLineDash([]);
+
+      const toX = v => pad.l + ((v+1)/2)*pw;
+      const toY = v => pad.t + ph - ((v+1)/2)*ph;
+
+      d.answers.forEach((ans, i) => {
+        const x = toX(d.gen[i]), y = toY(d.val[i]);
+        const isPos = d.label[i] === 1;
+        ctx.beginPath(); ctx.arc(x, y, 7, 0, Math.PI*2);
+        ctx.fillStyle = isPos ? '#3a8a4e' : '#c0392b';
+        ctx.fill();
+        ctx.strokeStyle = isPos ? '#2d6e3c' : '#962d22'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = '#2d2d2d'; ctx.font = '10px Source Sans 3, system-ui'; ctx.textAlign = 'center';
+        ctx.fillText(ans, x, y-12);
+      });
+
+      const corr = pearson(d.gen, d.val);
+      info.innerHTML = 'Category: <strong style="color:#2d2d2d">"A ___ is a kind of ' + cat + '"</strong> · '
+        + 'Pearson <em>r</em> = <strong style="color:#2d2d2d">' + corr.toFixed(3) + '</strong> · '
+        + '<span style="color:#3a8a4e">●</span> correct '
+        + '<span style="color:#c0392b">●</span> incorrect '
+        + '<span class="dim">dashed = perfect agreement</span>';
+    }
+
+    function pearson(x,y){
+      const n=x.length, mx=x.reduce((a,b)=>a+b)/n, my=y.reduce((a,b)=>a+b)/n;
+      let num=0,dx2=0,dy2=0;
+      for(let i=0;i<n;i++){ const dx=x[i]-mx, dy=y[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+      return num/Math.sqrt(dx2*dy2);
+    }
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- Slide 4: The Typicality Confound — decomposition + PMI -->
+<!-- ============================================================ -->
+<section>
+  <h2>The Typicality Confound</h2>
+  <p class="small">Raw generator scores are confounded by unconditional word frequency ("typicality"):</p>
+
+  <div class="eq-highlight" style="margin-top:14px;">
+    <span id="eq-typ"></span>
+  </div>
+
+  <p class="fragment small" style="margin-top:14px;">Common words get high generator scores regardless of correctness.</p>
+
+  <div class="fragment">
+    <p class="small" style="margin-top:12px;">Standard fix: <strong>Pointwise Mutual Information (PMI)</strong>:</p>
+    <div class="eq-highlight">
+      <span id="eq-pmi"></span>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:12px;">
+    <p class="small">We estimate typicality using GPT-2: <span id="eq-typ-gpt2" style="display:inline;"></span></p>
+    <p class="small" style="margin-top:6px;">More generally, consider <span id="eq-gen-b" style="display:inline;"></span> for various <em>b</em>.</p>
+  </div>
+</section>
+
+<!-- Slide 5: Interactive typicality correction slider -->
+<section>
+  <h2>The Typicality Confound</h2>
+  <p class="small">Adjust <em>b</em> in gen &minus; <em>b</em> · typ to see how correlation and GenROC change.</p>
+
+  <div class="interactive-container">
+    <div class="slider-group">
+      <label>b =</label>
+      <input type="range" id="b-slider" min="0" max="3" step="0.1" value="0">
+      <span class="val-display" id="b-display">0.0</span>
+    </div>
+    <canvas id="typ-canvas" width="860" height="280"></canvas>
+    <div style="display:flex;gap:14px;margin-top:10px;justify-content:center;" id="typ-metrics"></div>
+  </div>
+
+  <script>
+  (function(){
+    const pts = [
+      {b:0.0, corr:-33.4, roc:37.8},
+      {b:0.5, corr:7.7,   roc:51.5},
+      {b:1.0, corr:52.3,  roc:75.4},
+      {b:1.5, corr:53.5,  roc:76.0},
+      {b:2.0, corr:52.8,  roc:75.1},
+      {b:3.0, corr:51.9,  roc:73.7}
+    ];
+
+    function interp(bVal, key){
+      if(bVal <= pts[0].b) return pts[0][key];
+      if(bVal >= pts[pts.length-1].b) return pts[pts.length-1][key];
+      for(let i=0;i<pts.length-1;i++){
+        if(bVal >= pts[i].b && bVal <= pts[i+1].b){
+          const t = (bVal - pts[i].b)/(pts[i+1].b - pts[i].b);
+          return pts[i][key] + t*(pts[i+1][key] - pts[i][key]);
+        }
+      }
+    }
+
+    const slider = document.getElementById('b-slider');
+    const bDisp = document.getElementById('b-display');
+    const canvas = document.getElementById('typ-canvas');
+    const ctx = canvas.getContext('2d');
+    const metrics = document.getElementById('typ-metrics');
+
+    function draw(){
+      const bVal = parseFloat(slider.value);
+      bDisp.textContent = bVal.toFixed(1);
+      const W=860, H=280, dpr=window.devicePixelRatio||1;
+      canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.setTransform(dpr,0,0,dpr,0,0);
+      ctx.clearRect(0,0,W,H);
+
+      const pad={l:55,r:55,t:26,b:40};
+      const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+      ctx.fillStyle='rgba(0,0,0,0.02)'; ctx.fillRect(pad.l,pad.t,pw,ph);
+
+      const bToX = b => pad.l + (b/3)*pw;
+      const corrToY = c => pad.t + ph - ((c+40)/100)*ph;
+      const rocToY = r => pad.t + ph - ((r-30)/55)*ph;
+
+      ctx.strokeStyle='rgba(0,0,0,0.07)'; ctx.lineWidth=1;
+      for(let c=-20;c<=60;c+=20){
+        const y=corrToY(c);
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='#2b7ab8'; ctx.font='10px Source Sans 3, system-ui'; ctx.textAlign='right';
+        ctx.fillText(c+'%', pad.l-6, y+3);
+      }
+      for(let r=40;r<=80;r+=10){
+        const y=rocToY(r);
+        ctx.fillStyle='#d4842a'; ctx.font='10px Source Sans 3, system-ui'; ctx.textAlign='left';
+        ctx.fillText(r+'%', pad.l+pw+6, y+3);
+      }
+
+      const steps=[]; for(let b=0;b<=3;b+=0.05) steps.push(b);
+      ctx.beginPath(); ctx.strokeStyle='#2b7ab8'; ctx.lineWidth=2.5;
+      steps.forEach((b,i)=>{ const x=bToX(b),y=corrToY(interp(b,'corr')); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+      ctx.stroke();
+      ctx.beginPath(); ctx.strokeStyle='#d4842a'; ctx.lineWidth=2.5;
+      steps.forEach((b,i)=>{ const x=bToX(b),y=rocToY(interp(b,'roc')); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+      ctx.stroke();
+
+      pts.forEach(p => {
+        const x=bToX(p.b);
+        ctx.beginPath(); ctx.arc(x, corrToY(p.corr), 5, 0, Math.PI*2);
+        ctx.fillStyle='#2b7ab8'; ctx.fill();
+        ctx.beginPath(); ctx.arc(x, rocToY(p.roc), 5, 0, Math.PI*2);
+        ctx.fillStyle='#d4842a'; ctx.fill();
+      });
+
+      const optX = bToX(1.5);
+      ctx.strokeStyle='rgba(58,138,78,0.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(optX, pad.t); ctx.lineTo(optX, pad.t+ph); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='#3a8a4e'; ctx.font='bold 10px Source Sans 3, system-ui'; ctx.textAlign='center';
+      ctx.fillText('optimum', optX, pad.t-4);
+
+      ctx.strokeStyle='rgba(139,94,139,0.6)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      const cx=bToX(bVal);
+      ctx.beginPath(); ctx.moveTo(cx,pad.t); ctx.lineTo(cx,pad.t+ph); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath(); ctx.arc(cx, corrToY(interp(bVal,'corr')), 8, 0, Math.PI*2);
+      ctx.fillStyle='#2b7ab8'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx, rocToY(interp(bVal,'roc')), 8, 0, Math.PI*2);
+      ctx.fillStyle='#d4842a'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2.5; ctx.stroke();
+
+      ctx.fillStyle='#2b7ab8'; ctx.font='bold 11px Source Sans 3, system-ui'; ctx.textAlign='left';
+      ctx.fillText('● Correlation', pad.l+8, pad.t+14);
+      ctx.fillStyle='#d4842a';
+      ctx.fillText('● GenROC AUC', pad.l+130, pad.t+14);
+
+      ctx.fillStyle='#999'; ctx.font='9px Source Sans 3, system-ui'; ctx.textAlign='center';
+      pts.forEach(p => ctx.fillText('b='+p.b, bToX(p.b), H-pad.b+14));
+
+      const cv=interp(bVal,'corr'), rv=interp(bVal,'roc');
+      metrics.innerHTML =
+        '<div class="metric-card"><div class="value" style="color:#2b7ab8">'+cv.toFixed(1)+'%</div><div class="mlab">G-V Correlation</div></div>'
+        + '<div class="metric-card"><div class="value" style="color:#d4842a">'+rv.toFixed(1)+'%</div><div class="mlab">GenROC AUC</div></div>'
+        + '<div class="metric-card"><div class="value" style="color:#8b5e8b">b = '+bVal.toFixed(1)+'</div><div class="mlab">Correction Strength</div></div>';
+    }
+
+    slider.addEventListener('input', draw);
+    setTimeout(draw, 300);
+  })();
+  </script>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script>
+Reveal.initialize({
+  hash: true, width: 960, height: 700, margin: 0.05,
+  transition: 'slide', backgroundTransition: 'fade',
+  center: false,
+  slideNumber: function(slide) {
+    var idx = Reveal.getIndices(slide).h;
+    return idx === 0 ? [''] : [String(idx)];
+  }
+}).then(function(){
+  var numEl = document.querySelector('.reveal .slide-number');
+  function toggleNum(){ if(numEl) numEl.style.display = Reveal.getIndices().h === 0 ? 'none' : 'block'; }
+  Reveal.on('slidechanged', toggleNum);
+  toggleNum();
+  function rEq(id, tex, display){
+    var el = document.getElementById(id);
+    if(el && typeof katex !== 'undefined') katex.render(tex, el, {displayMode: display !== false, throwOnError: false});
+  }
+  rEq('eq-gen', '\\text{gen}(y|x) = \\log P_{\\text{LLM}}(y \\mid x)');
+  rEq('eq-val', '\\text{val}(y|x) = \\log \\frac{P(\\text{Yes} \\mid \\text{``Is }y\\text{ correct?"})}{P(\\text{No} \\mid \\cdot)}');
+  rEq('eq-typ', '\\log P(y \\mid x) \\;\\approx\\; \\underbrace{\\log P_{\\text{val}}(y|x)}_{\\text{correctness}} + \\underbrace{\\log P(y)}_{\\text{typicality}}');
+  rEq('eq-pmi', '\\text{PMI}(y;\\, x) = \\log P(y|x) - \\log P(y)');
+  rEq('eq-typ-gpt2', '\\text{typ}(y) = \\log P_{\\text{GPT-2}}(y)', false);
+  rEq('eq-gen-b', '\\text{gen}(y|x) - b \\cdot \\text{typ}(y)', false);
+});
+</script>
+</body>
+</html>

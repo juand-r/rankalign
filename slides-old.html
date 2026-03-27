@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RankAlign: The Generator–Validator Gap</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+:root {
+  --gen-color: #4fc3f7;
+  --val-color: #ffb74d;
+  --pos-color: #81c784;
+  --neg-color: #e57373;
+  --accent: #ce93d8;
+  --bg-dark: #1a1a2e;
+  --bg-card: rgba(255,255,255,0.06);
+}
+.reveal { font-family: 'Segoe UI', system-ui, sans-serif; }
+.reveal h1, .reveal h2, .reveal h3 { font-weight: 700; text-transform: none; }
+.reveal h1 { font-size: 2em; }
+.reveal h2 { font-size: 1.5em; color: var(--accent); }
+.reveal h3 { font-size: 1.15em; }
+.reveal section { text-align: left; }
+.reveal .center-text { text-align: center; }
+.reveal code { background: var(--bg-card); padding: 2px 6px; border-radius: 4px; font-size: 0.85em; }
+.reveal .dim { opacity: 0.55; }
+.reveal .small { font-size: 0.7em; }
+.reveal .smaller { font-size: 0.6em; }
+.reveal ul { margin-left: 0.5em; }
+.reveal li { margin-bottom: 0.3em; }
+
+.prompt-box {
+  background: var(--bg-card);
+  border-left: 4px solid var(--gen-color);
+  padding: 12px 18px;
+  margin: 10px 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.85em;
+}
+.prompt-box.val { border-left-color: var(--val-color); }
+.prompt-box .label {
+  font-weight: 700;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+.prompt-box .label.gen { color: var(--gen-color); }
+.prompt-box .label.val { color: var(--val-color); }
+
+.interactive-container {
+  background: var(--bg-card);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 10px 0;
+}
+canvas { border-radius: 6px; }
+
+.metric-card {
+  display: inline-block;
+  background: var(--bg-card);
+  border-radius: 8px;
+  padding: 14px 22px;
+  margin: 6px;
+  text-align: center;
+  min-width: 140px;
+}
+.metric-card .value {
+  font-size: 1.8em;
+  font-weight: 700;
+}
+.metric-card .label {
+  font-size: 0.65em;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.two-col { display: flex; gap: 24px; align-items: flex-start; }
+.two-col > * { flex: 1; }
+
+.eq-highlight {
+  background: rgba(206,147,216,0.12);
+  border: 1px solid rgba(206,147,216,0.3);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 12px 0;
+  text-align: center;
+}
+
+.arrow-flow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 16px 0;
+  font-size: 0.85em;
+}
+.arrow-flow .step {
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.arrow-flow .arrow { opacity: 0.5; }
+
+.table-container { overflow-x: auto; }
+.reveal table { font-size: 0.55em; border-collapse: collapse; width: 100%; }
+.reveal table th { background: rgba(206,147,216,0.15); font-weight: 600; }
+.reveal table th, .reveal table td {
+  padding: 5px 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+.reveal table .best { color: var(--pos-color); font-weight: 700; }
+.reveal table .row-header { text-align: left; font-weight: 600; }
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+}
+.slider-group label { font-size: 0.75em; min-width: 40px; }
+.slider-group input[type="range"] { flex: 1; accent-color: var(--accent); }
+.slider-group .val-display {
+  font-family: monospace;
+  font-size: 0.85em;
+  min-width: 50px;
+  text-align: right;
+}
+
+.citation {
+  position: fixed;
+  bottom: 12px;
+  left: 20px;
+  font-size: 0.4em;
+  opacity: 0.4;
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7em;
+  font-weight: 600;
+}
+.tag.gen { background: rgba(79,195,247,0.2); color: var(--gen-color); }
+.tag.val { background: rgba(255,183,77,0.2); color: var(--val-color); }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ============================================================ -->
+<!-- SLIDE 1: Title -->
+<!-- ============================================================ -->
+<section data-background-gradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
+  <div class="center-text">
+    <h1 style="margin-bottom:0.1em;">RankAlign</h1>
+    <p style="font-size:0.85em;color:var(--accent);margin-top:0;">A Ranking View of the Generator–Validator Gap<br>in Large Language Models</p>
+    <p class="dim" style="font-size:0.65em;margin-top:1.5em;">
+      Juan Diego Rodriguez &middot; Wenxuan Ding &middot; Katrin Erk &middot; Greg Durrett
+    </p>
+    <p class="dim small">arXiv:2504.11381</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 2: The Core Observation -->
+<!-- ============================================================ -->
+<section>
+  <h2>LLMs Disagree With Themselves</h2>
+  <p style="font-size:0.8em;">The same knowledge, probed two ways, gets different answers.</p>
+
+  <div class="prompt-box" style="margin-top:20px;">
+    <div class="label gen">Generator Prompt</div>
+    <div>"A <strong>bee</strong> is a kind of <span class="dim">___</span>"</div>
+    <div class="small dim" style="margin-top:4px;">→ Look at next-token probabilities</div>
+  </div>
+
+  <div class="prompt-box val" style="margin-top:8px;">
+    <div class="label val">Validator Prompt</div>
+    <div>"Do you think a <strong>bee</strong> is a kind of <strong>furniture</strong>? Answer: <span class="dim">___</span>"</div>
+    <div class="small dim" style="margin-top:4px;">→ Look at Yes/No log-odds</div>
+  </div>
+
+  <p class="fragment" style="font-size:0.75em;margin-top:16px;">
+    A well-calibrated model should rank these consistently — but often, it doesn't.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 3: Interactive G-V Demo -->
+<!-- ============================================================ -->
+<section>
+  <h2>Interactive: The Gap in Action</h2>
+  <p class="small">Click a category to see how the model's generator and validator scores diverge.</p>
+
+  <div class="interactive-container" id="gv-demo-container">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;" id="gv-buttons"></div>
+    <canvas id="gv-demo-canvas" width="820" height="340"></canvas>
+    <div id="gv-demo-info" class="small" style="margin-top:8px;opacity:0.7;"></div>
+  </div>
+
+  <script>
+  (function(){
+    const data = {
+      "insect": {
+        answers: ["bee","ant","spider","butterfly","wasp","cockroach","fly","mosquito","ladybug","moth"],
+        gen:  [0.82, 0.78, 0.45, 0.71, 0.65, 0.55, 0.60, 0.52, 0.48, 0.58],
+        val:  [0.91, 0.88, 0.30, 0.85, 0.83, 0.72, 0.70, 0.68, 0.65, 0.75],
+        label:[1,1,0,1,1,1,1,1,1,1]
+      },
+      "furniture": {
+        answers: ["chair","table","bee","lamp","sofa","cat","desk","bookshelf","door","car"],
+        gen:  [0.85, 0.80, 0.12, 0.55, 0.78, 0.20, 0.72, 0.60, 0.35, 0.28],
+        val:  [0.90, 0.88, -0.85, 0.62, 0.87, -0.70, 0.80, 0.70, 0.15, -0.55],
+        label:[1,1,0,1,1,0,1,1,0,0]
+      },
+      "vehicle": {
+        answers: ["car","bus","bicycle","horse","train","boat","airplane","skateboard","elevator","shoe"],
+        gen:  [0.88, 0.75, 0.62, 0.35, 0.80, 0.68, 0.82, 0.42, 0.25, 0.10],
+        val:  [0.92, 0.85, 0.78, -0.20, 0.88, 0.72, 0.90, 0.55, -0.40, -0.80],
+        label:[1,1,1,0,1,1,1,0,0,0]
+      }
+    };
+
+    const canvas = document.getElementById('gv-demo-canvas');
+    const ctx = canvas.getContext('2d');
+    const btnContainer = document.getElementById('gv-buttons');
+    const info = document.getElementById('gv-demo-info');
+
+    Object.keys(data).forEach((cat, i) => {
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.style.cssText = 'background:rgba(206,147,216,0.2);border:1px solid rgba(206,147,216,0.4);color:#fff;padding:6px 16px;border-radius:4px;cursor:pointer;font-size:0.8em;';
+      btn.onclick = () => draw(cat);
+      btnContainer.appendChild(btn);
+      if(i===0) setTimeout(() => draw(cat), 300);
+    });
+
+    function draw(cat) {
+      const d = data[cat];
+      const W = canvas.width, H = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W+'px'; canvas.style.height = H+'px';
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const pad = {l:60,r:20,t:30,b:50};
+      const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+      ctx.fillStyle='rgba(255,255,255,0.05)';
+      ctx.fillRect(pad.l, pad.t, pw, ph);
+
+      ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=1;
+      for(let i=0;i<=4;i++){
+        const x = pad.l + (pw*i/4);
+        ctx.beginPath(); ctx.moveTo(x,pad.t); ctx.lineTo(x,pad.t+ph); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='11px system-ui'; ctx.textAlign='center';
+        ctx.fillText((-1+i*0.5).toFixed(1), x, H-pad.b+18);
+      }
+      for(let i=0;i<=4;i++){
+        const y = pad.t + ph - (ph*i/4);
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='11px system-ui'; ctx.textAlign='right';
+        ctx.fillText((-1+i*0.5).toFixed(1), pad.l-8, y+4);
+      }
+
+      ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='12px system-ui'; ctx.textAlign='center';
+      ctx.fillText('Generator Score', W/2, H-4);
+      ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText('Validator Score', 0, 0); ctx.restore();
+
+      ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(pad.l, pad.t+ph); ctx.lineTo(pad.l+pw, pad.t); ctx.stroke();
+      ctx.setLineDash([]);
+
+      const toX = v => pad.l + ((v+1)/2)*pw;
+      const toY = v => pad.t + ph - ((v+1)/2)*ph;
+
+      let disagree = 0;
+      d.answers.forEach((ans, i) => {
+        const x = toX(d.gen[i]), y = toY(d.val[i]);
+        const isPos = d.label[i]===1;
+        ctx.beginPath(); ctx.arc(x,y,7,0,Math.PI*2);
+        ctx.fillStyle = isPos ? 'rgba(129,199,132,0.8)' : 'rgba(229,115,115,0.8)';
+        ctx.fill();
+        ctx.strokeStyle = isPos ? '#81c784' : '#e57373'; ctx.lineWidth=1.5; ctx.stroke();
+
+        ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+        ctx.fillText(ans, x, y-12);
+
+        if((d.gen[i]>0.5 && d.val[i]<0) || (d.gen[i]<0.3 && d.val[i]>0.5)) disagree++;
+      });
+
+      const corr = pearson(d.gen, d.val);
+      info.innerHTML = `Category: <strong>"A ___ is a kind of ${cat}"</strong> &nbsp;|&nbsp; `
+        + `Pearson <em>r</em> = <strong>${corr.toFixed(3)}</strong> &nbsp;|&nbsp; `
+        + `<span style="color:var(--pos-color)">●</span> correct &nbsp; <span style="color:var(--neg-color)">●</span> incorrect &nbsp; <span class="dim">dashed = perfect agreement</span>`;
+    }
+
+    function pearson(x,y){
+      const n=x.length, mx=x.reduce((a,b)=>a+b)/n, my=y.reduce((a,b)=>a+b)/n;
+      let num=0,dx2=0,dy2=0;
+      for(let i=0;i<n;i++){ const dx=x[i]-mx, dy=y[i]-my; num+=dx*dy; dx2+=dx*dx; dy2+=dy*dy; }
+      return num/Math.sqrt(dx2*dy2);
+    }
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 4: Formal Definition -->
+<!-- ============================================================ -->
+<section>
+  <h2>Formalizing the Gap</h2>
+  <p class="small">For a question <em>x</em> and candidate answer <em>y</em>:</p>
+
+  <div class="two-col" style="margin-top:16px;">
+    <div>
+      <div class="tag gen">Generator</div>
+      <div class="eq-highlight" style="margin-top:8px;">
+        <span class="katex-display" id="eq-gen"></span>
+      </div>
+      <p class="small dim">How likely is <em>y</em> as a continuation of <em>x</em>?</p>
+    </div>
+    <div>
+      <div class="tag val">Validator</div>
+      <div class="eq-highlight" style="margin-top:8px;">
+        <span class="katex-display" id="eq-val"></span>
+      </div>
+      <p class="small dim">Does the model judge <em>y</em> correct for <em>x</em>?</p>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:18px;">
+    <div class="eq-highlight">
+      <span id="eq-gap"></span>
+    </div>
+    <p class="small" style="margin-top:8px;">We quantify the gap via Pearson correlation between gen and val scores across candidate answers for each question.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 5: The Typicality Problem -->
+<!-- ============================================================ -->
+<section>
+  <h2>The Typicality Confound</h2>
+  <p class="small">Raw generator scores are confounded by <em>unconditional word frequency</em>.</p>
+
+  <div class="eq-highlight" style="margin-top:16px;">
+    <span id="eq-typ"></span>
+  </div>
+
+  <div class="fragment" style="margin-top:16px;">
+    <p class="small">Common words ("the", "dog") get high generator scores <em>regardless of correctness</em>.</p>
+    <p class="small" style="margin-top:8px;">Standard fix: <strong>Pointwise Mutual Information (PMI)</strong></p>
+    <div class="eq-highlight">
+      <span id="eq-pmi"></span>
+    </div>
+    <p class="small dim">Removes frequency confound, isolates the model's knowledge of <em>x</em>.</p>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 6: Interactive Typicality Correction -->
+<!-- ============================================================ -->
+<section>
+  <h2>Interactive: Typicality Correction Strength</h2>
+  <p class="small">Adjust <em>b</em> in gen − <em>b</em> · typ to see how the correction affects correlation and ROC.</p>
+
+  <div class="interactive-container">
+    <div class="slider-group">
+      <label>b =</label>
+      <input type="range" id="b-slider" min="0" max="3" step="0.1" value="1.0">
+      <span class="val-display" id="b-display">1.0</span>
+    </div>
+    <canvas id="typ-canvas" width="820" height="300"></canvas>
+    <div style="display:flex;gap:16px;margin-top:10px;justify-content:center;" id="typ-metrics"></div>
+  </div>
+
+  <script>
+  (function(){
+    const results = [
+      {b:0.0, corr:-33.4, roc:37.8, name:'raw'},
+      {b:0.5, corr:7.7,   roc:51.5, name:'PMI₀.₅'},
+      {b:1.0, corr:52.3,  roc:75.4, name:'PMI'},
+      {b:1.5, corr:53.5,  roc:76.0, name:'PMI₁.₅'},
+      {b:2.0, corr:52.8,  roc:75.1, name:'PMI²'},
+      {b:3.0, corr:51.9,  roc:73.7, name:'PMI₃'}
+    ];
+
+    function interp(bVal, key) {
+      if(bVal <= results[0].b) return results[0][key];
+      if(bVal >= results[results.length-1].b) return results[results.length-1][key];
+      for(let i=0;i<results.length-1;i++){
+        if(bVal >= results[i].b && bVal <= results[i+1].b){
+          const t = (bVal - results[i].b) / (results[i+1].b - results[i].b);
+          return results[i][key] + t * (results[i+1][key] - results[i][key]);
+        }
+      }
+      return 0;
+    }
+
+    const slider = document.getElementById('b-slider');
+    const display = document.getElementById('b-display');
+    const canvas = document.getElementById('typ-canvas');
+    const ctx = canvas.getContext('2d');
+    const metrics = document.getElementById('typ-metrics');
+
+    function draw() {
+      const bVal = parseFloat(slider.value);
+      display.textContent = bVal.toFixed(1);
+      const W = canvas.width, H = canvas.height;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W+'px'; canvas.style.height = H+'px';
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const pad = {l:55,r:55,t:25,b:40};
+      const pw = W-pad.l-pad.r, ph = H-pad.t-pad.b;
+
+      ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.fillRect(pad.l,pad.t,pw,ph);
+
+      const bToX = b => pad.l + (b/3)*pw;
+      const corrToY = c => pad.t + ph - ((c+40)/100)*ph;
+      const rocToY = r => pad.t + ph - ((r-30)/55)*ph;
+
+      ctx.strokeStyle='rgba(255,255,255,0.1)'; ctx.lineWidth=1;
+      for(let c=-20;c<=60;c+=20){
+        const y=corrToY(c);
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='rgba(79,195,247,0.5)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+        ctx.fillText(c+'%', pad.l-6, y+3);
+      }
+      for(let r=40;r<=80;r+=10){
+        const y=rocToY(r);
+        ctx.fillStyle='rgba(255,183,77,0.5)'; ctx.font='10px system-ui'; ctx.textAlign='left';
+        ctx.fillText(r+'%', pad.l+pw+6, y+3);
+      }
+
+      const bSteps = [];
+      for(let b=0; b<=3; b+=0.05) bSteps.push(b);
+
+      ctx.beginPath(); ctx.strokeStyle='var(--gen-color)'; ctx.lineWidth=2.5;
+      bSteps.forEach((b,i) => {
+        const x=bToX(b), y=corrToY(interp(b,'corr'));
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      ctx.beginPath(); ctx.strokeStyle='var(--val-color)'; ctx.lineWidth=2.5;
+      bSteps.forEach((b,i) => {
+        const x=bToX(b), y=rocToY(interp(b,'roc'));
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      results.forEach(r => {
+        const x=bToX(r.b);
+        ctx.beginPath(); ctx.arc(x, corrToY(r.corr), 5, 0, Math.PI*2);
+        ctx.fillStyle='var(--gen-color)'; ctx.fill();
+        ctx.beginPath(); ctx.arc(x, rocToY(r.roc), 5, 0, Math.PI*2);
+        ctx.fillStyle='var(--val-color)'; ctx.fill();
+
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px system-ui'; ctx.textAlign='center';
+        ctx.fillText(r.name, x, H-pad.b+14);
+      });
+
+      ctx.strokeStyle='rgba(206,147,216,0.6)'; ctx.lineWidth=2; ctx.setLineDash([6,4]);
+      const cx = bToX(bVal);
+      ctx.beginPath(); ctx.moveTo(cx, pad.t); ctx.lineTo(cx, pad.t+ph); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.beginPath(); ctx.arc(cx, corrToY(interp(bVal,'corr')), 8, 0, Math.PI*2);
+      ctx.fillStyle='var(--gen-color)'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+
+      ctx.beginPath(); ctx.arc(cx, rocToY(interp(bVal,'roc')), 8, 0, Math.PI*2);
+      ctx.fillStyle='var(--val-color)'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+
+      ctx.fillStyle='var(--gen-color)'; ctx.font='bold 11px system-ui'; ctx.textAlign='left';
+      ctx.fillText('● Correlation', pad.l+8, pad.t+14);
+      ctx.fillStyle='var(--val-color)';
+      ctx.fillText('● GenROC AUC', pad.l+120, pad.t+14);
+
+      const corrVal = interp(bVal,'corr');
+      const rocVal = interp(bVal,'roc');
+      metrics.innerHTML = `
+        <div class="metric-card"><div class="value" style="color:var(--gen-color)">${corrVal.toFixed(1)}%</div><div class="label">G-V Correlation</div></div>
+        <div class="metric-card"><div class="value" style="color:var(--val-color)">${rocVal.toFixed(1)}%</div><div class="label">Generator ROC AUC</div></div>
+        <div class="metric-card"><div class="value" style="color:var(--accent)">b = ${bVal.toFixed(1)}</div><div class="label">Correction Strength</div></div>
+      `;
+    }
+
+    slider.addEventListener('input', draw);
+    setTimeout(draw, 400);
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 7: Overfitting -->
+<!-- ============================================================ -->
+<section>
+  <h2>Fitted Corrections Overfit Severely</h2>
+  <p class="small">With only ~14 candidates per question, fitting <em>b</em> per-prompt is catastrophic.</p>
+
+  <div class="interactive-container" style="padding:16px;">
+    <canvas id="overfit-canvas" width="820" height="300"></canvas>
+  </div>
+
+  <script>
+  (function(){
+    const methods = [
+      {name:'PMI₁.₅', params:0, insample:53.5, loo:76.0, col:'var(--pos-color)'},
+      {name:'PMI', params:0, insample:52.3, loo:75.4, col:'var(--pos-color)'},
+      {name:'opt_pearson', params:1, insample:73.6, loo:64.2, col:'var(--val-color)'},
+      {name:'opt_typ_len', params:2, insample:74.6, loo:63.4, col:'var(--val-color)'},
+      {name:'logistic', params:4, insample:72.0, loo:60.8, col:'var(--neg-color)'},
+      {name:'opt_poly2_full', params:5, insample:74.0, loo:56.4, col:'var(--neg-color)'}
+    ];
+
+    const canvas = document.getElementById('overfit-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function draw(){
+      const W=canvas.width, H=canvas.height;
+      const dpr=window.devicePixelRatio||1;
+      canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.scale(dpr,dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const pad={l:50,r:20,t:30,b:55};
+      const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+      const barW = pw/methods.length * 0.35;
+      const gap = pw/methods.length;
+
+      for(let v=40;v<=80;v+=10){
+        const y=pad.t + ph - ((v-35)/50)*ph;
+        ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+        ctx.fillText(v+'%',pad.l-6,y+3);
+      }
+
+      ctx.fillStyle='rgba(255,255,255,0.35)'; ctx.font='10px system-ui'; ctx.textAlign='left';
+      ctx.fillText('GenROC AUC (%)', pad.l, pad.t-8);
+
+      methods.forEach((m,i) => {
+        const cx = pad.l + gap*(i+0.5);
+        const yIn = pad.t + ph - ((m.insample-35)/50)*ph;
+        const yLoo = pad.t + ph - ((m.loo-35)/50)*ph;
+
+        ctx.fillStyle='rgba(206,147,216,0.35)';
+        ctx.fillRect(cx-barW, yIn, barW, pad.t+ph-yIn);
+
+        ctx.fillStyle=m.col;
+        ctx.globalAlpha=0.8;
+        ctx.fillRect(cx, yLoo, barW, pad.t+ph-yLoo);
+        ctx.globalAlpha=1;
+
+        if(m.params > 0) {
+          ctx.strokeStyle='rgba(229,115,115,0.6)'; ctx.lineWidth=1.5; ctx.setLineDash([3,3]);
+          ctx.beginPath(); ctx.moveTo(cx-barW/2, yIn); ctx.lineTo(cx+barW/2, yLoo); ctx.stroke();
+          ctx.setLineDash([]);
+
+          const drop = m.insample - m.loo;
+          ctx.fillStyle='var(--neg-color)'; ctx.font='bold 10px system-ui'; ctx.textAlign='center';
+          ctx.fillText('−'+drop.toFixed(0)+'pp', cx+barW/2, (yIn+yLoo)/2 - 4);
+        }
+
+        ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='10px system-ui'; ctx.textAlign='center';
+        ctx.fillText(m.name, cx, pad.t+ph+14);
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='9px system-ui';
+        ctx.fillText(m.params+' params', cx, pad.t+ph+26);
+      });
+
+      ctx.fillStyle='rgba(206,147,216,0.5)'; ctx.font='10px system-ui'; ctx.textAlign='left';
+      ctx.fillRect(pad.l+pw-180, pad.t+4, 10, 10);
+      ctx.fillStyle='rgba(255,255,255,0.6)';
+      ctx.fillText('In-sample', pad.l+pw-165, pad.t+13);
+      ctx.fillStyle='rgba(129,199,132,0.7)';
+      ctx.fillRect(pad.l+pw-90, pad.t+4, 10, 10);
+      ctx.fillStyle='rgba(255,255,255,0.6)';
+      ctx.fillText('LOO', pad.l+pw-75, pad.t+13);
+    }
+    setTimeout(draw, 500);
+  })();
+  </script>
+
+  <p class="fragment small" style="margin-top:8px;">More parameters → worse generalization. <strong>b ≈ 1.5 with zero parameters</strong> is best.</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 8: RankAlign Method -->
+<!-- ============================================================ -->
+<section>
+  <h2>RankAlign: The Method</h2>
+  <p class="small">Train the model so its validator rankings align with a reference signal.</p>
+
+  <div class="arrow-flow fragment">
+    <div class="step">Precompute<br><span class="small dim">gen & val scores</span></div>
+    <div class="arrow">→</div>
+    <div class="step">Build pairs<br><span class="small dim">same question, Δ &gt; threshold</span></div>
+    <div class="arrow">→</div>
+    <div class="step">Pairwise loss<br><span class="small dim">−log σ(sⱼ − sᵢ − Δref)</span></div>
+    <div class="arrow">→</div>
+    <div class="step">LoRA update<br><span class="small dim">efficient fine-tuning</span></div>
+  </div>
+
+  <div class="fragment" style="margin-top:16px;">
+    <h3>Three loss variants</h3>
+    <div class="two-col" style="font-size:0.75em;">
+      <div>
+        <p><strong>Pref</strong> — preference loss only</p>
+        <p><strong>Comb</strong> — preference + NLL<sub>val</sub> + NLL<sub>gen</sub></p>
+        <p><strong>SFT</strong> — NLL only, no preference</p>
+      </div>
+      <div>
+        <p><strong>Training modes:</strong></p>
+        <p><span class="tag gen">d2g</span> — align validator → generator</p>
+        <p><span class="tag val">g2d</span> — align generator → validator</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 9: Semi-Supervised Extension -->
+<!-- ============================================================ -->
+<section>
+  <h2>Semi-Supervised RankAlign</h2>
+  <p class="small">What if only 10% of prompts have ground-truth labels?</p>
+
+  <div class="interactive-container" id="semi-container">
+    <canvas id="semi-canvas" width="820" height="280"></canvas>
+    <div class="slider-group" style="margin-top:8px;">
+      <label class="small">Labeled ratio:</label>
+      <input type="range" id="semi-slider" min="0" max="100" step="5" value="10">
+      <span class="val-display" id="semi-display">10%</span>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    const canvas = document.getElementById('semi-canvas');
+    const ctx = canvas.getContext('2d');
+    const slider = document.getElementById('semi-slider');
+    const display = document.getElementById('semi-display');
+
+    function draw(){
+      const pct = parseInt(slider.value);
+      display.textContent = pct+'%';
+      const W=canvas.width, H=canvas.height;
+      const dpr=window.devicePixelRatio||1;
+      canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.scale(dpr,dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const total = 40;
+      const labeled = Math.round(total * pct/100);
+      const cols = 10, cellW = 32, cellH = 32, gapX = 6, gapY = 6;
+      const startX = (W - cols*(cellW+gapX))/2;
+      const startY = 20;
+
+      ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='bold 11px system-ui';
+      ctx.textAlign='left';
+      ctx.fillText('Training prompts:', startX, startY-4);
+
+      for(let i=0; i<total; i++){
+        const col = i % cols, row = Math.floor(i/cols);
+        const x = startX + col*(cellW+gapX);
+        const y = startY + 8 + row*(cellH+gapY);
+        const isLabeled = i < labeled;
+
+        ctx.fillStyle = isLabeled ? 'rgba(129,199,132,0.5)' : 'rgba(255,255,255,0.08)';
+        ctx.strokeStyle = isLabeled ? '#81c784' : 'rgba(255,255,255,0.15)';
+        ctx.lineWidth = isLabeled ? 2 : 1;
+        ctx.beginPath();
+        ctx.roundRect(x, y, cellW, cellH, 4);
+        ctx.fill(); ctx.stroke();
+
+        if(isLabeled) {
+          ctx.fillStyle='rgba(255,255,255,0.8)'; ctx.font='bold 14px system-ui'; ctx.textAlign='center';
+          ctx.fillText('✓', x+cellW/2, y+cellH/2+5);
+        } else {
+          ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.font='12px system-ui'; ctx.textAlign='center';
+          ctx.fillText('?', x+cellW/2, y+cellH/2+4);
+        }
+      }
+
+      const legendY = startY + 8 + Math.ceil(total/cols)*(cellH+gapY) + 16;
+
+      const approaches = [
+        {name:'Label-Only', desc:'Discard unlabeled → smaller training set', col:'rgba(229,115,115,0.6)'},
+        {name:'Semi-Supervised', desc:'Labeled: full loss; Unlabeled: preference loss only', col:'rgba(129,199,132,0.6)'}
+      ];
+
+      const boxW = 360;
+      approaches.forEach((a, i) => {
+        const x = (W - 2*boxW - 20)/2 + i*(boxW+20);
+        ctx.fillStyle='rgba(255,255,255,0.04)';
+        ctx.strokeStyle=a.col; ctx.lineWidth=2;
+        ctx.beginPath(); ctx.roundRect(x, legendY, boxW, 52, 6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.font='bold 12px system-ui'; ctx.textAlign='left';
+        ctx.fillText(a.name, x+12, legendY+20);
+        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='11px system-ui';
+        ctx.fillText(a.desc, x+12, legendY+38);
+      });
+    }
+
+    slider.addEventListener('input', draw);
+    setTimeout(draw, 600);
+  })();
+  </script>
+
+  <p class="fragment small" style="margin-top:8px;">
+    <strong>Key insight:</strong> Unlabeled prompts still carry useful <em>preference</em> signal — the model can learn relative rankings even without ground truth.
+  </p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 10: Results — Semi-supervised -->
+<!-- ============================================================ -->
+<section>
+  <h2>Results: Semi-Supervised Training</h2>
+  <p class="small">Across tasks, semi-supervised consistently outperforms label-only (10% labels).</p>
+
+  <div class="interactive-container" style="padding:12px;">
+    <div style="display:flex;gap:6px;margin-bottom:10px;" id="task-btns"></div>
+    <canvas id="results-canvas" width="820" height="310"></canvas>
+    <div id="results-info" class="small" style="margin-top:6px;opacity:0.7;"></div>
+  </div>
+
+  <script>
+  (function(){
+    const tasks = {
+      "PlausibleQA": {
+        metric: "Pearson r (tc)",
+        base: 0.419,
+        configs: [
+          {name:"Pref\nlabel-only", val:0.077, type:"lo"},
+          {name:"Pref+v\nlabel-only", val:0.366, type:"lo"},
+          {name:"Comb+v\nlabel-only", val:0.359, type:"lo"},
+          {name:"Comb+v\nsemi", val:0.393, type:"ss"},
+          {name:"SFT\nlabel-only", val:0.360, type:"lo"},
+          {name:"SFT\nsemi", val:0.486, type:"ss"}
+        ]
+      },
+      "AmbigQA": {
+        metric: "Pearson r (tc)",
+        base: 0.298,
+        configs: [
+          {name:"Pref\nlabel-only", val:0.256, type:"lo"},
+          {name:"Pref+v\nlabel-only", val:0.368, type:"lo"},
+          {name:"Comb+v\nlabel-only", val:0.249, type:"lo"},
+          {name:"Comb+v\nsemi", val:0.380, type:"ss"},
+          {name:"SFT\nlabel-only", val:0.215, type:"lo"},
+          {name:"SFT\nsemi", val:0.451, type:"ss"}
+        ]
+      },
+      "Hypernym (ID)": {
+        metric: "Pearson r (tc)",
+        base: 0.535,
+        configs: [
+          {name:"Pref\nlabel-only", val:0.532, type:"lo"},
+          {name:"Pref+v\nlabel-only", val:0.605, type:"lo"},
+          {name:"Comb+v\nlabel-only", val:0.533, type:"lo"},
+          {name:"Comb+v\nsemi", val:0.763, type:"ss"},
+          {name:"SFT\nlabel-only", val:0.275, type:"lo"},
+          {name:"SFT\nsemi", val:0.776, type:"ss"}
+        ]
+      },
+      "Hypernym (OOD)": {
+        metric: "Pearson r (tc)",
+        base: 0.484,
+        configs: [
+          {name:"Pref\nlabel-only", val:0.518, type:"lo"},
+          {name:"Pref+v\nlabel-only", val:0.572, type:"lo"},
+          {name:"Comb+v\nlabel-only", val:0.491, type:"lo"},
+          {name:"Comb+v\nsemi", val:0.709, type:"ss"},
+          {name:"SFT\nlabel-only", val:0.267, type:"lo"},
+          {name:"SFT\nsemi", val:0.751, type:"ss"}
+        ]
+      }
+    };
+
+    const canvas = document.getElementById('results-canvas');
+    const ctx = canvas.getContext('2d');
+    const btns = document.getElementById('task-btns');
+    const info = document.getElementById('results-info');
+
+    Object.keys(tasks).forEach((t,i) => {
+      const btn = document.createElement('button');
+      btn.textContent = t;
+      btn.style.cssText = 'background:rgba(206,147,216,0.2);border:1px solid rgba(206,147,216,0.4);color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:0.75em;';
+      btn.onclick = () => draw(t);
+      btns.appendChild(btn);
+      if(i===0) setTimeout(() => draw(t), 700);
+    });
+
+    function draw(taskName){
+      const task = tasks[taskName];
+      const W=canvas.width, H=canvas.height;
+      const dpr=window.devicePixelRatio||1;
+      canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.scale(dpr,dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const pad={l:55,r:20,t:20,b:60};
+      const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+
+      const allVals = task.configs.map(c=>c.val).concat([task.base]);
+      const minV = Math.min(...allVals) - 0.05;
+      const maxV = Math.max(...allVals) + 0.05;
+
+      const toY = v => pad.t + ph - ((v - minV)/(maxV - minV))*ph;
+
+      for(let v=Math.ceil(minV*10)/10; v<=maxV; v+=0.1){
+        const y = toY(v);
+        ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+        ctx.fillText(v.toFixed(1), pad.l-6, y+3);
+      }
+
+      ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.setLineDash([6,4]);
+      const baseY = toY(task.base);
+      ctx.beginPath(); ctx.moveTo(pad.l, baseY); ctx.lineTo(pad.l+pw, baseY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='10px system-ui'; ctx.textAlign='left';
+      ctx.fillText('Base: '+task.base.toFixed(3), pad.l+pw-80, baseY-6);
+
+      const n = task.configs.length;
+      const barW = Math.min(60, pw/n*0.65);
+      const gap = pw/n;
+
+      task.configs.forEach((c,i) => {
+        const cx = pad.l + gap*(i+0.5);
+        const y = toY(c.val);
+        const barH = pad.t+ph - y;
+
+        const grad = ctx.createLinearGradient(0, y, 0, pad.t+ph);
+        if(c.type === 'ss'){
+          grad.addColorStop(0, 'rgba(129,199,132,0.7)');
+          grad.addColorStop(1, 'rgba(129,199,132,0.2)');
+        } else {
+          grad.addColorStop(0, 'rgba(255,183,77,0.6)');
+          grad.addColorStop(1, 'rgba(255,183,77,0.15)');
+        }
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.roundRect(cx-barW/2, y, barW, barH, [4,4,0,0]); ctx.fill();
+
+        ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='bold 11px system-ui'; ctx.textAlign='center';
+        ctx.fillText(c.val.toFixed(3), cx, y-6);
+
+        const lines = c.name.split('\n');
+        ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='9px system-ui';
+        lines.forEach((l,li) => ctx.fillText(l, cx, pad.t+ph+12+li*11));
+      });
+
+      info.innerHTML = `<strong>${taskName}</strong> — ${task.metric} &nbsp;|&nbsp; `
+        + `<span style="color:var(--val-color)">■</span> label-only &nbsp; `
+        + `<span style="color:var(--pos-color)">■</span> semi-supervised &nbsp; `
+        + `<span class="dim">--- base model</span>`;
+    }
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 11: Key Findings -->
+<!-- ============================================================ -->
+<section>
+  <h2>Key Findings</h2>
+
+  <div style="font-size:0.8em;">
+    <div class="fragment" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="font-size:1.5em;line-height:1;">1</div>
+        <div>
+          <strong>Semi-supervised consistently beats label-only</strong><br>
+          <span class="dim small">Unlabeled preference signal is valuable — up to +0.50 correlation improvement on Hypernym</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fragment" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="font-size:1.5em;line-height:1;">2</div>
+        <div>
+          <strong>PMI₁.₅ is the best parameter-free typicality correction</strong><br>
+          <span class="dim small">53.5% correlation, 76.0% GenROC — modest gain over PMI but robust and free</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fragment" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="font-size:1.5em;line-height:1;">3</div>
+        <div>
+          <strong>Fitted corrections overfit: more parameters → worse generalization</strong><br>
+          <span class="dim small">~14 items per prompt is too few; mixed-effects models partially overcome this via shrinkage</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="fragment" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="font-size:1.5em;line-height:1;">4</div>
+        <div>
+          <strong>Length is largely redundant with typicality</strong><br>
+          <span class="dim small">Within-prompt R² = 0.79; small correlation gain (+1–3pp) trades off against GenROC (−0.2–2.3pp)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 12: Bias-Variance Interactive -->
+<!-- ============================================================ -->
+<section>
+  <h2>The Bias-Variance Tradeoff</h2>
+  <p class="small">More parameters = more variance. With n ≈ 14 per prompt, simplicity wins.</p>
+
+  <div class="interactive-container" style="padding:14px;">
+    <canvas id="bv-canvas" width="820" height="300"></canvas>
+  </div>
+
+  <script>
+  (function(){
+    const data = [
+      {params:0, roc:76.0, name:'PMI₁.₅'},
+      {params:0.3, roc:75.6, name:'reg λ=2.0'},
+      {params:1, roc:66.3, name:'opt_spearman'},
+      {params:2, roc:63.4, name:'opt_typ_len'},
+      {params:4, roc:60.8, name:'logistic'},
+      {params:5, roc:56.4, name:'opt_poly2_full'}
+    ];
+
+    const canvas = document.getElementById('bv-canvas');
+    const ctx = canvas.getContext('2d');
+
+    function draw(){
+      const W=canvas.width, H=canvas.height;
+      const dpr=window.devicePixelRatio||1;
+      canvas.width=W*dpr; canvas.height=H*dpr;
+      canvas.style.width=W+'px'; canvas.style.height=H+'px';
+      ctx.scale(dpr,dpr);
+      ctx.clearRect(0,0,W,H);
+
+      const pad={l:55,r:30,t:25,b:45};
+      const pw=W-pad.l-pad.r, ph=H-pad.t-pad.b;
+
+      const toX = p => pad.l + (p/5.5)*pw;
+      const toY = r => pad.t + ph - ((r-50)/30)*ph;
+
+      for(let r=50;r<=80;r+=5){
+        const y=toY(r);
+        ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+        ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+pw,y); ctx.stroke();
+        ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.font='10px system-ui'; ctx.textAlign='right';
+        ctx.fillText(r+'%', pad.l-6, y+3);
+      }
+
+      ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='11px system-ui'; ctx.textAlign='center';
+      ctx.fillText('Number of Fitted Parameters', W/2, H-4);
+      ctx.save(); ctx.translate(14, H/2); ctx.rotate(-Math.PI/2);
+      ctx.fillText('Best LOO GenROC AUC', 0, 0); ctx.restore();
+
+      ctx.beginPath();
+      ctx.strokeStyle='rgba(229,115,115,0.4)'; ctx.lineWidth=2;
+      data.forEach((d,i) => {
+        const x=toX(d.params), y=toY(d.roc);
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      data.forEach((d,i) => {
+        const x=toX(d.params), y=toY(d.roc);
+        const r = i===0 ? 10 : 7;
+
+        const grad = ctx.createRadialGradient(x,y,0,x,y,r);
+        if(i===0){
+          grad.addColorStop(0,'rgba(129,199,132,1)');
+          grad.addColorStop(1,'rgba(129,199,132,0.3)');
+        } else {
+          grad.addColorStop(0,'rgba(229,115,115,0.9)');
+          grad.addColorStop(1,'rgba(229,115,115,0.2)');
+        }
+        ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+        ctx.fillStyle=grad; ctx.fill();
+        ctx.strokeStyle=i===0?'#81c784':'#e57373'; ctx.lineWidth=1.5; ctx.stroke();
+
+        ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='11px system-ui'; ctx.textAlign='center';
+        ctx.fillText(d.name, x, y-r-8);
+        ctx.fillStyle='rgba(255,255,255,0.5)'; ctx.font='10px system-ui';
+        ctx.fillText(d.roc+'%', x, y-r-20);
+      });
+
+      ctx.fillStyle='rgba(206,147,216,0.15)';
+      ctx.beginPath();
+      const x0=toX(-0.3), x1=toX(0.5), y0=toY(77), y1=toY(74);
+      ctx.roundRect(x0, y0, x1-x0, y1-y0, 6); ctx.fill();
+      ctx.strokeStyle='rgba(206,147,216,0.4)'; ctx.lineWidth=1;
+      ctx.stroke();
+      ctx.fillStyle='var(--accent)'; ctx.font='bold 10px system-ui'; ctx.textAlign='center';
+      ctx.fillText('SWEET SPOT', (x0+x1)/2, y0-5);
+    }
+    setTimeout(draw, 800);
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 13: Datasets -->
+<!-- ============================================================ -->
+<section>
+  <h2>Tasks and Datasets</h2>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:0.75em;margin-top:16px;">
+    <div class="interactive-container" style="padding:14px;">
+      <h3 style="margin:0 0 6px;">Hypernymy</h3>
+      <p class="dim small">"A ___ is a kind of ___"</p>
+      <p>8 in-domain + 10 out-of-domain nouns<br>Rodriguez et al., 2025</p>
+    </div>
+    <div class="interactive-container" style="padding:14px;">
+      <h3 style="margin:0 0 6px;">PlausibleQA</h3>
+      <p class="dim small">Open-domain questions with plausible distractors</p>
+      <p>33 questions × ~14 candidates<br>GPT-4 labels</p>
+    </div>
+    <div class="interactive-container" style="padding:14px;">
+      <h3 style="margin:0 0 6px;">AmbigQA</h3>
+      <p class="dim small">Ambiguous questions with multiple valid answers</p>
+      <p>GPT-4o generated negatives<br>(plausible, uninformed, clearly-wrong)</p>
+    </div>
+    <div class="interactive-container" style="padding:14px;">
+      <h3 style="margin:0 0 6px;">IFEval</h3>
+      <p class="dim small">Instruction-following evaluation</p>
+      <p>Concat / per-prompt variants<br>Long-form completions</p>
+    </div>
+  </div>
+
+  <p class="small dim fragment" style="margin-top:12px;">Model: google/gemma-2-2b with LoRA fine-tuning</p>
+</section>
+
+<!-- ============================================================ -->
+<!-- SLIDE 14: Summary / Takeaways -->
+<!-- ============================================================ -->
+<section data-background-gradient="linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)">
+  <h2>Summary</h2>
+
+  <div style="font-size:0.8em;">
+    <div style="margin-bottom:18px;">
+      <strong style="color:var(--accent);">The Generator–Validator Gap is real and measurable</strong><br>
+      <span class="small dim">LLMs are not self-consistent across generation and verification prompts</span>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <strong style="color:var(--gen-color);">Typicality is the main confound</strong><br>
+      <span class="small dim">PMI₁.₅ (b=1.5) is the best zero-parameter correction — simple, robust, effective</span>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <strong style="color:var(--val-color);">RankAlign closes the gap via ranking-based training</strong><br>
+      <span class="small dim">Pairwise preference loss aligns validator with generator signal</span>
+    </div>
+
+    <div style="margin-bottom:18px;">
+      <strong style="color:var(--pos-color);">Semi-supervised training works</strong><br>
+      <span class="small dim">10% labeled + 90% unlabeled preference signal matches or exceeds fully supervised</span>
+    </div>
+  </div>
+
+  <div class="center-text" style="margin-top:30px;">
+    <p class="dim small">
+      Paper: <a href="https://arxiv.org/abs/2504.11381" style="color:var(--accent);">arXiv:2504.11381</a>
+    </p>
+  </div>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/math/math.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  width: 960,
+  height: 700,
+  margin: 0.05,
+  transition: 'slide',
+  backgroundTransition: 'fade',
+  plugins: [RevealMath.KaTeX]
+});
+
+document.addEventListener('DOMContentLoaded', function(){
+  function renderEq(id, tex, displayMode){
+    const el = document.getElementById(id);
+    if(el) katex.render(tex, el, {displayMode: displayMode !== false, throwOnError:false});
+  }
+  renderEq('eq-gen', '\\text{gen}(y|x) = \\log P_{\\text{LLM}}(y \\mid x)');
+  renderEq('eq-val', '\\text{val}(y|x) = \\log \\frac{P(\\text{Yes} \\mid \\text{"Is } y \\text{ correct?"})}{P(\\text{No} \\mid \\cdot)}');
+  renderEq('eq-gap', '\\text{G-V Gap} \\;=\\; 1 - \\text{Pearson}\\big(\\text{gen}(y|x),\\; \\text{val}(y|x)\\big)');
+  renderEq('eq-typ', '\\log P(y \\mid x) \\;\\approx\\; \\underbrace{\\log P_{\\text{val}}(y|x)}_{\\text{correctness}} \\;+\\; \\underbrace{\\log P(y)}_{\\text{typicality}}');
+  renderEq('eq-pmi', '\\text{PMI}(y; x) = \\text{gen}(y|x) - \\text{typ}(y) = \\log \\frac{P(y|x)}{P(y)}');
+});
+</script>
+</body>
+</html>

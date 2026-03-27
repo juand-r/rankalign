@@ -1,0 +1,244 @@
+% Lecture notes / outline for RankAlign talk
+% Edit this, then feed it back to get reveal.js slides
+%
+% TIP: Add visualization cues like [VIZ: description] where you want
+% interactive elements. The more specific, the better the result.
+%
+% STYLE GUIDE for reveal.js slides:
+%   - Warm cream/beige background (#f5f0e8), dark text (#2d2d2d)
+%   - Clean sans-serif font (Source Sans 3 or similar from Google Fonts)
+%   - Headings: bold, dark, no all-caps transform
+%   - Equation boxes: white background, subtle shadow, left accent border (warm rose)
+%   - Color-code equation terms where helpful (blue for one quantity, orange for another, gray for labels)
+%   - Keep equations compact — use \small or \scriptstyle to avoid overflow
+%   - IMPORTANT: Always check that content fits within 960×700px slide area.
+%     Stack elements vertically rather than side-by-side if equations are wide.
+%     Long fractions/logs especially tend to overflow — prefer stacked layout for these.
+%   - Cards/boxes: white with slight shadow, rounded corners
+%   - Interactive elements: white card backgrounds, muted colored accents
+%   - Buttons: soft rounded, muted fills, dark text
+%   - Canvas charts: dark axes/text on light background (no white-on-dark)
+%   - Overall vibe: academic but modern, like a polished course slide deck
+%   - Background: white (#ffffff)
+%
+% REFERENCES:
+%   - Put citations at the bottom of the slide in small gray font
+%   - Use class="citation" for the container (positioned at bottom-left)
+%   - Format: "Author et al., Short Title. Venue Year"
+%   - Only cite on slides where the work is first introduced or directly relevant
+%
+% SLIDE NUMBERING (for reference when editing):
+%   Slide 0: Title
+%   Slides 1–3: Section 1 — The Generator–Validator Gap
+%     Slide 1: Two probing modes (generator/validator prompt boxes)
+%     Slide 2: Formal definitions (gen/val equations)
+%     Slide 3: Interactive scatter plot (category buttons)
+%   Slides 4–5: Section 2 — The Typicality Confound
+%     Slide 4: Typicality decomposition + PMI
+%     Slide 5: Interactive slider for b
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+
+\title{The Generator-Validator Gap and Frequency Correction}
+\author{Juan Diego Rodriguez}
+\date{}
+
+\begin{document}
+\maketitle
+
+% =====================================================================
+\section{The Generator--Validator Gap}
+% =====================================================================
+
+Language models can be probed for the same knowledge in two ways.
+Example: hypernymy (``a bee is a kind of \underline{\quad}'').
+
+\begin{itemize}
+  \item \textbf{Generator:} ``A bee is a kind of'' $\to$ look at next-token probabilities.
+  \item \textbf{Validator:} ``Is a bee a kind of furniture? Answer:'' $\to$ look at Yes/No log-odds.
+\end{itemize}
+
+A well-calibrated model should rank these consistently --- but often it doesn't.
+
+Formally:
+\begin{align}
+  \text{gen}(y|x) &= \log P_{\text{LLM}}(y \mid x) \\
+  \text{val}(y|x) &= \log \frac{P(\text{Yes} \mid \text{``Is } y \text{ correct?''})}{P(\text{No} \mid \cdot)}
+\end{align}
+
+We measure the gap via Pearson correlation between gen and val scores across candidate answers for each question.
+
+% [VIZ: Scatter plot of gen vs val scores for a hypernymy example,
+%  color-coded by correctness. Allow clicking between categories
+%  (insect, furniture, vehicle) to see how the gap varies.]
+
+
+% =====================================================================
+\section{The Typicality Confound}
+% =====================================================================
+
+Raw generator scores are confounded by unconditional word frequency (``typicality''):
+\[
+  \log P(y \mid x) \;\approx\; \underbrace{\log P_{\text{val}}(y|x)}_{\text{correctness}} + \underbrace{\log P(y)}_{\text{typicality}}
+\]
+
+Common words get high generator scores regardless of correctness.
+
+Standard fix: Pointwise Mutual Information (PMI):
+\[
+  \text{PMI}(y; x) = \log P(y|x) - \log P(y)
+\]
+
+We estimate typicality using GPT-2: $\text{typ}(y) = \log P_{\text{GPT2}}(y)$.
+
+More generally, we can consider $\text{gen}(y|x) - b \cdot \text{typ}(y)$ for various $b$.
+
+% [VIZ: Slider for b in gen - b*typ. Show how correlation and GenROC
+%  change as b varies from 0 to 3, with actual data points at b=0,0.5,1,1.5,2,3.
+%  Mark b=1.5 as the optimum.]
+
+
+% =====================================================================
+\section{Fitted Corrections Overfit}
+% =====================================================================
+
+With only $\sim$14 candidates per question, fitting $b$ per-prompt is catastrophic.
+
+Key result: strict monotonic relationship between parameter count and LOO performance:
+\begin{center}
+\begin{tabular}{cc}
+  \# Parameters & Best LOO GenROC \\
+  \hline
+  0 & 76.0\% (PMI$_{1.5}$) \\
+  1 & 66.3\% \\
+  2 & 63.4\% \\
+  4 & 60.8\% \\
+  5 & 56.4\% \\
+\end{tabular}
+\end{center}
+
+The in-sample vs LOO gap is dramatic (e.g.\ 73.4\% in-sample $\to$ 20.1\% LOO for a 3-param method).
+
+Takeaway: $b \approx 1.5$ with zero parameters is the best correction.
+
+% [VIZ: Bar chart comparing in-sample vs LOO for each method,
+%  with drop annotations. Or: scatter of #params vs LOO GenROC
+%  with a "sweet spot" region around 0 params.]
+
+
+% =====================================================================
+\section{RankAlign}
+% =====================================================================
+
+Train the model so its validator rankings align with a reference signal.
+
+Pipeline:
+\begin{enumerate}
+  \item Precompute gen \& val scores for all candidates.
+  \item Build pairs from the same question where score gap exceeds a threshold $\delta$.
+  \item Pairwise logistic loss: $-\log \sigma(s_j - s_i - \Delta_{\text{ref}})$.
+  \item LoRA fine-tuning.
+\end{enumerate}
+
+Three loss variants:
+\begin{itemize}
+  \item \textbf{Pref:} preference loss only.
+  \item \textbf{Comb:} preference + NLL$_{\text{val}}$ + NLL$_{\text{gen}}$.
+  \item \textbf{SFT:} NLL only, no preference.
+\end{itemize}
+
+Training modes:
+\begin{itemize}
+  \item d2g: align validator $\to$ generator signal.
+  \item g2d: align generator $\to$ validator signal.
+\end{itemize}
+
+% [VIZ: Pipeline flow diagram showing the four steps.
+%  Maybe animated, highlighting each step in sequence.]
+
+
+% =====================================================================
+\section{Semi-Supervised Extension}
+% =====================================================================
+
+What if only 10\% of prompts have ground-truth labels?
+
+\begin{itemize}
+  \item \textbf{Label-only:} Discard unlabeled prompts $\to$ smaller training set.
+  \item \textbf{Semi-supervised:} Labeled prompts get full loss; unlabeled prompts get preference loss only (NLL terms zeroed).
+\end{itemize}
+
+Key insight: unlabeled prompts still carry useful \emph{preference} signal --- the model can learn relative rankings even without ground truth.
+
+Split is at the prompt level (all answers for a question are either labeled or unlabeled). Deterministic via seed for reproducibility.
+
+% [VIZ: Grid of training prompts, slider to adjust labeled ratio.
+%  Show labeled (green check) vs unlabeled (?) prompts.
+%  Side-by-side boxes explaining label-only vs semi-supervised.]
+
+
+% =====================================================================
+\section{Results}
+% =====================================================================
+
+Across tasks (PlausibleQA, AmbigQA, Hypernym ID/OOD), semi-supervised consistently outperforms label-only at 10\% labels.
+
+Selected results (Pearson $r$, typicality-corrected):
+\begin{center}
+\begin{tabular}{lcc}
+  & Comb+v label-only & Comb+v semi \\
+  \hline
+  PlausibleQA & 0.359 & 0.393 \\
+  AmbigQA & 0.249 & 0.380 \\
+  Hypernym (ID) & 0.533 & 0.763 \\
+  Hypernym (OOD) & 0.491 & 0.709 \\
+\end{tabular}
+\end{center}
+
+The effect is largest on Hypernym, where semi doubles the correlation.
+
+% [VIZ: Bar chart per task, switchable between tasks.
+%  Show label-only vs semi bars with base model as dashed line.
+%  Use actual numbers from semisupervised.tex tables.]
+
+
+% =====================================================================
+\section{Key Findings}
+% =====================================================================
+
+\begin{enumerate}
+  \item Semi-supervised consistently beats label-only (up to +0.50 correlation on Hypernym).
+  \item PMI$_{1.5}$ is the best parameter-free typicality correction (53.5\% corr, 76.0\% GenROC).
+  \item Fitted corrections overfit: more parameters $\to$ worse generalization.
+  \item Length is largely redundant with typicality (within-prompt $R^2 = 0.79$).
+\end{enumerate}
+
+
+% =====================================================================
+\section{Datasets}
+% =====================================================================
+
+\begin{itemize}
+  \item \textbf{Hypernymy:} ``A \_\_ is a kind of \_\_'' --- 8 in-domain + 10 OOD nouns.
+  \item \textbf{PlausibleQA:} Open-domain questions with plausible distractors, GPT-4 labels. 33 questions $\times$ $\sim$14 candidates.
+  \item \textbf{AmbigQA:} Ambiguous questions with multiple valid answers. GPT-4o generated negatives.
+  \item \textbf{IFEval:} Instruction-following evaluation, long-form completions.
+\end{itemize}
+
+Model: google/gemma-2-2b with LoRA.
+
+
+% =====================================================================
+\section{Summary}
+% =====================================================================
+
+\begin{itemize}
+  \item The G-V gap is real and measurable.
+  \item Typicality is the main confound; PMI$_{1.5}$ is the best simple fix.
+  \item RankAlign closes the gap via ranking-based training.
+  \item Semi-supervised training works: 10\% labeled + 90\% unlabeled preference signal matches or exceeds fully supervised.
+\end{itemize}
+
+\end{document}
