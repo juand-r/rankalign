@@ -333,7 +333,37 @@
 </section>
 
 <!-- ============================================================ -->
-<!-- Slide 5: Frequency effect example -->
+<!-- Slide 5: Current Direction -->
+<!-- ============================================================ -->
+<section>
+  <h2>Current Direction</h2>
+
+  <p class="small" style="margin-top:12px;"><strong>Can using a preference loss improve generator discriminability (ROC) beyond SFT?</strong></p>
+
+  <p class="small" style="margin-top:8px;"><strong>What is the role of typicality?</strong></p>
+
+  <div class="fragment" style="margin-top:18px;">
+    <p class="small" style="margin-bottom:6px;">Modified loss:</p>
+    <div class="eq-highlight">
+      <span id="eq-comb"></span>
+    </div>
+    <p class="small dim" style="margin-top:4px;text-align:center;">
+      preference &ensp;+&ensp; validator BCE &ensp;+&ensp; generator NLL (positive examples only)
+    </p>
+  </div>
+
+  <div class="fragment" style="margin-top:16px;">
+    <p class="small"><strong>Tasks:</strong> instruction following and QA tasks with multiple correct &amp; incorrect completions per prompt.</p>
+  </div>
+
+  <div class="citation">
+    Gekhman et al., Inside-Out: Hidden Factual Knowledge in LLMs. COLM 2025<br>
+    Razin et al., Unintentional Unalignment: Likelihood Displacement in Direct Preference Optimization. ICLR 2025
+  </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- Slide 6: Frequency effect example -->
 <!-- ============================================================ -->
 <section>
   <h2>Frequency Effect</h2>
@@ -542,6 +572,7 @@ Reveal.initialize({
   rEq('eq-gen-b', '\\text{gen}(y|x) - b \\cdot \\text{typ}(y)', false);
   rEq('eq-v2g', '\\mathcal{L}_{\\text{V2G}}(p_\\theta) = -\\mathbb{E}_{(x_w,x_l) \\in D} \\log \\sigma\\!\\Big(\\beta\\big[\\log p_\\theta(A_w \\mid x^G_w) - \\log p_\\theta(A_l \\mid x^G_l)\\big]\\Big)');
   rEq('eq-g2v', '\\mathcal{L}_{\\text{G2V}}(p_\\theta) = -\\mathbb{E}_{(x_w,x_l) \\in D} \\log \\sigma\\!\\Big(\\beta\\big[\\log p_\\theta(\\text{Yes} \\mid x^V_w) - \\log p_\\theta(\\text{Yes} \\mid x^V_l)\\big]\\Big)');
+  rEq('eq-comb', '\\mathcal{L} = \\underbrace{\\mathcal{L}_{\\text{V2G}}}_{\\text{pref}} + \\lambda_v \\underbrace{\\text{BCE}\\big(\\text{logodds}(x^V_k),\\, y_k\\big)}_{\\text{NLL}_{\\text{val}}} + \\lambda_g \\underbrace{\\big(-\\!\\sum_{k:\\,y_k=1} \\log p_\\theta(A_k \\mid x^G_k)\\big)}_{\\text{NLL}_{\\text{gen}}}');
 });
 </script>
 </body>
