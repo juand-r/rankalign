@@ -2,41 +2,70 @@
 set -euo pipefail
 
 # Train and evaluate models on the ifeval-concat task.
-# Current: all-terms w/o val log odds (with and without tc)
-#   - all_terms_no_vallogodds (pref=1, nllv=1, nllg=1, no tc, no vallogodds)
-#   - all_terms_no_vallogodds_tc (pref=1, nllv=1, nllg=1, tc, no vallogodds)
-# Commented out: SFT, pref_only, all_terms (with vallogodds), all_terms_tc (with vallogodds)
+#
+# Spec format (colon-separated): NAME:PREF:NLLV:NLLG:USE_TC:VALLOGODDS:LENORM
+#   USE_TC: 0=no typicality during training, 1=typicality on (self if --self else online/GPT-2)
+# Typicality at train and eval is controlled only by --self (self) vs default (online).
 #
 # Evaluates each variant on:
 #   - each ifeval-prompt_* task
 #
 # Usage:
-#   ./run_ifeval_concat.sh <GPU_LIST> [--variant NAME|all] [--train-only|--eval-only]
-# Variants: base, sft, pref_only, all_terms, all_terms_tc, pref_tc, all_terms_tc_lenorm (or all)
+#   ./run_ifeval_concat.sh <NUM_GPUS> [--self] [--variant NAME|all] [--train-only|--eval-only]
+# Variants: base, sft, pref_only, all_terms, all_terms_tc, pref_tc, all_terms_tc_lenorm, all
 # Example:
-#   ./run_ifeval_concat.sh 0,1,2,3
-#   ./run_ifeval_concat.sh 0,1 --variant sft
-#   ./run_ifeval_concat.sh 0 --variant all_terms_tc --eval-only
+#   ./run_ifeval_concat.sh 4 --self
+#   ./run_ifeval_concat.sh 2 --variant sft
+#   ./run_ifeval_concat.sh 1 --variant all_terms_tc --eval-only"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Avoid Hugging Face Xet downloader "Background writer channel closed" on NFS/Slurm
-export HF_HUB_DISABLE_XET=1
-# Put hub cache (model/dataset downloads) on local disk to avoid "Disk quota exceeded".
-# Leave HF_HOME default so ~/.cache/huggingface (and login token) is still used.
-HF_HUB_CACHE_ROOT="${SLURM_TMPDIR:-${TMPDIR:-/tmp}}/.cache/huggingface/hub"
-export HF_HUB_CACHE="$HF_HUB_CACHE_ROOT"
-export TRANSFORMERS_CACHE="$HF_HUB_CACHE_ROOT"
-mkdir -p "$HF_HUB_CACHE_ROOT"
+source /lusr/opt/miniconda/bin/activate /datastor2/jocelyn/.conda/nlp
 
-GPU_LIST=${1:-}
+export HF_HOME=/datastor2/jocelyn/.cache/huggingface
+export HF_HUB_CACHE="${HF_HOME}/hub"
+export HF_DATASETS_CACHE="${HF_HOME}/datasets"
+export TRANSFORMERS_CACHE="${HF_HOME}/transformers"
+
+export RANKALIGN_RUN_CACHE=/datastor2/jocelyn/.cache/rankalign-run
+mkdir -p \
+    "$HF_HOME" \
+    "$HF_HUB_CACHE" \
+    "$HF_DATASETS_CACHE" \
+    "$TRANSFORMERS_CACHE" \
+    "$RANKALIGN_RUN_CACHE/tmp" \
+    "$RANKALIGN_RUN_CACHE/xdg_cache" \
+    "$RANKALIGN_RUN_CACHE/torch_extensions" \
+    "$RANKALIGN_RUN_CACHE/triton" \
+    "$RANKALIGN_RUN_CACHE/torchinductor" \
+    "$RANKALIGN_RUN_CACHE/numba" \
+    "$RANKALIGN_RUN_CACHE/matplotlib"
+
+export TMPDIR="$RANKALIGN_RUN_CACHE/tmp"
+export TEMP="$TMPDIR"
+export TMP="$TMPDIR"
+export XDG_CACHE_HOME="$RANKALIGN_RUN_CACHE/xdg_cache"
+export TORCH_EXTENSIONS_DIR="$RANKALIGN_RUN_CACHE/torch_extensions"
+export TRITON_CACHE_DIR="$RANKALIGN_RUN_CACHE/triton"
+export TORCHINDUCTOR_CACHE_DIR="$RANKALIGN_RUN_CACHE/torchinductor"
+export NUMBA_CACHE_DIR="$RANKALIGN_RUN_CACHE/numba"
+export MPLCONFIGDIR="$RANKALIGN_RUN_CACHE/matplotlib"
+export PIP_CACHE_DIR=/datastor2/jocelyn/.cache/pip
+mkdir -p "$PIP_CACHE_DIR"
+
+NUM_GPUS_INPUT=${1:-}
 MODE="both"
 VARIANT_FILTER="all"
+USE_SELF=0
 shift || true
 
 while [[ $# -gt 0 ]]; do
     case $1 in
+        --self)
+            USE_SELF=1
+            shift
+            ;;
         --variant)
             VARIANT_FILTER="$2"
             shift 2
@@ -56,25 +85,38 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-VALID_VARIANTS="base sft pref_only all_terms all_terms_tc pref_tc all_terms_tc_lenorm all"
+TC_TAG=$([ "$USE_SELF" = 1 ] && echo self || echo online)
+
+VALID_VARIANTS="all base sft pref_only all_terms all_terms_tc pref_tc all_terms_tc_lenorm"
 if [[ ! " $VALID_VARIANTS " =~ " $VARIANT_FILTER " ]]; then
-    echo "Invalid --variant: $VARIANT_FILTER (must be: $VALID_VARIANTS)"
+    echo "Invalid --variant: $VARIANT_FILTER (must be one of: $VALID_VARIANTS)"
     exit 1
 fi
 
-if [ -z "$GPU_LIST" ]; then
-    echo "Usage: $0 <GPU_LIST> [--variant NAME|all] [--train-only|--eval-only]"
-    echo "  GPU_LIST: comma-separated GPU IDs (e.g., 0,1,2,3)"
-    echo "  --variant: base, sft, pref_only, all_terms, all_terms_tc, pref_tc, all_terms_tc_lenorm, or all (default)"
+if [ -z "$NUM_GPUS_INPUT" ]; then
+    echo "Usage: $0 <NUM_GPUS> [--self] [--variant NAME|all] [--train-only|--eval-only]"
+    echo "  NUM_GPUS: number of GPUs to use, assumed IDs 0..N-1 (e.g., 4 -> 0,1,2,3)"
+    echo "  --self: use self-typicality at train (when USE_TC=1) and eval; omit for online (GPT-2) typicality"
+    echo "  --variant: $VALID_VARIANTS"
     echo "  --train-only: run only training"
     echo "  --eval-only: run only evaluation"
     exit 1
 fi
 
-IFS=',' read -ra GPUS <<< "$GPU_LIST"
-NUM_GPUS=${#GPUS[@]}
+if ! [[ "$NUM_GPUS_INPUT" =~ ^[0-9]+$ ]] || [ "$NUM_GPUS_INPUT" -le 0 ]; then
+    echo "NUM_GPUS must be a positive integer (got: $NUM_GPUS_INPUT)"
+    exit 1
+fi
+
+NUM_GPUS=$NUM_GPUS_INPUT
+GPUS=()
+for ((gpu_id = 0; gpu_id < NUM_GPUS; gpu_id++)); do
+    GPUS+=("$gpu_id")
+done
+GPU_LIST=$(IFS=,; echo "${GPUS[*]}")
+
 GPUS_PER_JOB=2
-NUM_WORKERS=$((NUM_GPUS / GPUS_PER_JOB))
+NUM_WORKERS=$(((NUM_GPUS + GPUS_PER_JOB - 1) / GPUS_PER_JOB))
 # Build GPU pairs for model parallelism: "0,1", "2,3", etc.
 GPU_PAIRS=()
 for ((i = 0; i < NUM_GPUS; i += GPUS_PER_JOB)); do
@@ -96,7 +138,6 @@ TASK_CONCAT="ifeval-concat"
 DATA_DIR="/datastor2/jocelyn/rankalign/data/fixed-prompts-ifeval"
 
 mkdir -p logs
-STATUS_LOG="$SCRIPT_DIR/logs/job_status.log"
 
 TASKS=()
 for f in "$DATA_DIR"/gpt_ifeval_results_*.jsonl; do
@@ -114,7 +155,20 @@ fi
 
 EVAL_TASKS=("${TASKS[@]}")
 
-echo "EVAL_TASKS: ${EVAL_TASKS[@]}" >> "$STATUS_LOG"
+echo "EVAL_TASKS: ${EVAL_TASKS[@]}"
+echo "Typicality: ${TC_TAG} (set --self for self; default is online)"
+
+# Map USE_TC (0/1) + USE_SELF into path tag 0 / 1 (online) / 2 (self)
+train_tc_for_path() {
+    local use_tc=$1
+    if [ "$use_tc" != "1" ]; then
+        echo 0
+    elif [ "$USE_SELF" = 1 ]; then
+        echo 2
+    else
+        echo 1
+    fi
+}
 
 run_train_variant() {
     local NAME=$1
@@ -126,13 +180,21 @@ run_train_variant() {
     local USE_LENORM=${7:-0}
     local GPU_PAIR=${8:-$TRAIN_GPU}
     local GPU_LOG=$(echo "$GPU_PAIR" | tr ',' '-')
-    local LOG_FILE="logs/train_${TASK_CONCAT}_${NAME}_gpu${GPU_LOG}.log"
+    local LOG_FILE="logs/train_${TASK_CONCAT}_${NAME}_${TC_TAG}_gpu${GPU_LOG}.log"
+    local tc_args=()
+    if [ "$USE_TC" = "1" ]; then
+        if [ "$USE_SELF" = 1 ]; then
+            tc_args+=(--self-typicality)
+        else
+            tc_args+=(--typicality-correction)
+        fi
+    fi
 
-    echo "[GPUs $GPU_PAIR] Training ${NAME} (log: $LOG_FILE)" >> "$STATUS_LOG"
+    echo "[GPUs $GPU_PAIR] Training ${NAME} ${TC_TAG} (log: $LOG_FILE)"
     {
         echo "========================================"
-        echo "Task: $TASK_CONCAT | Variant: $NAME"
-        echo "pref=$PREF_W nllv=$NLLV_W nllg=$NLLG_W tc=$USE_TC validator_log_odds=$USE_VALIDATOR_LOG_ODDS"
+        echo "Task: $TASK_CONCAT | Variant: $NAME | typicality=$TC_TAG"
+        echo "pref=$PREF_W nllv=$NLLV_W nllg=$NLLG_W use_tc=$USE_TC validator_log_odds=$USE_VALIDATOR_LOG_ODDS"
         echo "========================================"
 
         PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True CUDA_VISIBLE_DEVICES="$GPU_PAIR" python ranking_loss_ref.py \
@@ -153,7 +215,7 @@ run_train_variant() {
             --force-same-x \
             --no-wandb \
             $([ "$USE_LENORM" = "1" ] && echo "--length-normalize") \
-            $([ "$USE_TC" = "1" ] && echo "--typicality-correction") \
+            "${tc_args[@]}" \
             $([ "$USE_VALIDATOR_LOG_ODDS" = "1" ] && echo "--validator-log-odds")
     } >> "$LOG_FILE" 2>&1
 }
@@ -162,7 +224,7 @@ build_model_dir() {
     local PREF_W=$1
     local NLLV_W=$2
     local NLLG_W=$3
-    local USE_TC=$4
+    local TRAIN_TC=$4
     local USE_VALLOGODDS=${5:-0}
     local USE_LENORM=${6:-0}
 
@@ -176,7 +238,9 @@ build_model_dir() {
     # Training saves with 0-based epoch index; NUM_EPOCHS=2 -> last save at epoch 1
     local LAST_EPOCH=$((NUM_EPOCHS - 1))
 
-    if [ "$USE_TC" = "1" ]; then
+    if [ "$TRAIN_TC" = "2" ]; then
+        typcorr_str="--tc-self"
+    elif [ "$TRAIN_TC" = "1" ]; then
         typcorr_str="--tc-online"
     fi
     if [ "$USE_LENORM" = "1" ]; then
@@ -221,19 +285,32 @@ run_eval_variant() {
     local GPU=$9
 
     local MODEL_DIR
-    local LOG_FILE="logs/eval_${TASK}_${NAME}_gpu${GPU}.log"
+    local LOG_FILE="logs/eval_${TASK}_${NAME}_${TC_TAG}_gpu${GPU}.log"
+    local eval_tc_args=()
+    if [ "$USE_SELF" = 1 ]; then
+        eval_tc_args+=(--self-typicality)
+    else
+        eval_tc_args+=(--typicality-correction)
+    fi
+    local path_tc
+    path_tc=$(train_tc_for_path "$USE_TC")
+    {
+        echo "========================================"
+        echo "Task: $TASK | Variant: $NAME | GPU: $GPU | typicality=$TC_TAG"
+        echo "========================================"
+    } >> "$LOG_FILE"
 
     if [ "$NAME" = "base" ]; then
         MODEL_DIR="$MODEL"
     else
-        MODEL_DIR=$(build_model_dir "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_TC" "$USE_VALLOGODDS" "$USE_LENORM")
+        MODEL_DIR=$(build_model_dir "$PREF_W" "$NLLV_W" "$NLLG_W" "$path_tc" "$USE_VALLOGODDS" "$USE_LENORM")
         if [ ! -d "$MODEL_DIR" ]; then
             echo "  [SKIP] Model not found: $MODEL_DIR" >> "$LOG_FILE"
             return
         fi
     fi
 
-    CUDA_VISIBLE_DEVICES="$GPU" python eval.py \
+    CUDA_VISIBLE_DEVICES="$GPU" python eval_by_claude.py \
         --model "$MODEL_DIR" \
         --task "$TASK" \
         --split_type random \
@@ -241,11 +318,11 @@ run_eval_variant() {
         --save-scores-csv \
         --disc-shots zero \
         --length-normalize \
-        --typicality-correction \
+        "${eval_tc_args[@]}" \
         >> "$LOG_FILE" 2>&1
 }
 
-# Training task specs: NAME:PREF_W:NLLV_W:NLLG_W:USE_TC:USE_VALLOGODDS:USE_LENORM
+# Training task specs: NAME:PREF:NLLV:NLLG:USE_TC:VALLOGODDS:LENORM
 ALL_TRAIN_SPECS=(
     "sft:0.0:1:1:0:0:0"
     "pref_only:1:0:0:0:0:0"
@@ -255,16 +332,27 @@ ALL_TRAIN_SPECS=(
     "all_terms_tc_lenorm:1:1:1:1:1:1"
 )
 
-# Filter by variant (base has no training)
 TRAIN_SPECS=()
+train_spec_selected() {
+    local name=$1
+    case "$VARIANT_FILTER" in
+        base)
+            return 1
+            ;;
+        *)
+            [[ "$name" == "$VARIANT_FILTER" ]] && return 0
+            return 1
+            ;;
+    esac
+}
+
 if [ "$VARIANT_FILTER" = "all" ]; then
     TRAIN_SPECS=("${ALL_TRAIN_SPECS[@]}")
-elif [ "$VARIANT_FILTER" != "base" ]; then
+else
     for spec in "${ALL_TRAIN_SPECS[@]}"; do
         name="${spec%%:*}"
-        if [ "$name" = "$VARIANT_FILTER" ]; then
+        if train_spec_selected "$name"; then
             TRAIN_SPECS+=("$spec")
-            break
         fi
     done
 fi
@@ -278,7 +366,7 @@ run_train_worker() {
     local idx=0
     for spec in "${TRAIN_SPECS[@]}"; do
         if [ $((idx % NUM_WORKERS)) -eq "$worker_idx" ]; then
-            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS USE_LENORM <<< "$spec"
+            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS USE_LENORM < <(printf '%s\n' "$spec")
             run_train_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_TC" "$USE_VALLOGODDS" "$USE_LENORM" "$gpu_pair"
         fi
         idx=$((idx + 1))
@@ -287,23 +375,21 @@ run_train_worker() {
 
 if [ "$MODE" = "train" ] || [ "$MODE" = "both" ]; then
     if [ ${#TRAIN_SPECS[@]} -gt 0 ]; then
-        {
-            echo "========================================"
-            echo "Training variants on $TASK_CONCAT (GPUs: $GPU_LIST, $GPUS_PER_JOB GPUs per job, $NUM_WORKERS parallel workers)"
-            echo "========================================"
-        } >> "$STATUS_LOG"
+        echo "========================================"
+        echo "Training variants on $TASK_CONCAT (GPUs: $GPU_LIST, $GPUS_PER_JOB GPUs per job, $NUM_WORKERS parallel workers)"
+        echo "========================================"
 
         for worker_idx in $(seq 0 $((NUM_WORKERS - 1))); do
             run_train_worker "$worker_idx" &
         done
         wait
-        echo "All training runs completed." >> "$STATUS_LOG"
+        echo "All training runs completed."
     else
-        echo "No training for variant=$VARIANT_FILTER (base has no training)." >> "$STATUS_LOG"
+        echo "No training for variant=$VARIANT_FILTER (base has no training)."
     fi
 fi
 
-# Eval variant specs: NAME:PREF_W:NLLV_W:NLLG_W:USE_TC:USE_VALLOGODDS:USE_LENORM
+# Eval variant specs: NAME:PREF:NLLV:NLLG:USE_TC:VALLOGODDS:LENORM (same as train; typicality from --self)
 ALL_VARIANTS=(
     "base:0:0:0:0:0:0"
     "sft:0.0:1:1:0:0:0"
@@ -314,21 +400,25 @@ ALL_VARIANTS=(
     "all_terms_tc_lenorm:1:1:1:1:1:1"
 )
 
-# Filter by variant
 VARIANTS=()
+eval_variant_selected() {
+    local name=$1
+    [[ "$name" == "$VARIANT_FILTER" ]] && return 0
+    return 1
+}
+
 if [ "$VARIANT_FILTER" = "all" ]; then
     VARIANTS=("${ALL_VARIANTS[@]}")
 else
     for v in "${ALL_VARIANTS[@]}"; do
         name="${v%%:*}"
-        if [ "$name" = "$VARIANT_FILTER" ]; then
+        if eval_variant_selected "$name"; then
             VARIANTS+=("$v")
-            break
         fi
     done
 fi
 
-# Build flat list of eval jobs: each element is "TASK|NAME:PREF_W:NLLV_W:NLLG_W:USE_TC:USE_VALLOGODDS"
+# Build flat list of eval jobs: each element is "TASK|NAME:PREF:...:LENORM"
 EVAL_JOBS=()
 for TASK in "${EVAL_TASKS[@]}"; do
     for V in "${VARIANTS[@]}"; do
@@ -336,20 +426,34 @@ for TASK in "${EVAL_TASKS[@]}"; do
     done
 done
 
+echo "Prepared ${#EVAL_JOBS[@]} eval jobs across ${#VARIANTS[@]} variant(s) and ${#EVAL_TASKS[@]} task(s)."
+if [ ${#VARIANTS[@]} -eq 0 ]; then
+    echo "No eval variants selected for --variant=$VARIANT_FILTER"
+    exit 1
+fi
+if [ ${#EVAL_JOBS[@]} -eq 0 ]; then
+    echo "No eval jobs were generated."
+    exit 1
+fi
+
 # Run one GPU worker: execute all eval jobs whose index % NUM_GPUS == gpu_idx, sequentially.
 run_eval_worker() {
     local gpu_idx=$1
     local gpu_id=${GPUS[$gpu_idx]}
     local idx=0
+    local assigned=0
+    echo "[worker $gpu_idx gpu $gpu_id] starting"
     for job in "${EVAL_JOBS[@]}"; do
         if [ $((idx % NUM_GPUS)) -eq "$gpu_idx" ]; then
             TASK="${job%%|*}"
             V="${job#*|}"
-            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS USE_LENORM <<< "$V"
+            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_TC USE_VALLOGODDS USE_LENORM < <(printf '%s\n' "$V")
             run_eval_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_TC" "$USE_VALLOGODDS" "$USE_LENORM" "$TASK" "$gpu_id"
+            assigned=$((assigned + 1))
         fi
         idx=$((idx + 1))
     done
+    echo "[worker $gpu_idx gpu $gpu_id] completed $assigned job(s)"
 }
 
 if [ "$MODE" = "eval" ] || [ "$MODE" = "both" ]; then
@@ -359,12 +463,16 @@ if [ "$MODE" = "eval" ] || [ "$MODE" = "both" ]; then
         echo "========================================"
         echo "  Eval logs:  $SCRIPT_DIR/logs/eval_<TASK>_<VARIANT>_gpu<N>.log"
         echo "  CSV files:  $SCRIPT_DIR/../outputs/scores_*.csv"
-    } >> "$STATUS_LOG"
+    }
     mkdir -p "$SCRIPT_DIR/../outputs"
 
+    eval_pids=()
     for gpu_idx in $(seq 0 $((NUM_GPUS - 1))); do
         run_eval_worker "$gpu_idx" &
+        eval_pids+=("$!")
     done
-    wait
-    echo "All evaluations completed." >> "$STATUS_LOG"
+    for pid in "${eval_pids[@]}"; do
+        wait "$pid"
+    done
+    echo "All evaluations completed."
 fi
