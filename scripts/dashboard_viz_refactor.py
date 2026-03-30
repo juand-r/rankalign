@@ -4,7 +4,7 @@ General-purpose visualization dashboard for evaluation scores (refactored).
 
 Row classification: each heatmap row comes from exactly ONE scores file.
 Rows are discovered from data via combinatorial scheme:
-    {category}-{mode}[-tco][-norm][-v]
+    {category}-{mode}[-tco][-tcself][-norm][-v]
 
 Run with:
     cd /datastor1/jdr/gv-gap/rankalign/scripts
@@ -80,7 +80,7 @@ DEFAULT_CONFIG = {
     # Row visibility controls
     'visible_categories': ['Base', 'S'],
     'visible_modes': ['Comb', 'SFT', 'Pref'],
-    'visible_flags': ['tco', 'norm', 'v'],
+    'visible_flags': ['tco', 'tcself', 'norm', 'v'],
 }
 
 # Visualization colors
@@ -154,7 +154,7 @@ def parse_filename(csv_file, config):
       2. Direction filter (must be d2g for finetuned)
       3. U(nion) vs S(ingle)
       4. Training mode (SFT / Pref / Comb) - mutually exclusive
-      5. Flags (tco, norm, v)
+      5. Flags (tco, tcself, norm, v)
 
     Returns FileInfo or None (for files that should be skipped).
     Raises ValueError for unexpected finetuned filename formats.
@@ -262,11 +262,12 @@ def parse_filename(csv_file, config):
 
     # --- Step 5: Flags ---
     has_tco = '_tc-online_' in stem
+    has_tcself =  '_tc-self_' in stem
     has_norm = '_lenorm_' in stem
     has_vallogodds = '_vallogodds' in stem
 
     # Build row label
-    row_label = build_row_label(category, training_mode, has_tco, has_norm, has_vallogodds)
+    row_label = build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds)
 
     return FileInfo(
         path=str(csv_file), filename=name,
@@ -327,7 +328,7 @@ def _extract_split(stem, split_patterns):
 # ROW LABEL BUILDER
 # =============================================================================
 
-def build_row_label(category, training_mode, has_tco, has_norm, has_vallogodds):
+def build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds):
     """Build a row label from parsed fields.
 
     Format: {category}-{mode}[-tco][-norm][-v]
@@ -339,6 +340,8 @@ def build_row_label(category, training_mode, has_tco, has_norm, has_vallogodds):
     parts = [f"{category}-{training_mode}"]
     if has_tco:
         parts.append('tco')
+    if has_tcself:
+        parts.append('tcself')
     if has_norm:
         parts.append('norm')
     if has_vallogodds:
@@ -375,7 +378,7 @@ def is_row_visible(row_label, config):
 
     visible_categories = config.get('visible_categories', ['Base', 'S'])
     visible_modes = config.get('visible_modes', ['Comb', 'SFT', 'Pref'])
-    visible_flags = config.get('visible_flags', ['tco', 'norm', 'v'])
+    visible_flags = set(config.get('visible_flags', ['tco', 'norm', 'v']))
 
     # Parse category and mode from label
     parts = row_label.split('-', 2)
@@ -978,7 +981,7 @@ app.layout = html.Div([
                     dcc.Input(id='config-visible-flags', type='text',
                              value=json.dumps(DEFAULT_CONFIG['visible_flags']),
                              style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
-                    html.Small('Options: "tco", "norm", "v"', style={'color': '#666'})
+                    html.Small('Options: "tco", "tcself", "norm", "v"', style={'color': '#666'})
                 ], style={'marginBottom': '25px'}),
 
             ], style={'maxWidth': '800px', 'margin': '0 auto', 'padding': '20px',
@@ -1123,7 +1126,7 @@ def _build_config_from_form(outputs_dir, task_pattern, split_patterns, label_col
         'metrics': DEFAULT_CONFIG['metrics'],
         'visible_categories': json.loads(visible_categories) if visible_categories else ['Base', 'S'],
         'visible_modes': json.loads(visible_modes) if visible_modes else ['Comb', 'SFT', 'Pref'],
-        'visible_flags': json.loads(visible_flags) if visible_flags else ['tco', 'norm', 'v'],
+        'visible_flags': json.loads(visible_flags) if visible_flags else ['tco', 'tcself', 'norm', 'v'],
     }
 
 
