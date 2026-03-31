@@ -162,6 +162,68 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False):
     return typicality_scores
 
 
+def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
+    """Construct a negated generator prompt for the LLR typicality correction.
+
+    Returns the negated prompt string and the completion string.
+    The negated prompt asks for an *incorrect* completion, so P(completion | neg_prompt)
+    captures the model's belief about how likely the completion is as a wrong answer.
+    """
+    gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+    completion = gen_obj.completion
+
+    if is_hypernym_task(task):
+        neg_prompt = gen_obj.prompt.replace(" are a kind of", " are NOT a kind of")
+        if neg_prompt == gen_obj.prompt:
+            raise ValueError(
+                f"Negated prompt unchanged for hypernym task. "
+                f"Prompt '{gen_obj.prompt[:80]}' doesn't contain ' are a kind of'. "
+                f"--neg-typicality may not work with this variation."
+            )
+    elif is_plausibleqa_task(task) or is_ambigqa_task(task):
+        neg_prompt = gen_obj.prompt.replace("Answer the question:", "Give an incorrect answer to the question:")
+        neg_prompt = neg_prompt.replace("\nAnswer:", "\nIncorrect answer:")
+        if neg_prompt == gen_obj.prompt:
+            raise ValueError(
+                f"Negated prompt unchanged for QA task. "
+                f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
+            )
+    elif is_ifeval_task(task):
+        neg_prompt = "Give a response that does NOT follow these instructions.\n" + gen_obj.prompt
+    else:
+        raise NotImplementedError(
+            f"--neg-typicality is not implemented for task '{task}'. "
+            f"Add a negation strategy to make_negated_gen_prompt()."
+        )
+
+    return neg_prompt, completion
+
+
+def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_system_role=False):
+    """Compute log P(completion | negated_prompt) for each item using the scoring model.
+
+    This is the LLR denominator: instead of P(y) (unconditional), we use
+    P(y | "give an incorrect answer to Q") which better captures the model's
+    belief about what a wrong answer looks like.
+    """
+    neg_scores = []
+
+    print("\nComputing negated-prompt typicality (LLR denominator)...")
+    for item in tqdm(LL, desc="Neg typicality"):
+        neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt, gen_shots)
+        token_logprobs = get_completion_token_logprobs(
+            neg_prompt, completion, model, tokenizer, device,
+            is_chat=is_chat, has_system_role=has_system_role
+        )
+        neg_scores.append(float(token_logprobs.sum().item()))
+
+    print(f"  Computed {len(neg_scores)} negated-prompt scores")
+    print(f"  Mean neg score: {np.mean(neg_scores):.4f}")
+    print(f"  Std neg score: {np.std(neg_scores):.4f}")
+
+    return neg_scores
+
+
 def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False):
     """
     Compute the scoring model's own unconditional next-token log probabilities
@@ -360,9 +422,9 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
         model_short = model_short.replace('--', '_')
     split = "train" if args.train else "test"
     v2_suffix = "_v2" if not args.no_v2 else ""
-    eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+    eval_tc_suffix = "_tc" if args.typicality_correction else ""
     eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-    self_pfx = "self-" if getattr(args, 'self_typicality', False) else ""
+    self_pfx = "neg-" if getattr(args, 'neg_typicality', False) else ("self-" if getattr(args, 'self_typicality', False) else "")
     filename = f"../outputs/viz_{self_pfx}{model_short}_{task}_{split}_{metric_type}{v2_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.png"
 
     # Save
@@ -426,7 +488,7 @@ def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_
         model_short = model_short.replace('--', '_')
     split = "train" if args.train else "test"
     v2_suffix = "_v2" if not args.no_v2 else ""
-    self_pfx = "self-" if getattr(args, 'self_typicality', False) else ""
+    self_pfx = "neg-" if getattr(args, 'neg_typicality', False) else ("self-" if getattr(args, 'self_typicality', False) else "")
     filename = f"../outputs/viz_interactive_{self_pfx}{model_short}_{task}_{split}_{metric_type}{v2_suffix}_{timestamp}.html"
 
     fig.write_html(filename)
@@ -496,8 +558,12 @@ def main(args):
     # Default to full completion logprobs (multi-token), unless --no-full-completion-logprobs is set
     use_full_completion_logprobs = not args.no_full_completion_logprobs
 
-    # Prefix for output filenames when using self-typicality
-    self_prefix = "self-" if args.self_typicality else ""
+    if args.neg_typicality:
+        self_prefix = "neg-"
+    elif args.self_typicality:
+        self_prefix = "self-"
+    else:
+        self_prefix = ""
 
     v2 = not args.no_v2
     L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative, variation = args.variation, v2=v2)
@@ -687,70 +753,82 @@ def main(args):
     
     # Apply typicality correction if requested
     if args.typicality_correction:
-        typ_source = "SELF-MODEL" if args.self_typicality else "GPT-2"
+        if args.neg_typicality:
+            typ_source = "NEGATED-PROMPT (LLR)"
+        elif args.self_typicality:
+            typ_source = "SELF-MODEL"
+        else:
+            typ_source = "GPT-2"
         print("\n" + "="*60)
         print(f"APPLYING TYPICALITY CORRECTION (source: {typ_source})")
         print("="*60)
 
-        if not use_full_completion_logprobs:
+        if not use_full_completion_logprobs and not args.neg_typicality:
             if args.self_typicality:
-                # Compute model's own unconditional vocab distribution
                 vocab_logprobs = load_self_vocab_probs(
                     model, tokenizer,
                     is_chat=model_is_chat, has_system_role=model_has_system_role
                 )
             else:
-                # Load precomputed GPT-2 vocab probabilities
-                # Only available for vocab sizes that have been precomputed (e.g., Gemma 256K).
                 vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
 
             if vocab_logprobs is not None:
-                # Move to same device as P_gen tensors (they're on CPU from get_final_logit_prob)
                 vocab_logprobs = vocab_logprobs.to(P_gen[0].device)
-
-                # Apply PMI correction to FULL probability distribution: P_corrected = P_model / P_prior
-                # In log space: log P_corrected = log P_model - log P_prior
                 print(f"\nApplying PMI correction to probability distributions (prior: {typ_source})...")
                 P_gen_corrected = []
                 for ii, probs in enumerate(P_gen):
-                    # probs shape: (vocab_size,) - probability distribution over all tokens
-                    log_probs_model = torch.log(probs)  # probs already normalized, no epsilon needed
+                    log_probs_model = torch.log(probs)
                     log_probs_corrected = log_probs_model - vocab_logprobs
-                    # Keep in log space - no need to exponentiate!
-                    # Since log() is monotonic, ranking log-probs gives same order as ranking probs.
-                    # get_rank() only sorts, so we can work directly with log-probs for efficiency.
                     P_gen_corrected.append(log_probs_corrected)
             else:
                 P_gen_corrected = None
                 print("\n  WARNING: No precomputed GPT-2 vocab probs for this tokenizer vocab size.")
                 print("  Rank-based metrics (gen_acc, gen_mrr) will use UNCORRECTED distributions.")
                 print("  Per-completion gen_score_typcorr will still be computed correctly.")
+        else:
+            P_gen_corrected = None
 
-        # Also compute per-completion typicality scores for the log-odds metric
-        completions = []
-        for item in LL:
-            gen_obj = make_prompt(item, style='generator', shots=gen_shots)
-            completions.append(gen_obj.completion)
-
-        if args.self_typicality:
+        # Compute per-completion typicality scores
+        if args.neg_typicality:
+            if not use_full_completion_logprobs:
+                print("  WARNING: --neg-typicality with --no-full-completion-logprobs: "
+                      "neg scores use full completion logprobs while gen scores are single-token. "
+                      "This is only correct if completions are single-token (e.g., hypernymy).")
+            typicality_scores = compute_neg_typicality(
+                LL, task, make_prompt, gen_shots,
+                is_chat=model_is_chat, has_system_role=model_has_system_role
+            )
+        elif args.self_typicality:
+            completions = []
+            for item in LL:
+                gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+                completions.append(gen_obj.completion)
             typicality_scores = compute_self_typicality(
                 completions,
                 is_chat=model_is_chat, has_system_role=model_has_system_role
             )
         else:
+            completions = []
+            for item in LL:
+                gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+                completions.append(gen_obj.completion)
             typicality_scores = compute_gpt2_typicality(completions, task, LL)
 
         # Apply correction to completion scores: corrected_gen = gen - typicality
-        correction_label = "log P_model(completion)" if args.self_typicality else "log P_GPT2(completion)"
+        if args.neg_typicality:
+            correction_label = "log P_model(completion|negated_prompt)"
+        elif args.self_typicality:
+            correction_label = "log P_model(completion)"
+        else:
+            correction_label = "log P_GPT2(completion)"
         print(f"\nApplying correction to completion scores: log P(completion|context) - {correction_label}")
         gen_scores_raw = gen_scores.copy() if isinstance(gen_scores, list) else list(gen_scores)
         gen_scores_raw = [float(x) for x in gen_scores_raw]  # Ensure floats
         gen_scores_typcorr = [float(gen_scores[i]) - typicality_scores[i] for i in range(len(gen_scores))]
         gen_scores = gen_scores_typcorr  # Use corrected scores for downstream processing
-        # gen_scores is now a list of floats - compute_logodds_final_layer will handle it
 
         print(f"  Original score mean: {np.mean(gen_scores_raw):.4f}")
-        print(f"  Corrected score mean (PMI): {np.mean(gen_scores):.4f}")
+        print(f"  Corrected score mean ({typ_source}): {np.mean(gen_scores):.4f}")
         print(f"  Correction applied to {len(gen_scores)} examples")
         if not use_full_completion_logprobs and P_gen_corrected is not None:
             print(f"  Full vocab distributions corrected (in log space): {len(P_gen_corrected)} examples")
@@ -808,7 +886,7 @@ def main(args):
     plt.xlabel("Discriminator P(Yes) + P(No)")
     plt.ylabel("Count")
     plt.title(f"Histogram of Discriminator P(Yes) + P(No) for {task}")
-    eval_tc_str = "_evaltc" if args.typicality_correction else ""
+    eval_tc_str = "_tc" if args.typicality_correction else ""
     eval_lenorm_str = "_evallenorm" if args.length_normalize else ""
     hist_filename = f"../outputs/hist_disc_probs_{self_prefix}{task}_{modelname.split('/')[-1]}{eval_tc_str}{eval_lenorm_str}.png"
     plt.savefig(hist_filename)
@@ -917,7 +995,7 @@ def main(args):
             split = "train"
             v2_suffix = "_v2" if not args.no_v2 else ""
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+            eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
             scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
             
@@ -931,7 +1009,12 @@ def main(args):
             else:
                 strategy += "_logprobs"
             if args.typicality_correction:
-                strategy += "_selftypcorr" if args.self_typicality else "_typcorr"
+                if args.neg_typicality:
+                    strategy += "_negtypcorr"
+                elif args.self_typicality:
+                    strategy += "_selftypcorr"
+                else:
+                    strategy += "_typcorr"
             
             with open(scores_csv_filename, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -975,7 +1058,7 @@ def main(args):
             model_short = modelname.split('/')[-1].replace('--', '_')
             split = "train"
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+            eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
             scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
 
@@ -1044,7 +1127,7 @@ def main(args):
                 model_short = modelname.split('/')[-1].replace('--', '_')
             split = "train"
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+            eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
             scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
 
@@ -1189,7 +1272,7 @@ def main(args):
         v2_suffix = "_v2" if not args.no_v2 else ""
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
         # Add eval setting suffixes
-        eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+        eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
         scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
         
@@ -1204,7 +1287,12 @@ def main(args):
         else:
             strategy += "_logprobs"
         if args.typicality_correction:
-            strategy += "_selftypcorr" if args.self_typicality else "_typcorr"
+            if args.neg_typicality:
+                strategy += "_negtypcorr"
+            elif args.self_typicality:
+                strategy += "_selftypcorr"
+            else:
+                strategy += "_typcorr"
         
         with open(scores_csv_filename, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -1252,7 +1340,7 @@ def main(args):
         split = "train" if args.train else "test"
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
         # Add eval setting suffixes
-        eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+        eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
         scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
 
@@ -1264,7 +1352,12 @@ def main(args):
             strategy += "_singletoken"
         strategy += "_logodds" if args.validator_log_odds else "_logprobs"
         if args.typicality_correction:
-            strategy += "_selftypcorr" if args.self_typicality else "_typcorr"
+            if args.neg_typicality:
+                strategy += "_negtypcorr"
+            elif args.self_typicality:
+                strategy += "_selftypcorr"
+            else:
+                strategy += "_typcorr"
 
         def _get_field(obj, key, default=""):
             if hasattr(obj, key):
@@ -1335,7 +1428,7 @@ def main(args):
             model_short = modelname.split('/')[-1].replace('--', '_')
         split = "train" if args.train else "test"
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        eval_tc_suffix = "_evaltc" if args.typicality_correction else ""
+        eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
         scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
 
@@ -1413,6 +1506,7 @@ if __name__ == "__main__":
     parser.add_argument("--debug_save_values", action="store_true", default=False, help="save discriminator log-odds/log-probs values to file for debugging")
     parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction using PMI: corrects both completion scores and full vocab distributions for ranking")
     parser.add_argument("--self-typicality", action="store_true", default=False, help="use the scoring model itself for typicality correction instead of GPT-2. Implies --typicality-correction.")
+    parser.add_argument("--neg-typicality", action="store_true", default=False, help="use negated prompts for typicality correction (LLR: log P(y|Q) - log P(y|neg_Q)). Implies --typicality-correction.")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes))). Changes threshold from log(0.5) to 0.")
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--save-scores-csv", action="store_true", default=False, help="save detailed scores to CSV with all score columns")
@@ -1420,7 +1514,10 @@ if __name__ == "__main__":
     parser.add_argument("--fp32-model", action="store_true", default=False, help="load model in float32 instead of bfloat16 to avoid logit quantization (uses ~2x memory but gives continuous log-odds)")
 
     args = parser.parse_args()
-    # --self-typicality implies --typicality-correction
+    if args.neg_typicality and args.self_typicality:
+        parser.error("--neg-typicality and --self-typicality are mutually exclusive")
     if args.self_typicality:
+        args.typicality_correction = True
+    if args.neg_typicality:
         args.typicality_correction = True
     main(args)
