@@ -15,6 +15,7 @@ Usage:
 
 import sys
 import argparse
+import json
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -70,6 +71,19 @@ To evaluate:
 python scripts/eval_by_claude.py --model {hf_org}/{repo_name} --task {task_segment}
 ```
 """
+
+
+def update_checkpoint_map(models_dir: Path, repo_name: str, original_name: str):
+    """Append or update entry in models/hf_checkpoint_map.json."""
+    map_file = models_dir / 'hf_checkpoint_map.json'
+    mapping = {}
+    if map_file.exists():
+        with open(map_file) as f:
+            mapping = json.load(f)
+    mapping[repo_name] = original_name
+    with open(map_file, 'w') as f:
+        json.dump(mapping, f, indent=2, sort_keys=True)
+    log.info(f"Updated checkpoint map: {map_file}")
 
 
 def update_hf_repos_md(notes_dir: Path, repo_name: str, hf_org: str, parsed: dict):
@@ -157,6 +171,9 @@ def main():
         ignore_patterns=['*.py', '*.sh', '__pycache__'],
     )
     log.info(f"Upload complete: https://huggingface.co/{repo_id}")
+
+    # Update checkpoint map (models/hf_checkpoint_map.json)
+    update_checkpoint_map(local_path.parent, repo_name, parsed['original_name'])
 
     # Optionally update HUGGINGFACE_REPOS.md
     if args.experiment_notes_dir:
