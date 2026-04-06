@@ -1,5 +1,5 @@
 #!/bin/bash
-# Evaluate the 6 pref-only semi 0.1 trained models (epoch 1).
+# Evaluate the 6 pref-only semi 0.1 trained models (epoch 2).
 # All runs use --self-typcorr --log-odds so the CSV contains both raw and TC-corrected scores.
 
 MODELS=../models
@@ -8,7 +8,7 @@ MODELS=../models
 # PLAUSIBLEQA - plain (100 tasks, ~2 hrs)
 # ============================================================
 run 1 3 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--plausibleqa-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--plausibleqa-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     plausibleqa-nq_1114 plausibleqa-nq_1324 plausibleqa-nq_1328 plausibleqa-nq_1369 \
     plausibleqa-nq_1394 plausibleqa-nq_1438 plausibleqa-nq_1663 plausibleqa-nq_2031 \
@@ -47,7 +47,7 @@ run 1 3 scripts/run_eval_semi.sh \
 # PLAUSIBLEQA - tc-self (100 tasks, ~2 hrs)
 # ============================================================
 run 1 3 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--plausibleqa-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--plausibleqa-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     plausibleqa-nq_1114 plausibleqa-nq_1324 plausibleqa-nq_1328 plausibleqa-nq_1369 \
     plausibleqa-nq_1394 plausibleqa-nq_1438 plausibleqa-nq_1663 plausibleqa-nq_2031 \
@@ -86,7 +86,7 @@ run 1 3 scripts/run_eval_semi.sh \
 # AMBIGQA - plain (17 tasks, ~30 min)
 # ============================================================
 run 1 1 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--ambigqa-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     ambigqa-american ambigqa-danube ambigqa-executed ambigqa-gives \
     ambigqa-harry ambigqa-involved ambigqa-jack ambigqa-plays \
@@ -97,7 +97,7 @@ run 1 1 scripts/run_eval_semi.sh \
 # AMBIGQA - tc-self (17 tasks, ~30 min)
 # ============================================================
 run 1 1 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--ambigqa-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     ambigqa-american ambigqa-danube ambigqa-executed ambigqa-gives \
     ambigqa-harry ambigqa-involved ambigqa-jack ambigqa-plays \
@@ -108,7 +108,7 @@ run 1 1 scripts/run_eval_semi.sh \
 # HYPERNYM - plain (18 tasks, ~15 min)
 # ============================================================
 run 1 0 --min 30 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--hypernym-concat-bananas-to-dogs-double-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--hypernym-concat-bananas-to-dogs-double-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     hypernym-bananas hypernym-bazookas hypernym-cabinets hypernym-cars \
     hypernym-chairs hypernym-crows hypernym-diapers hypernym-dogs \
@@ -120,7 +120,7 @@ run 1 0 --min 30 scripts/run_eval_semi.sh \
 # HYPERNYM - tc-self (18 tasks, ~15 min)
 # ============================================================
 run 1 0 --min 30 scripts/run_eval_semi.sh \
-    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch1--hypernym-concat-bananas-to-dogs-double-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
+    $MODELS/v6-google--gemma-2-2b-delta0.15-epoch2--hypernym-concat-bananas-to-dogs-double-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1 \
     --self-typcorr --log-odds -- \
     hypernym-bananas hypernym-bazookas hypernym-cabinets hypernym-cars \
     hypernym-chairs hypernym-crows hypernym-diapers hypernym-dogs \
