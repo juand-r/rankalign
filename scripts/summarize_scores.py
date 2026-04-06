@@ -8,11 +8,16 @@ Handles all file types: base model, self-TC, finetuned, multi-model, all tasks.
 Reuses filename parsing from score_file_parsing.py (shared with
 dashboard_viz_refactor.py) — one set of task extraction regexes, not two.
 
+Supports incremental mode: pulls existing summary from HuggingFace, computes
+metrics only for new score files, merges, and re-uploads.
+
 Usage:
     cd rankalign-longform
-    python scripts/summarize_scores.py                          # use defaults
+    python scripts/summarize_scores.py                          # full scan, local CSV
     python scripts/summarize_scores.py -o results.csv           # custom output path
     python scripts/summarize_scores.py --outputs-dir ./outputs  # override outputs dir
+    python scripts/summarize_scores.py --upload-hf              # upload to HuggingFace
+    python scripts/summarize_scores.py --upload-hf --incremental  # only process new files
 """
 
 import argparse
@@ -38,6 +43,8 @@ from score_file_parsing import (
 
 SCRIPT_DIR = Path(__file__).parent
 DEFAULT_OUTPUTS_DIR = SCRIPT_DIR.parent / 'outputs'
+DEFAULT_SUMMARIES_DIR = SCRIPT_DIR.parent / 'output-metrics'
+DEFAULT_HF_DATASET = 'rankalign-eval-summary'
 
 # Task family configs — each defines how to find and parse files for one family.
 # task_pattern: regex with a capture group for the dataset-specific part.
@@ -285,11 +292,43 @@ def load_labels(df):
 
 
 # =============================================================================
+# HUGGINGFACE HELPERS
+# =============================================================================
+
+def pull_existing_summary(hf_org, hf_dataset):
+    """Pull existing summary dataset from HuggingFace. Returns DataFrame or empty DataFrame."""
+    repo_id = f"{hf_org}/{hf_dataset}"
+    try:
+        from datasets import load_dataset
+        ds = load_dataset(repo_id, split='train')
+        df = ds.to_pandas()
+        print(f"Pulled existing summary from {repo_id}: {len(df)} rows")
+        return df
+    except Exception as e:
+        print(f"No existing summary on HF ({repo_id}): {e}")
+        return pd.DataFrame()
+
+
+def push_summary_to_hf(summary_df, hf_org, hf_dataset):
+    """Push summary DataFrame to HuggingFace as a dataset."""
+    repo_id = f"{hf_org}/{hf_dataset}"
+    from datasets import Dataset
+    from huggingface_hub import HfApi
+    ds = Dataset.from_pandas(summary_df, preserve_index=False)
+    ds.push_to_hub(repo_id, private=False)
+    print(f"Pushed {len(summary_df)} rows to {repo_id}")
+
+
+# =============================================================================
 # FILE DISCOVERY, DEDUP, SUMMARY
 # =============================================================================
 
-def discover_and_summarize(outputs_dir):
-    """Scan all scores_*.csv, extract metadata, compute metrics, dedup."""
+def discover_and_summarize(outputs_dir, existing_filenames=None):
+    """Scan all scores_*.csv, extract metadata, compute metrics, dedup.
+
+    If existing_filenames is provided (set of filename strings), skip files
+    already in the existing summary (incremental mode).
+    """
     outputs_path = Path(outputs_dir)
     csv_files = sorted(outputs_path.glob('scores_*.csv'))
 
@@ -298,7 +337,11 @@ def discover_and_summarize(outputs_dir):
     # Phase 1: parse all filenames
     parsed = []
     skipped = 0
+    skipped_existing = 0
     for csv_file in csv_files:
+        if existing_filenames and csv_file.name in existing_filenames:
+            skipped_existing += 1
+            continue
         meta = extract_metadata(csv_file, TASK_FAMILY_CONFIGS)
         if meta is None:
             skipped += 1
@@ -307,7 +350,12 @@ def discover_and_summarize(outputs_dir):
         meta['filename'] = csv_file.name
         parsed.append(meta)
 
-    print(f"Parsed {len(parsed)} files, skipped {skipped} (unrecognized pattern)")
+    print(f"Parsed {len(parsed)} new files, skipped {skipped} (unrecognized pattern)")
+    if skipped_existing:
+        print(f"Skipped {skipped_existing} files already in existing summary")
+
+    if not parsed:
+        return pd.DataFrame()
 
     # Phase 2: dedup — group by identity key, keep newest
     groups = {}
@@ -397,20 +445,57 @@ def main():
         description='Summarize ALL scores_*.csv files into a single metrics table.'
     )
     parser.add_argument('-o', '--output', default=None,
-                        help='Output CSV path (default: outputs/summary_scores.csv)')
+                        help='Output CSV path (default: output-metrics/summary_scores.csv)')
     parser.add_argument('--outputs-dir', default=str(DEFAULT_OUTPUTS_DIR),
                         help='Outputs directory (default: outputs/)')
+    parser.add_argument('--upload-hf', action='store_true', default=False,
+                        help='Upload summary to HuggingFace after computing')
+    parser.add_argument('--incremental', action='store_true', default=False,
+                        help='Only process new files not already in HF summary (implies --upload-hf)')
+    parser.add_argument('--hf-org', default='TAUR-dev',
+                        help='HuggingFace org (default: TAUR-dev)')
+    parser.add_argument('--hf-dataset', default=DEFAULT_HF_DATASET,
+                        help=f'HuggingFace dataset name (default: {DEFAULT_HF_DATASET})')
     args = parser.parse_args()
 
-    summary = discover_and_summarize(args.outputs_dir)
+    if args.incremental:
+        args.upload_hf = True
 
-    if summary.empty:
+    # Incremental mode: pull existing, skip already-processed files
+    existing = pd.DataFrame()
+    existing_filenames = None
+    if args.incremental:
+        existing = pull_existing_summary(args.hf_org, args.hf_dataset)
+        if not existing.empty and 'filename' in existing.columns:
+            existing_filenames = set(existing['filename'].unique())
+            print(f"Will skip {len(existing_filenames)} already-summarized files")
+
+    summary = discover_and_summarize(args.outputs_dir, existing_filenames)
+
+    # Merge with existing if incremental
+    if args.incremental and not existing.empty and not summary.empty:
+        summary = pd.concat([existing, summary], ignore_index=True)
+        summary = summary.sort_values(
+            ['model', 'task', 'split', 'eval_variant']
+        ).reset_index(drop=True)
+        print(f"Merged: {len(existing)} existing + {len(summary) - len(existing)} new = {len(summary)} total rows")
+    elif args.incremental and not existing.empty and summary.empty:
+        print("No new files to process. Summary is up to date.")
+        return
+    elif summary.empty:
         print("No scores files found or no metrics computed.", file=sys.stderr)
         sys.exit(1)
 
-    output_path = args.output or str(Path(args.outputs_dir) / 'summary_scores.csv')
+    # Save locally
+    summaries_dir = DEFAULT_SUMMARIES_DIR
+    summaries_dir.mkdir(parents=True, exist_ok=True)
+    output_path = args.output or str(summaries_dir / 'summary_scores.csv')
     summary.to_csv(output_path, index=False)
     print(f"\nSummary: {len(summary)} rows written to {output_path}")
+
+    # Upload to HF
+    if args.upload_hf:
+        push_summary_to_hf(summary, args.hf_org, args.hf_dataset)
 
     # Quick overview
     print(f"\nModels ({len(summary['model'].unique())}): {sorted(summary['model'].unique())}")
