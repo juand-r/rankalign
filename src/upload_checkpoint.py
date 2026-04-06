@@ -30,6 +30,67 @@ logging.basicConfig(level=logging.INFO, format='[upload_checkpoint] %(message)s'
 log = logging.getLogger(__name__)
 
 
+# Maps concat training task names to individual eval subtask names.
+# Add new entries here when new concat tasks are introduced.
+CONCAT_TASK_SUBTASKS = {
+    'hypernym-concat-bananas-to-dogs-double-all': [
+        'hypernym-bananas', 'hypernym-bazookas', 'hypernym-cabinets', 'hypernym-cars',
+        'hypernym-chairs', 'hypernym-crows', 'hypernym-diapers', 'hypernym-dogs',
+        'hypernym-dolls', 'hypernym-ducklings', 'hypernym-elephants', 'hypernym-guns',
+        'hypernym-hammers', 'hypernym-helmets', 'hypernym-jackets', 'hypernym-kayaks',
+        'hypernym-kites', 'hypernym-mirrors',
+    ],
+    'hypernym-concat-bananas-to-dogs-double': [
+        'hypernym-bananas', 'hypernym-bazookas', 'hypernym-cabinets', 'hypernym-cars',
+        'hypernym-chairs', 'hypernym-crows', 'hypernym-diapers', 'hypernym-dogs',
+        'hypernym-dolls', 'hypernym-ducklings', 'hypernym-elephants', 'hypernym-guns',
+        'hypernym-hammers', 'hypernym-helmets', 'hypernym-jackets', 'hypernym-kayaks',
+        'hypernym-kites', 'hypernym-mirrors',
+    ],
+}
+
+
+def build_eval_commands(hf_org: str, repo_name: str, parsed: dict) -> str:
+    """
+    Build eval bash command(s) for the model card.
+
+    Script/flag selection by typicality correction type:
+      tc=self    -> eval_by_claude.py --self-typicality
+      tc=online  -> eval.py --typicality-correction
+      tc=neg     -> eval_by_claude.py --neg-typicality
+      tc=None    -> eval_by_claude.py --self-typicality (always pass so CSV includes all variants)
+
+    Concat tasks are expanded to their individual eval subtasks.
+    """
+    tc = parsed.get('tc')
+    task_segment = parsed['task_segment']
+    model_id = f"{hf_org}/{repo_name}"
+
+    if tc == 'online':
+        script = 'scripts/eval.py'
+        tc_flag = '--typicality-correction'
+    elif tc == 'neg':
+        script = 'scripts/eval_by_claude.py'
+        tc_flag = '--neg-typicality'
+    else:
+        # tc='self' or tc=None: always use --self-typicality so CSV includes all variants
+        script = 'scripts/eval_by_claude.py'
+        tc_flag = '--self-typicality'
+
+    base_flags = '--split_type random --gen-shots zero --disc-shots few --validator-log-odds --save-scores-csv'
+
+    tasks = CONCAT_TASK_SUBTASKS.get(task_segment, [task_segment])
+
+    lines = []
+    for task in tasks:
+        parts = [f'python {script}', f'--model {model_id}', f'--task {task}', base_flags]
+        if tc_flag:
+            parts.append(tc_flag)
+        lines.append(' \\\n    '.join(parts))
+
+    return '\n\n'.join(lines)
+
+
 MODEL_CARD_TEMPLATE = """\
 ---
 library_name: transformers
@@ -68,7 +129,7 @@ Fine-tuned checkpoint from the [rankalign](https://github.com/juand-r/rankalign)
 
 To evaluate:
 ```bash
-python scripts/eval_by_claude.py --model {hf_org}/{repo_name} --task {task_segment}
+{eval_commands}
 ```
 """
 
@@ -158,6 +219,7 @@ def main():
         semi=parsed['semi'],
         labelonly=parsed['labelonly'],
         original_name=parsed['original_name'],
+        eval_commands=build_eval_commands(args.hf_org, repo_name, parsed),
     )
     (local_path / 'README.md').write_text(model_card)
 
