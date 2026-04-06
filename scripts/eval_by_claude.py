@@ -168,8 +168,10 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
     Returns the negated prompt string and the completion string.
     The negated prompt asks for an *incorrect* completion, so P(completion | neg_prompt)
     captures the model's belief about how likely the completion is as a wrong answer.
+
+    Always uses zero-shot to avoid negating few-shot examples.
     """
-    gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+    gen_obj = make_prompt(item, style='generator', shots='zero')
     completion = gen_obj.completion
 
     if is_hypernym_task(task):

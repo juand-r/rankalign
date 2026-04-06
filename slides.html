@@ -315,7 +315,7 @@
 <!-- ============================================================ -->
 <section>
   <h2>The Generator–Validator Gap</h2>
-  <p class="small">We can train the model to close the gap in either direction:</p>
+  <p class="small"><strong><em>RankAlign:</em></strong> We can train the model to close the gap in either direction:</p>
 
   <div style="margin-top:16px;">
     <div class="tag val">Train generator to match validator</div>
@@ -421,6 +421,398 @@
   </div>
 </section>
 
+<!-- ============================================================ -->
+<!-- Slide: PlausibleQA GenROC Results -->
+<!-- ============================================================ -->
+<section>
+  <h2>PlausibleQA: Generator ROC AUC</h2>
+  <div style="position:relative;height:480px;margin-top:18px;">
+    <svg id="roc-bars" viewBox="0 0 900 440" style="width:100%;height:100%;">
+      <defs>
+        <style>
+          .bar-label { font: 600 10px 'Source Sans 3', system-ui; fill: #555; text-anchor: middle; }
+          .bar-val   { font: 700 11px 'Source Sans 3', system-ui; fill: #333; text-anchor: middle; }
+          .axis-label { font: 400 11px 'Source Sans 3', system-ui; fill: #999; }
+          .axis-line  { stroke: #ddd; stroke-width: 1; }
+          .group-label { font: 700 11px 'Source Sans 3', system-ui; fill: #333; text-anchor: middle; }
+        </style>
+      </defs>
+      <!-- Y-axis gridlines and labels -->
+      <line x1="70" y1="30" x2="70" y2="370" class="axis-line"/>
+      <line x1="70" y1="370" x2="870" y2="370" class="axis-line"/>
+      <!-- gridlines at 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80 -->
+      <g id="roc-grid"></g>
+    </svg>
+
+    <!-- Fragment overlays for incremental reveal -->
+    <div id="roc-bar-groups" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+    </div>
+  </div>
+  <script>
+  (function(){
+    var data = [
+      {group:'Base',       raw:0.539, tc:0.726, color:'#8c8c8c'},
+      {group:'RankAlign',  raw:0.519, tc:0.674, color:'#2b7ab8'},
+      {group:'SFT',        raw:0.523, tc:0.699, color:'#d4842a'},
+      {group:'Comb',        raw:0.567, tc:0.737, color:'#3a8a4e'},
+      {group:'Comb semi-supervised',raw:0.608, tc:0.764, color:'#8b5e8b'}
+    ];
+    var svg = document.getElementById('roc-bars');
+    var ns = 'http://www.w3.org/2000/svg';
+
+    var left=80, right=860, top_=30, bot=370;
+    var yMin=0.48, yMax=0.80;
+    function yScale(v){ return bot - (v - yMin)/(yMax - yMin)*(bot - top_); }
+
+    // gridlines
+    var gridG = document.getElementById('roc-grid');
+    for(var g=0.50; g<=0.80; g+=0.05){
+      var y = yScale(g);
+      var ln = document.createElementNS(ns,'line');
+      ln.setAttribute('x1',left); ln.setAttribute('x2',right);
+      ln.setAttribute('y1',y); ln.setAttribute('y2',y);
+      ln.setAttribute('stroke','#e8e8e8'); ln.setAttribute('stroke-width','1');
+      if(g===0.50) { ln.setAttribute('stroke','#ccc'); }
+      gridG.appendChild(ln);
+      var tx = document.createElementNS(ns,'text');
+      tx.setAttribute('x',left-8); tx.setAttribute('y',y+4);
+      tx.setAttribute('class','axis-label');
+      tx.setAttribute('text-anchor','end');
+      tx.textContent = g.toFixed(2);
+      gridG.appendChild(tx);
+    }
+
+    // bar geometry
+    var nGroups = data.length;
+    var groupW = (right - left) / nGroups;
+    var barW = 32;
+    var pairGap = 4;
+
+    // container for fragment-controlled groups
+    var container = document.getElementById('roc-bar-groups');
+
+    data.forEach(function(d, i){
+      var cx = left + groupW * i + groupW/2;
+      var rawX = cx - barW - pairGap/2;
+      var tcX  = cx + pairGap/2;
+
+      // compute colors: raw = 40% opacity version, tc = full
+      var rawColor = d.color + '66';
+      var tcColor  = d.color;
+
+      var rawH = bot - yScale(d.raw);
+      var tcH  = bot - yScale(d.tc);
+
+      // Create fragment div
+      var frag = document.createElement('div');
+      frag.className = 'fragment';
+      frag.setAttribute('data-fragment-index', String(i));
+      frag.style.position = 'absolute';
+      frag.style.top = '0';
+      frag.style.left = '0';
+      frag.style.width = '100%';
+      frag.style.height = '100%';
+      frag.style.pointerEvents = 'none';
+
+      // Use an inner SVG overlay
+      var innerSvg = document.createElementNS(ns, 'svg');
+      innerSvg.setAttribute('viewBox','0 0 900 440');
+      innerSvg.style.width = '100%';
+      innerSvg.style.height = '100%';
+      innerSvg.style.position = 'absolute';
+      innerSvg.style.top = '0';
+      innerSvg.style.left = '0';
+
+      // raw bar
+      var r1 = document.createElementNS(ns,'rect');
+      r1.setAttribute('x', rawX); r1.setAttribute('width', barW);
+      r1.setAttribute('y', yScale(d.raw)); r1.setAttribute('height', rawH);
+      r1.setAttribute('rx','3');
+      r1.setAttribute('fill', rawColor);
+      innerSvg.appendChild(r1);
+
+      // tc bar
+      var r2 = document.createElementNS(ns,'rect');
+      r2.setAttribute('x', tcX); r2.setAttribute('width', barW);
+      r2.setAttribute('y', yScale(d.tc)); r2.setAttribute('height', tcH);
+      r2.setAttribute('rx','3');
+      r2.setAttribute('fill', tcColor);
+      innerSvg.appendChild(r2);
+
+      // value labels
+      var v1 = document.createElementNS(ns,'text');
+      v1.setAttribute('x', rawX + barW/2); v1.setAttribute('y', yScale(d.raw) - 5);
+      v1.setAttribute('class','bar-val'); v1.setAttribute('fill', d.color);
+      v1.textContent = d.raw.toFixed(2);
+      innerSvg.appendChild(v1);
+
+      var v2 = document.createElementNS(ns,'text');
+      v2.setAttribute('x', tcX + barW/2); v2.setAttribute('y', yScale(d.tc) - 5);
+      v2.setAttribute('class','bar-val');
+      v2.textContent = d.tc.toFixed(2);
+      innerSvg.appendChild(v2);
+
+      // group label
+      var gl = document.createElementNS(ns,'text');
+      gl.setAttribute('x', cx); gl.setAttribute('y', bot + 20);
+      gl.setAttribute('class','group-label');
+      gl.textContent = d.group;
+      innerSvg.appendChild(gl);
+
+      // raw/tc sub-labels
+      var sl1 = document.createElementNS(ns,'text');
+      sl1.setAttribute('x', rawX + barW/2); sl1.setAttribute('y', bot + 35);
+      sl1.setAttribute('class','bar-label');
+      sl1.textContent = 'raw';
+      innerSvg.appendChild(sl1);
+
+      var sl2 = document.createElementNS(ns,'text');
+      sl2.setAttribute('x', tcX + barW/2); sl2.setAttribute('y', bot + 35);
+      sl2.setAttribute('class','bar-label');
+      sl2.textContent = 'tc';
+      innerSvg.appendChild(sl2);
+
+      frag.appendChild(innerSvg);
+      container.appendChild(frag);
+    });
+
+    // baseline reference line at 0.50
+    var bl = document.createElementNS(ns,'line');
+    bl.setAttribute('x1',left); bl.setAttribute('x2',right);
+    bl.setAttribute('y1',yScale(0.50)); bl.setAttribute('y2',yScale(0.50));
+    bl.setAttribute('stroke','#bbb'); bl.setAttribute('stroke-width','1');
+    bl.setAttribute('stroke-dasharray','4,3');
+    svg.appendChild(bl);
+    var blTx = document.createElementNS(ns,'text');
+    blTx.setAttribute('x',right+4); blTx.setAttribute('y',yScale(0.50)+4);
+    blTx.setAttribute('class','axis-label');
+    blTx.textContent = 'chance';
+    svg.appendChild(blTx);
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- Slide: IFEval / Hypernym / AmbigQA GenROC side by side -->
+<!-- ============================================================ -->
+<section>
+  <h2>Generator ROC AUC: Other Tasks</h2>
+  <div style="display:flex;gap:8px;margin-top:10px;position:relative;height:420px;">
+
+    <!-- IFEval panel -->
+    <div style="flex:1;position:relative;">
+      <p class="small" style="text-align:center;font-weight:700;margin:0 0 4px;">IFEval</p>
+      <svg id="roc-ifeval" viewBox="0 0 600 700" style="width:100%;height:calc(100% - 20px);">
+        <g id="roc-ifeval-grid"></g>
+      </svg>
+      <div id="roc-ifeval-bars" style="position:absolute;top:20px;left:0;width:100%;height:calc(100% - 20px);pointer-events:none;"></div>
+    </div>
+
+    <!-- Hypernym panel -->
+    <div style="flex:1;position:relative;">
+      <p class="small" style="text-align:center;font-weight:700;margin:0 0 4px;">Hypernym</p>
+      <svg id="roc-hyp" viewBox="0 0 600 700" style="width:100%;height:calc(100% - 20px);">
+        <g id="roc-hyp-grid"></g>
+      </svg>
+      <div id="roc-hyp-bars" style="position:absolute;top:20px;left:0;width:100%;height:calc(100% - 20px);pointer-events:none;"></div>
+    </div>
+
+    <!-- AmbigQA panel -->
+    <div style="flex:1;position:relative;">
+      <p class="small" style="text-align:center;font-weight:700;margin:0 0 4px;">AmbigQA</p>
+      <svg id="roc-ambig" viewBox="0 0 600 700" style="width:100%;height:calc(100% - 20px);">
+        <g id="roc-ambig-grid"></g>
+      </svg>
+      <div id="roc-ambig-bars" style="position:absolute;top:20px;left:0;width:100%;height:calc(100% - 20px);pointer-events:none;"></div>
+    </div>
+  </div>
+
+  <script>
+  (function(){
+    var ns = 'http://www.w3.org/2000/svg';
+    var colors = {
+      'Base':'#8c8c8c','RankAlign':'#2b7ab8','SFT':'#d4842a','Comb':'#3a8a4e','Comb semi-supervised':'#8b5e8b'
+    };
+    var groupOrder = ['Base','RankAlign','SFT','Comb','Comb semi-supervised'];
+    var fragIdx =    {Base:0, RankAlign:1, SFT:2, Comb:3, 'Comb semi-supervised':4};
+
+    var panels = [
+      { id:'ifeval', svgId:'roc-ifeval', gridId:'roc-ifeval-grid', barId:'roc-ifeval-bars',
+        data:{
+          RankAlign:{raw:0.471,tc:0.519}, SFT:{raw:0.506,tc:0.654},
+          Comb:{raw:0.514,tc:0.687}, 'Comb semi-supervised':{raw:0.504,tc:0.659}
+        }
+      },
+      { id:'hyp', svgId:'roc-hyp', gridId:'roc-hyp-grid', barId:'roc-hyp-bars',
+        data:{
+          Base:{raw:0.562,tc:0.807}, RankAlign:{raw:0.637,tc:0.814}, SFT:{raw:0.399,tc:0.660},
+          Comb:{raw:0.502,tc:0.785}, 'Comb semi-supervised':{raw:0.769,tc:0.867}
+        }
+      },
+      { id:'ambig', svgId:'roc-ambig', gridId:'roc-ambig-grid', barId:'roc-ambig-bars',
+        data:{
+          Base:{raw:0.384,tc:0.581}, RankAlign:{raw:0.420,tc:0.576}, SFT:{raw:0.406,tc:0.549},
+          Comb:{raw:0.378,tc:0.572}, 'Comb semi-supervised':{raw:0.455,tc:0.666}
+        }
+      }
+    ];
+
+    var yMin=0.35, yMax=0.92;
+    var L=80, R=580, T=20, B=580;
+    function yS(v){ return B - (v-yMin)/(yMax-yMin)*(B-T); }
+
+    panels.forEach(function(p){
+      var svg = document.getElementById(p.svgId);
+      var gridG = document.getElementById(p.gridId);
+      var container = document.getElementById(p.barId);
+
+      // y-axis + gridlines
+      var axL = document.createElementNS(ns,'line');
+      axL.setAttribute('x1',L); axL.setAttribute('x2',L);
+      axL.setAttribute('y1',T); axL.setAttribute('y2',B);
+      axL.setAttribute('stroke','#ddd'); gridG.appendChild(axL);
+      var axB = document.createElementNS(ns,'line');
+      axB.setAttribute('x1',L); axB.setAttribute('x2',R);
+      axB.setAttribute('y1',B); axB.setAttribute('y2',B);
+      axB.setAttribute('stroke','#ddd'); gridG.appendChild(axB);
+
+      for(var g=0.4; g<=0.9; g+=0.1){
+        var y=yS(g);
+        var ln=document.createElementNS(ns,'line');
+        ln.setAttribute('x1',L); ln.setAttribute('x2',R);
+        ln.setAttribute('y1',y); ln.setAttribute('y2',y);
+        ln.setAttribute('stroke','#eee'); gridG.appendChild(ln);
+        var tx=document.createElementNS(ns,'text');
+        tx.setAttribute('x',L-8); tx.setAttribute('y',y+6);
+        tx.setAttribute('text-anchor','end');
+        tx.setAttribute('style','font:400 18px Source Sans 3,system-ui;fill:#aaa');
+        tx.textContent=g.toFixed(1); gridG.appendChild(tx);
+      }
+      // chance line
+      var cl=document.createElementNS(ns,'line');
+      cl.setAttribute('x1',L); cl.setAttribute('x2',R);
+      cl.setAttribute('y1',yS(0.5)); cl.setAttribute('y2',yS(0.5));
+      cl.setAttribute('stroke','#ccc'); cl.setAttribute('stroke-dasharray','3,3');
+      gridG.appendChild(cl);
+
+      // bars
+      var keys = groupOrder.filter(function(k){ return p.data[k]; });
+      var nG = keys.length;
+      var groupW = (R-L)/nG;
+      var barW = 36, pairGap = 4;
+
+      keys.forEach(function(k){
+        var fi = fragIdx[k];
+        var gi = keys.indexOf(k);
+        var cx = L + groupW*gi + groupW/2;
+        var rawX = cx - barW - pairGap/2;
+        var tcX  = cx + pairGap/2;
+        var d = p.data[k];
+        var c = colors[k];
+
+        var frag = document.createElement('div');
+        frag.className='fragment';
+        frag.setAttribute('data-fragment-index', String(fi));
+        frag.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none';
+
+        var inner = document.createElementNS(ns,'svg');
+        inner.setAttribute('viewBox','0 0 600 700');
+        inner.style.cssText='width:100%;height:100%;position:absolute;top:0;left:0';
+
+        // raw bar
+        var r1=document.createElementNS(ns,'rect');
+        r1.setAttribute('x',rawX); r1.setAttribute('width',barW);
+        r1.setAttribute('y',yS(d.raw)); r1.setAttribute('height',B-yS(d.raw));
+        r1.setAttribute('rx','2'); r1.setAttribute('fill',c+'66');
+        inner.appendChild(r1);
+        // tc bar
+        var r2=document.createElementNS(ns,'rect');
+        r2.setAttribute('x',tcX); r2.setAttribute('width',barW);
+        r2.setAttribute('y',yS(d.tc)); r2.setAttribute('height',B-yS(d.tc));
+        r2.setAttribute('rx','2'); r2.setAttribute('fill',c);
+        inner.appendChild(r2);
+        // value labels
+        var v1=document.createElementNS(ns,'text');
+        v1.setAttribute('x',rawX+barW/2); v1.setAttribute('y',yS(d.raw)-6);
+        v1.setAttribute('text-anchor','middle');
+        v1.setAttribute('style','font:600 15px Source Sans 3,system-ui;fill:'+c);
+        v1.textContent=('.'+String(Math.round(d.raw*100))); inner.appendChild(v1);
+        var v2=document.createElementNS(ns,'text');
+        v2.setAttribute('x',tcX+barW/2); v2.setAttribute('y',yS(d.tc)-6);
+        v2.setAttribute('text-anchor','middle');
+        v2.setAttribute('style','font:600 15px Source Sans 3,system-ui;fill:#333');
+        v2.textContent=('.'+String(Math.round(d.tc*100))); inner.appendChild(v2);
+        // group label (abbreviated for space)
+        var shortName = k==='Comb semi-supervised'?'Comb-S':k;
+        var gl=document.createElementNS(ns,'text');
+        gl.setAttribute('x',cx); gl.setAttribute('y',B+28);
+        gl.setAttribute('text-anchor','middle');
+        gl.setAttribute('x',cx); gl.setAttribute('y',B+65);
+        gl.setAttribute('style','font:600 11px Source Sans 3,system-ui;fill:#333');
+        gl.setAttribute('transform','rotate(-40,'+cx+','+(B+65)+')');
+        gl.textContent=shortName; inner.appendChild(gl);
+
+        frag.appendChild(inner);
+        container.appendChild(frag);
+      });
+    });
+  })();
+  </script>
+</section>
+
+<!-- ============================================================ -->
+<!-- Slide 10: When does typicality correction help? -->
+<!-- ============================================================ -->
+<section>
+  <h2>When Does Typicality Correction Help?</h2>
+
+  <p class="small" style="margin-top:12px;">For correct <em>y*</em> and incorrect <em>y<sub>n</sub></em>, define the corrected score gap:</p>
+  <div class="eq-highlight" style="margin-top:8px;">
+    <span id="eq-D-def"></span>
+  </div>
+
+  <div class="fragment" style="margin-top:14px;">
+    <div class="eq-highlight">
+      <span id="eq-D-AB"></span>
+    </div>
+    <p class="small dim" style="margin-top:4px;text-align:center;">
+      <em>A</em> = raw score gap &ensp;|&ensp; <em>B</em> = correction gap &ensp;|&ensp; want <em>D</em> &gt; 0
+    </p>
+  </div>
+
+  <div class="fragment" style="margin-top:16px;">
+    <div style="display:flex;gap:14px;">
+      <div class="prompt-box" style="flex:1;border-left-color:var(--pos-color);">
+        <div class="label" style="color:var(--pos-color);">B &lt; 0 &nbsp;(correct answer less typical)</div>
+        <p class="small" style="margin:4px 0 0;"><span id="eq-case-neg" style="display:inline;"></span></p>
+        <p class="small" style="margin:4px 0 0;">Correction <strong>helps</strong> &mdash; want large &alpha;.</p>
+      </div>
+      <div class="prompt-box" style="flex:1;border-left-color:var(--neg-color);">
+        <div class="label" style="color:var(--neg-color);">B &gt; 0 &nbsp;(correct answer more typical)</div>
+        <p class="small" style="margin:4px 0 0;"><span id="eq-case-pos" style="display:inline;"></span></p>
+        <p class="small" style="margin:4px 0 0;">Correction <strong>hurts</strong> &mdash; want small &alpha;.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fragment" style="margin-top:16px;">
+    <p class="small" style="margin-bottom:6px;"><strong>Examples (IFEval):</strong></p>
+    <div style="display:flex;gap:14px;">
+      <div class="prompt-box" style="flex:1;border-left-color:var(--neg-color);">
+        <div class="label" style="color:var(--neg-color);">Star Wars bullet points</div>
+        <p class="small" style="margin:4px 0 0;">Wrong answers are longer (too many bullets, paragraphs).<br>
+        <em>b(y<sub>n</sub>)</em> &lt; <em>b(y*)</em> &ensp;&rArr;&ensp; <em>B</em> &gt; 0.&ensp;
+        TC with &alpha;=1 <strong>hurts</strong>.</p>
+      </div>
+      <div class="prompt-box" style="flex:1;border-left-color:var(--pos-color);">
+        <div class="label" style="color:var(--pos-color);">Math undershoot</div>
+        <p class="small" style="margin:4px 0 0;">Correct answers are longer (less typical).<br>
+        <em>b(y*)</em> &lt; <em>b(y<sub>n</sub>)</em> &ensp;&rArr;&ensp; <em>B</em> &lt; 0.<br>
+        TC with &alpha;=1 <strong>helps</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
   <script>
   (function(){
@@ -570,6 +962,10 @@ Reveal.initialize({
   rEq('eq-comb', '\\mathcal{L} = \\underbrace{\\mathcal{L}_{\\text{V2G}}}_{\\text{pref}} + \\lambda_v \\underbrace{\\Big(-\\!\\sum_k \\log P_\\theta(y_k \\mid x^V_k)\\Big)}_{\\text{NLL}_{\\text{val}}} + \\lambda_g \\underbrace{\\Big(-\\!\\sum_{k:\\,y_k=1} \\log p_\\theta(A_k \\mid x^G_k)\\Big)}_{\\text{NLL}_{\\text{gen}}}');
   rEq('eq-corrected-score', "S'(y,x) = \\underbrace{\\log P_{\\text{LLM}}(y \\mid x)}_{\\text{generator score}} - \\underbrace{\\log P_{\\text{LLM}}(y)}_{\\text{typicality}}");
   rEq('eq-comb-where', '\\text{where } P_\\theta(y_k \\mid x^V_k) = p_k^{\\,y_k}(1-p_k)^{1-y_k},\\quad p_k = P_\\theta(\\text{Yes} \\mid x^V_k)');
+  rEq('eq-D-def', "D = S'(y^*\\!,x) - S'(y_n,x) = \\big(\\log P(y^*|x) - \\alpha\\, b(y^*)\\big) - \\big(\\log P(y_n|x) - \\alpha\\, b(y_n)\\big)");
+  rEq('eq-D-AB', "D = \\underbrace{\\log P(y^*|x) - \\log P(y_n|x)}_{A} \\;-\\; \\alpha\\,\\underbrace{\\big(b(y^*) - b(y_n)\\big)}_{B}");
+  rEq('eq-case-neg', 'D = A + \\alpha|B|', false);
+  rEq('eq-case-pos', 'D = A - \\alpha|B|', false);
 });
 </script>
 </body>

@@ -10,6 +10,7 @@
 #   --typcorr              Enable GPT-2 typicality correction
 #   --lenorm               Enable length normalization
 #   --log-odds             Enable validator log-odds
+#   --disc-shots-zero      Use zero-shot discriminator (default: few-shot)
 #
 # Example:
 #   run 1 2 scripts/run_eval_semi.sh ../models/v6-...-semi0.1 --self-typcorr --log-odds -- plausibleqa-nq_1109 plausibleqa-nq_1114
@@ -20,12 +21,15 @@ MODEL="$1"
 shift
 
 EVAL_FLAGS=""
+DISC_SHOTS="few"
 while [[ $# -gt 0 ]]; do
     case $1 in
         --self-typcorr) EVAL_FLAGS="$EVAL_FLAGS --self-typicality"; shift ;;
+        --neg-typcorr) EVAL_FLAGS="$EVAL_FLAGS --neg-typicality"; shift ;;
         --typcorr) EVAL_FLAGS="$EVAL_FLAGS --typicality-correction"; shift ;;
         --lenorm) EVAL_FLAGS="$EVAL_FLAGS --length-normalize"; shift ;;
         --log-odds) EVAL_FLAGS="$EVAL_FLAGS --validator-log-odds"; shift ;;
+        --disc-shots-zero) DISC_SHOTS="zero"; shift ;;
         --) shift; break ;;
         *) break ;;
     esac
@@ -34,7 +38,7 @@ done
 if [ -z "$MODEL" ] || [ -z "$1" ]; then
     echo "Usage: $0 <MODEL_DIR> [options] -- <TASK1> [TASK2] ..."
     echo ""
-    echo "  Options: --self-typcorr --typcorr --lenorm --log-odds"
+    echo "  Options: --self-typcorr --neg-typcorr --typcorr --lenorm --log-odds"
     exit 1
 fi
 
@@ -65,7 +69,7 @@ for TASK in "$@"; do
         --model "$MODEL" \
         --task "$TASK" \
         --split_type random \
-        --disc-shots few \
+        --disc-shots $DISC_SHOTS \
         --gen-shots zero \
         $EVAL_FLAGS \
         --save-scores-csv
