@@ -209,6 +209,35 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
     return typicality_scores
 
 
+def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
+                                    model, tokenizer, device,
+                                    is_chat=False, has_system_role=False):
+    """Compute log P(completion | negated_prompt) for each training item.
+
+    Uses make_negated_gen_prompt from eval_by_claude.py to construct the
+    negated prompts, ensuring train/eval consistency.
+    """
+    from eval_by_claude import make_negated_gen_prompt
+
+    neg_scores = []
+
+    print("\nComputing neg-typicality scores (negated-prompt LLR denominator)...")
+    with torch.no_grad():
+        for item in tqdm(L_train_all, desc="Neg typicality"):
+            neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt_fn)
+            token_logprobs = get_completion_token_logprobs(
+                neg_prompt, completion, model, tokenizer, device,
+                is_chat=is_chat, has_system_role=has_system_role
+            )
+            neg_scores.append(float(token_logprobs.sum().item()))
+
+    print(f"  Computed {len(neg_scores)} neg-typicality scores")
+    if len(neg_scores) > 0:
+        print(f"  Mean neg-typicality: {sum(neg_scores)/len(neg_scores):.4f}")
+
+    return neg_scores
+
+
 def track_all_scores(model, tokenizer, L_train_all, task, device, yestoks, notoks, 
                      length_normalize=False, use_full_completion=True, task_config=None,
                      validator_log_odds=True, is_chat=False, has_system_role=False,
@@ -456,13 +485,15 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
                                 typicality_correction, length_normalize, use_full_completion,
                                 preference_loss_weight, nll_validator_weight, nll_generator_weight,
                                 force_same_x=False, boost_initial_val=False,
-                                self_typicality=False,
+                                self_typicality=False, neg_typicality=False,
                                 semi_supervised=None, labeled_only=None):
     """Generate base filename for tracking logs (same as model save name but without epoch)."""
     direction_str = {'d': 'g2d', 'g': 'd2g', 'iter': 'iter', 'both': 'both'}[train_g_or_d]
     all_str = "-all" if use_all else ""
     alpha_str = f"-alpha{alpha}" if isinstance(alpha, (int, float)) else f"-alpha-{alpha}"
-    if self_typicality:
+    if neg_typicality:
+        typcorr_str = "-tc-neg"
+    elif self_typicality:
         typcorr_str = "-tc-self"
     elif typicality_correction:
         typcorr_str = "-tc-online"
@@ -521,7 +552,7 @@ def main(args):
             model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
             args.typicality_correction, args.length_normalize, use_full_completion,
             preference_loss_weight, nll_validator_weight, nll_generator_weight, args.force_same_x,
-            args.boost_initial_val, self_typicality=args.self_typicality,
+            args.boost_initial_val, self_typicality=args.self_typicality, neg_typicality=args.neg_typicality,
             semi_supervised=args.semi_supervised, labeled_only=args.labeled_only
         )
         tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
@@ -573,6 +604,7 @@ def main(args):
                 "single_token_data_only": args.single_token_data_only,
                 "typicality_correction": args.typicality_correction,
                 "self_typicality": args.self_typicality,
+                "neg_typicality": args.neg_typicality,
                 "semi_supervised": args.semi_supervised,
                 "labeled_only": args.labeled_only,
                 "split_seed": args.split_seed,
@@ -1268,7 +1300,31 @@ def main(args):
         else:
             raise ValueError(f"Task {task} not supported for typicality correction")
         
-        if args.self_typicality:
+        if args.neg_typicality:
+            # Neg-typicality: log P(completion | negated_prompt)
+            print("\nUsing NEG-TYPICALITY (negated-prompt LLR)")
+            if task_config is not None:
+                make_prompt_fn = task_config['make_prompt']
+            elif task in ['hypernym', 'hypernym-car']:
+                make_prompt_fn = make_prompt_hypernymy
+            elif task == 'trivia-qa':
+                make_prompt_fn = make_prompt_triviaqa
+            elif task == 'swords':
+                make_prompt_fn = make_prompt_swords
+            elif task == 'lambada':
+                make_prompt_fn = make_prompt_lambada
+            elif task == 'ifeval':
+                make_prompt_fn = make_prompt_ifeval
+            elif task == 'collie':
+                make_prompt_fn = make_prompt_collie
+            else:
+                raise ValueError(f"Task {task} not supported for neg-typicality (no make_prompt_fn)")
+            typicality_scores = compute_neg_typicality_training(
+                L_train_all, task, make_prompt_fn,
+                model, tokenizer, device,
+                is_chat=with_chat, has_system_role=has_system_role
+            )
+        elif args.self_typicality:
             # Self-typicality: use the scoring model itself
             print("\nUsing SELF-TYPICALITY (scoring model as its own prior)")
             typicality_scores = compute_self_typicality_training(
@@ -1310,7 +1366,7 @@ def main(args):
         else:
             print("\n  (In 'g' mode: typicality will be applied during training, not pair selection)")
         
-        if not args.self_typicality:
+        if not args.self_typicality and not args.neg_typicality:
             del model_gpt2, tokenizer_gpt2
             torch.cuda.empty_cache()
         
@@ -2576,7 +2632,9 @@ def main(args):
             split_type_str = "--"+ split_type
 
             alpha_str = "--alpha" + str(alpha) if isinstance(alpha, (int, float)) else "--alpha-" + str(alpha)
-            if args.self_typicality:
+            if args.neg_typicality:
+                typcorr_str = "--tc-neg"
+            elif args.self_typicality:
                 typcorr_str = "--tc-self"
             elif args.typicality_correction:
                 typcorr_str = "--tc-online"
@@ -2664,6 +2722,7 @@ if __name__ == "__main__":
     parser.add_argument("--gradient_checkpointing", action='store_true', help="Enable gradient checkpointing to save memory (trades compute for memory)")
     parser.add_argument("--typicality-correction", action='store_true', help="Apply typicality correction: use (Generator - GPT-2 P(completion)) instead of raw Generator score")
     parser.add_argument("--self-typicality", action='store_true', help="Use the scoring model itself for typicality correction instead of GPT-2. Implies --typicality-correction.")
+    parser.add_argument("--neg-typicality", action='store_true', help="Use negated prompts for typicality correction (LLR: log P(y|Q) - log P(y|neg_Q)). Implies --typicality-correction.")
     parser.add_argument("--no-full-completion", default=False, action='store_true', help="Use only first token for scoring instead of full completion (full completion is default)")
     parser.add_argument("--debug", action='store_true', help="Enable verbose debug output for tokenization checks")
     parser.add_argument("--single_token_data_only", action="store_true", default=False, help="Only use training data where generator completion is exactly one token")
@@ -2691,7 +2750,11 @@ if __name__ == "__main__":
         if flag_val is not None and not (0 < flag_val < 1):
             parser.error(f"{flag_name} must be between 0 and 1 (exclusive), got {flag_val}")
 
+    if args.neg_typicality and args.self_typicality:
+        parser.error("--neg-typicality and --self-typicality are mutually exclusive")
     if args.self_typicality:
+        args.typicality_correction = True
+    if args.neg_typicality:
         args.typicality_correction = True
     
     # Convert alpha to float if it's a number

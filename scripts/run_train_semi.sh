@@ -16,6 +16,7 @@
 #   --mode g|d             Generator (delta=0.15) or discriminator (delta=2.5) mode [default: g]
 #   --typcorr              Enable GPT-2 typicality correction
 #   --self-typcorr         Enable self-typicality correction
+#   --neg-typcorr          Enable negated-prompt typicality correction (LLR)
 #   --lenorm               Enable length normalization
 #   --log-odds             Enable validator log-odds
 #   --split-seed S         Seed for prompt split (default 42)
@@ -56,6 +57,7 @@ while [[ $# -gt 0 ]]; do
         --mode) GD_MODE=$2; shift 2 ;;
         --typcorr) TYPCORR="--typicality-correction"; shift ;;
         --self-typcorr) TYPCORR="--self-typicality"; shift ;;
+        --neg-typcorr) TYPCORR="--neg-typicality"; shift ;;
         --lenorm) LENORM="--length-normalize"; shift ;;
         --log-odds) LOG_ODDS="--validator-log-odds"; shift ;;
         --split-seed) SPLIT_SEED="--split-seed $2"; shift 2 ;;
@@ -78,6 +80,7 @@ if [ -z "$MODEL" ] || [ -z "$TASK" ] || [ -z "$LOSS" ] || [ -z "$SEMI_MODE" ] ||
     echo "  --mode g|d          generator (delta=0.15) or discriminator (delta=2.5) [default: g]"
     echo "  --typcorr           GPT-2 typicality correction"
     echo "  --self-typcorr      self-typicality correction"
+    echo "  --neg-typcorr       negated-prompt typicality correction (LLR)"
     echo "  --lenorm            length normalization"
     echo "  --log-odds          validator log-odds"
     echo "  --split-seed S      prompt split seed (default 42)"
@@ -132,6 +135,7 @@ cd "$(dirname "$0")"
 
 label="$TASK, $GD, delta=$DELTA, loss=$LOSS, $SEMI_MODE $RATIO"
 [ "$TYPCORR" = "--self-typicality" ] && label="$label, self-typcorr"
+[ "$TYPCORR" = "--neg-typicality" ] && label="$label, neg-typcorr"
 [ "$TYPCORR" = "--typicality-correction" ] && label="$label, typcorr"
 [ -n "$LENORM" ] && label="$label, lenorm"
 [ -n "$LOG_ODDS" ] && label="$label, log-odds"

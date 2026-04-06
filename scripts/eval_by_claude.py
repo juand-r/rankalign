@@ -32,11 +32,11 @@ def is_ifeval_task(task):
 
 def is_ambigqa_task(task):
     """Check if task is any AmbigQA variant."""
-    return task.startswith('ambigqa-')
+    return task == 'ambigqa' or task.startswith('ambigqa-')
 
 def is_plausibleqa_task(task):
     """Check if task is any PlausibleQA variant."""
-    return task.startswith('plausibleqa-')
+    return task == 'plausibleqa' or task.startswith('plausibleqa-')
 
 
 def get_device():
