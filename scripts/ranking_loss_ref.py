@@ -7,6 +7,7 @@ python ranking_loss_ref.py --model google/gemma-2-2b --task hypernym --with_ref 
 """
 import os
 import sys
+import subprocess
 import itertools
 import csv
 from collections import defaultdict
@@ -2682,7 +2683,21 @@ def main(args):
                 # For full model fine-tuning: Save normally
                 model.save_pretrained(save_directory)
                 tokenizer.save_pretrained(save_directory)
-        
+
+            # Upload checkpoint to HuggingFace Hub in a background subprocess
+            if not args.no_upload_hf:
+                upload_path = merge_dir if use_lora else save_directory
+                upload_script = str(Path(__file__).parent.parent / 'src' / 'upload_checkpoint.py')
+                cmd = [
+                    sys.executable, upload_script,
+                    '--local-path', upload_path,
+                    '--hf-org', args.hf_org,
+                ]
+                if args.experiment_notes_dir:
+                    cmd += ['--experiment-notes-dir', args.experiment_notes_dir]
+                subprocess.Popen(cmd)
+                print(f"HF upload started in background: {upload_path}")
+
         # Log epoch-level metrics to wandb
         if use_wandb:
             wandb.log({
@@ -2742,6 +2757,9 @@ if __name__ == "__main__":
     parser.add_argument("--labeled-only", type=float, default=None, metavar="RATIO", help="Train only on labeled subset: RATIO (0,1) of prompts are kept, rest discarded. Mutually exclusive with --semi-supervised.")
     parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
     parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
+    parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
+    parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
+    parser.add_argument("--experiment-notes-dir", type=str, default="", help="Path to experiment notes dir for updating HUGGINGFACE_REPOS.md")
     args = parser.parse_args()
 
     if args.semi_supervised is not None and args.labeled_only is not None:
