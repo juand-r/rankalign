@@ -238,6 +238,11 @@ def extract_metadata(csv_file, task_configs):
     if ts_match:
         rest = rest[:ts_match.start()]
 
+    # --- Strip _evallenorm suffix first (eval-time lenorm, independent of TC) ---
+    has_evallenorm = rest.endswith('_evallenorm')
+    if has_evallenorm:
+        rest = rest[:-len('_evallenorm')]
+
     # --- TC suffix (_evaltc from eval.py, _tc from eval_by_claude.py) ---
     # If self- or neg- prefix is present, the _tc suffix is redundant (strip it but ignore).
     # If no prefix and _evaltc or _tc suffix is present, this is GPT-2 TC.
