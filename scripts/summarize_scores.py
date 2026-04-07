@@ -163,7 +163,7 @@ def extract_metadata(csv_file, task_configs):
     - Multiple model families (Gemma, Llama, Qwen) with varying name formats
     - Finetuned model detection via -delta (without requiring specific base patterns)
 
-    Returns a dict with: model, task, split, self_tc, eval_tc, finetuned,
+    Returns a dict with: model, task, split, self_tc, neg_tc, gpt2_tc, finetuned,
     metric_type, timestamp, training_config.  Returns None if unparseable.
     """
     filename = Path(csv_file).name
@@ -189,10 +189,19 @@ def extract_metadata(csv_file, task_configs):
     if ts_match:
         rest = rest[:ts_match.start()]
 
-    # --- eval_tc suffix ---
-    eval_tc = rest.endswith('_evaltc')
-    if eval_tc:
+    # --- TC suffix (_evaltc from eval.py, _tc from eval_by_claude.py) ---
+    # If self- or neg- prefix is present, the _tc suffix is redundant (strip it but ignore).
+    # If no prefix and _evaltc or _tc suffix is present, this is GPT-2 TC.
+    has_evaltc_suffix = rest.endswith('_evaltc')
+    has_tc_suffix = rest.endswith('_tc') and not has_evaltc_suffix
+    if has_evaltc_suffix:
         rest = rest[:-len('_evaltc')]
+    elif has_tc_suffix:
+        rest = rest[:-len('_tc')]
+    gpt2_tc = (has_evaltc_suffix or has_tc_suffix) and not self_tc and not neg_tc
+
+    assert sum([self_tc, neg_tc, gpt2_tc]) <= 1, \
+        f"At most one TC type can be True, got self_tc={self_tc}, neg_tc={neg_tc}, gpt2_tc={gpt2_tc} for {filename}"
 
     # --- metric_type ---
     metric_type = 'log-odds'
@@ -268,7 +277,7 @@ def extract_metadata(csv_file, task_configs):
         'split': split,
         'self_tc': self_tc,
         'neg_tc': neg_tc,
-        'eval_tc': eval_tc,
+        'gpt2_tc': gpt2_tc,
         'finetuned': finetuned,
         'metric_type': metric_type,
         'timestamp': timestamp,
@@ -382,7 +391,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
     groups = {}
     for meta in parsed:
         key = (meta['model'], meta['task'], meta['split'], meta['self_tc'],
-               meta['neg_tc'], meta['eval_tc'], meta['training_config'])
+               meta['neg_tc'], meta['gpt2_tc'], meta['training_config'])
         if key not in groups or meta['timestamp'] > groups[key]['timestamp']:
             groups[key] = meta
 
@@ -432,7 +441,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
                 'split': meta['split'],
                 'self_tc': meta['self_tc'],
                 'neg_tc': meta['neg_tc'],
-                'eval_tc': meta['eval_tc'],
+                'gpt2_tc': meta['gpt2_tc'],
                 'finetuned': meta['finetuned'],
                 'training_config': meta['training_config'],
                 'eval_variant': eval_name,
@@ -531,8 +540,9 @@ def main():
     print(f"Tasks ({len(summary['task'].unique())}): {sorted(summary['task'].unique())[:20]}...")
     print(f"Splits: {sorted(summary['split'].unique())}")
     print(f"Eval variants: {sorted(summary['eval_variant'].unique())}")
-    print(f"Self-TC files: {summary['self_tc'].sum()} rows")
-    print(f"Neg-TC files: {summary['neg_tc'].sum()} rows")
+    print(f"Self-TC rows: {summary['self_tc'].sum()}")
+    print(f"Neg-TC rows: {summary['neg_tc'].sum()}")
+    print(f"GPT2-TC rows: {summary['gpt2_tc'].sum()}")
     print(f"Finetuned files: {summary['finetuned'].sum()} rows")
 
     # Per-family task counts for base models (non-self, non-finetuned)
