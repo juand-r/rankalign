@@ -36,6 +36,10 @@ from score_file_parsing import (
     _extract_float,
 )
 
+# Add parent src/ to path for checkpoint_name_parser
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+from checkpoint_name_parser import parse_checkpoint_name, to_hf_repo_name
+
 
 # =============================================================================
 # DEFAULTS
@@ -146,6 +150,51 @@ def compute_metrics(gen_scores, val_scores, labels, metric_type='log-odds'):
         'corr': corr_all, 'corr_pos': corr_pos, 'corr_neg': corr_neg,
         'acc': acc, 'val_roc': val_roc, 'gen_roc': gen_roc
     }
+
+
+# =============================================================================
+# MODEL NAME DERIVATION
+# =============================================================================
+
+def derive_model_names(model_path, model_col, training_config, finetuned):
+    """Derive local_model_name and hf_model_name.
+
+    If model_path is available (new CSVs), use it directly.
+    Otherwise, reconstruct from model + training_config columns (verified lossless).
+
+    Returns (local_model_name, hf_model_name).
+    """
+    if not finetuned:
+        # Base model: HF name is the model itself (e.g. "google/gemma-2-2b")
+        if model_path:
+            # model_path is the raw HF name like "google/gemma-2-2b"
+            return model_path, model_path
+        else:
+            # Reconstruct: model_col is "v6-google_gemma-2-2b" → "google/gemma-2-2b"
+            stripped = re.sub(r'^v\d+-', '', model_col)
+            hf_name = stripped.replace('_', '/', 1)
+            return hf_name, hf_name
+
+    # Finetuned model
+    if model_path:
+        # model_path is a local path like "../models/v6-google--gemma-2-2b-delta..."
+        local_name = Path(model_path).name
+        # Strip _merged suffix if present
+        if local_name.endswith('_merged'):
+            local_name = local_name[:-len('_merged')]
+    else:
+        # Reconstruct local dir name from model + training_config (verified exact match)
+        model_part = model_col.replace('_', '--', 1)
+        local_name = f"{model_part}-{training_config.replace('_', '--')}"
+
+    # Derive HF repo name using checkpoint_name_parser
+    try:
+        parsed = parse_checkpoint_name(local_name)
+        hf_name = to_hf_repo_name(parsed)
+    except (ValueError, KeyError):
+        hf_name = local_name  # fallback: use local name as-is
+
+    return local_name, hf_name
 
 
 # =============================================================================
@@ -424,6 +473,19 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
 
         val_scores = df['val_score'].values
 
+        # Read model_path from CSV if available (new format), else None
+        model_path = None
+        if 'model_path' in df.columns:
+            # All rows have the same model_path; take the first non-empty one
+            mp_vals = df['model_path'].dropna().unique()
+            if len(mp_vals) > 0:
+                model_path = str(mp_vals[0])
+
+        # Derive canonical model names
+        local_model_name, hf_model_name = derive_model_names(
+            model_path, meta['model'], meta['training_config'], meta['finetuned']
+        )
+
         for eval_name, gen_col in EVAL_COLUMNS.items():
             if gen_col not in df.columns:
                 continue
@@ -437,6 +499,8 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
 
             rows.append({
                 'model': meta['model'],
+                'hf_model_name': hf_model_name,
+                'local_model_name': local_model_name,
                 'task': meta['task'],
                 'split': meta['split'],
                 'self_tc': meta['self_tc'],
@@ -506,6 +570,16 @@ def main():
         if not existing.empty and 'filename' in existing.columns:
             existing_filenames = set(existing['filename'].unique())
             print(f"Will skip {len(existing_filenames)} already-summarized files")
+        # Backfill hf_model_name / local_model_name if missing
+        if not existing.empty and 'hf_model_name' not in existing.columns:
+            print("Backfilling hf_model_name and local_model_name on existing rows...")
+            names = existing.apply(
+                lambda r: derive_model_names(
+                    None, r['model'], r.get('training_config', ''), r.get('finetuned', False)
+                ), axis=1, result_type='expand'
+            )
+            existing['local_model_name'] = names[0]
+            existing['hf_model_name'] = names[1]
 
     summary = discover_and_summarize(args.outputs_dir, existing_filenames, args.file_pattern,
                                      args.model_filter, args.epoch_filter)

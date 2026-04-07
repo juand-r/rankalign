@@ -1020,9 +1020,9 @@ def main(args):
             
             with open(scores_csv_filename, 'w', newline='') as f:
                 writer = csv.writer(f)
-                writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth', 
+                writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth',
                                'gen_score', 'gen_score_typcorr', 'gen_score_lenorm', 'gen_score_typcorr_lenorm',
-                               'val_score', 'gen_prompt', 'val_prompt'])
+                               'val_score', 'gen_prompt', 'val_prompt', 'model_path'])
                 
                 labels = get_labels(task, LL)
                 for i, item in enumerate(LL):
@@ -1048,7 +1048,8 @@ def main(args):
                         float(gen_score_typcorr_lenorm) if gen_scores_typcorr is not None else '',
                         float(disc_scores[i]),
                         gen_prompt_final,
-                        disc_prompt_final
+                        disc_prompt_final,
+                        modelname,
                     ])
             print(f"Detailed scores saved to: {scores_csv_filename}")
         
@@ -1088,6 +1089,7 @@ def main(args):
                     'gen_score_typcorr',
                     'gen_score_lenorm',
                     'gen_score_typcorr_lenorm',
+                'model_path',
                 ])
 
                 for i, item in enumerate(LL):
@@ -1117,6 +1119,7 @@ def main(args):
                         gen_score_typcorr_val,
                         gen_score_lenorm,
                         gen_score_typcorr_lenorm,
+                    modelname,
                     ])
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
@@ -1151,6 +1154,7 @@ def main(args):
                     'gpt4_ground_truth', 'val_prompt', 'val_score',
                     'gen_score', 'gen_score_typcorr', 'gen_score_lenorm',
                     'gen_score_typcorr_lenorm',
+                'model_path',
                 ])
 
                 for i, item in enumerate(LL):
@@ -1172,6 +1176,7 @@ def main(args):
                         correct_label, val_prompt, disc_scores[i],
                         gen_score_raw, gen_score_typcorr_val,
                         gen_score_lenorm, gen_score_typcorr_lenorm,
+                    modelname,
                     ])
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
@@ -1301,9 +1306,9 @@ def main(args):
         
         with open(scores_csv_filename, 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth', 
+            writer.writerow(['noun1', 'noun2', 'num_tokens', 'strategy', 'gpt4_ground_truth',
                            'gen_score', 'gen_score_typcorr', 'gen_score_lenorm', 'gen_score_typcorr_lenorm',
-                           'val_score', 'gen_prompt', 'val_prompt'])
+                           'val_score', 'gen_prompt', 'val_prompt', 'model_path'])
             
             for i, item in enumerate(LL):
                 # Extract just the final query part (not the few-shot examples)
@@ -1331,7 +1336,8 @@ def main(args):
                     gen_score_typcorr_lenorm,
                     disc_scores[i],
                     gen_prompt_final,
-                    disc_prompt_final
+                    disc_prompt_final,
+                    modelname,
                 ])
         
         print(f"Detailed scores saved to: {scores_csv_filename}")
@@ -1388,6 +1394,7 @@ def main(args):
                 'gen_score_typcorr',
                 'gen_score_lenorm',
                 'gen_score_typcorr_lenorm',
+            'model_path',
             ])
 
             for i, item in enumerate(LL):
@@ -1421,6 +1428,7 @@ def main(args):
                     gen_score_typcorr_val,
                     gen_score_lenorm,
                     gen_score_typcorr_lenorm,
+                modelname,
                 ])
 
         print(f"Detailed scores saved to: {scores_csv_filename}")
@@ -1462,6 +1470,7 @@ def main(args):
                 'gen_score_typcorr',
                 'gen_score_lenorm',
                 'gen_score_typcorr_lenorm',
+            'model_path',
             ])
 
             for i, item in enumerate(LL):
@@ -1491,6 +1500,7 @@ def main(args):
                     gen_score_typcorr_val,
                     gen_score_lenorm,
                     gen_score_typcorr_lenorm,
+                modelname,
                 ])
 
         print(f"Detailed scores saved to: {scores_csv_filename}")
