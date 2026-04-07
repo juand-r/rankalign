@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Universal scores summarizer — computes Gen ROC, Val ROC, Correlation, and
+Universal scores summarizer -- computes Gen ROC, Val ROC, Correlation, and
 Val Acc for ALL scores_*.csv files in outputs/ and writes a single summary CSV.
 
 Handles all file types: base model, self-TC, finetuned, multi-model, all tasks.
 
 Reuses filename parsing from score_file_parsing.py (shared with
-dashboard_viz_refactor.py) — one set of task extraction regexes, not two.
+dashboard_viz_refactor.py) -- one set of task extraction regexes, not two.
 
 Supports incremental mode: pulls existing summary from HuggingFace, computes
 metrics only for new score files, merges, and re-uploads.
@@ -46,7 +46,7 @@ DEFAULT_OUTPUTS_DIR = SCRIPT_DIR.parent / 'outputs'
 DEFAULT_SUMMARIES_DIR = SCRIPT_DIR.parent / 'output-metrics'
 DEFAULT_HF_DATASET = 'rankalign-eval-summary'
 
-# Task family configs — each defines how to find and parse files for one family.
+# Task family configs -- each defines how to find and parse files for one family.
 # task_pattern: regex with a capture group for the dataset-specific part.
 # split_patterns: substring -> split name mapping.
 TASK_FAMILY_CONFIGS = [
@@ -174,10 +174,13 @@ def extract_metadata(csv_file, task_configs):
 
     rest = stem[len('scores_'):]
 
-    # --- Self-TC prefix ---
+    # --- TC prefix (self- or neg-) ---
     self_tc = rest.startswith('self-')
+    neg_tc = rest.startswith('neg-')
     if self_tc:
         rest = rest[len('self-'):]
+    elif neg_tc:
+        rest = rest[len('neg-'):]
 
     # --- Timestamp (shared helper) ---
     timestamp = _extract_timestamp(filename)
@@ -264,6 +267,7 @@ def extract_metadata(csv_file, task_configs):
         'task': task,
         'split': split,
         'self_tc': self_tc,
+        'neg_tc': neg_tc,
         'eval_tc': eval_tc,
         'finetuned': finetuned,
         'metric_type': metric_type,
@@ -323,14 +327,18 @@ def push_summary_to_hf(summary_df, hf_org, hf_dataset):
 # FILE DISCOVERY, DEDUP, SUMMARY
 # =============================================================================
 
-def discover_and_summarize(outputs_dir, existing_filenames=None):
-    """Scan all scores_*.csv, extract metadata, compute metrics, dedup.
+def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='scores_*.csv',
+                           model_filter=None, epoch_filter=None):
+    """Scan score CSV files, extract metadata, compute metrics, dedup.
 
     If existing_filenames is provided (set of filename strings), skip files
     already in the existing summary (incremental mode).
+    model_filter: substring that must appear in the model name (e.g. 'v6').
+    epoch_filter: if set, keep base models (no epoch) + finetuned matching this
+                  epoch string (e.g. 'epoch2').
     """
     outputs_path = Path(outputs_dir)
-    csv_files = sorted(outputs_path.glob('scores_*.csv'))
+    csv_files = sorted(outputs_path.glob(file_pattern))
 
     print(f"Found {len(csv_files)} scores_*.csv files in {outputs_path}")
 
@@ -338,6 +346,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None):
     parsed = []
     skipped = 0
     skipped_existing = 0
+    skipped_filter = 0
     for csv_file in csv_files:
         if existing_filenames and csv_file.name in existing_filenames:
             skipped_existing += 1
@@ -346,22 +355,34 @@ def discover_and_summarize(outputs_dir, existing_filenames=None):
         if meta is None:
             skipped += 1
             continue
+        # Model filter
+        if model_filter and model_filter not in meta['model']:
+            skipped_filter += 1
+            continue
+        # Epoch filter: base models (not finetuned) always pass;
+        # finetuned models must match the epoch string in training_config
+        if epoch_filter and meta['finetuned']:
+            if epoch_filter not in meta['training_config']:
+                skipped_filter += 1
+                continue
         meta['path'] = str(csv_file)
         meta['filename'] = csv_file.name
         parsed.append(meta)
 
     print(f"Parsed {len(parsed)} new files, skipped {skipped} (unrecognized pattern)")
+    if skipped_filter:
+        print(f"Skipped {skipped_filter} files (filtered out by model/epoch)")
     if skipped_existing:
         print(f"Skipped {skipped_existing} files already in existing summary")
 
     if not parsed:
         return pd.DataFrame()
 
-    # Phase 2: dedup — group by identity key, keep newest
+    # Phase 2: dedup -- group by identity key, keep newest
     groups = {}
     for meta in parsed:
         key = (meta['model'], meta['task'], meta['split'], meta['self_tc'],
-               meta['eval_tc'], meta['training_config'])
+               meta['neg_tc'], meta['eval_tc'], meta['training_config'])
         if key not in groups or meta['timestamp'] > groups[key]['timestamp']:
             groups[key] = meta
 
@@ -410,6 +431,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None):
                 'task': meta['task'],
                 'split': meta['split'],
                 'self_tc': meta['self_tc'],
+                'neg_tc': meta['neg_tc'],
                 'eval_tc': meta['eval_tc'],
                 'finetuned': meta['finetuned'],
                 'training_config': meta['training_config'],
@@ -448,6 +470,8 @@ def main():
                         help='Output CSV path (default: output-metrics/summary_scores.csv)')
     parser.add_argument('--outputs-dir', default=str(DEFAULT_OUTPUTS_DIR),
                         help='Outputs directory (default: outputs/)')
+    parser.add_argument('--file-pattern', default='scores_*.csv',
+                        help='Glob pattern for score files (default: scores_*.csv)')
     parser.add_argument('--upload-hf', action='store_true', default=False,
                         help='Upload summary to HuggingFace after computing')
     parser.add_argument('--incremental', action='store_true', default=False,
@@ -456,6 +480,10 @@ def main():
                         help='HuggingFace org (default: TAUR-dev)')
     parser.add_argument('--hf-dataset', default=DEFAULT_HF_DATASET,
                         help=f'HuggingFace dataset name (default: {DEFAULT_HF_DATASET})')
+    parser.add_argument('--model-filter', default=None,
+                        help='Only include files whose model name contains this substring (e.g. v6)')
+    parser.add_argument('--epoch-filter', default=None,
+                        help='For finetuned models, only include this epoch (e.g. epoch2). Base models always included.')
     args = parser.parse_args()
 
     if args.incremental:
@@ -470,7 +498,8 @@ def main():
             existing_filenames = set(existing['filename'].unique())
             print(f"Will skip {len(existing_filenames)} already-summarized files")
 
-    summary = discover_and_summarize(args.outputs_dir, existing_filenames)
+    summary = discover_and_summarize(args.outputs_dir, existing_filenames, args.file_pattern,
+                                     args.model_filter, args.epoch_filter)
 
     # Merge with existing if incremental
     if args.incremental and not existing.empty and not summary.empty:
@@ -503,6 +532,7 @@ def main():
     print(f"Splits: {sorted(summary['split'].unique())}")
     print(f"Eval variants: {sorted(summary['eval_variant'].unique())}")
     print(f"Self-TC files: {summary['self_tc'].sum()} rows")
+    print(f"Neg-TC files: {summary['neg_tc'].sum()} rows")
     print(f"Finetuned files: {summary['finetuned'].sum()} rows")
 
     # Per-family task counts for base models (non-self, non-finetuned)
