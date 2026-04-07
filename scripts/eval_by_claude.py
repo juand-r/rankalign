@@ -1057,7 +1057,10 @@ def main(args):
             from datetime import datetime
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            model_short = modelname.split('/')[-1].replace('--', '_')
+            if '/' in modelname and not modelname.startswith('.'):
+                model_short = 'v6-' + modelname.replace('/', '_')
+            else:
+                model_short = modelname.split('/')[-1].replace('--', '_')
             split = "train"
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
             eval_tc_suffix = "_tc" if args.typicality_correction else ""
@@ -1338,7 +1341,10 @@ def main(args):
         from datetime import datetime
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_short = modelname.split('/')[-1].replace('--', '_')
+        if '/' in modelname and not modelname.startswith('.'):
+            model_short = 'v6-' + modelname.replace('/', '_')
+        else:
+            model_short = modelname.split('/')[-1].replace('--', '_')
         split = "train" if args.train else "test"
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
         # Add eval setting suffixes
