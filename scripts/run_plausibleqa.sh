@@ -335,7 +335,6 @@ run_eval_variant() {
         --validator-log-odds \
         --save-scores-csv \
         --disc-shots few \
-        --length-normalize \
         --self-typicality \
         >> "$LOG_FILE" 2>&1
 }
