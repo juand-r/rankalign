@@ -246,6 +246,7 @@ run_train_variant() {
             --save_steps 1 \
             --force-same-x \
             --no-wandb \
+            --no-upload-hf \
             $([ "$USE_LENORM" = "1" ] && echo "--length-normalize") \
             "${lora_args[@]}" \
             "${tc_args[@]}" \
@@ -328,10 +329,6 @@ run_eval_variant() {
 
     local MODEL_DIR
     local LOG_FILE="logs/eval_${TASK}_${NAME}_${TC_TAG}_gpu${GPU}.log"
-    local eval_tc_args=()
-    if [ "$USE_TC" = 1 ]; then
-        eval_tc_args+=(--self-typicality)
-    fi
     {
         echo "========================================"
         echo "Task: $TASK | Variant: $NAME | GPU: $GPU | typicality=$TC_TAG"
@@ -356,7 +353,7 @@ run_eval_variant() {
         --save-scores-csv \
         --disc-shots zero \
         --length-normalize \
-        "${eval_tc_args[@]}" \
+        --self-typicality \
         >> "$LOG_FILE" 2>&1
 }
 
