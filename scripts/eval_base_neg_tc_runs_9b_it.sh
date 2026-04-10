@@ -26,8 +26,6 @@ run 1 2 scripts/run_eval_semi.sh $MODEL --neg-typcorr --log-odds -- \
     ambigqa-received ambigqa-sang ambigqa-soccer ambigqa-used \
     ambigqa-voice ambigqa-winter ambigqa-won ambigqa-world ambigqa-year
 
-#NOTE I stopped here.
-
 # ============================================================
 # PLAUSIBLEQA - NQ (33 tasks, ~30 min)
 # ============================================================

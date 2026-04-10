@@ -130,6 +130,10 @@ SAMPLES_FLAG=""
 [ -n "$SAMPLES_OVERRIDE" ] && SAMPLES_FLAG="--total_samples $SAMPLES_OVERRIDE"
 
 NUM_EPOCHS=3
+LORA_FLAG=""
+if [[ "$MODEL" != *"-2b"* && "$MODEL" != *"-2b-"* ]]; then
+    LORA_FLAG="--lora"
+fi
 
 cd "$(dirname "$0")"
 
@@ -139,6 +143,7 @@ label="$TASK, $GD, delta=$DELTA, loss=$LOSS, $SEMI_MODE $RATIO"
 [ "$TYPCORR" = "--typicality-correction" ] && label="$label, typcorr"
 [ -n "$LENORM" ] && label="$label, lenorm"
 [ -n "$LOG_ODDS" ] && label="$label, log-odds"
+[ -n "$LORA_FLAG" ] && label="$label, lora"
 
 echo "========================================"
 echo "Task:  $TASK"
@@ -166,7 +171,8 @@ python ranking_loss_ref.py \
     $LOG_ODDS \
     $SEMI_FLAG \
     $SPLIT_SEED \
-    $DISC_SHOTS
+    $DISC_SHOTS \
+    $LORA_FLAG
 
 echo ""
 echo "Finished: $TASK ($LOSS, $SEMI_MODE $RATIO)"
