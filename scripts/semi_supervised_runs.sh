@@ -45,8 +45,6 @@ run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it plausibleqa comb labelon
 run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it plausibleqa pref-only labelonly 0.1 $TC --lenorm --log-odds
 run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it plausibleqa pref-only labelonly 0.1 $TC --lenorm
 
-#NOTE: I stopped here.
-
 # --- tc-online (commented out) ---
 # run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it plausibleqa comb semi 0.1 --typcorr --log-odds
 # run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it plausibleqa sft semi 0.1 --typcorr
@@ -159,6 +157,8 @@ run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it hypernym-concat-bananas-
 # ============================================================
 # IFEVAL-CONCAT
 # ============================================================
+
+# NOTE: I stopped here.
 
 # --- plain ---
 run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it ifeval-concat comb semi 0.1 --log-odds --disc-shots zero
