@@ -442,9 +442,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
         # finetuned models must match the epoch string in training_config.
         # Exception: ifeval models use epoch1 instead of the default epoch filter.
         if epoch_filter and meta['finetuned']:
-            task = meta.get('task', '')
-            effective_epoch = 'epoch1' if task.startswith('ifeval-') else epoch_filter
-            if effective_epoch not in meta['training_config']:
+            if epoch_filter not in meta['training_config']:
                 skipped_filter += 1
                 continue
         meta['path'] = str(csv_file)
