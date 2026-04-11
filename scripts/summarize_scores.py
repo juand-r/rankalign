@@ -46,9 +46,25 @@ from checkpoint_name_parser import parse_checkpoint_name, to_hf_repo_name
 # =============================================================================
 
 SCRIPT_DIR = Path(__file__).parent
+DATA_DIR = SCRIPT_DIR.parent / 'data'
 DEFAULT_OUTPUTS_DIR = SCRIPT_DIR.parent / 'outputs'
 DEFAULT_SUMMARIES_DIR = SCRIPT_DIR.parent / 'output-metrics'
 DEFAULT_HF_DATASET = 'rankalign-eval-summary'
+
+# Hypernym dedup: pairs to remove entirely and conflict resolution
+HYPERNYM_REMOVE_PAIRS = set()
+HYPERNYM_CONFLICT_KEEPS = {}  # (noun1, noun2) -> keep_label
+
+_remove_csv = DATA_DIR / 'hypernym_bad_examples.csv'
+if _remove_csv.exists():
+    _df = pd.read_csv(_remove_csv)
+    HYPERNYM_REMOVE_PAIRS = set(zip(_df['noun1'], _df['noun2']))
+
+_keeps_csv = DATA_DIR / 'hypernym_conflict_keeps.csv'
+if _keeps_csv.exists():
+    _df = pd.read_csv(_keeps_csv)
+    for _, row in _df.iterrows():
+        HYPERNYM_CONFLICT_KEEPS[(row['noun1'], row['noun2'])] = row['keep_label'].strip().lower()
 
 # Task family configs -- each defines how to find and parse files for one family.
 # task_pattern: regex with a capture group for the dataset-specific part.
@@ -460,6 +476,7 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
     # Phase 3: compute metrics for each file x eval_variant
     rows = []
     errors = 0
+    total_deduped_rows = 0
     for meta in deduped:
         try:
             df = pd.read_csv(meta['path'])
@@ -467,6 +484,44 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
             print(f"  [ERROR] Loading {meta['filename']}: {e}", file=sys.stderr)
             errors += 1
             continue
+
+        # Deduplicate rows with identical identity keys (same Q/A scored
+        # under different generation strategies).
+        #
+        # For hypernym: also apply manually curated conflict resolution:
+        #   - HYPERNYM_REMOVE_PAIRS: drop all rows for these (noun1, noun2)
+        #   - HYPERNYM_CONFLICT_KEEPS: for label conflicts, keep the row
+        #     matching the curated label
+        #   - All other dups: keep first occurrence
+        n_before = len(df)
+        if 'noun1' in df.columns and 'noun2' in df.columns:
+            # Remove pairs flagged for removal
+            if HYPERNYM_REMOVE_PAIRS:
+                mask = df.apply(lambda r: (r['noun1'], r['noun2']) in HYPERNYM_REMOVE_PAIRS, axis=1)
+                df = df[~mask]
+            # Resolve label conflicts using curated keeps
+            if HYPERNYM_CONFLICT_KEEPS:
+                resolved = []
+                for (n1, n2), grp in df.groupby(['noun1', 'noun2']):
+                    if len(grp) <= 1:
+                        resolved.append(grp)
+                        continue
+                    keep_label = HYPERNYM_CONFLICT_KEEPS.get((n1, n2))
+                    if keep_label is not None:
+                        kept = grp[grp['gpt4_ground_truth'].str.strip().str.lower() == keep_label]
+                        resolved.append(kept.head(1) if len(kept) > 0 else grp.head(1))
+                    else:
+                        resolved.append(grp.head(1))
+                df = pd.concat(resolved, ignore_index=True)
+            else:
+                df = df.drop_duplicates(subset=['noun1', 'noun2'], keep='first')
+        elif 'question' in df.columns and 'answer' in df.columns:
+            df = df.drop_duplicates(subset=['question', 'answer'], keep='first')
+        elif 'prompt' in df.columns and 'response' in df.columns:
+            df = df.drop_duplicates(subset=['prompt', 'response'], keep='first')
+        n_dropped = n_before - len(df)
+        if n_dropped > 0:
+            total_deduped_rows += n_dropped
 
         labels = load_labels(df)
         if labels is None:
@@ -527,6 +582,8 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
                 'filename': meta['filename'],
             })
 
+    if total_deduped_rows:
+        print(f"Dedup (within-file): dropped {total_deduped_rows} duplicate rows across all score files")
     if errors:
         print(f"  {errors} files had errors/warnings")
 
