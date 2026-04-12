@@ -264,7 +264,7 @@ def create_visualization(logodds_gen, logodds_disc, labels, modelname, task, arg
         plt.axhline(y=threshold, color='red', linestyle='--', linewidth=1, alpha=0.7, label=f'threshold = log(0.5) ≈ {threshold:.3f}')
     
     # Generate filename with metric type and eval settings
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d")
     # Normalize model name for consistent filenames:
     # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
     # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
@@ -329,7 +329,7 @@ def create_visualization_interactive(logodds_gen, logodds_disc, labels, example_
     )
 
     # Output filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now().strftime("%Y%m%d")
     # Normalize model name for consistent filenames:
     # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
     # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
@@ -800,7 +800,7 @@ def main(args):
             import csv
             from datetime import datetime
             
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d")
             # Normalize model name for consistent filenames:
             # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
             # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
@@ -870,7 +870,7 @@ def main(args):
             import csv
             from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d")
             model_short = modelname.split('/')[-1].replace('--', '_')
             split = "train"
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
@@ -938,7 +938,7 @@ def main(args):
             import csv
             from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d")
             if '/' in modelname and not modelname.startswith('.'):
                 model_short = 'v6-' + modelname.replace('/', '_')
             else:
@@ -1076,7 +1076,7 @@ def main(args):
         import csv
         from datetime import datetime
         
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d")
         # Normalize model name for consistent filenames:
         # Base model "google/gemma-2-2b" -> "v6-google_gemma-2-2b"
         # Fine-tuned "../models/v6-google--gemma-2-2b-delta..." -> "v6-google_gemma-2-2b-delta..."
@@ -1151,7 +1151,7 @@ def main(args):
         import csv
         from datetime import datetime
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d")
         model_short = modelname.split('/')[-1].replace('--', '_')
         split = "train" if args.train else "test"
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
@@ -1234,7 +1234,7 @@ def main(args):
         import csv
         from datetime import datetime
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d")
         if '/' in modelname and not modelname.startswith('.'):
             model_short = 'v6-' + modelname.replace('/', '_')
         else:
