@@ -250,7 +250,7 @@ def extract_metadata(csv_file, task_configs):
     # --- Timestamp (shared helper) ---
     timestamp = _extract_timestamp(filename)
     # Strip timestamp from rest for further parsing
-    ts_match = re.search(r'_(\d{8}_\d{6})$', rest)
+    ts_match = re.search(r'_(\d{8}(?:_\d{6})?)$', rest)
     if ts_match:
         rest = rest[:ts_match.start()]
 

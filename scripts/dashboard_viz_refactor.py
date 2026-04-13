@@ -39,6 +39,8 @@ from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from score_file_parsing import _extract_float, _extract_timestamp, _extract_split, _extract_task
+
 
 # =============================================================================
 # CONFIGURATION
@@ -128,23 +130,6 @@ class FileInfo:
 # =============================================================================
 # FILENAME PARSING
 # =============================================================================
-
-def _extract_float(pattern, text):
-    """Extract a float value from a regex pattern with a named group 'weight'."""
-    match = re.search(pattern, text)
-    if match:
-        try:
-            return float(match.group('weight'))
-        except (ValueError, IndexError):
-            return None
-    return None
-
-
-def _extract_timestamp(filename):
-    """Extract timestamp from end of filename for dedup ordering."""
-    match = re.search(r'(\d{8}_\d{6})\.csv$', filename)
-    return match.group(1) if match else '00000000_000000'
-
 
 def parse_filename(csv_file, config):
     """Parse a scores CSV filename into a FileInfo.
@@ -280,48 +265,6 @@ def parse_filename(csv_file, config):
     )
 
 
-def _extract_task(stem, task_pattern, union_config):
-    """Extract task and dataset from filename stem."""
-    # Check for union model first
-    if union_config:
-        training_task = union_config.get('training_task', '')
-        eval_pattern = union_config.get('eval_task_pattern', '')
-        if training_task and training_task in stem and 'force-same-x' in stem:
-            if eval_pattern:
-                eval_match = re.search(eval_pattern, stem)
-                if eval_match and eval_match.groups():
-                    eval_task = eval_match.group(1)
-                    full_match = re.search(r'(hypernym-[a-zA-Z]+)', eval_match.group(0))
-                    if full_match:
-                        task = full_match.group(1)
-                        dataset = task.split('-')[-1] if '-' in task else task
-                        return task, dataset
-
-    # Regular task extraction
-    all_matches = list(re.finditer(task_pattern, stem))
-    if not all_matches:
-        return None, None
-
-    # Use last match as eval task
-    match = all_matches[-1]
-    if match.groups():
-        base_task = task_pattern.split('(')[0].rstrip('-').rstrip('_')
-        if not base_task:
-            base_task = 'task'
-        dataset = match.group(1)
-        task = f"{base_task}-{dataset}" if base_task else dataset
-    else:
-        task = match.group(0)
-        dataset = task
-    return task, dataset
-
-
-def _extract_split(stem, split_patterns):
-    """Extract split (train/test) from filename stem."""
-    for split_name, pattern in split_patterns.items():
-        if pattern in stem:
-            return split_name
-    return 'unknown'
 
 
 # =============================================================================

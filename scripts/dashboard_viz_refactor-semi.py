@@ -45,6 +45,8 @@ from dash.exceptions import PreventUpdate
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
+from score_file_parsing import _extract_float, _extract_timestamp, _extract_split
+
 
 # =============================================================================
 # CONFIGURATION
@@ -133,23 +135,6 @@ EVAL_TASK_RE = re.compile(
     r'ifeval-prompt_\d+)'
     r'_(?:test|train)'
 )
-
-
-def _extract_float(pattern, text):
-    """Extract a float value from a regex pattern with a named group 'weight'."""
-    match = re.search(pattern, text)
-    if match:
-        try:
-            return float(match.group('weight'))
-        except (ValueError, IndexError):
-            return None
-    return None
-
-
-def _extract_timestamp(filename):
-    """Extract timestamp from end of filename for dedup ordering."""
-    match = re.search(r'(\d{8}_\d{6})\.csv$', filename)
-    return match.group(1) if match else '00000000_000000'
 
 
 def parse_filename(csv_file, config):
@@ -244,14 +229,6 @@ def parse_filename(csv_file, config):
         training_mode=training_mode, row_label=row_label,
         timestamp=timestamp,
     )
-
-
-def _extract_split(stem, split_patterns):
-    """Extract split (train/test) from filename stem."""
-    for split_name, pattern in split_patterns.items():
-        if pattern in stem:
-            return split_name
-    return 'unknown'
 
 
 # =============================================================================

@@ -61,8 +61,14 @@ def _extract_float(pattern, text):
 
 def _extract_timestamp(filename):
     """Extract timestamp from end of filename for dedup ordering."""
-    match = re.search(r'(\d{8}_\d{6})\.csv$', filename)
-    return match.group(1) if match else '00000000_000000'
+    match = re.search(r'(\d{8}(?:_\d{6})?)\.csv$', filename)
+    if not match:
+        return '00000000_000000'
+    ts = match.group(1)
+    # Short format (date only) should win over same-day long format
+    if '_' not in ts:
+        ts = ts + '_999999'
+    return ts
 
 
 def _extract_task(stem, task_pattern, union_config):

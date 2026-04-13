@@ -19,6 +19,8 @@ from pathlib import Path
 from scipy.stats import pearsonr
 from sklearn.metrics import roc_auc_score
 
+from score_file_parsing import _extract_timestamp
+
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / 'outputs'
 
 # Strict integrity checks:
@@ -151,16 +153,9 @@ SEMI_VARIANTS_AMBIGQA = [
 ]
 
 
-def _extract_timestamp(path):
-    match = re.search(r'_(\d{8}_\d{6})\.csv$', path.name)
-    if not match:
-        return ''
-    return match.group(1)
-
-
 def _extract_batch_date(path):
-    ts = _extract_timestamp(path)
-    if not ts:
+    ts = _extract_timestamp(path.name)
+    if not ts or ts == '00000000_000000':
         return ''
     return ts.split('_')[0]
 
