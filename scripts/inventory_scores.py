@@ -216,7 +216,9 @@ def define_expected_evals():
                     "split": "test",
                 })
 
-            # --- IFEVAL: 5 variants (no pref-only semi) ---
+            # --- IFEVAL: 5 variants (no pref-only semi); skip for gemma-2-2b ---
+            if base_model == "gemma-2-2b":
+                continue
             mi = f"v6-google--{base_model}-delta0.15-epoch2--ifeval-concat-all--d2g--random--alpha1.0{tc_suffix_train}"
             ife_variants = [
                 ("pref-only labelonly",           f"{mi}--full-completion--force-same-x--labelonly0.1{msuf}"),
@@ -241,7 +243,10 @@ def define_expected_evals():
 
         # --- BASE MODEL (no finetuning) ---
         base_model_dir = f"google/{base_model}"
-        for domain in ["plausibleqa", "ambigqa", "hypernym", "ifeval"]:
+        base_domains = ["plausibleqa", "ambigqa", "hypernym", "ifeval"]
+        if base_model == "gemma-2-2b":
+            base_domains = ["plausibleqa", "ambigqa", "hypernym"]
+        for domain in base_domains:
             evals.append({
                 "base_model": base_model,
                 "domain": domain,
