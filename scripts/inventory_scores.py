@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
-"""Inventory score CSV files in outputs/ and report completeness.
+"""Comprehensive inventory of score CSV files in outputs/.
 
-Parses filenames using the exact same logic as eval_by_claude.py and
-run_eval_semi.sh to avoid any discrepancies.
+Tracks ALL files, categorizes them, and reports completeness for every
+expected (model, eval_mode, domain) configuration. Outputs both to
+terminal and to a LaTeX PDF.
 
-Filename format (from eval_by_claude.py):
-  scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv
+Eval TC types:
+  neg:   prefix "neg-",  suffix "_tc"    (eval_by_claude.py --neg-typicality)
+  self:  prefix "self-", suffix "_tc"    (eval_by_claude.py --self-typicality, current)
+         prefix "self-", suffix "_evaltc" (eval_by_claude.py --self-typicality, older version)
+  gpt2:  no prefix,      suffix "_evaltc" (eval.py --typicality-correction)
 
-Where:
-  self_prefix:  "neg-" | "self-" | ""
-  model_short:  for base models:     "v6-google_gemma-2-9b-it"
-                for finetuned:       last path component with '--' -> '_'
-                                     e.g. "v6-google_gemma-2-9b-it-delta0.15-epoch2_ambigqa-all_..."
-  task:         the eval task name   e.g. "ambigqa-american", "hypernym-dogs", "ifeval-prompt_42"
-  split:        "test" | "train"
-  v2_suffix:    "_v2" for hypernym tasks, "" otherwise
-  metric_suffix: "_log-odds" | "_log-probs"
-  eval_tc_suffix: "_tc" if any typicality correction is used
-  eval_lenorm_suffix: "_evallenorm" if length normalization is used
-  timestamp:    "YYYYMMDD" (new) or "YYYYMMDD_HHMMSS" (old)
+Filename format (eval_by_claude.py):
+  scores_{prefix}{model_short}_{task}_{split}{v2_suf}{metric_suf}{tc_suf}{lenorm_suf}_{timestamp}.csv
 """
 
 import os
 import re
+import subprocess
 import sys
 from collections import defaultdict
 from pathlib import Path
 
 OUTPUTS_DIR = Path(__file__).resolve().parent.parent / "outputs"
+LATEX_DIR = Path(__file__).resolve().parent.parent / "output-metrics"
+
+# ---------------------------------------------------------------------------
+# Task lists
+# ---------------------------------------------------------------------------
 
 TASKS_PQA = [
     "plausibleqa-nq_1114", "plausibleqa-nq_1324", "plausibleqa-nq_1328",
@@ -99,375 +99,547 @@ DOMAIN_TASKS = {
     "ifeval": TASKS_IFE,
 }
 
+# ---------------------------------------------------------------------------
+# Eval mode definitions
+# ---------------------------------------------------------------------------
 
-def build_expected_filename_prefix(self_prefix, model_short, task, split, metric_suffix, tc_suffix, lenorm_suffix):
-    """Build the glob pattern that run_eval_semi.sh uses to check for existing files.
+EVAL_MODES = {
+    # Three kinds of typicality correction used at eval time:
+    #
+    # neg:  eval_by_claude.py --neg-typicality   -> prefix "neg-",  suffix "_tc"
+    # self: eval_by_claude.py --self-typicality  -> prefix "self-", suffix "_tc" (current)
+    #                                               prefix "self-", suffix "_evaltc" (older eval_by_claude.py)
+    # gpt2: eval.py --typicality-correction      -> no prefix,      suffix "_evaltc"
+    "neg": {
+        "label": "neg",
+        "patterns": [("neg-", "_tc")],
+    },
+    "self": {
+        "label": "self",
+        "patterns": [("self-", "_tc"), ("self-", "_evaltc")],
+    },
+    "gpt2": {
+        "label": "gpt2",
+        "patterns": [("", "_evaltc")],
+    },
+}
 
-    This mirrors line 81 of run_eval_semi.sh:
-      PATTERN="../outputs/scores_${SELF_PFX}${MODEL_SHORT}_${TASK}_test${V2_SUF}${METRIC_SUF}${TC_SUF}${LENORM_SUF}_*.csv"
-    """
-    v2_suffix = "_v2" if task.startswith("hypernym-") else ""
-    return f"scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{tc_suffix}{lenorm_suffix}_"
-
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def model_dir_to_short(model_dir):
-    """Convert a model directory path to the short name used in filenames.
-
-    Mirrors eval_by_claude.py logic:
-      - Base model "google/gemma-2-9b-it" -> "v6-google_gemma-2-9b-it"
-      - Finetuned "../models/v6-google--gemma-2-9b-it-delta..." -> last component with '--' -> '_'
-    """
+    """Convert model directory path to the short name used in filenames."""
     if '/' in model_dir and not model_dir.startswith('.'):
         return 'v6-' + model_dir.replace('/', '_')
     else:
         return model_dir.split('/')[-1].replace('--', '_')
 
 
-def find_matching_files(all_files, prefix):
-    """Find all files that match a given prefix (before the timestamp)."""
+def build_prefix(eval_prefix, model_short, task, split, metric, tc_suffix, lenorm):
+    """Build the filename prefix that run_eval_semi.sh uses for skip logic."""
+    v2 = "_v2" if task.startswith("hypernym-") else ""
+    return f"scores_{eval_prefix}{model_short}_{task}_{split}{v2}{metric}{tc_suffix}{lenorm}_"
+
+
+def find_matching(all_files, prefix):
     return [f for f in all_files if f.startswith(prefix)]
 
 
-def define_expected_evals():
-    """Define all expected evaluation configurations from semi_supervised_eval_runs_neg.sh.
+# ---------------------------------------------------------------------------
+# Model / eval configuration registry
+# ---------------------------------------------------------------------------
 
-    Returns list of dicts, each describing one (model, eval_settings, domain) combination.
+def _finetuned_variants(base_model, task_key, tc_suffix_train, msuf):
+    """Return the 6 (or 5 for ifeval) training variants for a given domain."""
+    tc = tc_suffix_train
+    prefix_map = {
+        "plausibleqa": "plausibleqa-all",
+        "ambigqa": "ambigqa-all",
+        "hypernym": "hypernym-concat-bananas-to-dogs-double-all",
+        "ifeval": "ifeval-concat-all",
+    }
+    task_str = prefix_map[task_key]
+    mp = f"v6-google--{base_model}-delta0.15-epoch2--{task_str}--d2g--random--alpha1.0{tc}"
+
+    variants = [
+        ("pref-only lo",      f"{mp}--full-completion--force-same-x--labelonly0.1{msuf}"),
+        ("pref-only vlo lo",  f"{mp}--full-completion--force-same-x--vallogodds--labelonly0.1{msuf}"),
+        ("pref-only semi",    f"{mp}--full-completion--force-same-x--semi0.1{msuf}"),
+        ("comb lo",           f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--labelonly0.1{msuf}"),
+        ("comb semi",         f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1{msuf}"),
+        ("sft semi",          f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
+        ("sft lo",            f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--labelonly0.1{msuf}"),
+    ]
+    if task_key == "ifeval":
+        variants = [v for v in variants if v[0] != "pref-only semi"]
+    return variants
+
+
+def _v2g_baseline(base_model, task_key, msuf):
+    """Return the V2G baseline (paper RankAlign) model dir."""
+    prefix_map = {
+        "plausibleqa": "plausibleqa-all",
+        "ambigqa": "ambigqa-all",
+        "hypernym": "hypernym-concat-bananas-to-dogs-double-all",
+        "ifeval": "ifeval-concat-all",
+    }
+    task_str = prefix_map[task_key]
+    return f"v6-google--{base_model}-delta0.15-epoch2--{task_str}--d2g--random--alpha1.0--full-completion{msuf}"
+
+
+def define_all_expected_evals():
+    """Build the full registry of expected evaluations.
+
+    Returns list of dicts with keys:
+      base_model, domain, train_tc, variant, model_dir, eval_mode, metric, lenorm, split
     """
     evals = []
 
-    for base_model in ["gemma-2-9b-it", "gemma-2-2b"]:
-        if "9b" in base_model:
-            msuf = "_merged"
-        else:
-            msuf = ""
+    for base_model in ["gemma-2-9b-it", "gemma-2-2b", "gemma-2-2b-it"]:
+        msuf = "_merged" if "9b" in base_model else ""
 
-        for tc_suffix_train in ["--tc-neg", ""]:
-            tc_label = "tc-neg" if tc_suffix_train == "--tc-neg" else "plain"
-
-            # --- PLAUSIBLEQA: 6 variants ---
-            mp = f"v6-google--{base_model}-delta0.15-epoch2--plausibleqa-all--d2g--random--alpha1.0{tc_suffix_train}"
-            pqa_variants = [
-                ("pref-only labelonly",           f"{mp}--full-completion--force-same-x--labelonly0.1{msuf}"),
-                ("pref-only vallogodds labelonly", f"{mp}--full-completion--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("pref-only semi",                f"{mp}--full-completion--force-same-x--semi0.1{msuf}"),
-                ("comb labelonly",                f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("comb semi",                     f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1{msuf}"),
-                ("sft semi",                      f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
-            ]
-            for variant_name, model_dir in pqa_variants:
-                evals.append({
-                    "base_model": base_model,
-                    "domain": "plausibleqa",
-                    "train_tc": tc_label,
-                    "variant": variant_name,
-                    "model_dir": model_dir,
-                    "eval_prefix": "neg-",
-                    "metric": "_log-odds",
-                    "eval_tc": "_tc",
-                    "eval_lenorm": "",
-                    "split": "test",
-                })
-
-            # --- AMBIGQA: 6 variants ---
-            ma = f"v6-google--{base_model}-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0{tc_suffix_train}"
-            aqa_variants = [
-                ("pref-only labelonly",           f"{ma}--full-completion--force-same-x--labelonly0.1{msuf}"),
-                ("pref-only vallogodds labelonly", f"{ma}--full-completion--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("pref-only semi",                f"{ma}--full-completion--force-same-x--semi0.1{msuf}"),
-                ("comb labelonly",                f"{ma}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("comb semi",                     f"{ma}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1{msuf}"),
-                ("sft semi",                      f"{ma}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
-            ]
-            for variant_name, model_dir in aqa_variants:
-                evals.append({
-                    "base_model": base_model,
-                    "domain": "ambigqa",
-                    "train_tc": tc_label,
-                    "variant": variant_name,
-                    "model_dir": model_dir,
-                    "eval_prefix": "neg-",
-                    "metric": "_log-odds",
-                    "eval_tc": "_tc",
-                    "eval_lenorm": "",
-                    "split": "test",
-                })
-
-            # --- HYPERNYM: 6 variants ---
-            mh = f"v6-google--{base_model}-delta0.15-epoch2--hypernym-concat-bananas-to-dogs-double-all--d2g--random--alpha1.0{tc_suffix_train}"
-            hyp_variants = [
-                ("pref-only labelonly",           f"{mh}--full-completion--force-same-x--labelonly0.1{msuf}"),
-                ("pref-only vallogodds labelonly", f"{mh}--full-completion--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("pref-only semi",                f"{mh}--full-completion--force-same-x--semi0.1{msuf}"),
-                ("comb labelonly",                f"{mh}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("comb semi",                     f"{mh}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1{msuf}"),
-                ("sft semi",                      f"{mh}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
-            ]
-            for variant_name, model_dir in hyp_variants:
-                evals.append({
-                    "base_model": base_model,
-                    "domain": "hypernym",
-                    "train_tc": tc_label,
-                    "variant": variant_name,
-                    "model_dir": model_dir,
-                    "eval_prefix": "neg-",
-                    "metric": "_log-odds",
-                    "eval_tc": "_tc",
-                    "eval_lenorm": "",
-                    "split": "test",
-                })
-
-            # --- IFEVAL: 5 variants (no pref-only semi); skip for gemma-2-2b ---
-            if base_model == "gemma-2-2b":
-                continue
-            mi = f"v6-google--{base_model}-delta0.15-epoch2--ifeval-concat-all--d2g--random--alpha1.0{tc_suffix_train}"
-            ife_variants = [
-                ("pref-only labelonly",           f"{mi}--full-completion--force-same-x--labelonly0.1{msuf}"),
-                ("pref-only vallogodds labelonly", f"{mi}--full-completion--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("comb labelonly",                f"{mi}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--labelonly0.1{msuf}"),
-                ("comb semi",                     f"{mi}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1{msuf}"),
-                ("sft semi",                      f"{mi}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
-            ]
-            for variant_name, model_dir in ife_variants:
-                evals.append({
-                    "base_model": base_model,
-                    "domain": "ifeval",
-                    "train_tc": tc_label,
-                    "variant": variant_name,
-                    "model_dir": model_dir,
-                    "eval_prefix": "neg-",
-                    "metric": "_log-odds",
-                    "eval_tc": "_tc",
-                    "eval_lenorm": "",
-                    "split": "test",
-                })
-
-        # --- BASE MODEL (no finetuning) ---
-        base_model_dir = f"google/{base_model}"
-        base_domains = ["plausibleqa", "ambigqa", "hypernym", "ifeval"]
         if base_model == "gemma-2-2b":
-            base_domains = ["plausibleqa", "ambigqa", "hypernym"]
-        for domain in base_domains:
-            evals.append({
-                "base_model": base_model,
-                "domain": domain,
-                "train_tc": "base",
-                "variant": "base (no finetuning)",
-                "model_dir": base_model_dir,
-                "eval_prefix": "neg-",
-                "metric": "_log-odds",
-                "eval_tc": "_tc",
-                "eval_lenorm": "",
-                "split": "test",
-            })
+            domains = ["plausibleqa", "ambigqa", "hypernym"]
+        elif base_model == "gemma-2-2b-it":
+            domains = ["plausibleqa", "ambigqa", "hypernym"]
+        else:
+            domains = ["plausibleqa", "ambigqa", "hypernym", "ifeval"]
+
+        tc_train_options = [("", "plain"), ("--tc-neg", "tc-neg"), ("--tc-self", "tc-self")]
+
+        for eval_mode_key, eval_mode in EVAL_MODES.items():
+            # --- Base model (no finetuning) ---
+            for domain in domains:
+                evals.append({
+                    "base_model": base_model,
+                    "domain": domain,
+                    "train_tc": "base",
+                    "variant": "base",
+                    "model_dir": f"google/{base_model}",
+                    "eval_mode": eval_mode_key,
+                    "filename_patterns": eval_mode["patterns"],
+                    "metric": "_log-odds",
+                    "lenorm": "",
+                    "split": "test",
+                })
+
+            # --- Finetuned: plain + tc-neg + tc-self trained ---
+            for tc_train_suffix, tc_label in tc_train_options:
+                for domain in domains:
+                    for variant_name, model_dir in _finetuned_variants(
+                        base_model, domain, tc_train_suffix, msuf
+                    ):
+                        evals.append({
+                            "base_model": base_model,
+                            "domain": domain,
+                            "train_tc": tc_label,
+                            "variant": variant_name,
+                            "model_dir": model_dir,
+                            "eval_mode": eval_mode_key,
+                            "filename_patterns": eval_mode["patterns"],
+                            "metric": "_log-odds",
+                            "lenorm": "",
+                            "split": "test",
+                        })
+
+            # --- tc-neg lenorm trained (2b only) ---
+            if base_model == "gemma-2-2b":
+                for domain in domains:
+                    for variant_name, model_dir in _finetuned_variants(
+                        base_model, domain, "--tc-neg--lenorm", msuf
+                    ):
+                        evals.append({
+                            "base_model": base_model,
+                            "domain": domain,
+                            "train_tc": "tc-neg-lenorm",
+                            "variant": variant_name,
+                            "model_dir": model_dir,
+                            "eval_mode": eval_mode_key,
+                            "filename_patterns": eval_mode["patterns"],
+                            "metric": "_log-odds",
+                            "lenorm": "",
+                            "split": "test",
+                        })
+
+            # --- V2G baselines (not for 2b-it) ---
+            if base_model != "gemma-2-2b-it":
+                for domain in domains:
+                    evals.append({
+                        "base_model": base_model,
+                        "domain": domain,
+                        "train_tc": "v2g",
+                        "variant": "V2G baseline",
+                        "model_dir": _v2g_baseline(base_model, domain, msuf),
+                        "eval_mode": eval_mode_key,
+                        "filename_patterns": eval_mode["patterns"],
+                        "metric": "_log-odds",
+                        "lenorm": "",
+                        "split": "test",
+                    })
 
     return evals
 
 
-def run_inventory(filter_base_model=None, filter_eval_prefix=None):
-    all_files = [f for f in os.listdir(OUTPUTS_DIR) if f.startswith("scores_") and f.endswith(".csv")]
-    print(f"Total score CSV files in outputs/: {len(all_files)}")
+# ---------------------------------------------------------------------------
+# Inventory engine
+# ---------------------------------------------------------------------------
 
-    # Sanity check: make sure we can find some known files
-    neg_files = [f for f in all_files if f.startswith("scores_neg-")]
-    self_files = [f for f in all_files if f.startswith("scores_self-")]
-    plain_files = [f for f in all_files if f.startswith("scores_v6-")]
-    print(f"  neg- prefix: {len(neg_files)}")
-    print(f"  self- prefix: {len(self_files)}")
-    print(f"  plain (no prefix): {len(plain_files)}")
-    assert len(neg_files) + len(self_files) + len(plain_files) == len(all_files), \
-        f"File count mismatch: {len(neg_files)} + {len(self_files)} + {len(plain_files)} != {len(all_files)}. " \
-        f"Some files don't match expected prefixes."
+def run_inventory(all_files, evals):
+    """Check each expected eval config against actual files.
 
-    evals = define_expected_evals()
-
-    if filter_base_model:
-        evals = [e for e in evals if e["base_model"] == filter_base_model]
-    if filter_eval_prefix:
-        evals = [e for e in evals if e["eval_prefix"] == filter_eval_prefix]
-
-    print(f"\nChecking {len(evals)} expected evaluation configurations...\n")
-
+    Returns (results, claimed_files).
+    """
     results = []
-    claimed_files = set()
+    claimed = set()
 
     for ev in evals:
         model_short = model_dir_to_short(ev["model_dir"])
         tasks = DOMAIN_TASKS[ev["domain"]]
         found = 0
         missing_tasks = []
-        duplicate_tasks = []
+        dupes = []
 
         for task in tasks:
-            prefix = build_expected_filename_prefix(
-                ev["eval_prefix"], model_short, task, ev["split"],
-                ev["metric"], ev["eval_tc"], ev["eval_lenorm"],
-            )
-            matches = find_matching_files(all_files, prefix)
-            if len(matches) == 0:
-                missing_tasks.append(task)
-            else:
+            matches = []
+            for eval_prefix, tc_suffix in ev["filename_patterns"]:
+                pfx = build_prefix(
+                    eval_prefix, model_short, task, ev["split"],
+                    ev["metric"], tc_suffix, ev["lenorm"],
+                )
+                matches.extend(find_matching(all_files, pfx))
+            if matches:
                 found += 1
-                claimed_files.update(matches)
+                claimed.update(set(matches))
                 if len(matches) > 1:
-                    duplicate_tasks.append((task, len(matches)))
+                    dupes.append((task, len(set(matches))))
+            else:
+                missing_tasks.append(task)
 
         total = len(tasks)
-        status = "COMPLETE" if found == total else f"MISSING {total - found}"
         results.append({
             **ev,
             "found": found,
             "total": total,
-            "status": status,
+            "status": "COMPLETE" if found == total else f"MISSING {total - found}",
             "missing_tasks": missing_tasks,
-            "duplicate_tasks": duplicate_tasks,
+            "dupes": dupes,
         })
 
-    # Print results grouped by base_model, then domain
-    for base_model in sorted(set(r["base_model"] for r in results)):
-        print(f"\n{'='*80}")
+    return results, claimed
+
+
+# ---------------------------------------------------------------------------
+# Classify unclaimed files
+# ---------------------------------------------------------------------------
+
+def classify_unclaimed(unclaimed):
+    """Group unclaimed files into recognizable categories."""
+    categories = defaultdict(list)
+    for f in unclaimed:
+        if "gemma-2-2b-it" in f:
+            categories["gemma-2-2b-it (not tracked)"].append(f)
+        elif "_evallenorm_" in f:
+            categories["lenorm evals"].append(f)
+        elif re.search(r'hypernym-(bananas|bazookas|cabinets|cars|chairs|crows|diapers|dogs|dolls|ducklings|elephants|guns|hammers|helmets|jackets|kayaks|kites|mirrors)-all_', f):
+            categories["per-category hypernym (old)"].append(f)
+        elif "v5-" in f:
+            categories["v5 models (legacy)"].append(f)
+        elif "_train_" in f:
+            categories["train split evals"].append(f)
+        elif "_log-probs_" in f:
+            categories["log-probs metric"].append(f)
+        elif "lenorm_full-completion" in f or ("tc-" in f and "lenorm" in f.split("full-completion")[0] if "full-completion" in f else False):
+            categories["tc+lenorm trained models"].append(f)
+        elif "epoch1" in f or "epoch0" in f:
+            categories["intermediate epoch (0 or 1)"].append(f)
+        elif "gemma-2-2b" in f and "gemma-2-2b-it" not in f and "ifeval" in f:
+            categories["2b ifeval (excluded)"].append(f)
+        else:
+            categories["other"].append(f)
+    return dict(categories)
+
+
+# ---------------------------------------------------------------------------
+# Terminal output
+# ---------------------------------------------------------------------------
+
+def print_results(results, claimed, all_files):
+    total_files = len(all_files)
+    claimed_count = len(claimed)
+    unclaimed = [f for f in all_files if f not in claimed]
+
+    print(f"\nTotal score CSV files: {total_files}")
+    print(f"Claimed by expected configs: {claimed_count}")
+    print(f"Unclaimed: {len(unclaimed)}")
+
+    for base_model in ["gemma-2-2b", "gemma-2-9b-it"]:
+        bm_results = [r for r in results if r["base_model"] == base_model]
+        if not bm_results:
+            continue
+
+        print(f"\n{'='*100}")
         print(f"BASE MODEL: {base_model}")
-        print(f"{'='*80}")
+        print(f"{'='*100}")
 
         for domain in ["plausibleqa", "ambigqa", "hypernym", "ifeval"]:
-            domain_results = [r for r in results if r["base_model"] == base_model and r["domain"] == domain]
-            if not domain_results:
+            dr = [r for r in bm_results if r["domain"] == domain]
+            if not dr:
                 continue
 
-            total_tasks = len(DOMAIN_TASKS[domain])
-            print(f"\n  --- {domain.upper()} ({total_tasks} tasks per variant) ---")
-            print(f"  {'Train TC':<10} {'Variant':<35} {'Done':>5} {'Status':<15} {'Dupes'}")
-            print(f"  {'-'*10} {'-'*35} {'-'*5} {'-'*15} {'-'*5}")
+            n_tasks = len(DOMAIN_TASKS[domain])
+            print(f"\n  --- {domain.upper()} ({n_tasks} tasks) ---")
+            print(f"  {'Train':<8} {'Variant':<18} ", end="")
+            for em in EVAL_MODES:
+                print(f"  {em:<14}", end="")
+            print()
+            print(f"  {'-'*8} {'-'*18} ", end="")
+            for _ in EVAL_MODES:
+                print(f"  {'-'*14}", end="")
+            print()
 
-            for r in sorted(domain_results, key=lambda x: (x["train_tc"], x["variant"])):
-                dupe_str = ""
-                if r["duplicate_tasks"]:
-                    dupe_str = f"{len(r['duplicate_tasks'])} dupes"
-                status_str = r["status"]
-                done_str = f"{r['found']}/{r['total']}"
-                print(f"  {r['train_tc']:<10} {r['variant']:<35} {done_str:>5} {status_str:<15} {dupe_str}")
+            seen_variants = []
+            for r in dr:
+                key = (r["train_tc"], r["variant"])
+                if key not in seen_variants:
+                    seen_variants.append(key)
 
-    # Check for unclaimed files (files we didn't expect)
-    unclaimed = [f for f in all_files if f not in claimed_files]
-    if filter_eval_prefix:
-        unclaimed = [f for f in unclaimed if f.startswith(f"scores_{filter_eval_prefix}")]
-    if filter_base_model:
-        model_str = filter_base_model.replace("-", "_").replace("/", "_")
-        unclaimed = [f for f in unclaimed if model_str in f]
+            for train_tc, variant in sorted(set(seen_variants)):
+                print(f"  {train_tc:<8} {variant:<18} ", end="")
+                for em in EVAL_MODES:
+                    matching = [r for r in dr if r["train_tc"] == train_tc
+                                and r["variant"] == variant and r["eval_mode"] == em]
+                    if matching:
+                        r = matching[0]
+                        cell = f"{r['found']}/{r['total']}"
+                        if r["status"] == "COMPLETE":
+                            cell += " ok"
+                        print(f"  {cell:<14}", end="")
+                    else:
+                        print(f"  {'--':<14}", end="")
+                print()
 
+    # Unclaimed summary
     if unclaimed:
-        print(f"\n{'='*80}")
-        print(f"UNCLAIMED FILES ({len(unclaimed)} files not matched to any expected eval):")
-        print(f"{'='*80}")
-        for f in sorted(unclaimed)[:30]:
-            print(f"  {f}")
-        if len(unclaimed) > 30:
-            print(f"  ... and {len(unclaimed) - 30} more")
+        cats = classify_unclaimed(unclaimed)
+        print(f"\n{'='*100}")
+        print(f"UNCLAIMED FILES: {len(unclaimed)} total")
+        print(f"{'='*100}")
+        for cat, files in sorted(cats.items(), key=lambda x: -len(x[1])):
+            print(f"  {cat}: {len(files)}")
+            for f in sorted(files)[:3]:
+                print(f"    {f}")
+            if len(files) > 3:
+                print(f"    ... and {len(files) - 3} more")
 
     # Summary
     complete = sum(1 for r in results if r["status"] == "COMPLETE")
-    incomplete = sum(1 for r in results if r["status"] != "COMPLETE")
+    total_configs = len(results)
     total_missing = sum(r["total"] - r["found"] for r in results)
-    total_dupes = sum(len(r["duplicate_tasks"]) for r in results)
+    nonzero = sum(1 for r in results if r["found"] > 0)
 
-    print(f"\n{'='*80}")
+    print(f"\n{'='*100}")
     print(f"SUMMARY")
-    print(f"{'='*80}")
-    print(f"  Complete configurations: {complete}/{len(results)}")
-    print(f"  Incomplete configurations: {incomplete}/{len(results)}")
-    print(f"  Total missing task files: {total_missing}")
-    print(f"  Total tasks with duplicates: {total_dupes}")
+    print(f"{'='*100}")
+    print(f"  Configs checked:   {total_configs}")
+    print(f"  Complete:          {complete}")
+    print(f"  Partially done:    {nonzero - complete}")
+    print(f"  Not started:       {total_configs - nonzero}")
+    print(f"  Total missing:     {total_missing} task files")
+    print(f"  Files claimed:     {claimed_count}/{total_files}")
+    print(f"  Files unclaimed:   {len(unclaimed)}/{total_files}")
 
-    return results
+
+# ---------------------------------------------------------------------------
+# LaTeX output
+# ---------------------------------------------------------------------------
+
+def _esc(s):
+    return s.replace("_", r"\_").replace("&", r"\&").replace("%", r"\%")
 
 
-def run_sanity_checks():
-    """Verify our filename logic matches actual files."""
+def write_latex(results, claimed, all_files, outpath):
+    unclaimed = [f for f in all_files if f not in claimed]
+    complete = sum(1 for r in results if r["status"] == "COMPLETE")
+
+    lines = []
+    lines.append(r"\documentclass[10pt,landscape]{article}")
+    lines.append(r"\usepackage[margin=0.5in]{geometry}")
+    lines.append(r"\usepackage{booktabs}")
+    lines.append(r"\usepackage{longtable}")
+    lines.append(r"\usepackage{xcolor}")
+    lines.append(r"\usepackage{colortbl}")
+    lines.append(r"\definecolor{done}{HTML}{C8E6C9}")
+    lines.append(r"\definecolor{partial}{HTML}{FFF9C4}")
+    lines.append(r"\definecolor{missing}{HTML}{FFCDD2}")
+    lines.append(r"\begin{document}")
+    lines.append(r"\section*{Score File Inventory}")
+    lines.append(f"Total files: {len(all_files)}, "
+                 f"claimed: {len(claimed)}, "
+                 f"unclaimed: {len(unclaimed)}, "
+                 f"configs complete: {complete}/{len(results)}")
+    lines.append("")
+
+    for base_model in ["gemma-2-2b", "gemma-2-9b-it"]:
+        bm_results = [r for r in results if r["base_model"] == base_model]
+        if not bm_results:
+            continue
+
+        lines.append(f"\\subsection*{{{_esc(base_model)}}}")
+
+        for domain in ["plausibleqa", "ambigqa", "hypernym", "ifeval"]:
+            dr = [r for r in bm_results if r["domain"] == domain]
+            if not dr:
+                continue
+
+            n_tasks = len(DOMAIN_TASKS[domain])
+            ncols = 2 + len(EVAL_MODES)
+            col_spec = "ll" + "c" * len(EVAL_MODES)
+
+            lines.append(f"\\paragraph{{{_esc(domain)} ({n_tasks} tasks)}}")
+            lines.append(f"\\begin{{tabular}}{{{col_spec}}}")
+            lines.append(r"\toprule")
+            header = "Train & Variant"
+            for em in EVAL_MODES:
+                header += f" & {_esc(em)}"
+            header += r" \\"
+            lines.append(header)
+            lines.append(r"\midrule")
+
+            seen = []
+            for r in dr:
+                key = (r["train_tc"], r["variant"])
+                if key not in seen:
+                    seen.append(key)
+
+            for train_tc, variant in sorted(set(seen)):
+                row = f"{_esc(train_tc)} & {_esc(variant)}"
+                for em in EVAL_MODES:
+                    matching = [r for r in dr if r["train_tc"] == train_tc
+                                and r["variant"] == variant and r["eval_mode"] == em]
+                    if matching:
+                        r = matching[0]
+                        frac = f"{r['found']}/{r['total']}"
+                        if r["found"] == r["total"]:
+                            row += f" & \\cellcolor{{done}}{frac}"
+                        elif r["found"] > 0:
+                            row += f" & \\cellcolor{{partial}}{frac}"
+                        else:
+                            row += f" & \\cellcolor{{missing}}{frac}"
+                    else:
+                        row += " & --"
+                row += r" \\"
+                lines.append(row)
+
+            lines.append(r"\bottomrule")
+            lines.append(r"\end{tabular}")
+            lines.append(r"\vspace{1em}")
+            lines.append("")
+
+    # Unclaimed summary
+    if unclaimed:
+        cats = classify_unclaimed(unclaimed)
+        lines.append(r"\subsection*{Unclaimed files}")
+        lines.append(r"\begin{tabular}{lr}")
+        lines.append(r"\toprule")
+        lines.append(r"Category & Count \\")
+        lines.append(r"\midrule")
+        for cat, files in sorted(cats.items(), key=lambda x: -len(x[1])):
+            lines.append(f"{_esc(cat)} & {len(files)} \\\\")
+        lines.append(f"\\midrule")
+        lines.append(f"Total & {len(unclaimed)} \\\\")
+        lines.append(r"\bottomrule")
+        lines.append(r"\end{tabular}")
+
+    lines.append(r"\end{document}")
+
+    outpath.write_text("\n".join(lines))
+    return outpath
+
+
+def compile_latex(tex_path):
+    pdf_dir = tex_path.parent
+    try:
+        result = subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-output-directory", str(pdf_dir), str(tex_path)],
+            capture_output=True, text=True, timeout=30,
+        )
+        pdf_path = tex_path.with_suffix(".pdf")
+        if pdf_path.exists():
+            print(f"  PDF written to: {pdf_path}")
+        else:
+            print(f"  pdflatex ran but no PDF produced. Check {tex_path.with_suffix('.log')}")
+    except FileNotFoundError:
+        print("  pdflatex not found -- skipping PDF compilation. LaTeX source saved.")
+    except subprocess.TimeoutExpired:
+        print("  pdflatex timed out.")
+
+
+# ---------------------------------------------------------------------------
+# Sanity checks
+# ---------------------------------------------------------------------------
+
+def run_sanity_checks(all_files):
     print("Running sanity checks...\n")
-    all_files = [f for f in os.listdir(OUTPUTS_DIR) if f.startswith("scores_") and f.endswith(".csv")]
 
-    # Check 1: model_dir_to_short works for known cases
-    assert model_dir_to_short("google/gemma-2-9b-it") == "v6-google_gemma-2-9b-it", \
-        f"Base model short name wrong: {model_dir_to_short('google/gemma-2-9b-it')}"
-    assert model_dir_to_short("google/gemma-2-2b") == "v6-google_gemma-2-2b", \
-        f"Base model short name wrong: {model_dir_to_short('google/gemma-2-2b')}"
+    assert model_dir_to_short("google/gemma-2-9b-it") == "v6-google_gemma-2-9b-it"
+    assert model_dir_to_short("google/gemma-2-2b") == "v6-google_gemma-2-2b"
 
-    finetuned = "v6-google--gemma-2-9b-it-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--labelonly0.1_merged"
-    expected_short = "v6-google_gemma-2-9b-it-delta0.15-epoch2_ambigqa-all_d2g_random_alpha1.0_tc-neg_full-completion_force-same-x_labelonly0.1_merged"
-    assert model_dir_to_short(finetuned) == expected_short, \
-        f"Finetuned short name wrong:\n  got:      {model_dir_to_short(finetuned)}\n  expected: {expected_short}"
+    ft = "v6-google--gemma-2-9b-it-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--labelonly0.1_merged"
+    expected = "v6-google_gemma-2-9b-it-delta0.15-epoch2_ambigqa-all_d2g_random_alpha1.0_tc-neg_full-completion_force-same-x_labelonly0.1_merged"
+    assert model_dir_to_short(ft) == expected, f"Got: {model_dir_to_short(ft)}"
 
-    # Check 2: can we find known base model files?
-    prefix_base_aqa = build_expected_filename_prefix(
-        "neg-", "v6-google_gemma-2-9b-it", "ambigqa-american", "test",
-        "_log-odds", "_tc", "",
-    )
-    matches = find_matching_files(all_files, prefix_base_aqa)
-    assert len(matches) > 0, f"Sanity check FAIL: no base 9b-it ambigqa-american files found with prefix '{prefix_base_aqa}'"
-    print(f"  [OK] Base 9b-it ambigqa-american: found {len(matches)} file(s)")
-    print(f"       Example: {matches[0]}")
+    for prefix, task, tc_suf in [
+        ("neg-", "ambigqa-american", "_tc"),
+        ("self-", "hypernym-dogs", "_tc"),
+        ("", "hypernym-dogs", "_evaltc"),
+    ]:
+        pfx = build_prefix(prefix, "v6-google_gemma-2-9b-it", task, "test", "_log-odds", tc_suf, "")
+        matches = find_matching(all_files, pfx)
+        status = f"found {len(matches)}" if matches else "NONE"
+        print(f"  [{status:>10}] {pfx}*")
 
-    # Check 3: can we find known finetuned tc-neg files?
-    prefix_ft = build_expected_filename_prefix(
-        "neg-", expected_short, "ambigqa-american", "test",
-        "_log-odds", "_tc", "",
-    )
-    matches_ft = find_matching_files(all_files, prefix_ft)
-    assert len(matches_ft) > 0, f"Sanity check FAIL: no finetuned tc-neg ambigqa-american files found with prefix '{prefix_ft}'"
-    print(f"  [OK] Finetuned tc-neg ambigqa-american: found {len(matches_ft)} file(s)")
-    print(f"       Example: {matches_ft[0]}")
+    print(f"\n  Sanity checks passed.\n")
 
-    # Check 4: verify hypernym files have _v2 suffix
-    prefix_hyp = build_expected_filename_prefix(
-        "neg-", "v6-google_gemma-2-9b-it", "hypernym-dogs", "test",
-        "_log-odds", "_tc", "",
-    )
-    assert "_v2_" in prefix_hyp, f"Hypernym prefix missing _v2: {prefix_hyp}"
-    matches_hyp = find_matching_files(all_files, prefix_hyp)
-    assert len(matches_hyp) > 0, f"Sanity check FAIL: no base 9b-it hypernym-dogs files found with prefix '{prefix_hyp}'"
-    print(f"  [OK] Base 9b-it hypernym-dogs (v2): found {len(matches_hyp)} file(s)")
-    print(f"       Example: {matches_hyp[0]}")
 
-    # Check 5: verify ifeval has NO _v2 suffix
-    prefix_ife = build_expected_filename_prefix(
-        "neg-", "v6-google_gemma-2-9b-it", "ifeval-prompt_1", "test",
-        "_log-odds", "_tc", "",
-    )
-    assert "_v2" not in prefix_ife, f"IFEval prefix has unexpected _v2: {prefix_ife}"
-    print(f"  [OK] IFEval prefix has no _v2 suffix")
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
-    # Check 6: verify the prefix pattern matches expected format
-    assert prefix_base_aqa == "scores_neg-v6-google_gemma-2-9b-it_ambigqa-american_test_log-odds_tc_", \
-        f"Prefix format wrong: {prefix_base_aqa}"
-    print(f"  [OK] Prefix format verified: {prefix_base_aqa}")
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Comprehensive score file inventory")
+    parser.add_argument("--model", type=str, default=None,
+                        help="Filter to base model (e.g. gemma-2-9b-it)")
+    parser.add_argument("--eval-mode", type=str, default=None,
+                        choices=list(EVAL_MODES.keys()),
+                        help="Filter to eval mode")
+    parser.add_argument("--sanity-only", action="store_true")
+    parser.add_argument("--no-latex", action="store_true", help="Skip LaTeX output")
+    args = parser.parse_args()
 
-    # Check 7: spot-check a plain-trained model
-    plain_model = "v6-google--gemma-2-9b-it-delta0.15-epoch2--ambigqa-all--d2g--random--alpha1.0--full-completion--force-same-x--labelonly0.1_merged"
-    plain_short = model_dir_to_short(plain_model)
-    prefix_plain = build_expected_filename_prefix(
-        "neg-", plain_short, "ambigqa-american", "test", "_log-odds", "_tc", "",
-    )
-    matches_plain = find_matching_files(all_files, prefix_plain)
-    if matches_plain:
-        print(f"  [OK] Plain-trained ambigqa-american: found {len(matches_plain)} file(s)")
-        print(f"       Example: {matches_plain[0]}")
-    else:
-        print(f"  [INFO] Plain-trained ambigqa-american: 0 files (model may not exist)")
+    all_files = sorted(f for f in os.listdir(OUTPUTS_DIR)
+                       if f.startswith("scores_") and f.endswith(".csv"))
 
-    print(f"\n  All sanity checks passed.\n")
+    run_sanity_checks(all_files)
+    if args.sanity_only:
+        return
+
+    evals = define_all_expected_evals()
+    if args.model:
+        evals = [e for e in evals if e["base_model"] == args.model]
+    if args.eval_mode:
+        evals = [e for e in evals if e["eval_mode"] == args.eval_mode]
+
+    results, claimed = run_inventory(all_files, evals)
+    print_results(results, claimed, all_files)
+
+    if not args.no_latex:
+        tex_path = LATEX_DIR / "inventory.tex"
+        write_latex(results, claimed, all_files, tex_path)
+        print(f"\n  LaTeX written to: {tex_path}")
+        compile_latex(tex_path)
 
 
 if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser(description="Inventory score CSV files")
-    parser.add_argument("--model", type=str, default=None,
-                        help="Filter to a specific base model (e.g. gemma-2-9b-it)")
-    parser.add_argument("--eval-prefix", type=str, default=None,
-                        help="Filter to a specific eval prefix (e.g. neg-)")
-    parser.add_argument("--sanity-only", action="store_true",
-                        help="Only run sanity checks, don't do full inventory")
-    args = parser.parse_args()
-
-    run_sanity_checks()
-
-    if not args.sanity_only:
-        run_inventory(filter_base_model=args.model, filter_eval_prefix=args.eval_prefix)
+    main()

@@ -158,8 +158,6 @@ run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it hypernym-concat-bananas-
 # IFEVAL-CONCAT
 # ============================================================
 
-# NOTE: I stopped here.
-
 # --- plain ---
 run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it ifeval-concat comb semi 0.1 --log-odds --disc-shots zero
 run 1 16 scripts/run_train_semi.sh google/gemma-2-9b-it ifeval-concat sft semi 0.1 --disc-shots zero

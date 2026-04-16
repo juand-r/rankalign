@@ -44,20 +44,51 @@ fi
 
 cd "$(dirname "$0")"
 
+# Build the score-file prefix so we can skip already-completed tasks.
+# Mirrors the filename logic in eval_by_claude.py.
+SELF_PFX=""
+[[ "$EVAL_FLAGS" == *"--neg-typicality"* ]]  && SELF_PFX="neg-"
+[[ "$EVAL_FLAGS" == *"--self-typicality"* ]] && SELF_PFX="self-"
+
+MODEL_SHORT=$(basename "$MODEL" | sed 's/--/_/g')
+
+METRIC_SUF="_log-probs"
+[[ "$EVAL_FLAGS" == *"--validator-log-odds"* ]] && METRIC_SUF="_log-odds"
+
+TC_SUF=""
+[[ "$EVAL_FLAGS" == *"--typicality-correction"* || "$EVAL_FLAGS" == *"--self-typicality"* || "$EVAL_FLAGS" == *"--neg-typicality"* ]] && TC_SUF="_tc"
+
+LENORM_SUF=""
+[[ "$EVAL_FLAGS" == *"--length-normalize"* ]] && LENORM_SUF="_evallenorm"
+
 echo "Model: $MODEL"
 echo "Tasks: $#"
 echo "Flags: $EVAL_FLAGS"
 echo "========================================"
 
 DONE=0
+SKIPPED=0
 TOTAL=$#
 START_TIME=$SECONDS
 
 for TASK in "$@"; do
     DONE=$((DONE + 1))
+
+    # Hypernym tasks include a _v2 suffix by default
+    V2_SUF=""
+    [[ "$TASK" == hypernym-* ]] && V2_SUF="_v2"
+
+    PATTERN="../outputs/scores_${SELF_PFX}${MODEL_SHORT}_${TASK}_test${V2_SUF}${METRIC_SUF}${TC_SUF}${LENORM_SUF}_*.csv"
+    if ls $PATTERN 1>/dev/null 2>&1; then
+        echo "[$DONE/$TOTAL] $TASK  -- SKIP (score file exists)"
+        SKIPPED=$((SKIPPED + 1))
+        continue
+    fi
+
     ELAPSED=$((SECONDS - START_TIME))
-    if [ $DONE -gt 1 ] && [ $ELAPSED -gt 0 ]; then
-        PER_TASK=$((ELAPSED / (DONE - 1)))
+    RAN=$((DONE - SKIPPED))
+    if [ $RAN -gt 1 ] && [ $ELAPSED -gt 0 ]; then
+        PER_TASK=$((ELAPSED / (RAN - 1)))
         REMAINING=$(( PER_TASK * (TOTAL - DONE + 1) ))
         echo "[$DONE/$TOTAL] $TASK  (elapsed ${ELAPSED}s, ~${REMAINING}s remaining)"
     else
@@ -79,4 +110,4 @@ done
 
 TOTAL_TIME=$((SECONDS - START_TIME))
 echo "========================================"
-echo "Finished all $TOTAL tasks in ${TOTAL_TIME}s"
+echo "Finished $TOTAL tasks in ${TOTAL_TIME}s (skipped $SKIPPED already-done)"

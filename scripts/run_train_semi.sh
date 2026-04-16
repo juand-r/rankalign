@@ -38,6 +38,8 @@
 
 source /u/jdr/venvs/venv_lexcons/bin/activate
 
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
 MODEL=$1
 TASK=$2
 LOSS=$3
@@ -152,6 +154,7 @@ echo "Config: $label"
 echo "  nll_validator=$NLL_V  nll_generator=$NLL_G  preference=$PREF"
 echo "  $SEMI_FLAG"
 echo "========================================"
+
 
 python ranking_loss_ref.py \
     --model $MODEL \
