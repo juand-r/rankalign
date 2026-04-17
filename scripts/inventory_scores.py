@@ -220,7 +220,6 @@ def define_all_expected_evals():
                     "eval_mode": eval_mode_key,
                     "filename_patterns": eval_mode["patterns"],
                     "metric": "_log-odds",
-                    "lenorm": "",
                     "split": "test",
                 })
 
@@ -239,7 +238,6 @@ def define_all_expected_evals():
                             "eval_mode": eval_mode_key,
                             "filename_patterns": eval_mode["patterns"],
                             "metric": "_log-odds",
-                            "lenorm": "",
                             "split": "test",
                         })
 
@@ -258,7 +256,6 @@ def define_all_expected_evals():
                             "eval_mode": eval_mode_key,
                             "filename_patterns": eval_mode["patterns"],
                             "metric": "_log-odds",
-                            "lenorm": "",
                             "split": "test",
                         })
 
@@ -274,7 +271,6 @@ def define_all_expected_evals():
                         "eval_mode": eval_mode_key,
                         "filename_patterns": eval_mode["patterns"],
                         "metric": "_log-odds",
-                        "lenorm": "",
                         "split": "test",
                     })
 
@@ -303,16 +299,20 @@ def run_inventory(all_files, evals):
         for task in tasks:
             matches = []
             for eval_prefix, tc_suffix in ev["filename_patterns"]:
-                pfx = build_prefix(
-                    eval_prefix, model_short, task, ev["split"],
-                    ev["metric"], tc_suffix, ev["lenorm"],
-                )
-                matches.extend(find_matching(all_files, pfx))
-            if matches:
+                # Try without _evallenorm first, then with it
+                # Both produce identical CSV content (lenorm is filename-only)
+                for lenorm_suf in ["", "_evallenorm"]:
+                    pfx = build_prefix(
+                        eval_prefix, model_short, task, ev["split"],
+                        ev["metric"], tc_suffix, lenorm_suf,
+                    )
+                    matches.extend(find_matching(all_files, pfx))
+            unique_matches = list(set(matches))
+            if unique_matches:
                 found += 1
-                claimed.update(set(matches))
-                if len(matches) > 1:
-                    dupes.append((task, len(set(matches))))
+                claimed.update(unique_matches)
+                if len(unique_matches) > 1:
+                    dupes.append((task, len(unique_matches)))
             else:
                 missing_tasks.append(task)
 
