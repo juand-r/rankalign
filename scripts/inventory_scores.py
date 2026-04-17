@@ -241,23 +241,27 @@ def define_all_expected_evals():
                             "split": "test",
                         })
 
-            # --- tc-neg lenorm trained (2b only) ---
+            # --- tc+lenorm trained (2b only) ---
             if base_model == "gemma-2-2b":
-                for domain in domains:
-                    for variant_name, model_dir in _finetuned_variants(
-                        base_model, domain, "--tc-neg--lenorm", msuf
-                    ):
-                        evals.append({
-                            "base_model": base_model,
-                            "domain": domain,
-                            "train_tc": "tc-neg-lenorm",
-                            "variant": variant_name,
-                            "model_dir": model_dir,
-                            "eval_mode": eval_mode_key,
-                            "filename_patterns": eval_mode["patterns"],
-                            "metric": "_log-odds",
-                            "split": "test",
-                        })
+                for tc_lenorm_suffix, tc_lenorm_label in [
+                    ("--tc-neg--lenorm", "tc-neg-lenorm"),
+                    ("--tc-self--lenorm", "tc-self-lenorm"),
+                ]:
+                    for domain in domains:
+                        for variant_name, model_dir in _finetuned_variants(
+                            base_model, domain, tc_lenorm_suffix, msuf
+                        ):
+                            evals.append({
+                                "base_model": base_model,
+                                "domain": domain,
+                                "train_tc": tc_lenorm_label,
+                                "variant": variant_name,
+                                "model_dir": model_dir,
+                                "eval_mode": eval_mode_key,
+                                "filename_patterns": eval_mode["patterns"],
+                                "metric": "_log-odds",
+                                "split": "test",
+                            })
 
             # --- V2G baselines (not for 2b-it) ---
             if base_model != "gemma-2-2b-it":
