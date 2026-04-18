@@ -174,6 +174,28 @@ def _finetuned_variants(base_model, task_key, tc_suffix_train, msuf):
     return variants
 
 
+def _fulldata_variants(base_model, task_key, tc_suffix_train, msuf):
+    """Return full-data (no semi/labelonly) training variants with force-same-x."""
+    tc = tc_suffix_train
+    prefix_map = {
+        "plausibleqa": "plausibleqa-all",
+        "ambigqa": "ambigqa-all",
+        "hypernym": "hypernym-concat-bananas-to-dogs-double-all",
+        "ifeval": "ifeval-concat-all",
+    }
+    task_str = prefix_map[task_key]
+    mp = f"v6-google--{base_model}-delta0.15-epoch2--{task_str}--d2g--random--alpha1.0{tc}"
+
+    return [
+        ("fsx pref-only",     f"{mp}--full-completion--force-same-x{msuf}"),
+        ("fsx pref-only vlo", f"{mp}--full-completion--force-same-x--vallogodds{msuf}"),
+        ("fsx comb",          f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x{msuf}"),
+        ("fsx comb vlo",      f"{mp}--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds{msuf}"),
+        ("fsx sft",           f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x{msuf}"),
+        ("fsx sft vlo",       f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--vallogodds{msuf}"),
+    ]
+
+
 def _v2g_baseline(base_model, task_key, msuf):
     """Return the V2G baseline (paper RankAlign) model dir."""
     prefix_map = {
@@ -260,6 +282,24 @@ def define_all_expected_evals():
                                 "metric": "_log-odds",
                                 "split": "test",
                             })
+
+            # --- Full-data variants (no semi/labelonly, with force-same-x) ---
+            for tc_train_suffix, tc_label in tc_train_options:
+                for domain in domains:
+                    for variant_name, model_dir in _fulldata_variants(
+                        base_model, domain, tc_train_suffix, msuf
+                    ):
+                        evals.append({
+                            "base_model": base_model,
+                            "domain": domain,
+                            "train_tc": tc_label,
+                            "variant": variant_name,
+                            "model_dir": model_dir,
+                            "eval_mode": eval_mode_key,
+                            "filename_patterns": eval_mode["patterns"],
+                            "metric": "_log-odds",
+                            "split": "test",
+                        })
 
             # --- V2G baselines (not for 2b-it) ---
             if base_model != "gemma-2-2b-it":
