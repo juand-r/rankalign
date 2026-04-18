@@ -171,8 +171,6 @@ def _finetuned_variants(base_model, task_key, tc_suffix_train, msuf):
         ("sft semi",          f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--semi0.1{msuf}"),
         ("sft lo",            f"{mp}--full-completion--pref0.0--nllv1.0--nllg1.0--force-same-x--labelonly0.1{msuf}"),
     ]
-    if task_key == "ifeval":
-        variants = [v for v in variants if v[0] != "pref-only semi"]
     return variants
 
 
@@ -206,7 +204,7 @@ def define_all_expected_evals():
         else:
             domains = ["plausibleqa", "ambigqa", "hypernym", "ifeval"]
 
-        tc_train_options = [("", "plain"), ("--tc-neg", "tc-neg"), ("--tc-self", "tc-self")]
+        tc_train_options = [("", "plain"), ("--tc-neg", "tc-neg"), ("--tc-self", "tc-self"), ("--tc-online", "tc-online")]
 
         for eval_mode_key, eval_mode in EVAL_MODES.items():
             # --- Base model (no finetuning) ---
