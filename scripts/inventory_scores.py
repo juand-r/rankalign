@@ -415,7 +415,7 @@ def print_results(results, claimed, all_files):
     print(f"Claimed by expected configs: {claimed_count}")
     print(f"Unclaimed: {len(unclaimed)}")
 
-    for base_model in ["gemma-2-2b", "gemma-2-9b-it"]:
+    for base_model in ["gemma-2-2b", "gemma-2-2b-it", "gemma-2-9b-it"]:
         bm_results = [r for r in results if r["base_model"] == base_model]
         if not bm_results:
             continue
@@ -522,7 +522,7 @@ def write_latex(results, claimed, all_files, outpath):
                  f"configs complete: {complete}/{len(results)}")
     lines.append("")
 
-    for base_model in ["gemma-2-2b", "gemma-2-9b-it"]:
+    for base_model in ["gemma-2-2b", "gemma-2-2b-it", "gemma-2-9b-it"]:
         bm_results = [r for r in results if r["base_model"] == base_model]
         if not bm_results:
             continue
