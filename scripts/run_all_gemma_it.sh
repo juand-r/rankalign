@@ -156,3 +156,17 @@ cd /datastor2/jocelyn/rankalign/scripts
 # run 1 10 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant pref_only --semi-mode semi --semi-ratio 0.1
 # run 1 10 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant sft       --semi-mode semi --semi-ratio 0.1
 # run 1 10 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant all_terms --semi-mode semi --semi-ratio 0.1
+
+
+
+# Gemma-2-2B-IT | Hypernym Concat | N/A
+
+# Plain | Semisupervised
+run 1 3 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --variant sft       --semi-mode semi --semi-ratio 0.1 --eval-only
+
+# TC-self | Label-only
+run 1 3 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant pref_only --semi-mode labelonly --semi-ratio 0.1 --eval-only
+run 1 3 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant all_terms --semi-mode labelonly --semi-ratio 0.1 --eval-only
+
+# TC-self | Semisupervised
+run 1 3 ./run_hypernym_concat.sh 1 --model google/gemma-2-2b-it --task hypernym-concat-bananas-to-dogs-double --tc --variant all_terms --semi-mode semi --semi-ratio 0.1 --eval-only
