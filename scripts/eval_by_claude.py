@@ -162,6 +162,131 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False):
     return typicality_scores
 
 
+def compute_base_typicality(completions, base_model_name, is_chat=False, has_system_role=False, fp32=False):
+    """
+    Compute typicality using the base (pre-finetuning) model: P_base(completion | null).
+
+    Loads the base model temporarily, computes scores, then unloads it.
+    The main scoring model remains in memory throughout.
+    """
+    torch_dtype = torch.float32 if fp32 else torch.bfloat16
+    print(f"\nLoading base model '{base_model_name}' for typicality correction...")
+
+    load_kwargs = {
+        "torch_dtype": torch_dtype,
+        "device_map": "auto",
+        "low_cpu_mem_usage": True,
+    }
+    if 'gemma' in base_model_name:
+        base_model = AutoModelForCausalLM.from_pretrained(
+            base_model_name, attn_implementation="eager", **load_kwargs
+        )
+    else:
+        base_model = AutoModelForCausalLM.from_pretrained(base_model_name, **load_kwargs)
+
+    base_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+    base_tokenizer.pad_token = base_tokenizer.eos_token
+    base_model.eval()
+    base_device = device
+    print(f"  Base model loaded on {set(base_model.hf_device_map.values()) if hasattr(base_model, 'hf_device_map') else 'single device'}")
+
+    typicality_scores = []
+    print("Computing base-model typicality scores...")
+    for completion in tqdm(completions, desc="Base typicality"):
+        token_logprobs = get_completion_token_logprobs(
+            "", completion, base_model, base_tokenizer, base_device,
+            is_chat=is_chat, has_system_role=has_system_role
+        )
+        typicality_scores.append(float(token_logprobs.sum().item()))
+
+    del base_model
+    del base_tokenizer
+    gc.collect()
+    if device == "cuda":
+        torch.cuda.empty_cache()
+
+    print(f"  Computed {len(typicality_scores)} base-model typicality scores")
+    print(f"  Mean base typicality: {np.mean(typicality_scores):.4f}")
+    print(f"  Std base typicality: {np.std(typicality_scores):.4f}")
+
+    return typicality_scores
+
+
+def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has_system_role=False, fp32=False):
+    """
+    Compute the base model's unconditional next-token log probs for all tokens
+    in the scoring model's vocabulary.
+
+    Analogous to load_self_vocab_probs but uses a freshly-loaded base model.
+    Returns log probs aligned to the scoring model's tokenizer.
+    """
+    from utils import get_model_input_device
+
+    torch_dtype = torch.float32 if fp32 else torch.bfloat16
+    print(f"\nLoading base model '{base_model_name}' for vocab-level typicality correction...")
+
+    load_kwargs = {
+        "torch_dtype": torch_dtype,
+        "device_map": "auto",
+        "low_cpu_mem_usage": True,
+    }
+    if 'gemma' in base_model_name:
+        base_model = AutoModelForCausalLM.from_pretrained(
+            base_model_name, attn_implementation="eager", **load_kwargs
+        )
+    else:
+        base_model = AutoModelForCausalLM.from_pretrained(base_model_name, **load_kwargs)
+
+    base_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+    base_tokenizer.pad_token = base_tokenizer.eos_token
+    base_model.eval()
+
+    base_device = get_model_input_device(base_model, device)
+
+    print("Computing base-model unconditional vocab probabilities...")
+    if is_chat:
+        if has_system_role:
+            message = [
+                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "user", "content": ""},
+            ]
+        else:
+            message = [{"role": "user", "content": ""}]
+        prefix_ids = base_tokenizer.apply_chat_template(
+            message, add_generation_prompt=True,
+            return_tensors="pt", tokenize=True, return_dict=False,
+        )[0]
+        input_ids = prefix_ids.unsqueeze(0)
+    else:
+        input_ids = base_tokenizer("", return_tensors="pt")["input_ids"]
+        if input_ids.shape[1] == 0:
+            fallback_id = base_tokenizer.eos_token_id or base_tokenizer.pad_token_id or 0
+            input_ids = torch.tensor([[fallback_id]])
+
+    with torch.no_grad():
+        outputs = base_model(input_ids.to(base_device), use_cache=False)
+        logits = outputs.logits[0, -1, :]
+        log_probs = torch.log_softmax(logits, dim=-1)
+
+    result = log_probs.cpu().float()
+
+    # Verify vocab alignment: base and scoring model must share the same tokenizer
+    if len(result) != len(scoring_tokenizer):
+        print(f"  WARNING: Base vocab size ({len(result)}) != scoring vocab size ({len(scoring_tokenizer)}). "
+              f"Vocab-level correction skipped.")
+        result = None
+    else:
+        print(f"  Computed unconditional log probs for {len(result)} tokens")
+
+    del base_model
+    del base_tokenizer
+    gc.collect()
+    if device == "cuda":
+        torch.cuda.empty_cache()
+
+    return result
+
+
 def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
     """Construct a negated generator prompt for the LLR typicality correction.
 
@@ -560,7 +685,9 @@ def main(args):
     # Default to full completion logprobs (multi-token), unless --no-full-completion-logprobs is set
     use_full_completion_logprobs = not args.no_full_completion_logprobs
 
-    if args.neg_typicality:
+    if args.base_typicality:
+        self_prefix = "basetyp-"
+    elif args.neg_typicality:
         self_prefix = "neg-"
     elif args.self_typicality:
         self_prefix = "self-"
@@ -654,12 +781,14 @@ def main(args):
         all_prompts_disc.append(prompt_disc)
         completion_tokens = tokenizer.encode(completion_gen, add_special_tokens=False)
         all_num_tokens.append(len(completion_tokens))
-        probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
-        P_gen.append(probs_gen)
-        # Compute summed generator log-prob across all completion tokens (conditioned autoregressively)
         if use_full_completion_logprobs:
+            # Multi-token: autoregressive scoring of full completion (skip redundant prompt-only forward pass)
             gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
+        else:
+            # Single-token: need next-token distribution for log-odds and rank metrics
+            probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
+            P_gen.append(probs_gen)
         probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
         disc_probs.append((float(probs_disc[yestoks].sum().item()), float(probs_disc[notoks].sum().item())))
 
@@ -755,7 +884,9 @@ def main(args):
     
     # Apply typicality correction if requested
     if args.typicality_correction:
-        if args.neg_typicality:
+        if args.base_typicality:
+            typ_source = f"BASE-MODEL ({args.base_model_name})"
+        elif args.neg_typicality:
             typ_source = "NEGATED-PROMPT (LLR)"
         elif args.self_typicality:
             typ_source = "SELF-MODEL"
@@ -765,8 +896,22 @@ def main(args):
         print(f"APPLYING TYPICALITY CORRECTION (source: {typ_source})")
         print("="*60)
 
+        # Determine base model's chat properties (may differ from scoring model)
+        if args.base_typicality:
+            base_is_chat = 'instruct' in args.base_model_name.lower() or '-it' in args.base_model_name.lower()
+            base_has_system_role = 'llama' in args.base_model_name.lower() or 'qwen' in args.base_model_name.lower()
+        else:
+            base_is_chat = False
+            base_has_system_role = False
+
         if not use_full_completion_logprobs and not args.neg_typicality:
-            if args.self_typicality:
+            if args.base_typicality:
+                vocab_logprobs = load_base_vocab_probs(
+                    args.base_model_name, tokenizer,
+                    is_chat=base_is_chat, has_system_role=base_has_system_role,
+                    fp32=args.fp32_model
+                )
+            elif args.self_typicality:
                 vocab_logprobs = load_self_vocab_probs(
                     model, tokenizer,
                     is_chat=model_is_chat, has_system_role=model_has_system_role
@@ -784,7 +929,7 @@ def main(args):
                     P_gen_corrected.append(log_probs_corrected)
             else:
                 P_gen_corrected = None
-                print("\n  WARNING: No precomputed GPT-2 vocab probs for this tokenizer vocab size.")
+                print(f"\n  WARNING: No vocab-level probs available (source: {typ_source}).")
                 print("  Rank-based metrics (gen_acc, gen_mrr) will use UNCORRECTED distributions.")
                 print("  Per-completion gen_score_typcorr will still be computed correctly.")
         else:
@@ -799,6 +944,16 @@ def main(args):
             typicality_scores = compute_neg_typicality(
                 LL, task, make_prompt, gen_shots,
                 is_chat=model_is_chat, has_system_role=model_has_system_role
+            )
+        elif args.base_typicality:
+            completions = []
+            for item in LL:
+                gen_obj = make_prompt(item, style='generator', shots=gen_shots)
+                completions.append(gen_obj.completion)
+            typicality_scores = compute_base_typicality(
+                completions, args.base_model_name,
+                is_chat=base_is_chat, has_system_role=base_has_system_role,
+                fp32=args.fp32_model
             )
         elif args.self_typicality:
             completions = []
@@ -817,7 +972,9 @@ def main(args):
             typicality_scores = compute_gpt2_typicality(completions, task, LL)
 
         # Apply correction to completion scores: corrected_gen = gen - typicality
-        if args.neg_typicality:
+        if args.base_typicality:
+            correction_label = f"log P_base(completion) [{args.base_model_name}]"
+        elif args.neg_typicality:
             correction_label = "log P_model(completion|negated_prompt)"
         elif args.self_typicality:
             correction_label = "log P_model(completion)"
@@ -1011,7 +1168,9 @@ def main(args):
             else:
                 strategy += "_logprobs"
             if args.typicality_correction:
-                if args.neg_typicality:
+                if args.base_typicality:
+                    strategy += "_basetypcorr"
+                elif args.neg_typicality:
                     strategy += "_negtypcorr"
                 elif args.self_typicality:
                     strategy += "_selftypcorr"
@@ -1297,7 +1456,9 @@ def main(args):
         else:
             strategy += "_logprobs"
         if args.typicality_correction:
-            if args.neg_typicality:
+            if args.base_typicality:
+                strategy += "_basetypcorr"
+            elif args.neg_typicality:
                 strategy += "_negtypcorr"
             elif args.self_typicality:
                 strategy += "_selftypcorr"
@@ -1366,7 +1527,9 @@ def main(args):
             strategy += "_singletoken"
         strategy += "_logodds" if args.validator_log_odds else "_logprobs"
         if args.typicality_correction:
-            if args.neg_typicality:
+            if args.base_typicality:
+                strategy += "_basetypcorr"
+            elif args.neg_typicality:
                 strategy += "_negtypcorr"
             elif args.self_typicality:
                 strategy += "_selftypcorr"
@@ -1525,6 +1688,8 @@ if __name__ == "__main__":
     parser.add_argument("--typicality-correction", action="store_true", default=False, help="apply typicality correction using PMI: corrects both completion scores and full vocab distributions for ranking")
     parser.add_argument("--self-typicality", action="store_true", default=False, help="use the scoring model itself for typicality correction instead of GPT-2. Implies --typicality-correction.")
     parser.add_argument("--neg-typicality", action="store_true", default=False, help="use negated prompts for typicality correction (LLR: log P(y|Q) - log P(y|neg_Q)). Implies --typicality-correction.")
+    parser.add_argument("--base-typicality", action="store_true", default=False, help="use the base (pre-finetuning) model for typicality correction: P_base(y|null). Implies --typicality-correction.")
+    parser.add_argument("--base-model-name", type=str, default="google/gemma-2-2b", help="HuggingFace model name for the base model (used with --base-typicality). Default: google/gemma-2-2b")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes))). Changes threshold from log(0.5) to 0.")
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--save-scores-csv", action="store_true", default=False, help="save detailed scores to CSV with all score columns")
@@ -1532,10 +1697,9 @@ if __name__ == "__main__":
     parser.add_argument("--fp32-model", action="store_true", default=False, help="load model in float32 instead of bfloat16 to avoid logit quantization (uses ~2x memory but gives continuous log-odds)")
 
     args = parser.parse_args()
-    if args.neg_typicality and args.self_typicality:
-        parser.error("--neg-typicality and --self-typicality are mutually exclusive")
-    if args.self_typicality:
-        args.typicality_correction = True
-    if args.neg_typicality:
+    typ_flags = sum([args.neg_typicality, args.self_typicality, args.base_typicality])
+    if typ_flags > 1:
+        parser.error("--neg-typicality, --self-typicality, and --base-typicality are mutually exclusive")
+    if args.self_typicality or args.neg_typicality or args.base_typicality:
         args.typicality_correction = True
     main(args)
