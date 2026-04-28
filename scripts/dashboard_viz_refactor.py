@@ -48,7 +48,7 @@ from score_file_parsing import _extract_float, _extract_timestamp, _extract_spli
 
 PORT = int(os.environ.get('PORT', 8889))
 CONFIG_DIR = Path(__file__).parent.parent / 'config'
-CONFIG_FILE = CONFIG_DIR / 'dashboard_config.json'
+CONFIG_FILE = Path(os.environ['CONFIG']) if 'CONFIG' in os.environ else CONFIG_DIR / 'dashboard_config.json'
 DEFAULT_OUTPUTS_DIR = Path(__file__).parent.parent / 'outputs'
 
 DEFAULT_CONFIG = {
