@@ -487,170 +487,170 @@ def compute_logodds_final_layer(
     task, P_gen, P_disc, L, tokenizer, first_sw_token, yestoks, notoks, is_chat = False, gen_logprobs=None, corrected_logodds_gen=None, use_log_odds=False):
 
     prefix = "a " if not is_chat else ""
+
+    # When P_gen is empty (multi-token mode), skip rank computation entirely
+    skip_ranks = len(P_gen) == 0
     
-    # Extract all unique completion tokens from dataset
-    print("Extracting dataset tokens...")
-    dataset_token_ids = extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat)
-    print(f"  Found {len(dataset_token_ids)} unique tokens in dataset completions")
+    if not skip_ranks:
+        # Extract all unique completion tokens from dataset
+        print("Extracting dataset tokens...")
+        dataset_token_ids = extract_dataset_tokens(task, L, tokenizer, first_sw_token, is_chat)
+        print(f"  Found {len(dataset_token_ids)} unique tokens in dataset completions")
     
     # Compute full-vocabulary ranks
-    print("Computing full-vocabulary ranks...")
+    if skip_ranks:
+        print("Skipping rank computation (multi-token mode, no P_gen distributions)")
+        ranks = [float('inf')] * len(L)
+        ranks_dataset = [float('inf')] * len(L)
+    else:
+        print("Computing full-vocabulary ranks...")
 
-    # Check task registry first (for new extensible tasks)
-    task_config = get_task(task)
-    if task_config is not None:
-        # NEW PATH: Use registered task configuration
-        ranks = [
-            get_rank(
-                P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token]
-            )
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    # LEGACY PATH: Existing task implementations (unchanged)
-    elif task in ['hypernym', 'hypernym-car']:
-        # for ii in range(len(P_gen)):
-        #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
-        #     print(f'--compute-logodds, i=0:P:{P_gen[ii].shape}')
-        #     print(f'--compute-logodds, i=0:L:{L[ii]}')
-        #     print(f'--compute-logodds, i=0:L:{L[ii].noun2}')
-        #     print(f'--compute-logodds, i=0:encode:{tokenizer.encode("a " + L[ii].noun2)}')
-        #     print(f'--compute-logodds, i=0:encode:{tokenizer.tokenize("a " + L[ii].noun2)}')
-        #     print(f'--compute-logodds, i=0:encode:{tokenizer.encode("a " + L[ii].noun2)[first_sw_token]}')
-
-        ranks = [
-            get_rank(
-                P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token]
-            )
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    elif task=='trivia-qa':
-        ranks = [
-            min(
-                get_rank(
-                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0])[first_sw_token]
-                ),
-                get_rank(
-                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token]
-                )
-            )
-            
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    elif task=='swords':
-        if is_chat:
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
             ranks = [
                 get_rank(
-                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token]
+                    P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token]
                 )
                 for ii in tqdm(range(len(P_gen)))
             ]
-        else:
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif task in ['hypernym', 'hypernym-car']:
             ranks = [
                 get_rank(
-                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token-1]
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token]
                 )
                 for ii in tqdm(range(len(P_gen)))
             ]
-    elif task == 'lambada':
-        ranks = [
-            get_rank(
-                P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token]
-            )
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    elif task == 'ifeval':
-        prefix = ""
-        tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
-        ranks = [
-            sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
-            if len(tokens[ii]) > 0 else float('inf')
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    elif task == 'collie':
-        prefix = ""
-        tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
-        ranks = [
-            sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
-            if len(tokens[ii]) > 0 else float('inf')
-            for ii in tqdm(range(len(P_gen)))
-        ]
-    else:
-        raise ValueError("!!")
-
-    # Compute dataset-constrained ranks (only among dataset completion tokens)
-    print("Computing dataset-constrained ranks...")
-
-    # Check task registry first (for new extensible tasks)
-    task_config = get_task(task)
-    if task_config is not None:
-        # NEW PATH: Use registered task configuration
-        ranks_dataset = [
-            get_rank_in_subset(
-                P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token], dataset_token_ids
-            )
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    # LEGACY PATH: Existing task implementations (unchanged)
-    elif task in ['hypernym', 'hypernym-car']:
-        ranks_dataset = [
-            get_rank_in_subset(
-                P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token], dataset_token_ids
-            )
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    elif task=='trivia-qa':
-        ranks_dataset = [
-            min(
-                get_rank_in_subset(
-                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0])[first_sw_token], dataset_token_ids
-                ),
-                get_rank_in_subset(
-                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token], dataset_token_ids
+        elif task=='trivia-qa':
+            ranks = [
+                min(
+                    get_rank(
+                        P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0])[first_sw_token]
+                    ),
+                    get_rank(
+                        P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token]
+                    )
                 )
-            )
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    elif task=='swords':
-        idx = first_sw_token if is_chat else first_sw_token - 1
-        if is_chat:
+
+                for ii in tqdm(range(len(P_gen)))
+            ]
+        elif task=='swords':
+            if is_chat:
+                ranks = [
+                    get_rank(
+                        P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token]
+                    )
+                    for ii in tqdm(range(len(P_gen)))
+                ]
+            else:
+                ranks = [
+                    get_rank(
+                        P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token-1]
+                    )
+                    for ii in tqdm(range(len(P_gen)))
+                ]
+        elif task == 'lambada':
+            ranks = [
+                get_rank(
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token]
+                )
+                for ii in tqdm(range(len(P_gen)))
+            ]
+        elif task == 'ifeval':
+            prefix = ""
+            tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
+            ranks = [
+                sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
+                if len(tokens[ii]) > 0 else float('inf')
+                for ii in tqdm(range(len(P_gen)))
+            ]
+        elif task == 'collie':
+            prefix = ""
+            tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
+            ranks = [
+                sum(get_rank(P_gen[ii][:], t) for t in tokens[ii]) / len(tokens[ii])
+                if len(tokens[ii]) > 0 else float('inf')
+                for ii in tqdm(range(len(P_gen)))
+            ]
+        else:
+            raise ValueError("!!")
+
+        # Compute dataset-constrained ranks (only among dataset completion tokens)
+        print("Computing dataset-constrained ranks...")
+
+        # Check task registry first (for new extensible tasks)
+        task_config = get_task(task)
+        if task_config is not None:
+            # NEW PATH: Use registered task configuration
             ranks_dataset = [
                 get_rank_in_subset(
-                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token], dataset_token_ids
+                    P_gen[ii][:], tokenizer.encode(prefix + task_config['get_completion'](L[ii]).strip())[first_sw_token], dataset_token_ids
                 )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        # LEGACY PATH: Existing task implementations (unchanged)
+        elif task in ['hypernym', 'hypernym-car']:
+            ranks_dataset = [
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii].noun2)[first_sw_token], dataset_token_ids
+                )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        elif task=='trivia-qa':
+            ranks_dataset = [
+                min(
+                    get_rank_in_subset(
+                        P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0])[first_sw_token], dataset_token_ids
+                    ),
+                    get_rank_in_subset(
+                        P_gen[ii][:], tokenizer.encode(prefix + L[ii]['answers'][0].capitalize())[first_sw_token], dataset_token_ids
+                    )
+                )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        elif task=='swords':
+            idx = first_sw_token if is_chat else first_sw_token - 1
+            if is_chat:
+                ranks_dataset = [
+                    get_rank_in_subset(
+                        P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token], dataset_token_ids
+                    )
+                    for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+                ]
+            else:
+                ranks_dataset = [
+                    get_rank_in_subset(
+                        P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token-1], dataset_token_ids
+                    )
+                    for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+                ]
+        elif task == 'lambada':
+            ranks_dataset = [
+                get_rank_in_subset(
+                    P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token], dataset_token_ids
+                )
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        elif task == 'ifeval':
+            prefix = ""
+            tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
+            ranks_dataset = [
+                sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
+                if len(tokens[ii]) > 0 else float('inf')
+                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
+            ]
+        elif task == 'collie':
+            prefix = ""
+            tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
+            ranks_dataset = [
+                sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
+                if len(tokens[ii]) > 0 else float('inf')
                 for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
             ]
         else:
-            ranks_dataset = [
-                get_rank_in_subset(
-                    P_gen[ii][:], tokenizer.encode(L[ii].replacement)[first_sw_token-1], dataset_token_ids
-                )
-                for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-            ]
-    elif task == 'lambada':
-        ranks_dataset = [
-            get_rank_in_subset(
-                P_gen[ii][:], tokenizer.encode(prefix + L[ii]['final_word'])[first_sw_token], dataset_token_ids
-            )
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    elif task == 'ifeval':
-        prefix = ""
-        tokens = [tokenizer.encode(prefix + L[ii]['response'])[first_sw_token:] for ii in range(len(P_gen))]
-        ranks_dataset = [
-            sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
-            if len(tokens[ii]) > 0 else float('inf')
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    elif task == 'collie':
-        prefix = ""
-        tokens = [tokenizer.encode(prefix + L[ii]['generated'])[first_sw_token:] for ii in range(len(P_gen))]
-        ranks_dataset = [
-            sum(get_rank_in_subset(P_gen[ii][:], t, dataset_token_ids) for t in tokens[ii]) / len(tokens[ii])
-            if len(tokens[ii]) > 0 else float('inf')
-            for ii in tqdm(range(len(P_gen)), desc="Dataset ranks")
-        ]
-    else:
-        raise ValueError("!!")
+            raise ValueError("!!")
 
     # Compute generator scores
     # gen_scores: log-probs if multi-token (gen_logprobs provided), else log-odds for single-token
