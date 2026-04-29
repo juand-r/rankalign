@@ -134,7 +134,7 @@ def compute_gpt2_typicality(completions, task, LL):
     return typicality_scores
 
 
-def compute_self_typicality(completions, is_chat=False, has_system_role=False):
+def compute_self_typicality(completions, is_chat=False, has_system_role=False, include_eos=False):
     """
     Compute self-typicality: unconditional log P_model(completion) using the scoring model itself.
 
@@ -148,10 +148,10 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False):
 
     print("\nComputing self-typicality scores (using scoring model itself)...")
     for completion in tqdm(completions, desc="Self typicality"):
-        # Use get_completion_token_logprobs with empty prompt; format matches main scoring
         token_logprobs = get_completion_token_logprobs(
             "", completion, model, tokenizer, device,
-            is_chat=is_chat, has_system_role=has_system_role
+            is_chat=is_chat, has_system_role=has_system_role,
+            include_eos=include_eos
         )
         typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -162,7 +162,7 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False):
     return typicality_scores
 
 
-def compute_base_typicality(completions, base_model_name, is_chat=False, has_system_role=False, fp32=False):
+def compute_base_typicality(completions, base_model_name, is_chat=False, has_system_role=False, fp32=False, include_eos=False):
     """
     Compute typicality using the base (pre-finetuning) model: P_base(completion | null).
 
@@ -195,7 +195,8 @@ def compute_base_typicality(completions, base_model_name, is_chat=False, has_sys
     for completion in tqdm(completions, desc="Base typicality"):
         token_logprobs = get_completion_token_logprobs(
             "", completion, base_model, base_tokenizer, base_device,
-            is_chat=is_chat, has_system_role=has_system_role
+            is_chat=is_chat, has_system_role=has_system_role,
+            include_eos=include_eos
         )
         typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -326,7 +327,7 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
     return neg_prompt, completion
 
 
-def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_system_role=False):
+def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_system_role=False, include_eos=False):
     """Compute log P(completion | negated_prompt) for each item using the scoring model.
 
     This is the LLR denominator: instead of P(y) (unconditional), we use
@@ -340,13 +341,65 @@ def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_
         neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt, gen_shots)
         token_logprobs = get_completion_token_logprobs(
             neg_prompt, completion, model, tokenizer, device,
-            is_chat=is_chat, has_system_role=has_system_role
+            is_chat=is_chat, has_system_role=has_system_role,
+            include_eos=include_eos
         )
         neg_scores.append(float(token_logprobs.sum().item()))
 
     print(f"  Computed {len(neg_scores)} negated-prompt scores")
     print(f"  Mean neg score: {np.mean(neg_scores):.4f}")
     print(f"  Std neg score: {np.std(neg_scores):.4f}")
+
+    return neg_scores
+
+
+def compute_base_neg_typicality(LL, task, make_prompt, gen_shots, base_model_name,
+                                is_chat=False, has_system_role=False, fp32=False, include_eos=False):
+    """Compute log P_base(completion | negated_prompt) using a separately loaded base model.
+
+    Loads the base model temporarily, computes neg-prompt scores, then unloads it.
+    """
+    torch_dtype = torch.float32 if fp32 else torch.bfloat16
+    print(f"\nLoading base model '{base_model_name}' for negated-prompt typicality...")
+
+    load_kwargs = {
+        "torch_dtype": torch_dtype,
+        "device_map": "auto",
+        "low_cpu_mem_usage": True,
+    }
+    if 'gemma' in base_model_name:
+        base_model = AutoModelForCausalLM.from_pretrained(
+            base_model_name, attn_implementation="eager", **load_kwargs
+        )
+    else:
+        base_model = AutoModelForCausalLM.from_pretrained(base_model_name, **load_kwargs)
+
+    base_tokenizer = AutoTokenizer.from_pretrained(base_model_name)
+    base_tokenizer.pad_token = base_tokenizer.eos_token
+    base_model.eval()
+    base_device = device
+    print(f"  Base model loaded on {set(base_model.hf_device_map.values()) if hasattr(base_model, 'hf_device_map') else 'single device'}")
+
+    neg_scores = []
+    print("Computing base-model negated-prompt typicality scores...")
+    for item in tqdm(LL, desc="Base neg typicality"):
+        neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt, gen_shots)
+        token_logprobs = get_completion_token_logprobs(
+            neg_prompt, completion, base_model, base_tokenizer, base_device,
+            is_chat=is_chat, has_system_role=has_system_role,
+            include_eos=include_eos
+        )
+        neg_scores.append(float(token_logprobs.sum().item()))
+
+    del base_model
+    del base_tokenizer
+    gc.collect()
+    if device == "cuda":
+        torch.cuda.empty_cache()
+
+    print(f"  Computed {len(neg_scores)} base-model neg typicality scores")
+    print(f"  Mean base neg score: {np.mean(neg_scores):.4f}")
+    print(f"  Std base neg score: {np.std(neg_scores):.4f}")
 
     return neg_scores
 
@@ -685,7 +738,9 @@ def main(args):
     # Default to full completion logprobs (multi-token), unless --no-full-completion-logprobs is set
     use_full_completion_logprobs = not args.no_full_completion_logprobs
 
-    if args.base_typicality:
+    if args.base_typicality and args.neg_typicality:
+        self_prefix = "basetypneg-"
+    elif args.base_typicality:
         self_prefix = "basetyp-"
     elif args.neg_typicality:
         self_prefix = "neg-"
@@ -693,6 +748,9 @@ def main(args):
         self_prefix = "self-"
     else:
         self_prefix = ""
+
+    eos_suffix = "_eos" if args.include_eos else ""
+    outputs_dir = args.outputs_dir
 
     v2 = not args.no_v2
     L_train, L_test, make_prompt = get_L_prompt(task, split_type, seed, sample_negative = args.sample_negative, variation = args.variation, v2=v2)
@@ -783,7 +841,7 @@ def main(args):
         all_num_tokens.append(len(completion_tokens))
         if use_full_completion_logprobs:
             # Multi-token: autoregressive scoring of full completion (skip redundant prompt-only forward pass)
-            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role)
+            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role, include_eos=args.include_eos)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         else:
             # Single-token: need next-token distribution for log-odds and rank metrics
@@ -884,12 +942,11 @@ def main(args):
     
     # Apply typicality correction if requested
     if args.typicality_correction:
-        if args.base_typicality:
-            typ_source = f"BASE-MODEL ({args.base_model_name})"
-        elif args.neg_typicality:
-            typ_source = "NEGATED-PROMPT (LLR)"
+        model_source = f"BASE-MODEL ({args.base_model_name})" if args.base_typicality else "SELF-MODEL"
+        if args.neg_typicality:
+            typ_source = f"NEGATED-PROMPT via {model_source}"
         elif args.self_typicality:
-            typ_source = "SELF-MODEL"
+            typ_source = model_source
         else:
             typ_source = "GPT-2"
         print("\n" + "="*60)
@@ -936,34 +993,42 @@ def main(args):
             P_gen_corrected = None
 
         # Compute per-completion typicality scores
+        # Primary axis: conditioning type (neg vs self/unconditional vs GPT-2)
+        # Secondary axis: which model (base model vs scoring model)
         if args.neg_typicality:
             if not use_full_completion_logprobs:
                 print("  WARNING: --neg-typicality with --no-full-completion-logprobs: "
                       "neg scores use full completion logprobs while gen scores are single-token. "
                       "This is only correct if completions are single-token (e.g., hypernymy).")
-            typicality_scores = compute_neg_typicality(
-                LL, task, make_prompt, gen_shots,
-                is_chat=model_is_chat, has_system_role=model_has_system_role
-            )
-        elif args.base_typicality:
-            completions = []
-            for item in LL:
-                gen_obj = make_prompt(item, style='generator', shots=gen_shots)
-                completions.append(gen_obj.completion)
-            typicality_scores = compute_base_typicality(
-                completions, args.base_model_name,
-                is_chat=base_is_chat, has_system_role=base_has_system_role,
-                fp32=args.fp32_model
-            )
+            if args.base_typicality:
+                typicality_scores = compute_base_neg_typicality(
+                    LL, task, make_prompt, gen_shots, args.base_model_name,
+                    is_chat=base_is_chat, has_system_role=base_has_system_role,
+                    fp32=args.fp32_model, include_eos=args.include_eos
+                )
+            else:
+                typicality_scores = compute_neg_typicality(
+                    LL, task, make_prompt, gen_shots,
+                    is_chat=model_is_chat, has_system_role=model_has_system_role,
+                    include_eos=args.include_eos
+                )
         elif args.self_typicality:
             completions = []
             for item in LL:
                 gen_obj = make_prompt(item, style='generator', shots=gen_shots)
                 completions.append(gen_obj.completion)
-            typicality_scores = compute_self_typicality(
-                completions,
-                is_chat=model_is_chat, has_system_role=model_has_system_role
-            )
+            if args.base_typicality:
+                typicality_scores = compute_base_typicality(
+                    completions, args.base_model_name,
+                    is_chat=base_is_chat, has_system_role=base_has_system_role,
+                    fp32=args.fp32_model, include_eos=args.include_eos
+                )
+            else:
+                typicality_scores = compute_self_typicality(
+                    completions,
+                    is_chat=model_is_chat, has_system_role=model_has_system_role,
+                    include_eos=args.include_eos
+                )
         else:
             completions = []
             for item in LL:
@@ -972,12 +1037,11 @@ def main(args):
             typicality_scores = compute_gpt2_typicality(completions, task, LL)
 
         # Apply correction to completion scores: corrected_gen = gen - typicality
-        if args.base_typicality:
-            correction_label = f"log P_base(completion) [{args.base_model_name}]"
-        elif args.neg_typicality:
-            correction_label = "log P_model(completion|negated_prompt)"
+        model_label = f"base [{args.base_model_name}]" if args.base_typicality else "model"
+        if args.neg_typicality:
+            correction_label = f"log P_{model_label}(completion|negated_prompt)"
         elif args.self_typicality:
-            correction_label = "log P_model(completion)"
+            correction_label = f"log P_{model_label}(completion)"
         else:
             correction_label = "log P_GPT2(completion)"
         print(f"\nApplying correction to completion scores: log P(completion|context) - {correction_label}")
@@ -1156,7 +1220,7 @@ def main(args):
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
             eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
             
             strategy = f"gen:{gen_shots}_disc:{disc_shots}"
             if use_full_completion_logprobs:
@@ -1168,14 +1232,14 @@ def main(args):
             else:
                 strategy += "_logprobs"
             if args.typicality_correction:
-                if args.base_typicality:
-                    strategy += "_basetypcorr"
+                if args.self_typicality:
+                    strategy += "_selftypcorr"
                 elif args.neg_typicality:
                     strategy += "_negtypcorr"
-                elif args.self_typicality:
-                    strategy += "_selftypcorr"
                 else:
                     strategy += "_typcorr"
+                if args.base_typicality:
+                    strategy += "_basemodel"
             
             with open(scores_csv_filename, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -1225,7 +1289,7 @@ def main(args):
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
             eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
             def _get_field(obj, key, default=""):
                 if hasattr(obj, key):
@@ -1296,7 +1360,7 @@ def main(args):
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
             eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
             def _get_field(obj, key, default=""):
                 if hasattr(obj, key):
@@ -1443,7 +1507,7 @@ def main(args):
         # Add eval setting suffixes
         eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
         
         # Determine strategy string
         strategy = f"gen:{gen_shots}_disc:{disc_shots}"
@@ -1456,14 +1520,14 @@ def main(args):
         else:
             strategy += "_logprobs"
         if args.typicality_correction:
-            if args.base_typicality:
-                strategy += "_basetypcorr"
+            if args.self_typicality:
+                strategy += "_selftypcorr"
             elif args.neg_typicality:
                 strategy += "_negtypcorr"
-            elif args.self_typicality:
-                strategy += "_selftypcorr"
             else:
                 strategy += "_typcorr"
+            if args.base_typicality:
+                strategy += "_basemodel"
         
         with open(scores_csv_filename, 'w', newline='') as f:
             writer = csv.writer(f)
@@ -1517,7 +1581,7 @@ def main(args):
         # Add eval setting suffixes
         eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
         # Determine strategy string (kept for debugging/repro; not a required column for IFEval)
         strategy = f"gen:{gen_shots}_disc:{disc_shots}"
@@ -1527,14 +1591,14 @@ def main(args):
             strategy += "_singletoken"
         strategy += "_logodds" if args.validator_log_odds else "_logprobs"
         if args.typicality_correction:
-            if args.base_typicality:
-                strategy += "_basetypcorr"
+            if args.self_typicality:
+                strategy += "_selftypcorr"
             elif args.neg_typicality:
                 strategy += "_negtypcorr"
-            elif args.self_typicality:
-                strategy += "_selftypcorr"
             else:
                 strategy += "_typcorr"
+            if args.base_typicality:
+                strategy += "_basemodel"
 
         def _get_field(obj, key, default=""):
             if hasattr(obj, key):
@@ -1609,7 +1673,7 @@ def main(args):
         metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
         eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"../outputs/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}_{timestamp}.csv"
+        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
         def _get_field(obj, key, default=""):
             if hasattr(obj, key):
@@ -1694,12 +1758,15 @@ if __name__ == "__main__":
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument("--save-scores-csv", action="store_true", default=False, help="save detailed scores to CSV with all score columns")
     parser.add_argument("--length-normalize", action="store_true", default=False, help="also compute length-normalized gen scores (gen_score / num_tokens)")
+    parser.add_argument("--include-eos", action="store_true", default=False, help="append EOS token to completions when scoring: includes log P(EOS|prompt,completion) in gen_score")
+    parser.add_argument("--outputs-dir", type=str, default="../outputs", help="directory for score CSV output files (default: ../outputs)")
     parser.add_argument("--fp32-model", action="store_true", default=False, help="load model in float32 instead of bfloat16 to avoid logit quantization (uses ~2x memory but gives continuous log-odds)")
 
     args = parser.parse_args()
-    typ_flags = sum([args.neg_typicality, args.self_typicality, args.base_typicality])
-    if typ_flags > 1:
-        parser.error("--neg-typicality, --self-typicality, and --base-typicality are mutually exclusive")
+    if args.neg_typicality and args.self_typicality:
+        parser.error("--neg-typicality and --self-typicality are mutually exclusive")
+    if args.base_typicality and not (args.self_typicality or args.neg_typicality):
+        args.self_typicality = True
     if args.self_typicality or args.neg_typicality or args.base_typicality:
         args.typicality_correction = True
     main(args)
