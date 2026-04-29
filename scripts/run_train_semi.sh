@@ -53,6 +53,8 @@ SPLIT_SEED=""
 DELTA_OVERRIDE=""
 SAMPLES_OVERRIDE=""
 DISC_SHOTS=""
+INCLUDE_EOS=""
+MODELS_DIR=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -66,6 +68,8 @@ while [[ $# -gt 0 ]]; do
         --delta) DELTA_OVERRIDE=$2; shift 2 ;;
         --samples) SAMPLES_OVERRIDE=$2; shift 2 ;;
         --disc-shots) DISC_SHOTS="--disc-shots $2"; shift 2 ;;
+        --include-eos) INCLUDE_EOS="--include-eos"; shift ;;
+        --models-dir) MODELS_DIR="--models-dir $2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -146,6 +150,7 @@ label="$TASK, $GD, delta=$DELTA, loss=$LOSS, $SEMI_MODE $RATIO"
 [ -n "$LENORM" ] && label="$label, lenorm"
 [ -n "$LOG_ODDS" ] && label="$label, log-odds"
 [ -n "$LORA_FLAG" ] && label="$label, lora"
+[ -n "$INCLUDE_EOS" ] && label="$label, eos"
 
 echo "========================================"
 echo "Task:  $TASK"
@@ -175,7 +180,9 @@ python ranking_loss_ref.py \
     $SEMI_FLAG \
     $SPLIT_SEED \
     $DISC_SHOTS \
-    $LORA_FLAG
+    $LORA_FLAG \
+    $INCLUDE_EOS \
+    $MODELS_DIR
 
 echo ""
 echo "Finished: $TASK ($LOSS, $SEMI_MODE $RATIO)"
