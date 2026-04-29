@@ -184,7 +184,7 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
 
 
 def compute_self_typicality_training(completions, model, tokenizer, device,
-                                     is_chat=False, has_system_role=False):
+                                     is_chat=False, has_system_role=False, include_eos=False):
     """
     Compute self-typicality: unconditional log P_model(completion) using the
     scoring model itself (instead of GPT-2).
@@ -200,7 +200,8 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
         for completion in tqdm(completions, desc="Self typicality"):
             token_logprobs = get_completion_token_logprobs(
                 "", completion, model, tokenizer, device,
-                is_chat=is_chat, has_system_role=has_system_role
+                is_chat=is_chat, has_system_role=has_system_role,
+                include_eos=include_eos
             )
             typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -213,7 +214,7 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
 
 def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
                                     model, tokenizer, device,
-                                    is_chat=False, has_system_role=False):
+                                    is_chat=False, has_system_role=False, include_eos=False):
     """Compute log P(completion | negated_prompt) for each training item.
 
     Uses make_negated_gen_prompt from eval_by_claude.py to construct the
@@ -229,7 +230,8 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
             neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt_fn)
             token_logprobs = get_completion_token_logprobs(
                 neg_prompt, completion, model, tokenizer, device,
-                is_chat=is_chat, has_system_role=has_system_role
+                is_chat=is_chat, has_system_role=has_system_role,
+                include_eos=include_eos
             )
             neg_scores.append(float(token_logprobs.sum().item()))
 
@@ -1324,14 +1326,16 @@ def main(args):
             typicality_scores = compute_neg_typicality_training(
                 L_train_all, task, make_prompt_fn,
                 model, tokenizer, device,
-                is_chat=with_chat, has_system_role=has_system_role
+                is_chat=with_chat, has_system_role=has_system_role,
+                include_eos=args.include_eos
             )
         elif args.self_typicality:
             # Self-typicality: use the scoring model itself
             print("\nUsing SELF-TYPICALITY (scoring model as its own prior)")
             typicality_scores = compute_self_typicality_training(
                 completions, model, tokenizer, device,
-                is_chat=with_chat, has_system_role=has_system_role
+                is_chat=with_chat, has_system_role=has_system_role,
+                include_eos=args.include_eos
             )
         else:
             # GPT-2 typicality: load GPT-2 as the prior
@@ -1941,7 +1945,23 @@ def main(args):
             #print("Token types:", type(token_i), type(token_j))
             #print("Tokens:", token_i, token_j)
 
-            #TODO: truncate the completion if not using full completion
+            # Optionally append EOS token text to all completions so both the
+            # full-sequence encoding and the separate completion encoding include it.
+            if args.include_eos and self.tokenizer.eos_token is not None:
+                _eos = self.tokenizer.eos_token
+                if train_g_or_d == 'both':
+                    completion_i_disc += _eos
+                    completion_j_disc += _eos
+                    completion_i_gen += _eos
+                    completion_j_gen += _eos
+                else:
+                    completion_i += _eos
+                    completion_j += _eos
+                    correct_i += _eos
+                    correct_j += _eos
+                    gen_completion_i += _eos
+                    gen_completion_j += _eos
+
             if train_g_or_d == 'both':
                 # Tokenize discriminator prompts
                 input_i_disc = prompt_i_disc + completion_i_disc
@@ -2657,7 +2677,8 @@ def main(args):
                 semi_str = f"--labelonly{args.labeled_only}"
             else:
                 semi_str = ""
-            save_directory = "../models/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str
+            eos_str = "--eos" if args.include_eos else ""
+            save_directory = args.models_dir + "/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2758,6 +2779,8 @@ if __name__ == "__main__":
     parser.add_argument("--labeled-only", type=float, default=None, metavar="RATIO", help="Train only on labeled subset: RATIO (0,1) of prompts are kept, rest discarded. Mutually exclusive with --semi-supervised.")
     parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
     parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
+    parser.add_argument("--include-eos", action="store_true", default=False, help="Append EOS token to completions during training (scores log P(completion+EOS|prompt))")
+    parser.add_argument("--models-dir", type=str, default="../models", help="Directory to save model checkpoints (default: ../models)")
     parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
     parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
     parser.add_argument("--experiment-notes-dir", type=str, default="", help="Path to experiment notes dir for updating HUGGINGFACE_REPOS.md")
