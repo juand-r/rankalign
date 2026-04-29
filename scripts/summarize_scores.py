@@ -239,13 +239,36 @@ def extract_metadata(csv_file, task_configs):
 
     rest = stem[len('scores_'):]
 
-    # --- TC prefix (self- or neg-) ---
-    self_tc = rest.startswith('self-')
-    neg_tc = rest.startswith('neg-')
-    if self_tc:
+    # --- TC prefix ---
+    # Two orthogonal dimensions:
+    #   conditioning: self (unconditional) vs neg (negated prompt)
+    #   model: scoring model (default) vs base model (basetyp)
+    # Prefix encoding: basetypneg- (base+neg), basetyp- (base+self),
+    #                   neg- (scoring+neg), self- (scoring+self)
+    if rest.startswith('basetypneg-'):
+        basetyp_tc = True
+        neg_tc = True
+        self_tc = False
+        rest = rest[len('basetypneg-'):]
+    elif rest.startswith('basetyp-'):
+        basetyp_tc = True
+        neg_tc = False
+        self_tc = True
+        rest = rest[len('basetyp-'):]
+    elif rest.startswith('self-'):
+        basetyp_tc = False
+        neg_tc = False
+        self_tc = True
         rest = rest[len('self-'):]
-    elif neg_tc:
+    elif rest.startswith('neg-'):
+        basetyp_tc = False
+        neg_tc = True
+        self_tc = False
         rest = rest[len('neg-'):]
+    else:
+        basetyp_tc = False
+        neg_tc = False
+        self_tc = False
 
     # --- Timestamp (shared helper) ---
     timestamp = _extract_timestamp(filename)
@@ -254,13 +277,19 @@ def extract_metadata(csv_file, task_configs):
     if ts_match:
         rest = rest[:ts_match.start()]
 
-    # --- Strip _evallenorm suffix first (eval-time lenorm, independent of TC) ---
+    # --- Strip _eos suffix (EOS included in completion scoring) ---
+    has_eos = rest.endswith('_eos')
+    if has_eos:
+        rest = rest[:-len('_eos')]
+
+    # --- Strip _evallenorm suffix (eval-time lenorm, independent of TC) ---
     has_evallenorm = rest.endswith('_evallenorm')
     if has_evallenorm:
         rest = rest[:-len('_evallenorm')]
 
     # --- TC suffix (_evaltc from eval.py, _tc from eval_by_claude.py) ---
-    # If self- or neg- prefix is present, the _tc suffix is redundant (strip it but ignore).
+    # If any prefix (self-, neg-, basetyp-, basetypneg-) is present, the _tc suffix
+    # is redundant (strip it but ignore).
     # If no prefix and _evaltc or _tc suffix is present, this is GPT-2 TC.
     has_evaltc_suffix = rest.endswith('_evaltc')
     has_tc_suffix = rest.endswith('_tc') and not has_evaltc_suffix
@@ -268,10 +297,7 @@ def extract_metadata(csv_file, task_configs):
         rest = rest[:-len('_evaltc')]
     elif has_tc_suffix:
         rest = rest[:-len('_tc')]
-    gpt2_tc = (has_evaltc_suffix or has_tc_suffix) and not self_tc and not neg_tc
-
-    assert sum([self_tc, neg_tc, gpt2_tc]) <= 1, \
-        f"At most one TC type can be True, got self_tc={self_tc}, neg_tc={neg_tc}, gpt2_tc={gpt2_tc} for {filename}"
+    gpt2_tc = (has_evaltc_suffix or has_tc_suffix) and not self_tc and not neg_tc and not basetyp_tc
 
     # --- metric_type ---
     metric_type = 'log-odds'
@@ -348,6 +374,8 @@ def extract_metadata(csv_file, task_configs):
         'self_tc': self_tc,
         'neg_tc': neg_tc,
         'gpt2_tc': gpt2_tc,
+        'basetyp_tc': basetyp_tc,
+        'include_eos': has_eos,
         'finetuned': finetuned,
         'metric_type': metric_type,
         'timestamp': timestamp,
@@ -462,7 +490,8 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
     groups = {}
     for meta in parsed:
         key = (meta['model'], meta['task'], meta['split'], meta['self_tc'],
-               meta['neg_tc'], meta['gpt2_tc'], meta['training_config'])
+               meta['neg_tc'], meta['gpt2_tc'], meta['basetyp_tc'],
+               meta['include_eos'], meta['training_config'])
         if key not in groups or meta['timestamp'] > groups[key]['timestamp']:
             groups[key] = meta
 
@@ -567,6 +596,8 @@ def discover_and_summarize(outputs_dir, existing_filenames=None, file_pattern='s
                 'self_tc': meta['self_tc'],
                 'neg_tc': meta['neg_tc'],
                 'gpt2_tc': meta['gpt2_tc'],
+                'basetyp_tc': meta['basetyp_tc'],
+                'include_eos': meta['include_eos'],
                 'finetuned': meta['finetuned'],
                 'training_config': meta['training_config'],
                 'eval_variant': eval_name,
@@ -680,6 +711,8 @@ def main():
     print(f"Self-TC rows: {summary['self_tc'].sum()}")
     print(f"Neg-TC rows: {summary['neg_tc'].sum()}")
     print(f"GPT2-TC rows: {summary['gpt2_tc'].sum()}")
+    print(f"BaseTyp-TC rows: {summary['basetyp_tc'].sum()}")
+    print(f"Include-EOS rows: {summary['include_eos'].sum()}")
     print(f"Finetuned files: {summary['finetuned'].sum()} rows")
 
     # Per-family task counts for base models (non-self, non-finetuned)

@@ -1111,13 +1111,15 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
         # print(f"decoded_response::{decoded_response}::")
     return decoded_response
 
-def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False, has_system_role=False):
+def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False, has_system_role=False, include_eos=False):
     """Return per-token log probabilities for the given completion conditioned on the prompt.
 
     - If is_chat is False: tokenize `prompt` and `completion` separately and concatenate.
     - If is_chat is True: build the chat prompt prefix using the chat template with
       add_generation_prompt=True (system+user, assistant prefix), then append tokenized
       `completion` (no special tokens) and score each completion token autoregressively.
+    - If include_eos is True: append the EOS token to the completion and include
+      log P(EOS | prompt, completion) in the returned scores.
     """
     # Use device of first parameter for proper placement with device_map="auto"
     model_device = get_model_input_device(model, device)
@@ -1136,6 +1138,8 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
                 return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            if include_eos and tokenizer.eos_token_id is not None:
+                completion_ids = completion_ids + [tokenizer.eos_token_id]
             input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
             prefix_len = prefix_ids.shape[0]
         elif is_chat:
@@ -1151,11 +1155,15 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
                 return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            if include_eos and tokenizer.eos_token_id is not None:
+                completion_ids = completion_ids + [tokenizer.eos_token_id]
             input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
             prefix_len = prefix_ids.shape[0]
         else:
             prompt_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            if include_eos and tokenizer.eos_token_id is not None:
+                completion_ids = completion_ids + [tokenizer.eos_token_id]
             # If prompt produces no tokens (e.g., Qwen with empty string — no BOS token),
             # prepend eos/pad token as minimal context so the first completion token has
             # something to condition on.
