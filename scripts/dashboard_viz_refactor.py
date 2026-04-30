@@ -4,7 +4,7 @@ General-purpose visualization dashboard for evaluation scores (refactored).
 
 Row classification: each heatmap row comes from exactly ONE scores file.
 Rows are discovered from data via combinatorial scheme:
-    {category}-{mode}[-tco][-tcself][-norm][-v]
+    {category}-{mode}-{regime}[-tco][-tcself][-tcneg][-norm][-v]
 
 Run with:
     cd /datastor1/jdr/gv-gap/rankalign/scripts
@@ -79,10 +79,15 @@ DEFAULT_CONFIG = {
         'lenorm': 'gen_score_lenorm',
         'tc+lenorm': 'gen_score_typcorr_lenorm'
     },
+    # Evaluation-file filtering:
+    # - only self-typicality rows for now (ignore no-prefix / neg / basetyp / basetypneg)
+    # - ignore legacy *_evaltc* files (from eval.py and older eval_by_claude.py)
+    'allowed_eval_prefixes': ['self-'],
+    'include_legacy_evaltc': False,
     # Row visibility controls
     'visible_categories': ['Base', 'S'],
     'visible_modes': ['Comb', 'SFT', 'Pref'],
-    'visible_flags': ['tco', 'tcself', 'norm', 'v'],
+    'visible_flags': ['all', 'labelonly', 'semi', 'tco', 'tcself', 'tcneg', 'norm', 'v', 'eos'],
 }
 
 # Visualization colors
@@ -118,11 +123,14 @@ class FileInfo:
     nllg_weight: Optional[float]
     # Flags:
     has_tco: bool           # _tc-online_ in filename
+    has_tcself: bool        # _tc-self_ in filename
+    has_tcneg: bool         # _tc-neg_ in filename
     has_norm: bool          # _lenorm_ in filename
     has_vallogodds: bool    # _vallogodds in filename
     has_eos: bool           # _eos_ in filename (--include-eos eval flag)
     # Derived:
     training_mode: Optional[str]  # "SFT", "Pref", or "Comb" (None for base)
+    training_regime: Optional[str]  # "all", "labelonly", "semi" (None for base)
     category: str           # "Base", "S", or "U"
     row_label: str          # full label e.g. "S-Comb-tco-norm"
     timestamp: str          # extracted from filename for dedup
@@ -140,7 +148,7 @@ def parse_filename(csv_file, config):
       2. Direction filter (must be d2g for finetuned)
       3. U(nion) vs S(ingle)
       4. Training mode (SFT / Pref / Comb) - mutually exclusive
-      5. Flags (tco, tcself, norm, v)
+      5. Regime + Flags (all/labelonly/semi, tco, tcself, tcneg, norm, v)
 
     Returns FileInfo or None (for files that should be skipped).
     Raises ValueError for unexpected finetuned filename formats.
@@ -151,6 +159,8 @@ def parse_filename(csv_file, config):
     base_pattern = config.get('base_pattern')
     finetuned_pattern = config.get('finetuned_pattern')
     union_config = config.get('union_models', {})
+    allowed_eval_prefixes_cfg = config.get('allowed_eval_prefixes', DEFAULT_CONFIG['allowed_eval_prefixes'])
+    include_legacy_evaltc = bool(config.get('include_legacy_evaltc', DEFAULT_CONFIG['include_legacy_evaltc']))
 
     # --- Extract task and split ---
     task, dataset = _extract_task(stem, task_pattern, union_config)
@@ -174,6 +184,20 @@ def parse_filename(csv_file, config):
             stem_no_prefix = 'scores_' + stem[len(f'scores_{pfx}'):]
             break
 
+    # Normalize allowed prefixes so config can use "self" or "self-".
+    if isinstance(allowed_eval_prefixes_cfg, str):
+        allowed_eval_prefixes_cfg = [allowed_eval_prefixes_cfg]
+    allowed_eval_prefixes = {
+        p if (p == '' or p.endswith('-')) else f'{p}-'
+        for p in (allowed_eval_prefixes_cfg or [])
+    }
+    if eval_prefix not in allowed_eval_prefixes:
+        return None
+
+    # Legacy eval suffix (produced by eval.py and older eval_by_claude.py)
+    if not include_legacy_evaltc and re.search(r'_evaltc(?:_|$)', stem):
+        return None
+
     # --- Step 1: Base vs Finetuned ---
     # Try matching against both the original stem (for existing configs that include
     # the eval prefix in the pattern) and prefix-stripped stem (for new files with
@@ -192,9 +216,9 @@ def parse_filename(csv_file, config):
             task=task, dataset=dataset, split=split,
             is_base=True, direction=None, is_union=False,
             pref_weight=None, nllv_weight=None, nllg_weight=None,
-            has_tco=False, has_norm=False, has_vallogodds=False,
+            has_tco=False, has_tcself=False, has_tcneg=False, has_norm=False, has_vallogodds=False,
             has_eos=has_eos,
-            training_mode=None, category='Base', row_label=base_label,
+            training_mode=None, training_regime=None, category='Base', row_label=base_label,
             timestamp=timestamp,
         )
 
@@ -266,15 +290,24 @@ def parse_filename(csv_file, config):
     else:
         training_mode = 'Comb'
 
-    # --- Step 5: Flags ---
+    # --- Step 5: Regime + Flags ---
+    if re.search(r'(?:^|[_-])labelonly\d', stem):
+        training_regime = 'labelonly'
+    elif re.search(r'(?:^|[_-])semi\d', stem):
+        training_regime = 'semi'
+    else:
+        training_regime = 'all'
+
     has_tco = '_tc-online_' in stem
+    has_tcneg = '_tc-neg_' in stem
     has_tcself =  '_tc-self_' in stem
     has_norm = '_lenorm_' in stem
     has_vallogodds = '_vallogodds' in stem
     has_eos = '_eos_' in stem
 
     # Build row label
-    row_label = build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds,
+    row_label = build_row_label(category, training_mode, training_regime, has_tco, has_tcself,
+                                has_tcneg, has_norm, has_vallogodds,
                                 has_eos=has_eos, eval_prefix=eval_prefix)
 
     return FileInfo(
@@ -282,9 +315,11 @@ def parse_filename(csv_file, config):
         task=task, dataset=dataset, split=split,
         is_base=False, direction='d2g', is_union=is_union,
         pref_weight=pref_weight, nllv_weight=nllv_weight, nllg_weight=nllg_weight,
-        has_tco=has_tco, has_norm=has_norm, has_vallogodds=has_vallogodds,
+        has_tco=has_tco, has_tcself=has_tcself, has_tcneg=has_tcneg,
+        has_norm=has_norm, has_vallogodds=has_vallogodds,
         has_eos=has_eos,
-        training_mode=training_mode, category=category, row_label=row_label,
+        training_mode=training_mode, training_regime=training_regime,
+        category=category, row_label=row_label,
         timestamp=timestamp,
     )
 
@@ -317,21 +352,24 @@ def build_base_row_label(eval_prefix, has_eos):
     return '-'.join(parts)
 
 
-def build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds,
+def build_row_label(category, training_mode, training_regime, has_tco, has_tcself, has_tcneg,
+                    has_norm, has_vallogodds,
                     has_eos=False, eval_prefix=''):
     """Build a row label from parsed fields.
 
-    Format: {category}-{mode}[-tco][-norm][-v][-basetyp][-eos]
-    Examples: "Base", "Base-eos", "S-Comb", "S-Comb-tco-norm", "U-SFT-v", "S-Comb-basetyp"
+    Format: {category}-{mode}-{regime}[-tco][-tcself][-tcneg][-norm][-v][-basetyp][-eos]
+    Examples: "Base", "Base-eos", "S-Comb-all", "S-Comb-semi-tco-norm", "U-SFT-labelonly-v"
     """
     if category == 'Base':
         return build_base_row_label(eval_prefix, has_eos)
 
-    parts = [f"{category}-{training_mode}"]
+    parts = [f"{category}-{training_mode}", training_regime or 'all']
     if has_tco:
         parts.append('tco')
     if has_tcself:
         parts.append('tcself')
+    if has_tcneg:
+        parts.append('tcneg')
     if has_norm:
         parts.append('norm')
     if has_vallogodds:
@@ -371,7 +409,12 @@ def is_row_visible(row_label, config):
     """Check if a row should be displayed based on config visibility settings."""
     visible_categories = config.get('visible_categories', ['Base', 'S'])
     visible_modes = config.get('visible_modes', ['Comb', 'SFT', 'Pref'])
-    visible_flags = set(config.get('visible_flags', ['tco', 'norm', 'v']))
+    visible_flags = set(config.get('visible_flags', ['all', 'labelonly', 'semi', 'tco', 'tcself', 'tcneg', 'norm', 'v', 'eos']))
+
+    # Backward compatibility: old configs had no regime flags and would hide every
+    # non-base row once regime became part of the row label.
+    if not (visible_flags & {'all', 'labelonly', 'semi'}):
+        visible_flags.update({'all', 'labelonly', 'semi'})
 
     if row_label.startswith('Base'):
         if 'Base' not in visible_categories:
@@ -586,6 +629,7 @@ def load_heatmap_data_for_task(resolved_files, config):
         dict: {row_label: {eval_col: metrics_dict}}
     """
     eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
+    val_col = config.get('val_score_col', 'val_score')
     data = {}
 
     for row_label, file_info in resolved_files.items():
@@ -595,9 +639,9 @@ def load_heatmap_data_for_task(resolved_files, config):
 
             row_data = {}
             for eval_col, gen_col in eval_columns.items():
-                if gen_col in df.columns and 'val_score' in df.columns and 'label' in df.columns:
+                if gen_col in df.columns and val_col in df.columns and 'label' in df.columns:
                     gen_scores = df[gen_col].values
-                    val_scores = df['val_score'].values
+                    val_scores = df[val_col].values
                     labels = df['label'].values
                     metrics = compute_metrics(gen_scores, val_scores, labels, metric_type)
                     row_data[eval_col] = metrics
@@ -962,6 +1006,31 @@ app.layout = html.Div([
                                        'border': '1px solid #ccc', 'fontFamily': 'monospace'})
                 ], style={'marginBottom': '15px'}),
 
+                html.Div([
+                    html.Label('Allowed Eval Prefixes (JSON list):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Input(id='config-allowed-eval-prefixes', type='text',
+                             value=json.dumps(DEFAULT_CONFIG['allowed_eval_prefixes']),
+                             style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
+                    html.Small('Examples: ["self-"] now; later ["self-", "neg-", "basetyp-", "basetypneg-"]',
+                              style={'color': '#666'})
+                ], style={'marginBottom': '15px'}),
+
+                html.Div([
+                    html.Label('Include Legacy _evaltc Files:', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Dropdown(
+                        id='config-include-legacy-evaltc',
+                        options=[
+                            {'label': 'No (recommended)', 'value': False},
+                            {'label': 'Yes', 'value': True},
+                        ],
+                        value=DEFAULT_CONFIG['include_legacy_evaltc'],
+                        clearable=False,
+                        style={'width': '100%'}
+                    ),
+                    html.Small('Legacy _evaltc files come from eval.py and older eval_by_claude.py runs.',
+                              style={'color': '#666'})
+                ], style={'marginBottom': '15px'}),
+
                 # Visibility controls
                 html.Div([
                     html.Label('Visible Categories (JSON list):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
@@ -984,7 +1053,7 @@ app.layout = html.Div([
                     dcc.Input(id='config-visible-flags', type='text',
                              value=json.dumps(DEFAULT_CONFIG['visible_flags']),
                              style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
-                    html.Small('Options: "tco", "tcself", "norm", "v", "eos", "basetyp", "basetypneg"', style={'color': '#666'})
+                    html.Small('Options: "all", "labelonly", "semi", "tco", "tcself", "tcneg", "norm", "v", "eos", "basetyp", "basetypneg"', style={'color': '#666'})
                 ], style={'marginBottom': '25px'}),
 
             ], style={'maxWidth': '800px', 'margin': '0 auto', 'padding': '20px',
@@ -1111,8 +1180,21 @@ app.layout = html.Div([
 
 def _build_config_from_form(outputs_dir, task_pattern, split_patterns, label_col, label_map,
                             base_pattern, finetuned_pattern, union_models, aggregation,
-                            eval_cols, visible_categories, visible_modes, visible_flags):
+                            eval_cols, allowed_eval_prefixes, include_legacy_evaltc,
+                            visible_categories, visible_modes, visible_flags):
     """Build config dict from form values."""
+    if isinstance(allowed_eval_prefixes, str):
+        allowed_eval_prefixes_list = json.loads(allowed_eval_prefixes) if allowed_eval_prefixes else []
+    elif isinstance(allowed_eval_prefixes, list):
+        allowed_eval_prefixes_list = allowed_eval_prefixes
+    else:
+        allowed_eval_prefixes_list = DEFAULT_CONFIG['allowed_eval_prefixes']
+
+    if isinstance(include_legacy_evaltc, str):
+        include_legacy_evaltc_bool = include_legacy_evaltc.strip().lower() in {'1', 'true', 'yes', 'y'}
+    else:
+        include_legacy_evaltc_bool = bool(include_legacy_evaltc)
+
     return {
         'outputs_dir': outputs_dir,
         'task_pattern': task_pattern,
@@ -1126,10 +1208,12 @@ def _build_config_from_form(outputs_dir, task_pattern, split_patterns, label_col
         'union_models': json.loads(union_models) if union_models else {},
         'aggregation_groups': json.loads(aggregation) if aggregation else {},
         'eval_columns': json.loads(eval_cols) if eval_cols else {},
+        'allowed_eval_prefixes': allowed_eval_prefixes_list or DEFAULT_CONFIG['allowed_eval_prefixes'],
+        'include_legacy_evaltc': include_legacy_evaltc_bool,
         'metrics': DEFAULT_CONFIG['metrics'],
         'visible_categories': json.loads(visible_categories) if visible_categories else ['Base', 'S'],
         'visible_modes': json.loads(visible_modes) if visible_modes else ['Comb', 'SFT', 'Pref'],
-        'visible_flags': json.loads(visible_flags) if visible_flags else ['tco', 'tcself', 'norm', 'v'],
+        'visible_flags': json.loads(visible_flags) if visible_flags else ['all', 'labelonly', 'semi', 'tco', 'tcself', 'tcneg', 'norm', 'v', 'eos'],
     }
 
 
@@ -1144,6 +1228,8 @@ def _build_config_from_form(outputs_dir, task_pattern, split_patterns, label_col
      Output('config-union-models', 'value'),
      Output('config-aggregation', 'value'),
      Output('config-eval-cols', 'value'),
+     Output('config-allowed-eval-prefixes', 'value'),
+     Output('config-include-legacy-evaltc', 'value'),
      Output('config-visible-categories', 'value'),
      Output('config-visible-modes', 'value'),
      Output('config-visible-flags', 'value'),
@@ -1166,7 +1252,7 @@ def handle_load_config(n_clicks):
             dash.no_update, dash.no_update, dash.no_update, dash.no_update,
             dash.no_update, dash.no_update, dash.no_update, dash.no_update,
             dash.no_update, dash.no_update, dash.no_update, dash.no_update,
-            dash.no_update,
+            dash.no_update, dash.no_update, dash.no_update,
             f"⚠️ {error}",
             style
         )
@@ -1183,9 +1269,11 @@ def handle_load_config(n_clicks):
         json.dumps(config.get('union_models', {}), indent=2),
         json.dumps(config.get('aggregation_groups', {})),
         json.dumps(config.get('eval_columns', {}), indent=2),
+        json.dumps(config.get('allowed_eval_prefixes', DEFAULT_CONFIG['allowed_eval_prefixes'])),
+        config.get('include_legacy_evaltc', DEFAULT_CONFIG['include_legacy_evaltc']),
         json.dumps(config.get('visible_categories', ['Base', 'S'])),
         json.dumps(config.get('visible_modes', ['Comb', 'SFT', 'Pref'])),
-        json.dumps(config.get('visible_flags', ['tco', 'norm', 'v'])),
+        json.dumps(config.get('visible_flags', ['all', 'labelonly', 'semi', 'tco', 'tcself', 'tcneg', 'norm', 'v', 'eos'])),
         f"✅ Loaded config from {CONFIG_FILE}",
         style
     )
@@ -1205,6 +1293,8 @@ def handle_load_config(n_clicks):
      State('config-union-models', 'value'),
      State('config-aggregation', 'value'),
      State('config-eval-cols', 'value'),
+     State('config-allowed-eval-prefixes', 'value'),
+     State('config-include-legacy-evaltc', 'value'),
      State('config-visible-categories', 'value'),
      State('config-visible-modes', 'value'),
      State('config-visible-flags', 'value')],
@@ -1212,6 +1302,7 @@ def handle_load_config(n_clicks):
 )
 def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, label_map,
                 base_pattern, finetuned_pattern, union_models, aggregation, eval_cols,
+                allowed_eval_prefixes, include_legacy_evaltc,
                 visible_categories, visible_modes, visible_flags):
     """Save current config to JSON file."""
     if not n_clicks:
@@ -1223,6 +1314,7 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, 
         config = _build_config_from_form(
             outputs_dir, task_pattern, split_patterns, label_col, label_map,
             base_pattern, finetuned_pattern, union_models, aggregation, eval_cols,
+            allowed_eval_prefixes, include_legacy_evaltc,
             visible_categories, visible_modes, visible_flags
         )
         save_config_to_file(config)
@@ -1262,6 +1354,8 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, 
      State('config-union-models', 'value'),
      State('config-aggregation', 'value'),
      State('config-eval-cols', 'value'),
+     State('config-allowed-eval-prefixes', 'value'),
+     State('config-include-legacy-evaltc', 'value'),
      State('config-visible-categories', 'value'),
      State('config-visible-modes', 'value'),
      State('config-visible-flags', 'value')],
@@ -1270,6 +1364,7 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, 
 def toggle_pages(load_clicks, load_clicks_top, back_clicks,
                  outputs_dir, task_pattern, split_patterns, label_col, label_map,
                  base_pattern, finetuned_pattern, union_models, aggregation, eval_cols,
+                 allowed_eval_prefixes, include_legacy_evaltc,
                  visible_categories, visible_modes, visible_flags):
     """Toggle between config page and viz page."""
     ctx = dash.callback_context
@@ -1296,6 +1391,7 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
         config = _build_config_from_form(
             outputs_dir, task_pattern, split_patterns, label_col, label_map,
             base_pattern, finetuned_pattern, union_models, aggregation, eval_cols,
+            allowed_eval_prefixes, include_legacy_evaltc,
             visible_categories, visible_modes, visible_flags
         )
 

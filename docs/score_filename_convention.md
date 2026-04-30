@@ -42,6 +42,8 @@ There are three kinds of typicality correction used at eval time:
 - `eval.py` (older script) uses `_evaltc` suffix and has no prefix. It only supports GPT-2 TC.
 - An older version of `eval_by_claude.py` used `_evaltc` instead of `_tc` for self-TC.
   Files with `self-` prefix + `_evaltc` suffix are from this older version.
+- In `scripts/dashboard_viz_refactor.py` (current policy), only `self-` prefixed files are ingested.
+  Files with empty eval prefix are ignored, and files with `_evaltc` are treated as legacy and ignored.
 - `--length-normalize` (`_evallenorm`) does NOT change the CSV content. The `gen_score_lenorm`
   column is always computed regardless of this flag. The flag only changes the filename.
   A file with `_evallenorm` and one without are functionally identical.
@@ -115,6 +117,24 @@ no semi/labelonly.
 | tc-online | `tc-online` | GPT-2 TC during training |
 | tc-neg-lenorm | `tc-neg--lenorm` | Neg TC + length norm during training |
 | tc-self-lenorm | `tc-self--lenorm` | Self TC + length norm during training |
+
+## Dashboard Heatmap Row Key (current)
+
+For `scripts/dashboard_viz_refactor.py`, each heatmap row key is:
+
+```
+{category}-{mode}-{regime}[-tco][-tcself][-tcneg][-norm][-v][-eos]
+```
+
+Where:
+
+- `category`: `Base`, `S`, or `U`
+- `mode`: `Pref`, `SFT`, or `Comb`
+- `regime`: `all` (no `semi*`/`labelonly*` token), `semi`, or `labelonly`
+
+This ensures rows differ when training regime differs (e.g. `semi0.1` vs `labelonly0.1`).
+Aggregated heatmaps average over datasets (tasks) within the **same row key** only, so
+they do not mix training regimes or training-TC variants.
 
 ## Base Models
 
