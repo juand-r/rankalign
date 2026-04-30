@@ -43,7 +43,8 @@ There are three kinds of typicality correction used at eval time:
 - An older version of `eval_by_claude.py` used `_evaltc` instead of `_tc` for self-TC.
   Files with `self-` prefix + `_evaltc` suffix are from this older version.
 - In `scripts/dashboard_viz_refactor.py` (current policy), only `self-` prefixed files are ingested.
-  Files with empty eval prefix are ignored, and files with `_evaltc` are treated as legacy and ignored.
+  Files with empty eval prefix are ignored. By default, no-prefix `_evaltc` files (from `eval.py`) are
+  ignored, while prefixed `_evaltc` files (older `eval_by_claude.py`) are still allowed.
 - `--length-normalize` (`_evallenorm`) does NOT change the CSV content. The `gen_score_lenorm`
   column is always computed regardless of this flag. The flag only changes the filename.
   A file with `_evallenorm` and one without are functionally identical.

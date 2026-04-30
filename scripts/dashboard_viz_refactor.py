@@ -194,8 +194,15 @@ def parse_filename(csv_file, config):
     if eval_prefix not in allowed_eval_prefixes:
         return None
 
-    # Legacy eval suffix (produced by eval.py and older eval_by_claude.py)
-    if not include_legacy_evaltc and re.search(r'_evaltc(?:_|$)', stem):
+    # Legacy eval suffix:
+    # - eval.py produces no-prefix *_evaltc* files
+    # - older eval_by_claude.py produced prefixed (e.g. self-*) *_evaltc* files
+    #
+    # By default, keep prefixed legacy files (older eval_by_claude) but drop
+    # no-prefix eval.py legacy files. The include_legacy_evaltc toggle allows
+    # no-prefix eval.py legacy files too.
+    has_legacy_evaltc = bool(re.search(r'_evaltc(?:_|$)', stem))
+    if has_legacy_evaltc and not include_legacy_evaltc and eval_prefix == '':
         return None
 
     # --- Step 1: Base vs Finetuned ---
