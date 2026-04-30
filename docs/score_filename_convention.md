@@ -6,14 +6,14 @@ covering how they are produced, what each component means, and how to parse them
 ## Filename Format
 
 ```
-scores_{eval_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{tc_suffix}{lenorm_suffix}_{timestamp}.csv
+scores_{eval_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{tc_suffix}{lenorm_suffix}{eos_suffix}_{timestamp}.csv
 ```
 
 ### Components
 
 | Component | Values | Meaning |
 |-----------|--------|---------|
-| `eval_prefix` | `neg-`, `self-`, or empty | Typicality correction method used at **eval time** |
+| `eval_prefix` | `neg-`, `self-`, `basetyp-`, `basetypneg-`, or empty | Typicality correction method used at **eval time** |
 | `model_short` | e.g. `v6-google_gemma-2-9b-it-delta0.15-epoch2_...` | Model identifier (see Model Short Name below) |
 | `task` | e.g. `ambigqa-american`, `hypernym-dogs`, `ifeval-prompt_42` | Eval task name |
 | `split` | `test` or `train` | Data split |
@@ -21,6 +21,7 @@ scores_{eval_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{tc_su
 | `metric_suffix` | `_log-odds` or `_log-probs` | Scoring metric (all current runs use `_log-odds`) |
 | `tc_suffix` | `_tc`, `_evaltc`, or empty | See Eval TC Suffix below |
 | `lenorm_suffix` | `_evallenorm` or empty | Present if `--length-normalize` was used. Does NOT affect file content. |
+| `eos_suffix` | `_eos` or empty | Present if `--include-eos` was used. Includes log P(EOS) in gen_score. |
 | `timestamp` | `YYYYMMDD` or `YYYYMMDD_HHMMSS` | When the eval was run |
 
 ## Eval Prefix + TC Suffix: The Three TC Types
@@ -31,6 +32,8 @@ There are three kinds of typicality correction used at eval time:
 |---------|------------------------------|--------|-------------|-----------|
 | **neg** | Negated prompt: log P(y \| neg_Q) | `eval_by_claude.py --neg-typicality` | `neg-` | `_tc` |
 | **self** | Model itself: unconditional log P_model(y) | `eval_by_claude.py --self-typicality` | `self-` | `_tc` (current) or `_evaltc` (older version) |
+| **basetyp** | Base (pre-finetuning) model: unconditional log P_base(y) | `eval_by_claude.py --base-typicality` | `basetyp-` | `_tc` |
+| **basetypneg** | Base model + negated prompt: log P_base(y \| neg_Q) | `eval_by_claude.py --base-typicality --neg-typicality` | `basetypneg-` | `_tc` |
 | **gpt2** | GPT-2: log P_GPT2(y) | `eval.py --typicality-correction` | (empty) | `_evaltc` |
 
 ### Important notes

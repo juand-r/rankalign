@@ -120,6 +120,7 @@ class FileInfo:
     has_tco: bool           # _tc-online_ in filename
     has_norm: bool          # _lenorm_ in filename
     has_vallogodds: bool    # _vallogodds in filename
+    has_eos: bool           # _eos_ in filename (--include-eos eval flag)
     # Derived:
     training_mode: Optional[str]  # "SFT", "Pref", or "Comb" (None for base)
     category: str           # "Base", "S", or "U"
@@ -162,18 +163,38 @@ def parse_filename(csv_file, config):
 
     timestamp = _extract_timestamp(name)
 
+    # --- Step 0: Strip eval prefix to normalize pattern matching ---
+    # eval_by_claude.py prepends: "basetypneg-", "basetyp-", "neg-", "self-", or ""
+    EVAL_PREFIXES = ['basetypneg-', 'basetyp-', 'neg-', 'self-']
+    eval_prefix = ''
+    stem_no_prefix = stem
+    for pfx in EVAL_PREFIXES:
+        if stem.startswith(f'scores_{pfx}'):
+            eval_prefix = pfx
+            stem_no_prefix = 'scores_' + stem[len(f'scores_{pfx}'):]
+            break
+
     # --- Step 1: Base vs Finetuned ---
-    is_finetuned = bool(finetuned_pattern and re.match(finetuned_pattern, stem))
-    is_base = bool(base_pattern and re.match(base_pattern, stem) and not is_finetuned)
+    # Try matching against both the original stem (for existing configs that include
+    # the eval prefix in the pattern) and prefix-stripped stem (for new files with
+    # different eval prefixes like basetyp-, basetypneg-)
+    is_finetuned = bool(finetuned_pattern and
+                        (re.match(finetuned_pattern, stem) or re.match(finetuned_pattern, stem_no_prefix)))
+    is_base = bool(base_pattern and
+                   (re.match(base_pattern, stem) or re.match(base_pattern, stem_no_prefix))
+                   and not is_finetuned)
 
     if is_base:
+        has_eos = '_eos_' in stem
+        base_label = build_base_row_label(eval_prefix, has_eos)
         return FileInfo(
             path=str(csv_file), filename=name,
             task=task, dataset=dataset, split=split,
             is_base=True, direction=None, is_union=False,
             pref_weight=None, nllv_weight=None, nllg_weight=None,
             has_tco=False, has_norm=False, has_vallogodds=False,
-            training_mode=None, category='Base', row_label='Base',
+            has_eos=has_eos,
+            training_mode=None, category='Base', row_label=base_label,
             timestamp=timestamp,
         )
 
@@ -250,9 +271,11 @@ def parse_filename(csv_file, config):
     has_tcself =  '_tc-self_' in stem
     has_norm = '_lenorm_' in stem
     has_vallogodds = '_vallogodds' in stem
+    has_eos = '_eos_' in stem
 
     # Build row label
-    row_label = build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds)
+    row_label = build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds,
+                                has_eos=has_eos, eval_prefix=eval_prefix)
 
     return FileInfo(
         path=str(csv_file), filename=name,
@@ -260,6 +283,7 @@ def parse_filename(csv_file, config):
         is_base=False, direction='d2g', is_union=is_union,
         pref_weight=pref_weight, nllv_weight=nllv_weight, nllg_weight=nllg_weight,
         has_tco=has_tco, has_norm=has_norm, has_vallogodds=has_vallogodds,
+        has_eos=has_eos,
         training_mode=training_mode, category=category, row_label=row_label,
         timestamp=timestamp,
     )
@@ -271,14 +295,37 @@ def parse_filename(csv_file, config):
 # ROW LABEL BUILDER
 # =============================================================================
 
-def build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds):
+def _eval_prefix_flag(eval_prefix):
+    """Map eval prefix to a flag string for row labels, or '' if default."""
+    return {
+        'basetyp-': 'basetyp',
+        'basetypneg-': 'basetypneg',
+    }.get(eval_prefix, '')
+
+
+def build_base_row_label(eval_prefix, has_eos):
+    """Build row label for base model files.
+
+    Examples: "Base", "Base-eos", "Base-basetyp", "Base-basetypneg-eos"
+    """
+    parts = ['Base']
+    pfx_flag = _eval_prefix_flag(eval_prefix)
+    if pfx_flag:
+        parts.append(pfx_flag)
+    if has_eos:
+        parts.append('eos')
+    return '-'.join(parts)
+
+
+def build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_vallogodds,
+                    has_eos=False, eval_prefix=''):
     """Build a row label from parsed fields.
 
-    Format: {category}-{mode}[-tco][-norm][-v]
-    Examples: "Base", "S-Comb", "S-Comb-tco-norm", "U-SFT-v"
+    Format: {category}-{mode}[-tco][-norm][-v][-basetyp][-eos]
+    Examples: "Base", "Base-eos", "S-Comb", "S-Comb-tco-norm", "U-SFT-v", "S-Comb-basetyp"
     """
     if category == 'Base':
-        return 'Base'
+        return build_base_row_label(eval_prefix, has_eos)
 
     parts = [f"{category}-{training_mode}"]
     if has_tco:
@@ -289,13 +336,19 @@ def build_row_label(category, training_mode, has_tco, has_tcself, has_norm, has_
         parts.append('norm')
     if has_vallogodds:
         parts.append('v')
+    pfx_flag = _eval_prefix_flag(eval_prefix)
+    if pfx_flag:
+        parts.append(pfx_flag)
+    if has_eos:
+        parts.append('eos')
     return '-'.join(parts)
 
 
 def row_sort_key(row_label):
     """Sort key for row labels. Base always last (bottom of heatmap)."""
-    if row_label == 'Base':
-        return (3, '', '', '')
+    if row_label.startswith('Base'):
+        suffix = row_label[4:]  # e.g. '' or '-eos'
+        return (3, '', suffix, '')
 
     # Parse the label
     parts = row_label.split('-', 2)  # e.g. ["S", "Comb", "tco-norm"]
@@ -316,12 +369,19 @@ def row_sort_key(row_label):
 
 def is_row_visible(row_label, config):
     """Check if a row should be displayed based on config visibility settings."""
-    if row_label == 'Base':
-        return 'Base' in config.get('visible_categories', ['Base', 'S'])
-
     visible_categories = config.get('visible_categories', ['Base', 'S'])
     visible_modes = config.get('visible_modes', ['Comb', 'SFT', 'Pref'])
     visible_flags = set(config.get('visible_flags', ['tco', 'norm', 'v']))
+
+    if row_label.startswith('Base'):
+        if 'Base' not in visible_categories:
+            return False
+        flags_part = row_label[5:] if len(row_label) > 5 else ''  # after "Base-"
+        if flags_part:
+            for flag in flags_part.split('-'):
+                if flag not in visible_flags:
+                    return False
+        return True
 
     # Parse category and mode from label
     parts = row_label.split('-', 2)
@@ -924,7 +984,7 @@ app.layout = html.Div([
                     dcc.Input(id='config-visible-flags', type='text',
                              value=json.dumps(DEFAULT_CONFIG['visible_flags']),
                              style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
-                    html.Small('Options: "tco", "tcself", "norm", "v"', style={'color': '#666'})
+                    html.Small('Options: "tco", "tcself", "norm", "v", "eos", "basetyp", "basetypneg"', style={'color': '#666'})
                 ], style={'marginBottom': '25px'}),
 
             ], style={'maxWidth': '800px', 'margin': '0 auto', 'padding': '20px',
