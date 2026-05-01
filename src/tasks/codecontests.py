@@ -123,14 +123,12 @@ def create_load_data_train(n_problems=None):
 
 
 def create_load_data_test(test_jsonl_path):
-    """Factory: create load_data for a per-problem eval task."""
+    """Factory: create load_data for a per-problem eval-only task."""
     def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
-        L_train = _load_train_items()
         L_test = _load_test_items(test_jsonl_path)
         rng = random.Random(seed)
-        rng.shuffle(L_train)
         rng.shuffle(L_test)
-        return L_train, L_test
+        return [], L_test
     return load_data
 
 
