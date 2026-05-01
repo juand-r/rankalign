@@ -55,9 +55,10 @@ TRAIN_PATH = os.path.join(DATA_DIR, 'train.jsonl')
 TEST_DIR = os.path.join(DATA_DIR, 'test')
 MANIFEST_PATH = os.path.join(DATA_DIR, 'split_manifest.json')
 
-TRAIN_PROBLEMS_BASE = 400
-TRAIN_PROBLEMS_DOUBLE = 800
+TRAIN_PROBLEMS_BASE = 90
+TRAIN_PROBLEMS_DOUBLE = 180
 SEED = 42
+MAX_ITEM_CHARS = None  # set to e.g. 4096 to filter long items (prompt+completion chars)
 
 _descriptions_cache = None
 
@@ -110,10 +111,25 @@ def _sample_by_problems(items, n_problems, rng):
     return result
 
 
-def create_load_data_train(n_problems=None):
+def _filter_by_length(items, max_chars):
+    """Drop items whose generator or discriminator prompt+completion exceeds max_chars."""
+    kept = []
+    for item in items:
+        pc_gen = make_prompt(item, style='generator')
+        pc_disc = make_prompt(item, style='discriminator')
+        gen_len = len(pc_gen.prompt) + len(pc_gen.completion)
+        disc_len = len(pc_disc.prompt) + len(pc_disc.completion)
+        if max(gen_len, disc_len) <= max_chars:
+            kept.append(item)
+    return kept
+
+
+def create_load_data_train(n_problems=None, max_item_chars=MAX_ITEM_CHARS):
     """Factory: create load_data for training variants.
 
     n_problems=None means use all problems.
+    max_item_chars: if set, drop items whose prompt+completion exceeds this
+        many characters (~4 chars/token, so 4096 chars ≈ 1024 tokens).
     """
     def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
         all_items = _load_train_items()
@@ -124,6 +140,12 @@ def create_load_data_train(n_problems=None):
             L_train = _sample_by_problems(all_items, n_problems, random.Random(SEED))
         else:
             L_train = all_items
+
+        if max_item_chars is not None:
+            before = len(L_train)
+            L_train = _filter_by_length(L_train, max_item_chars)
+            print(f"[codecontests] Length filter ({max_item_chars} chars): "
+                  f"{before} -> {len(L_train)} items")
 
         return L_train, []
     return load_data
@@ -180,37 +202,40 @@ def get_label(item):
 # ============================================================================
 
 if os.path.exists(TRAIN_PATH) and os.path.exists(DESCRIPTIONS_PATH):
+    # 1024 tokens ≈ 4096 chars; filters out long items to avoid OOM on 9B models
+    TRAIN_MAX_CHARS = 4096
+
     register_task({
         'name': 'codecontests',
-        'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_BASE),
+        'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_BASE, max_item_chars=TRAIN_MAX_CHARS),
         'make_prompt': make_prompt,
         'get_completion': get_completion,
         'get_label': get_label,
         'batch_size': {'with_ref': 1, 'without_ref': 2},
         'supports_split_types': ['random'],
-        'description': f'CodeContests: ~{TRAIN_PROBLEMS_BASE} problems training set',
+        'description': f'CodeContests: ~{TRAIN_PROBLEMS_BASE} problems, <=1024 tok',
     })
 
     register_task({
         'name': 'codecontests-double',
-        'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_DOUBLE),
+        'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_DOUBLE, max_item_chars=TRAIN_MAX_CHARS),
         'make_prompt': make_prompt,
         'get_completion': get_completion,
         'get_label': get_label,
         'batch_size': {'with_ref': 1, 'without_ref': 2},
         'supports_split_types': ['random'],
-        'description': f'CodeContests: ~{TRAIN_PROBLEMS_DOUBLE} problems training set',
+        'description': f'CodeContests: ~{TRAIN_PROBLEMS_DOUBLE} problems, <=1024 tok',
     })
 
     register_task({
         'name': 'codecontests-all',
-        'load_data': create_load_data_train(n_problems=None),
+        'load_data': create_load_data_train(n_problems=None, max_item_chars=TRAIN_MAX_CHARS),
         'make_prompt': make_prompt,
         'get_completion': get_completion,
         'get_label': get_label,
         'batch_size': {'with_ref': 1, 'without_ref': 2},
         'supports_split_types': ['random'],
-        'description': 'CodeContests: full training set',
+        'description': 'CodeContests: all problems, <=1024 tok',
     })
 
 if os.path.exists(TEST_DIR):

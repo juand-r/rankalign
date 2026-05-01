@@ -1480,6 +1480,13 @@ def main(args):
         if train_g_or_d == 'both':
             max_context_length = max(len(hf_train_gold[0]['input_ids']), max_context_length)
     print("MAX CONTEXT LENGTH: ", max_context_length)
+    if args.max_seq_len is not None and args.max_seq_len > 0:
+        if max_context_length > args.max_seq_len:
+            print(
+                f"Capping max_context_length {max_context_length} -> {args.max_seq_len} "
+                f"(via --max-seq-len)"
+            )
+            max_context_length = args.max_seq_len
 
     # Prepare typicality scores for inclusion in Z (use zeros if not computed)
     typ_scores_for_z = typicality_scores if typicality_scores is not None else [0.0] * len(L_train_all)
@@ -2784,6 +2791,13 @@ if __name__ == "__main__":
     parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
     parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
     parser.add_argument("--experiment-notes-dir", type=str, default="", help="Path to experiment notes dir for updating HUGGINGFACE_REPOS.md")
+    parser.add_argument(
+        "--max-seq-len",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Cap training tokenizer max_length (truncate/pad). Use on long-context tasks to reduce VRAM.",
+    )
     args = parser.parse_args()
 
     if args.semi_supervised is not None and args.labeled_only is not None:

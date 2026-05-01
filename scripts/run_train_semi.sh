@@ -23,6 +23,7 @@
 #   --delta D              Override default delta (overrides --mode default)
 #   --samples N            Override default total_samples
 #   --disc-shots zero|few  Override discriminator shots (default: auto based on model)
+#   --max-seq-len N        Cap training sequence length (tokenizer truncation/pad); reduces VRAM
 #
 # Models:
 #   google/gemma-2-2b          google/gemma-2-2b-it
@@ -56,6 +57,7 @@ DISC_SHOTS=""
 INCLUDE_EOS=""
 MODELS_DIR=""
 FORCE_SAME_X="--force-same-x"
+MAX_SEQ_LEN=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -72,6 +74,7 @@ while [[ $# -gt 0 ]]; do
         --include-eos) INCLUDE_EOS="--include-eos"; shift ;;
         --models-dir) MODELS_DIR="--models-dir $2"; shift 2 ;;
         --no-force-same-x) FORCE_SAME_X=""; shift ;;
+        --max-seq-len) MAX_SEQ_LEN="--max-seq-len $2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -184,7 +187,14 @@ python ranking_loss_ref.py \
     $DISC_SHOTS \
     $LORA_FLAG \
     $INCLUDE_EOS \
-    $MODELS_DIR
+    $MODELS_DIR \
+    $MAX_SEQ_LEN
 
+STATUS=$?
 echo ""
-echo "Finished: $TASK ($LOSS, $SEMI_MODE $RATIO)"
+if [ "$STATUS" -eq 0 ]; then
+    echo "Finished: $TASK ($LOSS, $SEMI_MODE $RATIO)"
+else
+    echo "FAILED (exit $STATUS): $TASK ($LOSS, $SEMI_MODE $RATIO)"
+fi
+exit $STATUS

@@ -1,6 +1,6 @@
 # Eval/Train Status Tracker
 
-Last updated: 2026-04-30 11:17 PM
+Last updated: 2026-04-30 11:57 PM
 
 ## Workstream 1: EOS train + eval (hypernym, outputs-eos-models/)
 
@@ -39,7 +39,7 @@ Last updated: 2026-04-30 11:17 PM
 | 2a | SFT-LO | DONE 18/18 | DONE 18/18 | DONE 18/18 |
 | 3a | RankAlign | DONE 18/18 (34957 completed) | DONE 18/18 | DONE 18/18 |
 | 4a.1 | Comb vlo semi | DONE 18/18 | DONE 18/18 | DONE 18/18 |
-| 4a.2 | Comb vlo + tc-self semi | RUNNING (34973) | DONE 18/18 | DONE 18/18 |
+| 4a.2 | Comb vlo + tc-self semi | DONE 18/18 (34973) | DONE 18/18 | DONE 18/18 |
 
 ### basetypneg- (neg-TC via base model)
 

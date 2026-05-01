@@ -1,6 +1,10 @@
 """
 HumanEval code correctness tasks.
 
+When running eval_by_claude.py on these tasks, pass --save-scores-csv: it is essential —
+that script only writes the detailed per-example score CSV for HumanEval when this flag
+is set (same CodeContests-style columns: problem_name, solution_preview, scores, etc.).
+
 Reads from data/humaneval/with_solutions/:
     - train.csv: training data (~100 problems, solutions classified pass/fail)
     - humaneval_<N>.csv: one file per test problem (OOD by problem)
