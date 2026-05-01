@@ -21,6 +21,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from torch.optim import AdamW
 from peft import LoraConfig, get_peft_model
 import math
+import re
 import random
 import argparse
 import wandb
@@ -627,9 +628,20 @@ def main(args):
         raise ValueError("NLL weights (--nll_validator_weight, --nll_generator_weight) are not yet "
                         "supported with --train_g_or_d both. Use 'd' or 'g' mode instead.")
 
-    if 'Instruct' in model_name or 'instruct' in model_name or '-it' in model_name:
+    _name_looks_instruct = (
+        'Instruct' in model_name or 'instruct' in model_name or '-it' in model_name
+    )
+    # Qwen3/3.5 post-trained models omit "Instruct" from the name (e.g. Qwen3-4B).
+    # Their base models are explicitly named with "-Base" (e.g. Qwen3-4B-Base).
+    _qwen3_post_trained = (
+        re.search(r'[Qq]wen3', model_name) is not None and 'Base' not in model_name
+    )
+    if _name_looks_instruct or _qwen3_post_trained:
         with_chat = True
-        print(f"Detected instruct model: {model_name}")
+        if _name_looks_instruct:
+            print(f"Detected instruct model (name match): {model_name}")
+        else:
+            print(f"Detected instruct model (Qwen3+ post-trained): {model_name}")
         print("Using chat template formatting for prompts")
         disc_shots = "zero"
         space_prefix = ""
