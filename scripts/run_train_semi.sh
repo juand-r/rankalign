@@ -55,6 +55,7 @@ SAMPLES_OVERRIDE=""
 DISC_SHOTS=""
 INCLUDE_EOS=""
 MODELS_DIR=""
+FORCE_SAME_X="--force-same-x"
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -70,6 +71,7 @@ while [[ $# -gt 0 ]]; do
         --disc-shots) DISC_SHOTS="--disc-shots $2"; shift 2 ;;
         --include-eos) INCLUDE_EOS="--include-eos"; shift ;;
         --models-dir) MODELS_DIR="--models-dir $2"; shift 2 ;;
+        --no-force-same-x) FORCE_SAME_X=""; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -172,7 +174,7 @@ python ranking_loss_ref.py \
     --preference_loss_weight $PREF \
     --all \
     --delta $DELTA \
-    --force-same-x \
+    $FORCE_SAME_X \
     $SAMPLES_FLAG \
     $TYPCORR \
     $LENORM \
