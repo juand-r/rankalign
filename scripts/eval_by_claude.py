@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+import re
 import sys
 import argparse
 from tqdm import tqdm
@@ -529,7 +530,8 @@ def init_model(model_name, device, fp32_model=False):
     print(f"Model distributed across devices: {set(model.hf_device_map.values()) if hasattr(model, 'hf_device_map') else 'single device'}")
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokenizer.pad_token = tokenizer.eos_token
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
     if "llama" in model_name:
         terminators = [tokenizer.eos_token_id, tokenizer.convert_tokens_to_ids("<|eot_id|>")]
 
@@ -804,10 +806,17 @@ def main(args):
 
     model_is_chat = False
     model_has_system_role = False
-    if 'instruct' in modelname.lower() or '-it' in modelname.lower():
+    _name_looks_instruct = 'instruct' in modelname.lower() or '-it' in modelname.lower()
+    # Qwen3/3.5 post-trained models omit "Instruct" from the name (e.g. Qwen3-4B).
+    # Their base models are explicitly named with "-Base" (e.g. Qwen3-4B-Base).
+    _qwen3_post_trained = re.search(r'[Qq]wen3', modelname) is not None and 'Base' not in modelname
+    if _name_looks_instruct or _qwen3_post_trained:
         model_is_chat = True
         first_sw_token = first_sw_token - 1  # Chat models don't use "a " prefix
-        print("Model is chat model!")
+        if _name_looks_instruct:
+            print("Model is chat model (name match)!")
+        else:
+            print("Model is chat model (Qwen3+ post-trained)!")
     if 'llama' in modelname.lower() or 'qwen' in modelname.lower():
         model_has_system_role = True
         print("Model has system role!")
@@ -986,7 +995,9 @@ def main(args):
 
         # Determine base model's chat properties (may differ from scoring model)
         if args.base_typicality:
-            base_is_chat = 'instruct' in args.base_model_name.lower() or '-it' in args.base_model_name.lower()
+            _base_name_instruct = 'instruct' in args.base_model_name.lower() or '-it' in args.base_model_name.lower()
+            _base_qwen3_pt = re.search(r'[Qq]wen3', args.base_model_name) is not None and 'Base' not in args.base_model_name
+            base_is_chat = _base_name_instruct or _base_qwen3_pt
             base_has_system_role = 'llama' in args.base_model_name.lower() or 'qwen' in args.base_model_name.lower()
         else:
             base_is_chat = False
