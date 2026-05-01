@@ -38,6 +38,14 @@ def is_plausibleqa_task(task):
     """Check if task is any PlausibleQA variant."""
     return task == 'plausibleqa' or task.startswith('plausibleqa-')
 
+def is_membership_task(task):
+    """Check if task is any membership-sans-rosch variant."""
+    return task.startswith('membership-sans-rosch-')
+
+def is_codecontests_task(task):
+    """Check if task is any CodeContests variant."""
+    return task == 'codecontests' or task.startswith('codecontests-')
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -318,6 +326,15 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
             )
     elif is_ifeval_task(task):
         neg_prompt = "Give a response that does NOT follow these instructions.\n" + gen_obj.prompt
+    elif is_membership_task(task):
+        neg_prompt = gen_obj.prompt.replace(
+            "an example of ", "an example of something that is not ", 1
+        )
+        if neg_prompt == gen_obj.prompt:
+            raise ValueError(
+                f"Negated prompt unchanged for membership task. "
+                f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
+            )
     else:
         raise NotImplementedError(
             f"--neg-typicality is not implemented for task '{task}'. "
@@ -1728,6 +1745,75 @@ def main(args):
                     gen_score_lenorm,
                     gen_score_typcorr_lenorm,
                 modelname,
+                ])
+
+        print(f"Detailed scores saved to: {scores_csv_filename}")
+
+    elif args.save_scores_csv and is_codecontests_task(task):
+        import csv
+        from datetime import datetime
+
+        timestamp = datetime.now().strftime("%Y%m%d")
+        if '/' in modelname and not modelname.startswith('.'):
+            model_short = 'v6-' + modelname.replace('/', '_')
+        else:
+            model_short = modelname.split('/')[-1].replace('--', '_')
+        split = "train" if args.train else "test"
+        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+        eval_tc_suffix = "_tc" if args.typicality_correction else ""
+        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+
+        def _get_field(obj, key, default=""):
+            if hasattr(obj, key):
+                return getattr(obj, key)
+            try:
+                return obj[key]
+            except Exception:
+                return default
+
+        with open(scores_csv_filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'problem_name',
+                'solution_preview',
+                'language',
+                'num_tokens',
+                'correct',
+                'val_score',
+                'gen_score',
+                'gen_score_typcorr',
+                'gen_score_lenorm',
+                'gen_score_typcorr_lenorm',
+                'model_path',
+            ])
+
+            for i, item in enumerate(LL):
+                problem_name = _get_field(item, 'problem_name', '')
+                solution = _get_field(item, 'solution', '')
+                solution_preview = solution[:200].replace('\n', '\\n')
+                language = _get_field(item, 'language', '')
+                correct = _get_field(item, 'correct', '').strip()
+                correct_label = 'yes' if correct.lower() in ('yes', 'true', '1') else 'no'
+
+                num_toks = all_num_tokens[i]
+                gen_score_raw = gen_scores_raw[i]
+                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                writer.writerow([
+                    problem_name,
+                    solution_preview,
+                    language,
+                    num_toks,
+                    correct_label,
+                    disc_scores[i],
+                    gen_score_raw,
+                    gen_score_typcorr_val,
+                    gen_score_lenorm,
+                    gen_score_typcorr_lenorm,
+                    modelname,
                 ])
 
         print(f"Detailed scores saved to: {scores_csv_filename}")

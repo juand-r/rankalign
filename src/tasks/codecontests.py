@@ -149,7 +149,7 @@ def make_prompt(item, style='generator', shots='zero', gen_response=None,
             f"{description}\n\n"
             f"Solution:"
         )
-        completion = "\n" + item['solution']
+        completion = " " + item['solution']
 
     elif style == 'discriminator':
         code = gen_response if gen_response else item['solution']
@@ -168,7 +168,7 @@ def make_prompt(item, style='generator', shots='zero', gen_response=None,
 
 
 def get_completion(item):
-    return "\n" + item['solution']
+    return " " + item['solution']
 
 
 def get_label(item):
