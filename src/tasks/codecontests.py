@@ -16,11 +16,14 @@ Training tasks:
     codecontests-all              - all ~13K problems, ~70K items
 
 Eval tasks (from the original dataset's held-out splits):
-    TEST split  (162 problems):  codecontests-1575a .. codecontests-1623e
-    VALID split (117 problems):  codecontests-1548c .. codecontests-1574f
+    TEST split  (158 problems):  codecontests-1575a .. codecontests-1623e
+    VALID split (114 problems):  codecontests-1548c .. codecontests-1574f
+
+    7 problems were removed for having too few items or extreme class
+    imbalance (see git log for the specific slugs removed).
 
     The split_manifest.json maps each slug to "test" or "valid", and lists
-    the "short" subset (71 test problems with median completion < 300 tokens).
+    the "short" subset (test problems with median completion < 300 tokens).
     Each task's registry entry has 'origin_split' and 'short' fields.
 
     Filter programmatically:
@@ -259,11 +262,8 @@ if os.path.exists(TEST_DIR):
         except Exception as e:
             print(f"[codecontests] Warning: Could not register {task_name}: {e}")
 
-    print(f"[codecontests] Registered {len(_registered_test)} TEST eval tasks "
-          f"(codecontests-1575a .. codecontests-1623e)")
-    print(f"[codecontests] Registered {len(_registered_valid)} VALID eval tasks "
-          f"(codecontests-1548c .. codecontests-1574f)")
-    print(f"[codecontests] {len(_registered_short)} of these are 'short' "
-          f"(median completion <= 200 tokens)")
+    print(f"[codecontests] Registered {len(_registered_test)} TEST eval tasks, "
+          f"{len(_registered_valid)} VALID eval tasks, "
+          f"{len(_registered_short)} short (median completion < 300 tokens)")
 else:
     print(f"[codecontests] Warning: Test data not found at {TEST_DIR}")

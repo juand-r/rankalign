@@ -235,7 +235,7 @@ Data layout:
 data/codecontests/
     descriptions.json           # {problem_name: {description, difficulty}} for all splits
     train.jsonl                 # compact train items (no description; joined at load time)
-    split_manifest.json         # maps each slug -> "test" or "valid"
+    split_manifest.json         # maps each slug -> "test", "valid", or "short"
     test/<slug>.jsonl           # self-contained per-problem eval items
 ```
 
@@ -247,8 +247,8 @@ Training variants (sample different numbers of problems from train.jsonl):
 
 Eval tasks (one per problem, auto-discovered from `test/*.jsonl`):
 
-- **TEST split** (162 problems): `codecontests-1575a` .. `codecontests-1623e`
-- **VALID split** (117 problems): `codecontests-1548c` .. `codecontests-1574f`
+- **TEST split** (158 problems): `codecontests-1575a` .. `codecontests-1623e`
+- **VALID split** (114 problems): `codecontests-1548c` .. `codecontests-1574f`
 
 Each eval task's registry entry has an `origin_split` field ("test" or "valid").
 To filter programmatically:
