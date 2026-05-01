@@ -1454,24 +1454,25 @@ def main(args):
 
     if with_chat and has_system_role:
         # Process discriminator prompts (p_train_tune)
-        ms_tune = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_tune]
+        # Use "assistant" role (Gemma maps it to "model" internally; Qwen/Llama use it natively)
+        ms_tune = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
         max_context_length = toks_tune.shape[1]
         
         # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
         if train_g_or_d == 'both':
-            ms_gold = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_gold]
+            ms_gold = [ [ {"role": "system", "content": "Answer directly without explanation."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
             max_context_length = max(max_context_length, toks_gold.shape[1])
     elif with_chat:
         # Process discriminator prompts (p_train_tune)
-        ms_tune = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_tune]
+        ms_tune = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
         max_context_length = toks_tune.shape[1]
         
         # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
         if train_g_or_d == 'both':
-            ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "model", "content": i.completion.strip()} ] for i in p_train_gold]
+            ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
             max_context_length = max(max_context_length, toks_gold.shape[1])
     else:
@@ -1713,15 +1714,21 @@ def main(args):
             message = [
                 {"role": "user", "content": prompt},]
         toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt')[0]
-        decoded = tokenizer.decode(toks[1:])
+        # Strip leading BOS if present (Gemma/Llama prepend BOS; Qwen does not)
+        has_leading_bos = (
+            tokenizer.bos_token_id is not None
+            and len(toks) > 0
+            and toks[0].item() == tokenizer.bos_token_id
+        )
+        toks_content = toks[1:] if has_leading_bos else toks
+        decoded = tokenizer.decode(toks_content)
         
         # Assert: decode/re-encode should produce the same tokens
         # If this fails, there's a tokenization asymmetry that could cause training inconsistencies
         reencoded = tokenizer.encode(decoded, add_special_tokens=False, return_tensors='pt')[0]
-        original_without_bos = toks[1:]
-        assert torch.equal(reencoded, original_without_bos), (
+        assert torch.equal(reencoded, toks_content), (
             f"Decode/re-encode mismatch! "
-            f"Original tokens (no BOS): {original_without_bos.tolist()}, "
+            f"Original tokens (no BOS): {toks_content.tolist()}, "
             f"Re-encoded tokens: {reencoded.tolist()}, "
             f"Decoded text: '{decoded[:100]}...'"
         )
