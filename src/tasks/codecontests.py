@@ -35,7 +35,7 @@ Language codes: 0=unknown, 1=python2, 2=cpp, 3=python3, 4=java
 import json
 import os
 import random
-from collections import defaultdict, namedtuple
+from collections import defaultdict
 
 import sys
 _parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,8 +43,7 @@ if _parent_dir not in sys.path:
     sys.path.insert(0, _parent_dir)
 
 from task_registry import register_task
-
-PromptCompletion = namedtuple("PromptCompletion", ["prompt", "completion"])
+from tasks.common import PromptCompletion, normalize_yes_no, get_field
 
 DATA_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -200,7 +199,57 @@ def get_completion(item):
 
 
 def get_label(item):
-    return 'yes' if item['correct'] == 'Yes' else 'no'
+    return normalize_yes_no(item.get('correct', ''))
+
+
+def make_negated_prompt(item, task, make_prompt, gen_shots='zero'):
+    # NOTE: negated prompts for codecontests are not implemented yet.
+    raise NotImplementedError(
+        f"--neg-typicality is not implemented for task '{task}'. "
+        "Competitive programming prompts are long and need a task-specific "
+        "negation strategy."
+    )
+
+
+CSV_HEADER = [
+    'problem_name',
+    'solution_preview',
+    'language',
+    'num_tokens',
+    'strategy',
+    'correct',
+    'val_score',
+    'gen_score',
+    'gen_score_typcorr',
+    'gen_score_lenorm',
+    'gen_score_typcorr_lenorm',
+    'model_path',
+]
+
+
+def build_csv_row(item, task, strategy, num_toks, disc_score, gen_score_raw,
+                  gen_score_typcorr_val, gen_score_lenorm,
+                  gen_score_typcorr_lenorm, modelname):
+    problem_name = get_field(item, 'problem_name', '')
+    solution = get_field(item, 'solution', '')
+    solution_preview = solution[:200].replace('\n', '\\n')
+    language = get_field(item, 'language', '')
+    item_strategy = get_field(item, 'strategy', strategy)
+    correct_label = normalize_yes_no(get_field(item, 'correct', ''))
+    return [
+        problem_name,
+        solution_preview,
+        language,
+        num_toks,
+        item_strategy,
+        correct_label,
+        disc_score,
+        gen_score_raw,
+        gen_score_typcorr_val,
+        gen_score_lenorm,
+        gen_score_typcorr_lenorm,
+        modelname,
+    ]
 
 
 # ============================================================================
@@ -210,38 +259,36 @@ def get_label(item):
 if os.path.exists(TRAIN_PATH) and os.path.exists(DESCRIPTIONS_PATH):
     # 1024 tokens ≈ 4096 chars; filters out long items to avoid OOM on 9B models
     TRAIN_MAX_CHARS = 4096
+    _COMMON = {
+        'make_prompt': make_prompt,
+        'get_completion': get_completion,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 2},
+        'supports_split_types': ['random'],
+    }
 
     register_task({
         'name': 'codecontests',
         'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_BASE, max_item_chars=TRAIN_MAX_CHARS),
-        'make_prompt': make_prompt,
-        'get_completion': get_completion,
-        'get_label': get_label,
-        'batch_size': {'with_ref': 1, 'without_ref': 2},
-        'supports_split_types': ['random'],
         'description': f'CodeContests: ~{TRAIN_PROBLEMS_BASE} problems, <=1024 tok',
+        **_COMMON,
     })
 
     register_task({
         'name': 'codecontests-double',
         'load_data': create_load_data_train(n_problems=TRAIN_PROBLEMS_DOUBLE, max_item_chars=TRAIN_MAX_CHARS),
-        'make_prompt': make_prompt,
-        'get_completion': get_completion,
-        'get_label': get_label,
-        'batch_size': {'with_ref': 1, 'without_ref': 2},
-        'supports_split_types': ['random'],
         'description': f'CodeContests: ~{TRAIN_PROBLEMS_DOUBLE} problems, <=1024 tok',
+        **_COMMON,
     })
 
     register_task({
         'name': 'codecontests-all',
         'load_data': create_load_data_train(n_problems=None, max_item_chars=TRAIN_MAX_CHARS),
-        'make_prompt': make_prompt,
-        'get_completion': get_completion,
-        'get_label': get_label,
-        'batch_size': {'with_ref': 1, 'without_ref': 2},
-        'supports_split_types': ['random'],
         'description': 'CodeContests: all problems, <=1024 tok',
+        **_COMMON,
     })
 
 if os.path.exists(TEST_DIR):
@@ -275,14 +322,10 @@ if os.path.exists(TEST_DIR):
             register_task({
                 'name': task_name,
                 'load_data': create_load_data_test(test_path),
-                'make_prompt': make_prompt,
-                'get_completion': get_completion,
-                'get_label': get_label,
-                'batch_size': {'with_ref': 1, 'without_ref': 2},
-                'supports_split_types': ['random'],
                 'description': f'CodeContests eval ({origin}): {slug}',
                 'origin_split': origin,
                 'short': is_short,
+                **_COMMON,
             })
             if origin == 'test':
                 _registered_test.append(task_name)

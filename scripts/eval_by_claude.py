@@ -21,6 +21,12 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from utils import get_L_prompt, get_final_logit_prob, get_completion_token_logprobs
 from logitlens import compute_logodds_final_layer, get_logodds_gen, get_logodds_disc
 from task_registry import get_task
+from tasks.common import (
+    build_strategy_string,
+    build_csv_filename,
+    compute_score_columns,
+    write_scores_csv,
+)
 import tasks  # Triggers task registration
 
 def is_hypernym_task(task):
@@ -320,6 +326,14 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
 
     Always uses zero-shot to avoid negating few-shot examples.
     """
+    task_config = get_task(task)
+    if task_config is not None and "make_negated_prompt" in task_config:
+        negated = task_config["make_negated_prompt"](
+            item=item, task=task, make_prompt=make_prompt, gen_shots=gen_shots
+        )
+        if negated is not None:
+            return negated
+
     gen_obj = make_prompt(item, style='generator', shots='zero')
     completion = gen_obj.completion
 
@@ -350,18 +364,10 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
                 f"Negated prompt unchanged for membership/rosch task. "
                 f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
             )
-    elif is_humaneval_task(task):
-        # TODO: negated prompts for humaneval are experimental and not yet
-        # validated. The replacement may silently produce the original prompt
-        # if the template changes. Add a validation check (like ambigqa has)
-        # once we settle on a negation strategy.
-        neg_prompt = gen_obj.prompt.replace(
-            "Complete the following Python function:",
-            "Write an incorrect implementation of the following Python function:"
-        )
-        neg_prompt = neg_prompt.replace("\nSolution:", "\nIncorrect solution:")
     else:
-        # NOTE: codecontests negated prompts are not yet implemented.
+        # NOTE: codecontests/humaneval negated prompts should be handled via the
+        # task registry callback (make_negated_prompt). Reaching this branch means
+        # the task has no callback.
         # The challenge is that competitive programming prompts are long
         # problem descriptions; there's no simple string inversion that
         # produces a meaningful "incorrect solution" prompt.
@@ -1499,200 +1505,44 @@ def main(args):
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
 
-        elif args.save_scores_csv and is_codecontests_task(task):
-            import csv
-            from datetime import datetime
+        elif args.save_scores_csv and (is_codecontests_task(task) or is_humaneval_task(task)):
+            task_config = get_task(task)
+            if task_config is None or "csv_header" not in task_config or "csv_row_builder" not in task_config:
+                raise ValueError(
+                    f"Task '{task}' missing csv_header/csv_row_builder in task registry."
+                )
 
-            timestamp = datetime.now().strftime("%Y%m%d")
-            if '/' in modelname and not modelname.startswith('.'):
-                model_short = 'v6-' + modelname.replace('/', '_')
-            else:
-                model_short = modelname.split('/')[-1].replace('--', '_')
-            split = "train"
-            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_tc" if args.typicality_correction else ""
-            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+            scores_csv_filename = build_csv_filename(
+                outputs_dir, self_prefix, modelname, task, "train", args, eos_suffix
+            )
+            strategy = build_strategy_string(
+                args, gen_shots, disc_shots, use_full_completion_logprobs
+            )
 
-            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
-            if use_full_completion_logprobs:
-                strategy += "_fullcomp"
-            else:
-                strategy += "_singletoken"
-            if args.validator_log_odds:
-                strategy += "_logodds"
-            else:
-                strategy += "_logprobs"
-            if args.typicality_correction:
-                if args.self_typicality:
-                    strategy += "_selftypcorr"
-                elif args.neg_typicality:
-                    strategy += "_negtypcorr"
-                else:
-                    strategy += "_typcorr"
-                if args.base_typicality:
-                    strategy += "_basemodel"
-
-            def _get_field(obj, key, default=""):
-                if hasattr(obj, key):
-                    return getattr(obj, key)
-                try:
-                    return obj[key]
-                except Exception:
-                    return default
-
-            with open(scores_csv_filename, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    'problem_name',
-                    'solution_preview',
-                    'language',
-                    'num_tokens',
-                    'strategy',
-                    'correct',
-                    'val_score',
-                    'gen_score',
-                    'gen_score_typcorr',
-                    'gen_score_lenorm',
-                    'gen_score_typcorr_lenorm',
-                    'model_path',
-                ])
-
-                for i, item in enumerate(LL):
-                    problem_name = _get_field(item, 'problem_name', '')
-                    solution = _get_field(item, 'solution', '')
-                    solution_preview = solution[:200].replace('\n', '\\n')
-                    language = _get_field(item, 'language', '')
-                    item_strategy = _get_field(item, 'strategy', strategy)
-                    correct = _get_field(item, 'correct', '').strip()
-                    correct_label = 'yes' if correct.lower() in ('yes', 'true', '1') else 'no'
-
-                    num_toks = all_num_tokens[i]
-                    gen_score_raw = gen_scores_raw[i]
-                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
-                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
-                    gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
-
-                    writer.writerow([
-                        problem_name,
-                        solution_preview,
-                        language,
-                        num_toks,
-                        item_strategy,
-                        correct_label,
-                        disc_scores[i],
-                        gen_score_raw,
-                        gen_score_typcorr_val,
-                        gen_score_lenorm,
-                        gen_score_typcorr_lenorm,
-                        modelname,
-                    ])
-
-            print(f"Detailed scores saved to: {scores_csv_filename}")
-
-        # HumanEval: --save-scores-csv is essential — same schema as CodeContests so downstream
-        # summarize/compare scripts can ingest per-example scores (no detailed CSV otherwise).
-        elif args.save_scores_csv and is_humaneval_task(task):
-            import csv
-            from datetime import datetime
-
-            timestamp = datetime.now().strftime("%Y%m%d")
-            if '/' in modelname and not modelname.startswith('.'):
-                model_short = 'v6-' + modelname.replace('/', '_')
-            else:
-                model_short = modelname.split('/')[-1].replace('--', '_')
-            split = "train"
-            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_tc" if args.typicality_correction else ""
-            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
-
-            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
-            if use_full_completion_logprobs:
-                strategy += "_fullcomp"
-            else:
-                strategy += "_singletoken"
-            if args.validator_log_odds:
-                strategy += "_logodds"
-            else:
-                strategy += "_logprobs"
-            if args.typicality_correction:
-                if args.self_typicality:
-                    strategy += "_selftypcorr"
-                elif args.neg_typicality:
-                    strategy += "_negtypcorr"
-                else:
-                    strategy += "_typcorr"
-                if args.base_typicality:
-                    strategy += "_basemodel"
-
-            def _humaneval_problem_name():
-                if task.startswith("humaneval-") and task != "humaneval":
-                    return task[len("humaneval-"):]
-                return ""
-
-            def _he_get(item, key, default=""):
-                if hasattr(item, key):
-                    return getattr(item, key)
-                try:
-                    return item[key]
-                except Exception:
-                    return default
-
-            problem_name_static = _humaneval_problem_name()
-
-            with open(scores_csv_filename, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    "problem_name",
-                    "solution_preview",
-                    "language",
-                    "num_tokens",
-                    "strategy",
-                    "correct",
-                    "val_score",
-                    "gen_score",
-                    "gen_score_typcorr",
-                    "gen_score_lenorm",
-                    "gen_score_typcorr_lenorm",
-                    "model_path",
-                ])
-
-                for i, item in enumerate(LL):
-                    solution = _he_get(item, "answer", "")
-                    solution_preview = solution[:200].replace("\n", "\\n")
-                    item_strategy = _he_get(item, "strategy", strategy)
-                    correct = _he_get(item, "correct", "").strip()
-                    correct_label = "yes" if correct.lower() in ("yes", "true", "1") else "no"
-
-                    num_toks = all_num_tokens[i]
-                    gen_score_raw = gen_scores_raw[i]
-                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float("nan")
-                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float("nan")
-                    gen_score_typcorr_lenorm = (
-                        gen_score_typcorr_val / num_toks
-                        if (gen_scores_typcorr is not None and num_toks > 0)
-                        else float("nan")
+            rows = []
+            for i, item in enumerate(LL):
+                (
+                    num_toks,
+                    gen_score_raw,
+                    gen_score_typcorr_val,
+                    gen_score_lenorm,
+                    gen_score_typcorr_lenorm,
+                ) = compute_score_columns(i, gen_scores_raw, gen_scores_typcorr, all_num_tokens)
+                rows.append(
+                    task_config["csv_row_builder"](
+                        item=item,
+                        task=task,
+                        strategy=strategy,
+                        num_toks=num_toks,
+                        disc_score=disc_scores[i],
+                        gen_score_raw=gen_score_raw,
+                        gen_score_typcorr_val=gen_score_typcorr_val,
+                        gen_score_lenorm=gen_score_lenorm,
+                        gen_score_typcorr_lenorm=gen_score_typcorr_lenorm,
+                        modelname=modelname,
                     )
-
-                    writer.writerow(
-                        [
-                            problem_name_static,
-                            solution_preview,
-                            "python",
-                            num_toks,
-                            item_strategy,
-                            correct_label,
-                            disc_scores[i],
-                            gen_score_raw,
-                            gen_score_typcorr_val,
-                            gen_score_lenorm,
-                            gen_score_typcorr_lenorm,
-                            modelname,
-                        ]
-                    )
-
-            print(f"Detailed scores saved to: {scores_csv_filename}")
+                )
+            write_scores_csv(scores_csv_filename, task_config["csv_header"], rows)
 
         elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
             import csv
@@ -2104,200 +1954,45 @@ def main(args):
 
         print(f"Detailed scores saved to: {scores_csv_filename}")
 
-    elif args.save_scores_csv and is_codecontests_task(task):
-        import csv
-        from datetime import datetime
+    elif args.save_scores_csv and (is_codecontests_task(task) or is_humaneval_task(task)):
+        task_config = get_task(task)
+        if task_config is None or "csv_header" not in task_config or "csv_row_builder" not in task_config:
+            raise ValueError(
+                f"Task '{task}' missing csv_header/csv_row_builder in task registry."
+            )
 
-        timestamp = datetime.now().strftime("%Y%m%d")
-        if '/' in modelname and not modelname.startswith('.'):
-            model_short = 'v6-' + modelname.replace('/', '_')
-        else:
-            model_short = modelname.split('/')[-1].replace('--', '_')
         split = "train" if args.train else "test"
-        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        eval_tc_suffix = "_tc" if args.typicality_correction else ""
-        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+        scores_csv_filename = build_csv_filename(
+            outputs_dir, self_prefix, modelname, task, split, args, eos_suffix
+        )
+        strategy = build_strategy_string(
+            args, gen_shots, disc_shots, use_full_completion_logprobs
+        )
 
-        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
-        if use_full_completion_logprobs:
-            strategy += "_fullcomp"
-        else:
-            strategy += "_singletoken"
-        if args.validator_log_odds:
-            strategy += "_logodds"
-        else:
-            strategy += "_logprobs"
-        if args.typicality_correction:
-            if args.self_typicality:
-                strategy += "_selftypcorr"
-            elif args.neg_typicality:
-                strategy += "_negtypcorr"
-            else:
-                strategy += "_typcorr"
-            if args.base_typicality:
-                strategy += "_basemodel"
-
-        def _get_field(obj, key, default=""):
-            if hasattr(obj, key):
-                return getattr(obj, key)
-            try:
-                return obj[key]
-            except Exception:
-                return default
-
-        with open(scores_csv_filename, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                'problem_name',
-                'solution_preview',
-                'language',
-                'num_tokens',
-                'strategy',
-                'correct',
-                'val_score',
-                'gen_score',
-                'gen_score_typcorr',
-                'gen_score_lenorm',
-                'gen_score_typcorr_lenorm',
-                'model_path',
-            ])
-
-            for i, item in enumerate(LL):
-                problem_name = _get_field(item, 'problem_name', '')
-                solution = _get_field(item, 'solution', '')
-                solution_preview = solution[:200].replace('\n', '\\n')
-                language = _get_field(item, 'language', '')
-                item_strategy = _get_field(item, 'strategy', strategy)
-                correct = _get_field(item, 'correct', '').strip()
-                correct_label = 'yes' if correct.lower() in ('yes', 'true', '1') else 'no'
-
-                num_toks = all_num_tokens[i]
-                gen_score_raw = gen_scores_raw[i]
-                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
-                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
-                gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
-
-                writer.writerow([
-                    problem_name,
-                    solution_preview,
-                    language,
-                    num_toks,
-                    item_strategy,
-                    correct_label,
-                    disc_scores[i],
-                    gen_score_raw,
-                    gen_score_typcorr_val,
-                    gen_score_lenorm,
-                    gen_score_typcorr_lenorm,
-                    modelname,
-                ])
-
-        print(f"Detailed scores saved to: {scores_csv_filename}")
-
-    # HumanEval: --save-scores-csv is essential — same schema as CodeContests so downstream
-    # summarize/compare scripts can ingest per-example scores (no detailed CSV otherwise).
-    elif args.save_scores_csv and is_humaneval_task(task):
-        import csv
-        from datetime import datetime
-
-        timestamp = datetime.now().strftime("%Y%m%d")
-        if '/' in modelname and not modelname.startswith('.'):
-            model_short = 'v6-' + modelname.replace('/', '_')
-        else:
-            model_short = modelname.split('/')[-1].replace('--', '_')
-        split = "train" if args.train else "test"
-        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        eval_tc_suffix = "_tc" if args.typicality_correction else ""
-        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
-
-        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
-        if use_full_completion_logprobs:
-            strategy += "_fullcomp"
-        else:
-            strategy += "_singletoken"
-        if args.validator_log_odds:
-            strategy += "_logodds"
-        else:
-            strategy += "_logprobs"
-        if args.typicality_correction:
-            if args.self_typicality:
-                strategy += "_selftypcorr"
-            elif args.neg_typicality:
-                strategy += "_negtypcorr"
-            else:
-                strategy += "_typcorr"
-            if args.base_typicality:
-                strategy += "_basemodel"
-
-        def _humaneval_problem_name_main():
-            if task.startswith("humaneval-") and task != "humaneval":
-                return task[len("humaneval-"):]
-            return ""
-
-        def _he_get_main(item, key, default=""):
-            if hasattr(item, key):
-                return getattr(item, key)
-            try:
-                return item[key]
-            except Exception:
-                return default
-
-        problem_name_static = _humaneval_problem_name_main()
-
-        with open(scores_csv_filename, 'w', newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow([
-                "problem_name",
-                "solution_preview",
-                "language",
-                "num_tokens",
-                "strategy",
-                "correct",
-                "val_score",
-                "gen_score",
-                "gen_score_typcorr",
-                "gen_score_lenorm",
-                "gen_score_typcorr_lenorm",
-                "model_path",
-            ])
-
-            for i, item in enumerate(LL):
-                solution = _he_get_main(item, "answer", "")
-                solution_preview = solution[:200].replace("\n", "\\n")
-                item_strategy = _he_get_main(item, "strategy", strategy)
-                correct = _he_get_main(item, "correct", "").strip()
-                correct_label = "yes" if correct.lower() in ("yes", "true", "1") else "no"
-
-                num_toks = all_num_tokens[i]
-                gen_score_raw = gen_scores_raw[i]
-                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float("nan")
-                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float("nan")
-                gen_score_typcorr_lenorm = (
-                    gen_score_typcorr_val / num_toks
-                    if (gen_scores_typcorr is not None and num_toks > 0)
-                    else float("nan")
+        rows = []
+        for i, item in enumerate(LL):
+            (
+                num_toks,
+                gen_score_raw,
+                gen_score_typcorr_val,
+                gen_score_lenorm,
+                gen_score_typcorr_lenorm,
+            ) = compute_score_columns(i, gen_scores_raw, gen_scores_typcorr, all_num_tokens)
+            rows.append(
+                task_config["csv_row_builder"](
+                    item=item,
+                    task=task,
+                    strategy=strategy,
+                    num_toks=num_toks,
+                    disc_score=disc_scores[i],
+                    gen_score_raw=gen_score_raw,
+                    gen_score_typcorr_val=gen_score_typcorr_val,
+                    gen_score_lenorm=gen_score_lenorm,
+                    gen_score_typcorr_lenorm=gen_score_typcorr_lenorm,
+                    modelname=modelname,
                 )
-
-                writer.writerow(
-                    [
-                        problem_name_static,
-                        solution_preview,
-                        "python",
-                        num_toks,
-                        item_strategy,
-                        correct_label,
-                        disc_scores[i],
-                        gen_score_raw,
-                        gen_score_typcorr_val,
-                        gen_score_lenorm,
-                        gen_score_typcorr_lenorm,
-                        modelname,
-                    ]
-                )
-
-        print(f"Detailed scores saved to: {scores_csv_filename}")
+            )
+        write_scores_csv(scores_csv_filename, task_config["csv_header"], rows)
 
     elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
         import csv

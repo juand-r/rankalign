@@ -18,58 +18,48 @@ Registers:
 
 import os
 import sys
-import csv
 import random
-from collections import namedtuple
 
 _parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _parent_dir not in sys.path:
     sys.path.insert(0, _parent_dir)
 
 from task_registry import register_task
-
-PromptCompletion = namedtuple("PromptCompletion", ["prompt", "completion"])
+from tasks.common import PromptCompletion, load_csv_items, normalize_yes_no, get_field
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data')
 HE_DIR = os.path.join(DATA_DIR, 'humaneval', 'with_solutions')
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
+HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
 
 
 # ============================================================================
 # Data loading
 # ============================================================================
 
-def load_csv_items(filepath):
-    """Load rows from a humaneval CSV as dicts."""
-    items = []
-    with open(filepath, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            items.append({
-                'question': row['question'],
-                'answer': row['answer'],
-                'correct': row['correct'].strip(),
-                'strategy': row['strategy'],
-            })
+def _load_items(filepath):
+    items = load_csv_items(filepath, fields=HE_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
     return items
 
 
 def load_data_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
     """Load full training set. Test set is empty (use per-problem tasks for eval)."""
-    L_train = load_csv_items(HE_TRAIN_CSV)
-    random.seed(seed)
-    random.shuffle(L_train)
+    L_train = _load_items(HE_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
     return L_train, []
 
 
 def create_load_data_for_problem(test_csv_path):
     """Factory: create load_data that uses train.csv for train and a specific test CSV for test."""
     def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
-        L_train = load_csv_items(HE_TRAIN_CSV)
-        L_test = load_csv_items(test_csv_path)
-        random.seed(seed)
-        random.shuffle(L_train)
-        random.shuffle(L_test)
+        L_train = _load_items(HE_TRAIN_CSV)
+        L_test = _load_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
         return L_train, L_test
     return load_data
 
@@ -144,7 +134,63 @@ def get_completion(item):
 
 def get_label(item):
     """Extract binary label ('yes' or 'no')."""
-    return 'yes' if item['correct'].strip().capitalize() == 'Yes' else 'no'
+    return normalize_yes_no(item.get('correct', ''))
+
+
+def make_negated_prompt(item, task, make_prompt, gen_shots='zero'):
+    """Task-local negated prompt for --neg-typicality."""
+    gen_obj = make_prompt(item, style='generator', shots='zero')
+    neg_prompt = gen_obj.prompt.replace(
+        "Complete the following Python function:",
+        "Write an incorrect implementation of the following Python function:"
+    )
+    neg_prompt = neg_prompt.replace("\nSolution:", "\nIncorrect solution:")
+    if neg_prompt == gen_obj.prompt:
+        raise ValueError(
+            f"Negated prompt unchanged for humaneval task '{task}'. "
+            f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
+        )
+    return neg_prompt, gen_obj.completion
+
+
+CSV_HEADER = [
+    "problem_name",
+    "solution_preview",
+    "language",
+    "num_tokens",
+    "strategy",
+    "correct",
+    "val_score",
+    "gen_score",
+    "gen_score_typcorr",
+    "gen_score_lenorm",
+    "gen_score_typcorr_lenorm",
+    "model_path",
+]
+
+
+def build_csv_row(item, task, strategy, num_toks, disc_score, gen_score_raw,
+                  gen_score_typcorr_val, gen_score_lenorm,
+                  gen_score_typcorr_lenorm, modelname):
+    problem_name = task[len("humaneval-"):] if task.startswith("humaneval-") and task != "humaneval" else ""
+    solution = get_field(item, "answer", "")
+    solution_preview = solution[:200].replace("\n", "\\n")
+    item_strategy = get_field(item, "strategy", strategy)
+    correct_label = normalize_yes_no(get_field(item, "correct", ""))
+    return [
+        problem_name,
+        solution_preview,
+        "python",
+        num_toks,
+        item_strategy,
+        correct_label,
+        disc_score,
+        gen_score_raw,
+        gen_score_typcorr_val,
+        gen_score_lenorm,
+        gen_score_typcorr_lenorm,
+        modelname,
+    ]
 
 
 # ============================================================================
@@ -152,15 +198,22 @@ def get_label(item):
 # ============================================================================
 
 if os.path.exists(HE_TRAIN_CSV):
-    register_task({
-        'name': 'humaneval',
-        'load_data': load_data_train_only,
+    _COMMON = {
         'make_prompt': make_prompt,
         'get_completion': get_completion,
         'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
         'batch_size': {'with_ref': 1, 'without_ref': 4},
         'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'humaneval',
+        'load_data': load_data_train_only,
         'description': 'HumanEval: full training set',
+        **_COMMON,
     })
 
     _registered = []
@@ -175,12 +228,8 @@ if os.path.exists(HE_TRAIN_CSV):
             register_task({
                 'name': task_name,
                 'load_data': create_load_data_for_problem(test_csv_path),
-                'make_prompt': make_prompt,
-                'get_completion': get_completion,
-                'get_label': get_label,
-                'batch_size': {'with_ref': 1, 'without_ref': 4},
-                'supports_split_types': ['random'],
                 'description': f'HumanEval: {slug}',
+                **_COMMON,
             })
             _registered.append(task_name)
         except Exception as e:

@@ -66,6 +66,17 @@ def register_task(config: Dict[str, Any]) -> None:
         supports_split_types: List[str]
             List of supported split_type values.
             Defaults to ['random'].
+
+        make_negated_prompt: Callable(item, task, make_prompt, gen_shots) -> (neg_prompt, completion)
+            Optional callback for --neg-typicality prompt construction.
+            If omitted, callers can fall back to legacy branching logic.
+
+        csv_header: List[str]
+            Optional ordered list of CSV column names for --save-scores-csv exports.
+
+        csv_row_builder: Callable(...) -> List[Any]
+            Optional callback to build a CSV row from scored item fields.
+            Used by generic CSV save logic for newer task families.
     
     Example:
         register_task({
