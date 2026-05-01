@@ -76,6 +76,9 @@ def create_load_data_func(slug):
 
 
 def make_prompt(item, style='generator', shots='zero', gen_response=None, neg=False, **kwargs):
+    # TODO: shots parameter is currently ignored; discriminator always includes
+    # the preamble and generator is always bare. Wire up shots='zero' to omit
+    # the preamble if we want that distinction later.
     if style == 'generator':
         prompt = item.generator_sentence
         completion = " " + item.member

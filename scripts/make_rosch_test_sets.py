@@ -17,10 +17,10 @@ import csv
 import json
 from pathlib import Path
 
-FLORA_DIR = Path(__file__).resolve().parent.parent.parent / "flora"
-ROSCH_FILE = FLORA_DIR / "rosch-1975.json"
-SUPPLEMENT_FILE = FLORA_DIR / "incorrect_items-to-supplement-rosch-75.json"
-OUTPUT_DIR = Path(__file__).resolve().parent.parent / "data" / "rosch"
+DATA_DIR = Path(__file__).resolve().parent.parent / "data" / "rosch"
+ROSCH_FILE = DATA_DIR / "rosch-1975.json"
+SUPPLEMENT_FILE = DATA_DIR / "incorrect_items-to-supplement-rosch-75.json"
+OUTPUT_DIR = DATA_DIR
 
 FIELDNAMES = [
     "category", "member", "label",

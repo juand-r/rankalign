@@ -62,3 +62,4 @@ from . import ambigqa_v1         # AmbigQA v1: with_negatives train + per-questi
 from . import plausibleqa_v0     # PlausibleQA per-question tasks
 from . import rosch              # Rosch-1975 category membership eval tasks
 from . import codecontests       # CodeContests competitive programming tasks
+from . import membership         # Category membership training (sans Rosch overlap)
