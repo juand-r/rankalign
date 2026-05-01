@@ -50,6 +50,10 @@ def is_codecontests_task(task):
     """Check if task is any CodeContests variant."""
     return task == 'codecontests' or task.startswith('codecontests-')
 
+def is_humaneval_task(task):
+    """Check if task is any HumanEval variant."""
+    return task == 'humaneval' or task.startswith('humaneval-')
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -339,6 +343,12 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
                 f"Negated prompt unchanged for membership/rosch task. "
                 f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
             )
+    elif is_humaneval_task(task):
+        neg_prompt = gen_obj.prompt.replace(
+            "Complete the following Python function:",
+            "Write an incorrect implementation of the following Python function:"
+        )
+        neg_prompt = neg_prompt.replace("\nSolution:", "\nIncorrect solution:")
     else:
         raise NotImplementedError(
             f"--neg-typicality is not implemented for task '{task}'. "
