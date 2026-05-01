@@ -19,8 +19,12 @@ Eval tasks (from the original dataset's held-out splits):
     TEST split  (162 problems):  codecontests-1575a .. codecontests-1623e
     VALID split (117 problems):  codecontests-1548c .. codecontests-1574f
 
-    The split_manifest.json maps each slug to "test" or "valid".
-    Each task's 'origin_split' field also records this.
+    The split_manifest.json maps each slug to "test" or "valid", and lists
+    the "short" subset (71 test problems with median completion < 300 tokens).
+    Each task's registry entry has 'origin_split' and 'short' fields.
+
+    Filter programmatically:
+        short_tasks = [n for n, c in TASK_REGISTRY.items() if c.get('short')]
 
 Language codes: 0=unknown, 1=python2, 2=cpp, 3=python3, 4=java
 """
@@ -208,7 +212,10 @@ if os.path.exists(TRAIN_PATH) and os.path.exists(DESCRIPTIONS_PATH):
 
 if os.path.exists(TEST_DIR):
     # Load split manifest to tag each eval task with its origin (test vs valid)
+    # and whether it's in the "short" subset (median completion <= 200 tokens).
+    # See data/codecontests/split_manifest.json.
     _split_lookup = {}  # slug -> "test" or "valid"
+    _short_set = set()  # slugs with short completions
     if os.path.exists(MANIFEST_PATH):
         with open(MANIFEST_PATH, 'r') as f:
             _manifest = json.load(f)
@@ -216,9 +223,11 @@ if os.path.exists(TEST_DIR):
             _split_lookup[slug] = 'test'
         for slug in _manifest.get('valid', []):
             _split_lookup[slug] = 'valid'
+        _short_set = set(_manifest.get('short', []))
 
     _registered_test = []
     _registered_valid = []
+    _registered_short = []
     for filename in sorted(os.listdir(TEST_DIR)):
         if not filename.endswith('.jsonl'):
             continue
@@ -226,6 +235,7 @@ if os.path.exists(TEST_DIR):
         test_path = os.path.join(TEST_DIR, filename)
         task_name = f'codecontests-{slug}'
         origin = _split_lookup.get(slug, 'unknown')
+        is_short = slug in _short_set
 
         try:
             register_task({
@@ -238,10 +248,13 @@ if os.path.exists(TEST_DIR):
                 'supports_split_types': ['random'],
                 'description': f'CodeContests eval ({origin}): {slug}',
                 'origin_split': origin,
+                'short': is_short,
             })
             if origin == 'test':
                 _registered_test.append(task_name)
-            else:
+            if is_short:
+                _registered_short.append(task_name)
+            if origin == 'valid':
                 _registered_valid.append(task_name)
         except Exception as e:
             print(f"[codecontests] Warning: Could not register {task_name}: {e}")
@@ -250,5 +263,7 @@ if os.path.exists(TEST_DIR):
           f"(codecontests-1575a .. codecontests-1623e)")
     print(f"[codecontests] Registered {len(_registered_valid)} VALID eval tasks "
           f"(codecontests-1548c .. codecontests-1574f)")
+    print(f"[codecontests] {len(_registered_short)} of these are 'short' "
+          f"(median completion <= 200 tokens)")
 else:
     print(f"[codecontests] Warning: Test data not found at {TEST_DIR}")
