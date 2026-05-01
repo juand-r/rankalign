@@ -42,6 +42,10 @@ def is_membership_task(task):
     """Check if task is any membership-sans-rosch variant."""
     return task.startswith('membership-sans-rosch-')
 
+def is_rosch_task(task):
+    """Check if task is any rosch category eval variant."""
+    return task.startswith('rosch-')
+
 def is_codecontests_task(task):
     """Check if task is any CodeContests variant."""
     return task == 'codecontests' or task.startswith('codecontests-')
@@ -326,13 +330,13 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
             )
     elif is_ifeval_task(task):
         neg_prompt = "Give a response that does NOT follow these instructions.\n" + gen_obj.prompt
-    elif is_membership_task(task):
+    elif is_membership_task(task) or is_rosch_task(task):
         neg_prompt = gen_obj.prompt.replace(
             "an example of ", "an example of something that is not ", 1
         )
         if neg_prompt == gen_obj.prompt:
             raise ValueError(
-                f"Negated prompt unchanged for membership task. "
+                f"Negated prompt unchanged for membership/rosch task. "
                 f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
             )
     else:
@@ -1308,6 +1312,22 @@ def main(args):
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
             scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
+            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+            if use_full_completion_logprobs:
+                strategy += "_fullcomp"
+            else:
+                strategy += "_singletoken"
+            strategy += "_logodds" if args.validator_log_odds else "_logprobs"
+            if args.typicality_correction:
+                if args.self_typicality:
+                    strategy += "_selftypcorr"
+                elif args.neg_typicality:
+                    strategy += "_negtypcorr"
+                else:
+                    strategy += "_typcorr"
+                if args.base_typicality:
+                    strategy += "_basemodel"
+
             def _get_field(obj, key, default=""):
                 if hasattr(obj, key):
                     return getattr(obj, key)
@@ -1322,6 +1342,7 @@ def main(args):
                     'prompt',
                     'response',
                     'num_tokens',
+                    'strategy',
                     'correct',
                     'val_prompt',
                     'val_score',
@@ -1335,6 +1356,7 @@ def main(args):
                 for i, item in enumerate(LL):
                     prompt = _get_field(item, 'prompt', '')
                     response = _get_field(item, 'response', _get_field(item, 'generator-completion', ''))
+                    item_strategy = _get_field(item, 'strategy', strategy)
                     correct = _get_field(item, 'correct', _get_field(item, 'discriminator-gold-completion', ''))
 
                     val_prompt = all_prompts_disc[i]
@@ -1352,6 +1374,7 @@ def main(args):
                         prompt,
                         response,
                         num_toks,
+                        item_strategy,
                         correct,
                         val_prompt,
                         disc_scores[i],
@@ -1379,6 +1402,25 @@ def main(args):
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
             scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
+            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+            if use_full_completion_logprobs:
+                strategy += "_fullcomp"
+            else:
+                strategy += "_singletoken"
+            if args.validator_log_odds:
+                strategy += "_logodds"
+            else:
+                strategy += "_logprobs"
+            if args.typicality_correction:
+                if args.self_typicality:
+                    strategy += "_selftypcorr"
+                elif args.neg_typicality:
+                    strategy += "_negtypcorr"
+                else:
+                    strategy += "_typcorr"
+                if args.base_typicality:
+                    strategy += "_basemodel"
+
             def _get_field(obj, key, default=""):
                 if hasattr(obj, key):
                     return getattr(obj, key)
@@ -1400,7 +1442,7 @@ def main(args):
                 for i, item in enumerate(LL):
                     question = _get_field(item, 'question', '')
                     answer = _get_field(item, 'answer', '')
-                    item_strategy = _get_field(item, 'strategy', '')
+                    item_strategy = _get_field(item, 'strategy', strategy)
                     correct = _get_field(item, 'correct', '').strip().lower()
                     correct_label = 'yes' if correct in ('yes', 'true', '1') else 'no'
 
@@ -1417,6 +1459,157 @@ def main(args):
                         gen_score_raw, gen_score_typcorr_val,
                         gen_score_lenorm, gen_score_typcorr_lenorm,
                     modelname,
+                    ])
+
+            print(f"Detailed scores saved to: {scores_csv_filename}")
+
+        elif args.save_scores_csv and is_codecontests_task(task):
+            import csv
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y%m%d")
+            if '/' in modelname and not modelname.startswith('.'):
+                model_short = 'v6-' + modelname.replace('/', '_')
+            else:
+                model_short = modelname.split('/')[-1].replace('--', '_')
+            split = "train"
+            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+            eval_tc_suffix = "_tc" if args.typicality_correction else ""
+            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+
+            strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+            if use_full_completion_logprobs:
+                strategy += "_fullcomp"
+            else:
+                strategy += "_singletoken"
+            if args.validator_log_odds:
+                strategy += "_logodds"
+            else:
+                strategy += "_logprobs"
+            if args.typicality_correction:
+                if args.self_typicality:
+                    strategy += "_selftypcorr"
+                elif args.neg_typicality:
+                    strategy += "_negtypcorr"
+                else:
+                    strategy += "_typcorr"
+                if args.base_typicality:
+                    strategy += "_basemodel"
+
+            def _get_field(obj, key, default=""):
+                if hasattr(obj, key):
+                    return getattr(obj, key)
+                try:
+                    return obj[key]
+                except Exception:
+                    return default
+
+            with open(scores_csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'problem_name',
+                    'solution_preview',
+                    'language',
+                    'num_tokens',
+                    'strategy',
+                    'correct',
+                    'val_score',
+                    'gen_score',
+                    'gen_score_typcorr',
+                    'gen_score_lenorm',
+                    'gen_score_typcorr_lenorm',
+                    'model_path',
+                ])
+
+                for i, item in enumerate(LL):
+                    problem_name = _get_field(item, 'problem_name', '')
+                    solution = _get_field(item, 'solution', '')
+                    solution_preview = solution[:200].replace('\n', '\\n')
+                    language = _get_field(item, 'language', '')
+                    item_strategy = _get_field(item, 'strategy', strategy)
+                    correct = _get_field(item, 'correct', '').strip()
+                    correct_label = 'yes' if correct.lower() in ('yes', 'true', '1') else 'no'
+
+                    num_toks = all_num_tokens[i]
+                    gen_score_raw = gen_scores_raw[i]
+                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                    gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                    writer.writerow([
+                        problem_name,
+                        solution_preview,
+                        language,
+                        num_toks,
+                        item_strategy,
+                        correct_label,
+                        disc_scores[i],
+                        gen_score_raw,
+                        gen_score_typcorr_val,
+                        gen_score_lenorm,
+                        gen_score_typcorr_lenorm,
+                        modelname,
+                    ])
+
+            print(f"Detailed scores saved to: {scores_csv_filename}")
+
+        elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
+            import csv
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y%m%d")
+            if '/' in modelname and not modelname.startswith('.'):
+                model_short = 'v6-' + modelname.replace('/', '_')
+            else:
+                model_short = modelname.split('/')[-1].replace('--', '_')
+            split = "train"
+            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+            eval_tc_suffix = "_tc" if args.typicality_correction else ""
+            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+
+            with open(scores_csv_filename, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    'category', 'member', 'num_tokens', 'strategy',
+                    'label', 'val_prompt', 'val_score',
+                    'gen_score', 'gen_score_typcorr', 'gen_score_lenorm',
+                    'gen_score_typcorr_lenorm', 'model_path',
+                ])
+                strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+                if use_full_completion_logprobs:
+                    strategy += "_fullcomp"
+                else:
+                    strategy += "_singletoken"
+                if args.validator_log_odds:
+                    strategy += "_logodds"
+                else:
+                    strategy += "_logprobs"
+                if args.typicality_correction:
+                    if args.self_typicality:
+                        strategy += "_selftypcorr"
+                    elif args.neg_typicality:
+                        strategy += "_negtypcorr"
+                    else:
+                        strategy += "_typcorr"
+                    if args.base_typicality:
+                        strategy += "_basemodel"
+
+                for i, item in enumerate(LL):
+                    val_prompt = all_prompts_disc[i].split("\n")[-1]
+                    num_toks = all_num_tokens[i]
+                    gen_score_raw = gen_scores_raw[i]
+                    gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                    gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                    gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                    writer.writerow([
+                        item.category, item.member, num_toks, strategy,
+                        item.label, val_prompt, disc_scores[i],
+                        gen_score_raw, gen_score_typcorr_val,
+                        gen_score_lenorm, gen_score_typcorr_lenorm,
+                        modelname,
                     ])
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
@@ -1631,6 +1824,7 @@ def main(args):
                 'prompt',
                 'response',
                 'num_tokens',
+                'strategy',
                 'correct',
                 'val_prompt',
                 'val_score',
@@ -1644,6 +1838,7 @@ def main(args):
             for i, item in enumerate(LL):
                 prompt = _get_field(item, 'prompt', '')
                 response = _get_field(item, 'response', _get_field(item, 'generator-completion', ''))
+                item_strategy = _get_field(item, 'strategy', strategy)
                 correct = _get_field(item, 'correct', _get_field(item, 'discriminator-gold-completion', ''))
 
                 # Prompts: keep full validator prompt (contains both prompt+response); generator prompt may
@@ -1665,6 +1860,7 @@ def main(args):
                     prompt,
                     response,
                     num_toks,
+                    item_strategy,
                     correct,
                     val_prompt,
                     disc_scores[i],
@@ -1691,6 +1887,25 @@ def main(args):
         eval_tc_suffix = "_tc" if args.typicality_correction else ""
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
         scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+
+        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+        if use_full_completion_logprobs:
+            strategy += "_fullcomp"
+        else:
+            strategy += "_singletoken"
+        if args.validator_log_odds:
+            strategy += "_logodds"
+        else:
+            strategy += "_logprobs"
+        if args.typicality_correction:
+            if args.self_typicality:
+                strategy += "_selftypcorr"
+            elif args.neg_typicality:
+                strategy += "_negtypcorr"
+            else:
+                strategy += "_typcorr"
+            if args.base_typicality:
+                strategy += "_basemodel"
 
         def _get_field(obj, key, default=""):
             if hasattr(obj, key):
@@ -1720,7 +1935,7 @@ def main(args):
             for i, item in enumerate(LL):
                 question = _get_field(item, 'question', '')
                 answer = _get_field(item, 'answer', '')
-                item_strategy = _get_field(item, 'strategy', '')
+                item_strategy = _get_field(item, 'strategy', strategy)
                 correct = _get_field(item, 'correct', '').strip().lower()
                 correct_label = 'yes' if correct in ('yes', 'true', '1') else 'no'
 
@@ -1764,6 +1979,25 @@ def main(args):
         eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
         scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
 
+        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+        if use_full_completion_logprobs:
+            strategy += "_fullcomp"
+        else:
+            strategy += "_singletoken"
+        if args.validator_log_odds:
+            strategy += "_logodds"
+        else:
+            strategy += "_logprobs"
+        if args.typicality_correction:
+            if args.self_typicality:
+                strategy += "_selftypcorr"
+            elif args.neg_typicality:
+                strategy += "_negtypcorr"
+            else:
+                strategy += "_typcorr"
+            if args.base_typicality:
+                strategy += "_basemodel"
+
         def _get_field(obj, key, default=""):
             if hasattr(obj, key):
                 return getattr(obj, key)
@@ -1779,6 +2013,7 @@ def main(args):
                 'solution_preview',
                 'language',
                 'num_tokens',
+                'strategy',
                 'correct',
                 'val_score',
                 'gen_score',
@@ -1793,6 +2028,7 @@ def main(args):
                 solution = _get_field(item, 'solution', '')
                 solution_preview = solution[:200].replace('\n', '\\n')
                 language = _get_field(item, 'language', '')
+                item_strategy = _get_field(item, 'strategy', strategy)
                 correct = _get_field(item, 'correct', '').strip()
                 correct_label = 'yes' if correct.lower() in ('yes', 'true', '1') else 'no'
 
@@ -1807,12 +2043,74 @@ def main(args):
                     solution_preview,
                     language,
                     num_toks,
+                    item_strategy,
                     correct_label,
                     disc_scores[i],
                     gen_score_raw,
                     gen_score_typcorr_val,
                     gen_score_lenorm,
                     gen_score_typcorr_lenorm,
+                    modelname,
+                ])
+
+        print(f"Detailed scores saved to: {scores_csv_filename}")
+
+    elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
+        import csv
+        from datetime import datetime
+
+        timestamp = datetime.now().strftime("%Y%m%d")
+        if '/' in modelname and not modelname.startswith('.'):
+            model_short = 'v6-' + modelname.replace('/', '_')
+        else:
+            model_short = modelname.split('/')[-1].replace('--', '_')
+        split = "train" if args.train else "test"
+        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
+        eval_tc_suffix = "_tc" if args.typicality_correction else ""
+        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
+        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+
+        strategy = f"gen:{gen_shots}_disc:{disc_shots}"
+        if use_full_completion_logprobs:
+            strategy += "_fullcomp"
+        else:
+            strategy += "_singletoken"
+        if args.validator_log_odds:
+            strategy += "_logodds"
+        else:
+            strategy += "_logprobs"
+        if args.typicality_correction:
+            if args.self_typicality:
+                strategy += "_selftypcorr"
+            elif args.neg_typicality:
+                strategy += "_negtypcorr"
+            else:
+                strategy += "_typcorr"
+            if args.base_typicality:
+                strategy += "_basemodel"
+
+        with open(scores_csv_filename, 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                'category', 'member', 'num_tokens', 'strategy',
+                'label', 'val_prompt', 'val_score',
+                'gen_score', 'gen_score_typcorr', 'gen_score_lenorm',
+                'gen_score_typcorr_lenorm', 'model_path',
+            ])
+
+            for i, item in enumerate(LL):
+                val_prompt = all_prompts_disc[i].split("\n")[-1]
+                num_toks = all_num_tokens[i]
+                gen_score_raw = gen_scores_raw[i]
+                gen_score_typcorr_val = gen_scores_typcorr[i] if gen_scores_typcorr is not None else float('nan')
+                gen_score_lenorm = gen_score_raw / num_toks if num_toks > 0 else float('nan')
+                gen_score_typcorr_lenorm = gen_score_typcorr_val / num_toks if (gen_scores_typcorr is not None and num_toks > 0) else float('nan')
+
+                writer.writerow([
+                    item.category, item.member, num_toks, strategy,
+                    item.label, val_prompt, disc_scores[i],
+                    gen_score_raw, gen_score_typcorr_val,
+                    gen_score_lenorm, gen_score_typcorr_lenorm,
                     modelname,
                 ])
 
