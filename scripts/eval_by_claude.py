@@ -288,7 +288,7 @@ def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has
     if is_chat:
         if has_system_role:
             message = [
-                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": ""},
             ]
         else:
@@ -486,7 +486,7 @@ def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False
     if is_chat:
         if has_system_role:
             message = [
-                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": ""},
             ]
         else:

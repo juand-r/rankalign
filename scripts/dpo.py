@@ -246,10 +246,10 @@ def convert_to_conversation(dataset):
     chosen_list = []
     rejected_list = []
     for d in dataset:
-        cc = [{"role": "system", "content": "Answer directly without explanation."},
+        cc = [{"role": "system", "content": "You are a helpful assistant."},
               {"role": "user", "content": d['prompt'].strip()}, 
               {"role": "assistant", "content": d['chosen'].strip()}]
-        rr = [{"role": "system", "content": "Answer directly without explanation."},
+        rr = [{"role": "system", "content": "You are a helpful assistant."},
               {"role": "user", "content": d['prompt'].strip()}, 
               {"role": "assistant", "content": d['rejected'].strip()}]
         chosen_list.append(cc)

@@ -986,7 +986,7 @@ def make_and_format_data(
         prompt_completion_data = []
         for ii in range(len(items)):
             prompt_completion_data.append(
-                {"messages": [{"role": "system", "content": "Answer directly without explanation."}, 
+                {"messages": [{"role": "system", "content": "You are a helpful assistant."}, 
                               {"role": "user", "content": items[ii].prompt.strip()}, 
                               {"role": "assistant", "content": items[ii].completion.strip()}]}
             )
@@ -1049,7 +1049,7 @@ def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=Fals
     with torch.no_grad():
         if is_chat and has_system_role:
             message = [
-                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},]
             input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         elif is_chat:
@@ -1093,7 +1093,7 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
     with torch.no_grad():
         if is_chat:
             message = [
-                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},]
             input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         else:
@@ -1127,7 +1127,7 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
         if is_chat and has_system_role:
             # Build the chat prompt prefix (system + user + assistant prefix)
             message = [
-                {"role": "system", "content": "Answer directly without explanation."},
+                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},
             ]
             prefix_ids = tokenizer.apply_chat_template(
