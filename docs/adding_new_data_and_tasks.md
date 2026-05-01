@@ -72,6 +72,7 @@ Task families are mostly convention-driven:
 - **AmbigQA v1**: `data/ambigqa/with_negatives/` (`train.csv` + per-question CSVs)
 - **PlausibleQA fixed**: `data/plausibleqa/fixed-plausibleqa/` (`train.csv`, `test/*.csv`, `train-per-question/*.csv`)
 - **k-SAT**: `data/2sat_{train|test}.csv`, `data/3sat_{train|test}.csv`
+- **CodeContests**: `data/codecontests/` (see below)
 
 Representative task modules:
 
@@ -83,6 +84,7 @@ Representative task modules:
 - `src/tasks/ambigqa_v1.py`
 - `src/tasks/plausibleqa_v0.py` (historical module name; it currently loads the newer cleaned data under `data/plausibleqa/fixed-plausibleqa/`)
 - `src/tasks/ksat.py`
+- `src/tasks/codecontests.py`
 
 ---
 
@@ -222,6 +224,46 @@ Add:
 
 - test task files in `data/plausibleqa/fixed-plausibleqa/test/*.csv` -> `plausibleqa-<id>`
 - optional train-eval task files in `.../train-per-question/*.csv` -> `plausibleqa-train-<id>`
+
+### CodeContests tasks
+
+Used by `src/tasks/codecontests.py`. Source: `deepmind/code_contests` on HuggingFace.
+
+Data layout:
+
+```
+data/codecontests/
+    descriptions.json           # {problem_name: {description, difficulty}} for all splits
+    train.jsonl                 # compact train items (no description; joined at load time)
+    split_manifest.json         # maps each slug -> "test" or "valid"
+    test/<slug>.jsonl           # self-contained per-problem eval items
+```
+
+Training variants (sample different numbers of problems from train.jsonl):
+
+- `codecontests` — ~400 problems, ~2000 items
+- `codecontests-double` — ~800 problems, ~4000 items
+- `codecontests-all` — all ~13K problems, ~70K items
+
+Eval tasks (one per problem, auto-discovered from `test/*.jsonl`):
+
+- **TEST split** (162 problems): `codecontests-1575a` .. `codecontests-1623e`
+- **VALID split** (117 problems): `codecontests-1548c` .. `codecontests-1574f`
+
+Each eval task's registry entry has an `origin_split` field ("test" or "valid").
+To filter programmatically:
+
+```python
+from task_registry import TASK_REGISTRY
+test_tasks = [name for name, cfg in TASK_REGISTRY.items()
+              if cfg.get('origin_split') == 'test']
+```
+
+To regenerate the data files from scratch, run:
+
+```bash
+python scripts/preprocess_codecontests.py
+```
 
 ---
 
