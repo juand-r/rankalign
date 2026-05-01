@@ -36,6 +36,10 @@ There are three kinds of typicality correction used at eval time:
 | **basetypneg** | Base model + negated prompt: log P_base(y \| neg_Q) | `eval_by_claude.py --base-typicality --neg-typicality` | `basetypneg-` | `_tc` |
 | **gpt2** | GPT-2: log P_GPT2(y) | `eval.py --typicality-correction` | (empty) | `_evaltc` |
 
+For `basetyp` and `basetypneg`, use `--base-model <name>` to specify which base model
+computes the typicality scores (e.g. `--base-model google/gemma-2-2b-it`). Each finetuned
+model should use its own pre-finetuning base model.
+
 ### Important notes
 
 - `eval_by_claude.py` uses `_tc` suffix for all three TC types. It distinguishes them via the prefix.
@@ -66,7 +70,7 @@ The `model_short` portion encodes the model identity. It is derived from the mod
 The model save directory is built as:
 
 ```
-v6-{model}--delta{delta}--epoch{epoch}--{task}{all_str}--{direction}--{split_type}{alpha_str}{tc_str}{lenorm_str}{full_completion_str}{pref_str}{nll_v_str}{nll_g_str}{fsx_str}{vlo_str}{semi_str}
+v6-{model}--delta{delta}--epoch{epoch}--{task}{all_str}--{direction}--{split_type}{alpha_str}{tc_str}{lenorm_str}{full_completion_str}{eos_str}{pref_str}{nll_v_str}{nll_g_str}{fsx_str}{vlo_str}{semi_str}
 ```
 
 | Component | Example | Meaning |
@@ -81,6 +85,7 @@ v6-{model}--delta{delta}--epoch{epoch}--{task}{all_str}--{direction}--{split_typ
 | `tc_str` | `tc-neg`, `tc-self`, `tc-online`, or empty | TC at **training** time |
 | `lenorm_str` | `lenorm` or empty | Length normalization at training time |
 | `full_completion_str` | `full-completion` | Full completion log-probs (always present in current runs) |
+| `eos_str` | `eos` or empty | EOS included in completion scoring during training (`--include-eos`) |
 | `pref_str` | `pref0.0` or empty | Preference loss weight (empty = 1.0 default) |
 | `nll_v_str` | `nllv1.0` or empty | NLL validator weight (empty = 0) |
 | `nll_g_str` | `nllg1.0` or empty | NLL generator weight (empty = 0) |
@@ -154,6 +159,13 @@ they do not mix training regimes or training-TC variants.
 | Hypernym | `hypernym-*` | 18 | Uses `_v2` suffix |
 | IFEval | `ifeval-prompt_*` | 99 | Uses `--disc-shots zero` |
 
+## Output Directories
+
+| Directory | Contents |
+|-----------|----------|
+| `outputs/` | All non-EOS eval score files (standard location) |
+| `outputs-eos-models/` | Eval score files for EOS-trained models (from `models-eos/`) |
+
 ## Files in `outputs-unused/`
 
 These files were moved out of `outputs/` because they are legacy or redundant:
@@ -175,5 +187,5 @@ These files were moved out of `outputs/` because they are legacy or redundant:
 | `scripts/eval_by_claude.py` | Evaluation (current) | `scores_{prefix}{model_short}_{task}_{split}..._tc_...` |
 | `scripts/run_eval_semi.sh` | Eval wrapper | Adds skip logic, calls `eval_by_claude.py` |
 | `scripts/run_train_semi.sh` | Train wrapper | Handles semi-supervised args, calls `ranking_loss_ref.py` |
-| `scripts/run_train_v2g.sh` | V2G baseline train | Minimal wrapper for paper baseline training |
+| `scripts/run_train_v2g.sh` | V2G baseline train | Minimal wrapper, supports `--include-eos` and `--models-dir` |
 | `scripts/inventory_scores.py` | File inventory | Checks completeness, generates LaTeX PDF |
