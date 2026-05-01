@@ -803,6 +803,8 @@ def main(args):
         # experiment with negatives -- recent version of get_L_prompt does this
         L_train, L_test, _ = utils.get_L_prompt('lambada', split_type, seed=0)
     elif task=='ifeval':
+        # LEGACY: bare "ifeval" is superseded by "ifeval-concat" (task registry).
+        # These branches are kept for backward compat but are effectively dead code.
         L_train, L_test = utils.load_ifeval_data(seed=0)
     elif task=='collie':
         L_train, L_test = utils.load_collie_data(seed=0)

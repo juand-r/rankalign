@@ -174,6 +174,12 @@ def make_prompt(item, style='generator', shots='zero', gen_response=None,
         completion = " " + item['solution']
 
     elif style == 'discriminator':
+        if shots == 'few':
+            raise NotImplementedError(
+                "Few-shot discriminator is not implemented for codecontests. "
+                "Prompts include full problem descriptions + code, making "
+                "few-shot examples impractically long."
+            )
         code = gen_response if gen_response else item['solution']
         prompt = (
             f"Is the following code a correct solution to the programming problem?\n\n"

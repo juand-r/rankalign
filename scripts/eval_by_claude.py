@@ -28,7 +28,13 @@ def is_hypernym_task(task):
     return task == 'hypernym' or task.startswith('hypernym-')
 
 def is_ifeval_task(task):
-    """Check if task is any IFEval variant (ifeval, ifeval-<prompt_name>, etc.)"""
+    """Check if task is any IFEval variant (ifeval, ifeval-<prompt_name>, etc.)
+
+    IMPORTANT: bare "ifeval" is LEGACY. We now use "ifeval-concat" (and other
+    ifeval-<variant> names) which go through the task registry. The many
+    `task == 'ifeval'` branches throughout eval_by_claude.py and
+    ranking_loss_ref.py are dead code kept for backward compatibility.
+    """
     return task == 'ifeval' or task.startswith('ifeval-')
 
 def is_ambigqa_task(task):
@@ -345,12 +351,20 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
                 f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
             )
     elif is_humaneval_task(task):
+        # TODO: negated prompts for humaneval are experimental and not yet
+        # validated. The replacement may silently produce the original prompt
+        # if the template changes. Add a validation check (like ambigqa has)
+        # once we settle on a negation strategy.
         neg_prompt = gen_obj.prompt.replace(
             "Complete the following Python function:",
             "Write an incorrect implementation of the following Python function:"
         )
         neg_prompt = neg_prompt.replace("\nSolution:", "\nIncorrect solution:")
     else:
+        # NOTE: codecontests negated prompts are not yet implemented.
+        # The challenge is that competitive programming prompts are long
+        # problem descriptions; there's no simple string inversion that
+        # produces a meaningful "incorrect solution" prompt.
         raise NotImplementedError(
             f"--neg-typicality is not implemented for task '{task}'. "
             f"Add a negation strategy to make_negated_gen_prompt()."
@@ -563,6 +577,7 @@ def get_labels(task, LL):
         else:
             return [1 for i in LL]
     elif task=='ifeval':
+        # LEGACY: bare "ifeval" — now using ifeval-concat via task registry
         return [1 if i['correct'] == 'Yes' else 0 for i in LL]
     elif task=='collie':
         return [1 if i['satisfies_constraint'] else 0 for i in LL]
