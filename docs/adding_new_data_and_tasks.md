@@ -51,11 +51,20 @@ Optional fields:
 - `supports_negative_sampling` (metadata only right now)
 - `filter_positive` (metadata only right now)
 - `supports_split_types` (metadata only right now)
+- `make_negated_prompt(item, task, make_prompt, gen_shots) -> (neg_prompt, completion)`  
+  used by `--neg-typicality` in `scripts/eval_by_claude.py`
+- `csv_header: list[str]`  
+  column schema for `--save-scores-csv`
+- `csv_row_builder(...) -> list`  
+  row builder used by generic CSV saving in `scripts/eval_by_claude.py`
 
 Important current behavior:
 
 - `batch_size` and `get_indicator` are used by `scripts/ranking_loss_ref.py`.
 - `supports_split_types`, `supports_negative_sampling`, and `filter_positive` are currently not enforced by train/eval scripts.
+- For non-legacy task families, `scripts/eval_by_claude.py` now uses generic registry callbacks:
+  - `make_negated_prompt` for `--neg-typicality`
+  - `csv_header` + `csv_row_builder` for `--save-scores-csv`
 - Duplicate task names overwrite earlier registration silently (last one wins).
 
 ---
@@ -94,14 +103,20 @@ Representative task modules:
 
 Name choice has downstream effects.
 
-In eval scripts, these prefixes trigger family-specific behavior:
+In `scripts/eval_by_claude.py`, these families are currently handled by legacy branches:
 
 - `hypernym-...`
 - `ifeval-...`
 - `ambigqa...`
 - `plausibleqa...`
+- `membership-sans-rosch-...`
+- `rosch-...`
 
-If your new task is not one of these families, avoid these prefixes unless you also want those behaviors.
+If your new task is not one of these families, avoid these prefixes.  
+Non-legacy names automatically use the newer registry-driven behavior for:
+
+- `--neg-typicality` via `make_negated_prompt`
+- `--save-scores-csv` via `csv_header` + `csv_row_builder`
 
 ### Step B: Add your data files
 
@@ -117,6 +132,8 @@ Copy `src/tasks/example_task.py` to a new file (for example `src/tasks/my_task.p
 - `make_prompt(...)`
 - `get_completion(...)`
 - `get_label(...)`
+- optional: `make_negated_prompt(...)`
+- optional: `csv_header` + `csv_row_builder(...)`
 
 For item structure, use either:
 
@@ -125,19 +142,34 @@ For item structure, use either:
 
 Just stay consistent across all four functions.
 
-### Step D: Register the task
+Useful helpers live in `src/tasks/common.py`:
+
+- `normalize_yes_no(...)`
+- `get_field(...)`
+- `load_csv_items(...)`
+- CSV helper functions used by generic save paths
+
+### Step D: Register the task (prefer `_COMMON` pattern)
 
 At module scope:
 
 ```python
-register_task({
-    "name": "my-task",
-    "load_data": load_data,
+_COMMON = {
     "make_prompt": make_prompt,
     "get_completion": get_completion,
     "get_label": get_label,
+    # Optional but recommended for new non-legacy families:
+    "make_negated_prompt": make_negated_prompt,
+    "csv_header": CSV_HEADER,
+    "csv_row_builder": build_csv_row,
     "batch_size": {"with_ref": 1, "without_ref": 4},
     "supports_split_types": ["random"],
+}
+
+register_task({
+    "name": "my-task",
+    "load_data": load_data,
+    **_COMMON,
 })
 ```
 
@@ -174,6 +206,9 @@ Use the standard wrappers first:
 - eval wrapper: `scripts/run_eval_semi.sh`
 
 These wrappers also set working directory/flags in a way that matches existing assumptions.
+
+For new non-legacy families, you should not need to edit `scripts/eval_by_claude.py`
+if your registry entry includes `make_negated_prompt` and CSV callbacks.
 
 ---
 
@@ -291,13 +326,19 @@ If your workflow depends on one of those scripts, grep for your task family name
 ## 7) Important Gotchas
 
 1. **Task naming affects eval behavior**  
-   `eval_by_claude.py` and `eval.py` treat `hypernym-*`, `ifeval-*`, `ambigqa*`, and `plausibleqa*` specially for CSV writing and some prompt transforms.
+   Legacy CSV/prompt branches in `eval_by_claude.py` still handle:
+   `hypernym-*`, `ifeval-*`, `ambigqa*`, `plausibleqa*`,
+   `membership-sans-rosch-*`, and `rosch-*`.
+   New task families should avoid those prefixes unless that legacy behavior is desired.
 
-2. **Neg-typicality is not generic**  
-   In `eval_by_claude.py`, `--neg-typicality` is implemented via task-family-specific prompt negation in `make_negated_gen_prompt(...)`. New families require code there.
+2. **Neg-typicality is callback-driven for new families**  
+   `eval_by_claude.py` first checks registry callback `make_negated_prompt`.
+   For non-legacy task families, add that callback in your task module and you should not need script edits.
+   Legacy families may still use hardcoded fallbacks.
 
-3. **`--save-scores-csv` schemas are family-specific**  
-   New families may run metrics fine but not emit your desired detailed CSV format unless you add a branch.
+3. **`--save-scores-csv` is generic for non-legacy families**  
+   If a task registry entry provides `csv_header` and `csv_row_builder`, `eval_by_claude.py`
+   uses the generic writer path. No new branch is needed for new non-legacy families.
 
 4. **`ranking_loss_ref.py` uses limited split types**  
    CLI choices are currently `random|hyper|both`. Even if your task advertises more split types, the training CLI will not expose them unless you extend the parser.
@@ -325,7 +366,7 @@ If your workflow depends on one of those scripts, grep for your task family name
 - [ ] Registration smoke test passes (`is_registered(...) == True`).
 - [ ] Eval smoke test works with `scripts/run_eval_semi.sh`.
 - [ ] Train smoke test works with `scripts/run_train_semi.sh`.
-- [ ] If needed, added support in `eval_by_claude.py` for neg-typicality and detailed CSV output for your new family.
+- [ ] For non-legacy families: registry includes `make_negated_prompt` and `csv_header`/`csv_row_builder` (no `eval_by_claude.py` branch needed).
 - [ ] If using hardcoded orchestration scripts, updated their task lists.
 
 ---

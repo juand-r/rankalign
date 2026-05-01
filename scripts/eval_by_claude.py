@@ -67,6 +67,17 @@ def is_humaneval_task(task):
     """Check if task is any HumanEval variant."""
     return task == 'humaneval' or task.startswith('humaneval-')
 
+def is_legacy_csv_task(task):
+    """Task families still using legacy CSV-writing branches."""
+    return (
+        is_hypernym_task(task)
+        or is_ifeval_task(task)
+        or is_ambigqa_task(task)
+        or is_plausibleqa_task(task)
+        or is_membership_task(task)
+        or is_rosch_task(task)
+    )
+
 
 def get_device():
     if torch.cuda.is_available():
@@ -1505,7 +1516,7 @@ def main(args):
 
             print(f"Detailed scores saved to: {scores_csv_filename}")
 
-        elif args.save_scores_csv and (is_codecontests_task(task) or is_humaneval_task(task)):
+        elif args.save_scores_csv and not is_legacy_csv_task(task):
             task_config = get_task(task)
             if task_config is None or "csv_header" not in task_config or "csv_row_builder" not in task_config:
                 raise ValueError(
@@ -1954,7 +1965,8 @@ def main(args):
 
         print(f"Detailed scores saved to: {scores_csv_filename}")
 
-    elif args.save_scores_csv and (is_codecontests_task(task) or is_humaneval_task(task)):
+    #NOTE: This is what FUTURE TASKS SHOULD USE
+    elif args.save_scores_csv and not is_legacy_csv_task(task):
         task_config = get_task(task)
         if task_config is None or "csv_header" not in task_config or "csv_row_builder" not in task_config:
             raise ValueError(

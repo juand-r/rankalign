@@ -2,7 +2,7 @@
 
 # Run eval.py on all models for tasks with epoch 1-9
 # Tasks: elephants, ducklings, jackets, kites, dolls
-# Non-typicality correction versions only
+# With self-typicality correction
 # Spread across GPUs 0, 1, 2, 3, 4 (one task per GPU)
 #
 # Usage: ./run_eval_all_models.sh
@@ -46,6 +46,7 @@ run_task() {
     --split_type random \
                 --save-scores-csv \
                 --validator-log-odds \
+                --self-typicality \
                 --viz
         else
             echo "[GPU $GPU] SKIPPING - Model not found: $MODEL"
