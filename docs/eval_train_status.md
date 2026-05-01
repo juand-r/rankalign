@@ -1,6 +1,6 @@
 # Eval/Train Status Tracker
 
-Last updated: 2026-04-30 10:44 PM
+Last updated: 2026-04-30 11:17 PM
 
 ## Workstream 1: EOS train + eval (hypernym, outputs-eos-models/)
 
@@ -19,12 +19,14 @@ Last updated: 2026-04-30 10:44 PM
 
 | # | Setting | 9b-it | 2b-it | 2b |
 |---|---------|-------|-------|----|
-| 1 | RankAlign (no fsx) | RUNNING 14/18 (34958) | DONE 18/18 | DONE 18/18 |
+| 1 | RankAlign (no fsx) | DONE 18/18 | DONE 18/18 | DONE 18/18 |
 | 2 | SFT-LO | DONE 18/18 | DONE 18/18 | DONE 18/18 |
 | 3 | Comb vlo semi | DONE 18/18 | DONE 18/18 | DONE 18/18 |
 | 4 | Comb vlo + tc-self semi | DONE 18/18 | DONE 18/18 | DONE 18/18 |
-| 5 | Pref-only semi | DONE 18/18 | DONE 18/18 | RUNNING 13/18 (34970) |
-| 6 | Pref-only semi + tc-self | DONE 18/18 | DONE 18/18 | RUNNING 8/18 (34971) |
+| 5 | Pref-only semi | DONE 18/18 | DONE 18/18 | DONE 18/18 |
+| 6 | Pref-only semi + tc-self | DONE 18/18 | DONE 18/18 | DONE 18/18 |
+
+**ALL EOS EVALS COMPLETE.**
 
 ---
 
