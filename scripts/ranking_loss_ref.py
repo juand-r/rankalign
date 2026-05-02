@@ -849,12 +849,39 @@ def main(args):
         print(f"Filtered to single-token completions: {len(L_train)}")
 
     # Drop items exceeding --max-seq-len before they hit the dataloader
-    # (which would truncate input_ids but not completion token_ids, crashing sum_completion_logprobs).
+    # (which would truncate input_ids but not completion token_ids, silently
+    # misaligning scores in sum_completion_logprobs and risking a gather crash).
+    # Measure the exact (style, shots, completion) combinations training will
+    # tokenize: 'g' uses generator/zero, 'd' uses discriminator/disc_shots+" Yes",
+    # 'both' tokenizes both sequences so take the max.
     if args.max_seq_len and args.max_seq_len > 0 and task_config is not None:
         before = len(L_train)
+
+        def _encode_len(prompt_text, completion_text):
+            if with_chat:
+                msgs = (
+                    [{"role": "system", "content": "You are a helpful assistant."}]
+                    if has_system_role else []
+                ) + [{"role": "user", "content": prompt_text}]
+                n_prompt = len(tokenizer.apply_chat_template(
+                    msgs, add_generation_prompt=True, return_tensors='pt')[0])
+                n_completion = len(tokenizer.encode(completion_text, add_special_tokens=False))
+                return n_prompt + n_completion
+            return len(tokenizer.encode(prompt_text + completion_text, add_special_tokens=False))
+
         def _fits(item):
-            pc = task_config['make_prompt'](item, style="generator", shots="zero")
-            return len(tokenizer.encode(pc.prompt + pc.completion, add_special_tokens=False)) <= args.max_seq_len
+            lengths = []
+            if train_g_or_d in ('g', 'both'):
+                pc = task_config['make_prompt'](item, style='generator', shots='zero')
+                lengths.append(_encode_len(pc.prompt, pc.completion))
+            if train_g_or_d in ('d', 'both'):
+                pc = task_config['make_prompt'](item, style='discriminator', shots=disc_shots)
+                lengths.append(_encode_len(pc.prompt, space_prefix + "Yes"))
+            if not lengths:
+                pc = task_config['make_prompt'](item, style='generator', shots='zero')
+                lengths.append(_encode_len(pc.prompt, pc.completion))
+            return max(lengths) <= args.max_seq_len
+
         L_train = [item for item in L_train if _fits(item)]
         if len(L_train) < before:
             print(f"[max-seq-len filter] Dropped {before - len(L_train)}/{before} items "
