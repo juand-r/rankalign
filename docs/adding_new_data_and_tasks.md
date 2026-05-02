@@ -1,384 +1,396 @@
 # Adding New Data and Tasks
 
-This guide explains how tasks and datasets are wired in this repo, and what to do when you want to add a new one.
-
-It focuses on:
-
-- where tasks are defined
-- how they are discovered and loaded
-- how train/eval scripts consume them
-- pitfalls that commonly break new task integrations
+This guide tells you exactly what to do when you want to add a new dataset
+or a brand-new task family. There is one supported path for new tasks
+(the "modern" pattern used by `humaneval` and `codecontests`); follow it.
 
 ---
 
-## 1) Mental Model
+## 1) TL;DR
 
-At runtime, task loading works like this:
-
-1. A script adds `src/` to `sys.path`.
-2. The script imports `tasks` (from `src/tasks/__init__.py`).
-3. Importing `tasks` imports each task module, and each module calls `register_task(...)`.
-4. Scripts query `get_task(task_name)` from `src/task_registry.py`.
-5. If a task is registered, scripts use that config.
-6. If a task is not registered, scripts fall back to legacy `if/elif` paths.
-
-Core files:
-
-- `src/task_registry.py`: task registry API and defaults
-- `src/tasks/__init__.py`: task module import list (registration trigger)
-- `src/tasks/example_task.py`: template for new task modules
-- `src/utils.py`: shared loader/prompt path via `get_L_prompt(...)`
-- `scripts/ranking_loss_ref.py`: main training entrypoint
-- `scripts/eval_by_claude.py`: main evaluation entrypoint
-- `scripts/eval.py`: older evaluation entrypoint (still used in some workflows)
+- **Adding more data to an existing auto-discovery family?** Drop the file
+  in the right directory. No Python edits. See §3.
+- **Adding a brand-new task family?** Copy [`src/tasks/humaneval.py`](../src/tasks/humaneval.py)
+  (or [`codecontests.py`](../src/tasks/codecontests.py)) as a starting point.
+  Edit four functions, register, add one import line. See §4.
+- **Do not** put new code on the legacy path or follow legacy modules
+  (`hypernym_*`, `ifeval_*`, `ambigqa_*`, `plausibleqa_*`, `membership`,
+  `rosch`) as templates. See §2.
+- **After implementing**: load your data through `get_L_prompt(...)` and
+  print a generator and discriminator example to confirm the prompts look
+  right.
 
 ---
 
-## 2) Registry Contract
+## 2) Two patterns: modern (use this) vs. legacy (frozen)
 
-In `src/task_registry.py`, each task config requires:
+Two patterns coexist in this repo, **by design**:
 
-- `name`: CLI task identifier
-- `load_data(seed, split_type, **kwargs) -> (L_train, L_test)`
-- `make_prompt(item, style, shots, **kwargs) -> PromptCompletion`
-- `get_completion(item) -> str`
-- `get_label(item) -> "yes" | "no"`
+| Pattern | Tasks using it | What it uses for `--save-scores-csv` and `--neg-typicality` |
+|---|---|---|
+| **Modern** (recommended for all new tasks) | `humaneval`, `codecontests` | Generic registry callbacks: `csv_header` + `csv_row_builder` and `make_negated_prompt` |
+| **Legacy** (frozen — do not extend) | `hypernym-*`, `ifeval-*`, `ambigqa*`, `plausibleqa*`, `membership-sans-rosch-*`, `rosch-*`, `trivia-qa`, `swords`, `lambada`, `collie`, `ksat`, `hyponym` | Hardcoded `if is_<family>_task(task)` branches in `scripts/eval_by_claude.py` |
 
-Optional fields:
+**Rule for new work**: write tasks in the modern pattern. Don't migrate
+legacy tasks (it's a known consistency hazard but stable; we don't want
+to introduce regressions). Don't reuse legacy task name prefixes for new
+tasks — see Gotcha 1 in §7.
 
-- `get_indicator(item) -> 1/0` (default derived from label)
-- `batch_size`: `{"with_ref": int, "without_ref": int}`
-- `supports_negative_sampling` (metadata only right now)
-- `filter_positive` (metadata only right now)
-- `supports_split_types` (metadata only right now)
-- `make_negated_prompt(item, task, make_prompt, gen_shots) -> (neg_prompt, completion)`  
-  used by `--neg-typicality` in `scripts/eval_by_claude.py`
-- `csv_header: list[str]`  
-  column schema for `--save-scores-csv`
-- `csv_row_builder(...) -> list`  
-  row builder used by generic CSV saving in `scripts/eval_by_claude.py`
-
-Important current behavior:
-
-- `batch_size` and `get_indicator` are used by `scripts/ranking_loss_ref.py`.
-- `supports_split_types`, `supports_negative_sampling`, and `filter_positive` are currently not enforced by train/eval scripts.
-- For non-legacy task families, `scripts/eval_by_claude.py` now uses generic registry callbacks:
-  - `make_negated_prompt` for `--neg-typicality`
-  - `csv_header` + `csv_row_builder` for `--save-scores-csv`
-- Duplicate task names overwrite earlier registration silently (last one wins).
+The canonical references for the modern pattern are
+[`src/tasks/humaneval.py`](../src/tasks/humaneval.py) and
+[`src/tasks/codecontests.py`](../src/tasks/codecontests.py). When in
+doubt, copy from those.
 
 ---
 
-## 3) Where Existing Task Data Lives
+## 3) Adding more data to an existing auto-discovery family
 
-Task families are mostly convention-driven:
+These families auto-register a new task whenever a matching data file
+appears. **No Python edits needed.**
 
-- **Legacy hypernym base task**: `data/ranks.txt`
-- **Hypernym per-hyponym CSVs**:
-  - raw: `data/hypernym_<hyponym>_google-gemma-2-2b_{train|test}.csv`
-  - fixed/v2: `data/fixed-hypernyms/hypernym_<hyponym>_google-gemma-2-2b_{train|test}-fixed.csv`
-- **IFEval per-prompt**: `data/fixed-prompts-ifeval/gpt_ifeval_results_<prompt>.jsonl`
-- **AmbigQA v1**: `data/ambigqa/with_negatives/` (`train.csv` + per-question CSVs)
-- **PlausibleQA fixed**: `data/plausibleqa/fixed-plausibleqa/` (`train.csv`, `test/*.csv`, `train-per-question/*.csv`)
-- **k-SAT**: `data/2sat_{train|test}.csv`, `data/3sat_{train|test}.csv`
-- **CodeContests**: `data/codecontests/` (see below)
+### Hypernym per-hyponym (legacy family — extend only if you must)
 
-Representative task modules:
+Drop CSVs matching:
 
-- `src/tasks/hypernym_hyponyms.py`
-- `src/tasks/hypernym_concat.py`
-- `src/tasks/hypernym_concat_subset_v2.py`
-- `src/tasks/ifeval_per_prompt.py`
-- `src/tasks/ifeval_concat.py`
-- `src/tasks/ambigqa_v1.py`
-- `src/tasks/plausibleqa_v0.py` (historical module name; it currently loads the newer cleaned data under `data/plausibleqa/fixed-plausibleqa/`)
-- `src/tasks/ksat.py`
-- `src/tasks/codecontests.py`
+```
+data/hypernym_<hyponym>_google-gemma-2-2b_train.csv
+data/hypernym_<hyponym>_google-gemma-2-2b_test.csv
+```
+
+→ auto-registers `hypernym-<hyponym>`. For v2/grammar-corrected prompts
+also maintain the `-fixed.csv` files in `data/fixed-hypernyms/`.
+
+### IFEval per-prompt (legacy family)
+
+Drop:
+
+```
+data/fixed-prompts-ifeval/gpt_ifeval_results_<prompt_name>.jsonl
+```
+
+→ auto-registers `ifeval-<prompt_name>`.
+
+### AmbigQA v1 per-question (legacy family)
+
+Drop per-question CSVs in `data/ambigqa/with_negatives/<slug>.csv`.
+`train.csv` is the shared train set; every other CSV becomes
+`ambigqa-<slug>`.
+
+### PlausibleQA per-question (legacy family)
+
+The active data lives under `data/plausibleqa/fixed-plausibleqa/`
+(historical filename `plausibleqa_v0.py`). Drop:
+
+- test task files in `data/plausibleqa/fixed-plausibleqa/test/*.csv`
+  → `plausibleqa-<id>`
+- optional train-eval task files in
+  `data/plausibleqa/fixed-plausibleqa/train-per-question/*.csv`
+  → `plausibleqa-train-<id>`
+
+### Rosch per-category (legacy family, eval-only)
+
+Drop `data/rosch/rosch-<slug>_test.csv` → auto-registers `rosch-<slug>`.
+
+### CodeContests per-problem (modern family)
+
+Drop `data/codecontests/test/<slug>.jsonl` → auto-registers
+`codecontests-<slug>`. To regenerate from the HuggingFace source, run
+`python scripts/preprocess_codecontests.py`.
+
+### HumanEval per-problem (modern family)
+
+Drop `data/humaneval/with_solutions/humaneval_<N>.csv` →
+auto-registers `humaneval-humaneval_<N>`. The shared train file is
+`data/humaneval/with_solutions/train.csv`.
 
 ---
 
-## 4) Adding a Brand-New Task (Recommended Flow)
+## 4) Adding a brand-new task family (modern pattern)
 
-### Step A: Pick the task name carefully
+Copy `humaneval.py` or `codecontests.py` as your starting point —
+they're the most up-to-date examples. The boilerplate version of these
+steps lives in [`src/tasks/example_task.py`](../src/tasks/example_task.py),
+which mirrors the modern pattern.
 
-Name choice has downstream effects.
+### Step A: Pick a task name
 
-In `scripts/eval_by_claude.py`, these families are currently handled by legacy branches:
+The name appears in `--task <name>`. **Do not start it with any of
+these legacy prefixes** unless you intend the legacy CSV/neg-typicality
+behavior:
 
-- `hypernym-...`
-- `ifeval-...`
-- `ambigqa...`
-- `plausibleqa...`
-- `membership-sans-rosch-...`
-- `rosch-...`
+```
+hypernym- ifeval- ambigqa- plausibleqa- membership-sans-rosch- rosch-
+```
 
-If your new task is not one of these families, avoid these prefixes.  
-Non-legacy names automatically use the newer registry-driven behavior for:
+Modern-pattern tasks need a name that doesn't match any of those
+prefixes. `eval_by_claude.py:is_legacy_csv_task(...)` is the source of
+truth for which prefixes route through legacy code.
 
-- `--neg-typicality` via `make_negated_prompt`
-- `--save-scores-csv` via `csv_header` + `csv_row_builder`
+### Step B: Lay out your data
 
-### Step B: Add your data files
+Put data files in `data/<your_task>/`. Use stable, deterministic file
+names. Build paths in your task module from `__file__`, not from CWD.
 
-Prefer a dedicated directory like `data/<your_task>/...`, and keep file naming stable.
+### Step C: Create `src/tasks/<your_task>.py`
 
-Use paths derived from `__file__` in task modules (more robust than CWD-relative paths).
+Required imports and structure (mirror `humaneval.py`):
 
-### Step C: Create a task module
+```python
+import os, sys, random
+_parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _parent_dir not in sys.path:
+    sys.path.insert(0, _parent_dir)
 
-Copy `src/tasks/example_task.py` to a new file (for example `src/tasks/my_task.py`) and implement:
+from task_registry import register_task
+from tasks.common import PromptCompletion, load_csv_items, normalize_yes_no, get_field
+```
 
-- `load_data(...)`
-- `make_prompt(...)`
-- `get_completion(...)`
-- `get_label(...)`
-- optional: `make_negated_prompt(...)`
-- optional: `csv_header` + `csv_row_builder(...)`
+Implement four required functions and (for the modern pattern) two
+optional ones:
 
-For item structure, use either:
+| Function | Required? | What it does |
+|---|---|---|
+| `load_data(seed, split_type, sample_negative=False, **kwargs) -> (L_train, L_test)` | yes | Load + split data. Use `random.Random(seed)`, never `random.seed(seed)`. |
+| `make_prompt(item, style, shots, gen_response=None, neg=False, **kwargs) -> PromptCompletion` | yes | Build generator/discriminator prompts. |
+| `get_completion(item) -> str` | yes | Return `" " + answer` (leading space). |
+| `get_label(item) -> "yes" \| "no"` | yes | Use `normalize_yes_no(...)` from `tasks.common`. |
+| `make_negated_prompt(item, task, make_prompt, gen_shots) -> (neg_prompt, completion)` | yes if you'll use `--neg-typicality` | Build the negated generator prompt. |
+| `csv_row_builder(...) -> list` and `CSV_HEADER: list[str]` | yes if you'll use `--save-scores-csv` | Schema for the per-example score CSV. |
 
-- dicts (common in QA tasks), or
-- namedtuples (common in hypernym/sat-style tasks)
+The two "yes if you'll use…" callbacks are **functionally required for
+the modern pattern**. Without `make_negated_prompt`, `--neg-typicality`
+raises `NotImplementedError` for your task. Without
+`csv_header`/`csv_row_builder`, `--save-scores-csv` raises `ValueError`.
+Add them.
 
-Just stay consistent across all four functions.
+### Step D: Register
 
-Useful helpers live in `src/tasks/common.py`:
-
-- `normalize_yes_no(...)`
-- `get_field(...)`
-- `load_csv_items(...)`
-- CSV helper functions used by generic save paths
-
-### Step D: Register the task (prefer `_COMMON` pattern)
-
-At module scope:
+Use a `_COMMON` dict so multi-variant registration stays clean (see
+`humaneval.py` for the pattern):
 
 ```python
 _COMMON = {
-    "make_prompt": make_prompt,
-    "get_completion": get_completion,
-    "get_label": get_label,
-    # Optional but recommended for new non-legacy families:
-    "make_negated_prompt": make_negated_prompt,
-    "csv_header": CSV_HEADER,
-    "csv_row_builder": build_csv_row,
-    "batch_size": {"with_ref": 1, "without_ref": 4},
-    "supports_split_types": ["random"],
+    'make_prompt': make_prompt,
+    'get_completion': get_completion,
+    'get_label': get_label,
+    'make_negated_prompt': make_negated_prompt,
+    'csv_header': CSV_HEADER,
+    'csv_row_builder': build_csv_row,
+    'batch_size': {'with_ref': 1, 'without_ref': 4},
+    'supports_split_types': ['random'],
 }
 
-register_task({
-    "name": "my-task",
-    "load_data": load_data,
-    **_COMMON,
-})
+register_task({'name': 'my-task', 'load_data': load_data, **_COMMON})
 ```
 
-### Step E: Import it in `src/tasks/__init__.py`
-
-Add:
+### Step E: Import in `src/tasks/__init__.py`
 
 ```python
 from . import my_task
 ```
 
-No import means no registration.
+If you skip this, your task simply won't show up — there is no warning.
+This is the most common mistake.
 
 ### Step F: Smoke-test registration
-
-From repo root:
 
 ```bash
 source /u/jdr/venvs/venv_lexcons/bin/activate
 python - <<'PY'
-import sys
-sys.path.append("src")
+import sys; sys.path.insert(0, "src")
 import tasks
 from task_registry import is_registered
-print(is_registered("my-task"))
+assert is_registered("my-task"), "Not registered — did you import in __init__.py?"
+print("OK")
 PY
 ```
 
-### Step G: Smoke-test train/eval
+### Step G: Smoke-test prompts
 
-Use the standard wrappers first:
+This is non-optional. Load the data through the same path the training
+and eval code use, and print one generator and one discriminator
+example. Bad prompts only show up here.
 
-- train wrapper: `scripts/run_train_semi.sh`
-- eval wrapper: `scripts/run_eval_semi.sh`
+```bash
+python - <<'PY'
+import sys; sys.path.insert(0, "src")
+import tasks
+from utils import get_L_prompt
+L_train, L_test, make_prompt = get_L_prompt("my-task", "random", seed=0)
+g = make_prompt(L_train[0], style='generator',     shots='zero')
+d = make_prompt(L_train[0], style='discriminator', shots='zero')
+print("GENERATOR PROMPT:\n", g.prompt)
+print("GENERATOR COMPLETION:", repr(g.completion))
+print("---")
+print("DISCRIMINATOR PROMPT:\n", d.prompt)
+print("DISCRIMINATOR COMPLETION:", repr(d.completion))
+PY
+```
 
-These wrappers also set working directory/flags in a way that matches existing assumptions.
+### Step H: Smoke-test train/eval
 
-For new non-legacy families, you should not need to edit `scripts/eval_by_claude.py`
-if your registry entry includes `make_negated_prompt` and CSV callbacks.
+Use the standard wrappers:
+
+- training: `scripts/run_train_semi.sh`
+- evaluation: `scripts/run_eval_semi.sh`
+
+These wrappers `cd` to the right working directory and pass the right
+flags. For modern tasks no edits to `eval_by_claude.py` should be needed.
 
 ---
 
-## 5) Adding Data to Existing Auto-Discovery Families
+## 5) Registry contract (full reference)
 
-If your use case fits an existing family, you may not need new Python code.
+`register_task(config: dict)` accepts these fields. See
+[`src/task_registry.py`](../src/task_registry.py) for the source of truth.
 
-### Hypernym per-hyponym tasks
+### Required (all tasks)
 
-Used by `src/tasks/hypernym_hyponyms.py`.
+- `name: str` — task identifier used in `--task <name>`.
+- `load_data: Callable(seed, split_type, **kwargs) -> (L_train, L_test)`.
+- `make_prompt: Callable(item, style, shots, **kwargs) -> PromptCompletion`.
+- `get_completion: Callable(item) -> str` — should return `" " + answer`.
+- `get_label: Callable(item) -> "yes" | "no"`.
 
-Add files matching:
+### Required for the modern pattern (any new task family)
 
-- `data/hypernym_<hyponym>_google-gemma-2-2b_train.csv`
-- `data/hypernym_<hyponym>_google-gemma-2-2b_test.csv`
+- `make_negated_prompt: Callable(item, task, make_prompt, gen_shots) -> (neg_prompt, completion)`
+  — used by `eval_by_claude.py:make_negated_gen_prompt` for
+  `--neg-typicality`.
+- `csv_header: list[str]` and
+  `csv_row_builder: Callable(...) -> list` — used by
+  `eval_by_claude.py` for `--save-scores-csv`.
 
-This auto-registers `hypernym-<hyponym>`.
+### Optional
 
-If using v2/fixed prompts, also maintain fixed files in `data/fixed-hypernyms/` with the `-fixed.csv` suffix.
+- `get_indicator(item) -> 0|1` — defaults to `1 if get_label(item)=='yes' else 0`.
+- `batch_size: {"with_ref": int, "without_ref": int}` —
+  consumed by `ranking_loss_ref.py`. Default `{"with_ref": 1, "without_ref": 2}`.
+- `description: str` — free-form, displayed in registration log only.
+- `origin_split: "test" | "valid"` — used by `codecontests` to mark which
+  HuggingFace split a per-problem eval came from; queryable via
+  `cfg.get('origin_split')`.
+- `short: bool` — used by `codecontests` to mark short-completion tasks.
 
-### IFEval per-prompt tasks
+### Currently not enforced (informational only)
 
-Used by `src/tasks/ifeval_per_prompt.py`.
+- `supports_split_types: list[str]`
+- `supports_negative_sampling: bool`
+- `filter_positive: Callable(item) -> bool`
 
-Add:
+These are accepted and stored, but no script reads them. Don't rely on
+them for behavior.
 
-- `data/fixed-prompts-ifeval/gpt_ifeval_results_<prompt_name>.jsonl`
+---
 
-This auto-registers `ifeval-<prompt_name>`.
+## 6) Where existing data lives (reference)
 
-### AmbigQA v1 per-question tasks
+| Family | Path | Pattern |
+|---|---|---|
+| Hypernym (legacy base) | `data/ranks.txt` | legacy `hypernym` task |
+| Hypernym per-hyponym | `data/hypernym_<X>_google-gemma-2-2b_{train,test}.csv` | legacy auto-discovery |
+| Hypernym v2/fixed | `data/fixed-hypernyms/hypernym_<X>_google-gemma-2-2b_{train,test}-fixed.csv` | legacy |
+| IFEval per-prompt | `data/fixed-prompts-ifeval/gpt_ifeval_results_<prompt>.jsonl` | legacy |
+| AmbigQA v1 | `data/ambigqa/with_negatives/{train,<slug>}.csv` | legacy |
+| PlausibleQA | `data/plausibleqa/fixed-plausibleqa/{train.csv, test/*.csv, train-per-question/*.csv}` | legacy |
+| Rosch | `data/rosch/rosch-<slug>_test.csv` | legacy (eval-only) |
+| Membership | `data/membership/{combined_train_categories_final*.json, excluded_categories.json}` | legacy |
+| k-SAT | `data/{2,3}sat_{train,test}.csv` | legacy |
+| CodeContests | `data/codecontests/{descriptions.json, train.jsonl, test/<slug>.jsonl, split_manifest.json}` | **modern** |
+| HumanEval | `data/humaneval/with_solutions/{train.csv, humaneval_<N>.csv}` | **modern** |
 
-Used by `src/tasks/ambigqa_v1.py`.
-
-Add per-question CSVs in:
-
-- `data/ambigqa/with_negatives/<slug>.csv`
-
-`train.csv` is the shared train set; every other CSV becomes `ambigqa-<slug>`.
-
-### PlausibleQA per-question tasks
-
-Used by `src/tasks/plausibleqa_v0.py`.
-
-Naming note: `plausibleqa_v0.py` is a legacy filename, but its active data paths point to the newer cleaned dataset in `data/plausibleqa/fixed-plausibleqa/`.
-
-Add:
-
-- test task files in `data/plausibleqa/fixed-plausibleqa/test/*.csv` -> `plausibleqa-<id>`
-- optional train-eval task files in `.../train-per-question/*.csv` -> `plausibleqa-train-<id>`
-
-### CodeContests tasks
-
-Used by `src/tasks/codecontests.py`. Source: `deepmind/code_contests` on HuggingFace.
-
-Data layout:
-
-```
-data/codecontests/
-    descriptions.json           # {problem_name: {description, difficulty}} for all splits
-    train.jsonl                 # compact train items (no description; joined at load time)
-    split_manifest.json         # maps each slug -> "test", "valid", or "short"
-    test/<slug>.jsonl           # self-contained per-problem eval items
-```
-
-Training variants (sample different numbers of problems from train.jsonl):
-
-- `codecontests` — ~400 problems, ~2000 items
-- `codecontests-double` — ~800 problems, ~4000 items
-- `codecontests-all` — all ~13K problems, ~70K items
-
-Eval tasks (one per problem, auto-discovered from `test/*.jsonl`):
-
-- **TEST split** (158 problems): `codecontests-1575a` .. `codecontests-1623e`
-- **VALID split** (114 problems): `codecontests-1548c` .. `codecontests-1574f`
-
-Each eval task's registry entry has an `origin_split` field ("test" or "valid").
-To filter programmatically:
+Codecontests-specific notes: each per-problem eval task has
+`origin_split` ("test" or "valid") and a `short` flag (median completion
+< 300 tokens). To filter:
 
 ```python
 from task_registry import TASK_REGISTRY
-test_tasks = [name for name, cfg in TASK_REGISTRY.items()
-              if cfg.get('origin_split') == 'test']
-```
-
-To regenerate the data files from scratch, run:
-
-```bash
-python scripts/preprocess_codecontests.py
+test_tasks  = [n for n, c in TASK_REGISTRY.items() if c.get('origin_split') == 'test']
+short_tasks = [n for n, c in TASK_REGISTRY.items() if c.get('short')]
 ```
 
 ---
 
-## 6) Script Compatibility Matrix
+## 7) Gotchas
 
-### Fully registry-aware path (recommended)
+1. **Legacy prefixes route through legacy code.** A task name starting
+   with `hypernym-`, `ifeval-`, `ambigqa-`, `plausibleqa-`,
+   `membership-sans-rosch-`, or `rosch-` will be detected as legacy by
+   `eval_by_claude.py` and use hardcoded CSV-writing and neg-typicality
+   branches, **even if your registry entry provides
+   `csv_header`/`csv_row_builder`/`make_negated_prompt`**. The registry
+   callbacks for legacy-prefixed tasks are silently ignored. Pick a
+   non-legacy prefix.
 
-- `scripts/ranking_loss_ref.py`
-- `scripts/eval_by_claude.py`
-- `scripts/eval.py`
-- `src/utils.py` (`get_L_prompt`)
-- `src/logitlens.py`
+2. **A task module must be imported to register.** Adding a file to
+   `src/tasks/` is not enough — `src/tasks/__init__.py` must contain
+   `from . import <module>`. If you skip the import the task will not
+   appear and `--task <name>` will reject it as an unknown choice with
+   no clue why.
 
-### Partially registry-aware or task-hardcoded scripts
+3. **`make_negated_prompt` is required for `--neg-typicality`** on
+   modern tasks. Without it, `make_negated_gen_prompt` in
+   `eval_by_claude.py` raises `NotImplementedError`.
 
-Some older scripts still have hardcoded assumptions or output schemas. For new families, review before relying on them:
+4. **`csv_header` + `csv_row_builder` are required for
+   `--save-scores-csv`** on modern tasks. Without both,
+   `eval_by_claude.py` raises `ValueError`.
 
-- `scripts/consistency_ft.py` (contains task-specific output formatting branches)
-- many orchestration scripts under `scripts/` with hardcoded task lists
+5. **`ranking_loss_ref.py` only exposes `--split_type
+   {random,hyper,both}`.** If your task advertises additional
+   `supports_split_types`, the trainer's argparse won't let users select
+   them. `random` is the default and what almost every task uses.
 
-If your workflow depends on one of those scripts, grep for your task family name or hardcoded `TASKS=(...)`.
+6. **Large dynamic families inflate startup output.** Each registration
+   prints a line. PlausibleQA + CodeContests register ~800 tasks
+   between them.
 
----
+7. **Working directory matters for legacy loaders.** Some functions in
+   `src/utils.py` use `../data/...` relative paths. Wrapper scripts
+   `cd scripts/` before calling Python. New modern tasks should always
+   build paths from `__file__`.
 
-## 7) Important Gotchas
+8. **Known broken: `ambigqa_v0.py`.** It's still imported in
+   `src/tasks/__init__.py` but its expected path
+   `data/ambigqa/v0/combined.csv` does not exist (data was moved to
+   `data/ambigqa/v0-combined-ambigqa-plausibleqa/`). Registration
+   silently skips. Either fix the path or remove the import; not a
+   blocker for new work.
 
-1. **Task naming affects eval behavior**  
-   Legacy CSV/prompt branches in `eval_by_claude.py` still handle:
-   `hypernym-*`, `ifeval-*`, `ambigqa*`, `plausibleqa*`,
-   `membership-sans-rosch-*`, and `rosch-*`.
-   New task families should avoid those prefixes unless that legacy behavior is desired.
-
-2. **Neg-typicality is callback-driven for new families**  
-   `eval_by_claude.py` first checks registry callback `make_negated_prompt`.
-   For non-legacy task families, add that callback in your task module and you should not need script edits.
-   Legacy families may still use hardcoded fallbacks.
-
-3. **`--save-scores-csv` is generic for non-legacy families**  
-   If a task registry entry provides `csv_header` and `csv_row_builder`, `eval_by_claude.py`
-   uses the generic writer path. No new branch is needed for new non-legacy families.
-
-4. **`ranking_loss_ref.py` uses limited split types**  
-   CLI choices are currently `random|hyper|both`. Even if your task advertises more split types, the training CLI will not expose them unless you extend the parser.
-
-5. **Some registry metadata is informational only**  
-   `supports_split_types`, `supports_negative_sampling`, and `filter_positive` are not currently consumed in the main scripts.
-
-6. **Large dynamic families expand parser choices**  
-   `ranking_loss_ref.py` builds `--task` choices from all registered tasks. Families like plausibleqa can register hundreds of tasks, which increases startup verbosity.
-
-7. **Working directory assumptions still exist in shared utils**  
-   Some legacy loaders in `src/utils.py` use paths like `../data/...` relative to CWD. Wrapper scripts typically `cd scripts/` to avoid path issues.
-
-8. **Known AmbigQA v0 path mismatch**  
-   `src/tasks/ambigqa_v0.py` expects `data/ambigqa/v0/combined.csv`, while existing data is under `data/ambigqa/v0-combined-ambigqa-plausibleqa/`. As-is, v0 tasks may not register.
+9. **`register_task` will warn on duplicate names** but still
+   overwrites. The last registration wins.
 
 ---
 
-## 8) Practical Checklist
+## 8) Script compatibility (honest version)
 
-- [ ] Data files are in stable locations with deterministic names.
-- [ ] Task module implements `load_data`, `make_prompt`, `get_completion`, `get_label`.
-- [ ] `register_task(...)` is called with a unique `name`.
-- [ ] Module is imported in `src/tasks/__init__.py`.
-- [ ] Registration smoke test passes (`is_registered(...) == True`).
-- [ ] Eval smoke test works with `scripts/run_eval_semi.sh`.
-- [ ] Train smoke test works with `scripts/run_train_semi.sh`.
-- [ ] For non-legacy families: registry includes `make_negated_prompt` and `csv_header`/`csv_row_builder` (no `eval_by_claude.py` branch needed).
-- [ ] If using hardcoded orchestration scripts, updated their task lists.
+| Script | Behavior |
+|---|---|
+| `scripts/ranking_loss_ref.py` | Registry-first, with legacy `if/elif` chains for `hypernym`, `hypernym-car`, `trivia-qa`, `swords`, `lambada`, `ifeval`, `collie` |
+| `scripts/eval_by_claude.py` | Registry-first, with hardcoded family branches (`is_<family>_task(...)`) for hypernym, ifeval, ambigqa, plausibleqa, membership, rosch (CSV writing + neg-typicality) |
+| `scripts/eval.py` | Older eval script. Registry-first; small legacy fallback. Still used in some workflows. |
+| `src/utils.py:get_L_prompt` | Registry-first. |
+| `src/logitlens.py` | Registry-first. |
+| `scripts/consistency_ft.py` | Has task-specific output formatting branches. Don't rely on for new families without checking. |
+| Orchestration shell scripts (`run_*.sh` per-task wrappers) | Mostly hardcoded `TASKS=(...)` lists. Update if your workflow uses one. |
+
+For modern tasks, you should not need to edit `ranking_loss_ref.py`,
+`eval_by_claude.py`, or `eval.py`.
 
 ---
 
-## 9) Suggested Minimal Template
+## 9) Practical checklist
 
-Use this shape for new task items and prompts:
-
-- item schema: plain dict with `question`, `answer`, `correct`
-- generator completion: `" " + answer`
-- label normalization: map to lowercase `yes`/`no` at load time
-
-Keeping this pattern makes your task compatible with both rank training and eval tooling with minimal custom code.
-
-## 10) After writing prompt templates and data loaders, LOAD THE DATA using our data/task loader (same ones used by the training and eval code) and print out a few examples of generator and validator!
+- [ ] Data files are in stable locations under `data/<family>/...`.
+- [ ] Task name does not start with a legacy prefix (§2 table).
+- [ ] Module copied from `humaneval.py` or `codecontests.py`.
+- [ ] Imports `PromptCompletion` and helpers from `tasks.common`.
+- [ ] Implements `load_data`, `make_prompt`, `get_completion`, `get_label`.
+- [ ] Implements `make_negated_prompt`, `CSV_HEADER`, `build_csv_row`.
+- [ ] Uses `random.Random(seed)`, not `random.seed(seed)`.
+- [ ] `register_task(...)` uses the `_COMMON` dict pattern.
+- [ ] `from . import <module>` added to `src/tasks/__init__.py`.
+- [ ] Registration smoke test passes (§4 step F).
+- [ ] **Prompts smoke test passes — printed gen + disc examples look correct (§4 step G).**
+- [ ] Train smoke test runs via `scripts/run_train_semi.sh`.
+- [ ] Eval smoke test runs via `scripts/run_eval_semi.sh`.
