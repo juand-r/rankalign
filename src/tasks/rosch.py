@@ -1,6 +1,12 @@
 """
 Rosch-1975 category membership tasks (eval-only for now).
 
+NOTE: --neg-typcorr / --neg-typicality IS supported. Even though no
+make_negated_prompt is registered here, the legacy dispatch in
+eval_by_claude.py:make_negated_gen_prompt handles rosch and membership
+tasks by substituting "an example of " -> "an example of something that
+is not ".
+
 Each category from Rosch's typicality norms is a separate test task named
 'rosch-<category>' (e.g., rosch-furniture, rosch-bird).
 

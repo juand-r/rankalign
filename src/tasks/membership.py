@@ -1,6 +1,13 @@
 """
 Category membership training tasks.
 
+NOTE: --neg-typcorr / --neg-typicality IS supported. Even though no
+make_negated_prompt is registered here, the legacy dispatch in
+eval_by_claude.py:make_negated_gen_prompt handles membership and rosch
+tasks by substituting "an example of " -> "an example of something that
+is not ". Both training (compute_neg_typicality_training) and eval go
+through that function, so the path works end-to-end.
+
 Data source (self-contained in this repo):
   data/membership/combined_train_categories_final.json
   data/membership/combined_train_categories_final_negatives.json
