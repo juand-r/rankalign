@@ -115,6 +115,8 @@ def register_task(config: Dict[str, Any]) -> None:
     if 'supports_split_types' not in config:
         config['supports_split_types'] = ['random']
     
+    if name in TASK_REGISTRY:
+        print(f"[task_registry] WARNING: overwriting existing task '{name}'")
     TASK_REGISTRY[name] = config
     print(f"[task_registry] Registered task: {name}")
 
