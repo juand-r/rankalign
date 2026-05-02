@@ -124,6 +124,9 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
                 continue
             
             # For single token, compute P(token)
+            # KNOWN BUG: GPT-2 tokenizer returns [] for encode("", add_special_tokens=True)
+            # (no BOS token), so this computes P(next | token) not P(token | BOS).
+            # Not an issue now: we use --self-typicality (model scores itself), not GPT-2.
             if len(input_ids) == 1:
                 context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)
                 full_ids = context_ids + input_ids
@@ -243,6 +246,10 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
     return neg_scores
 
 
+# KNOWN BUG: is_chat/has_system_role are accepted but ignored — tokenization
+# below uses plain tokenizer(), not apply_chat_template, so tracked scores
+# won't match chat-mode training. Not an issue now: we don't use these
+# tracked scores for anything besides optional debugging.
 def track_all_scores(model, tokenizer, L_train_all, task, device, yestoks, notoks, 
                      length_normalize=False, use_full_completion=True, task_config=None,
                      validator_log_odds=True, is_chat=False, has_system_role=False,
@@ -840,6 +847,18 @@ def main(args):
                 filtered_L_train.append(item)
         L_train = filtered_L_train
         print(f"Filtered to single-token completions: {len(L_train)}")
+
+    # Drop items exceeding --max-seq-len before they hit the dataloader
+    # (which would truncate input_ids but not completion token_ids, crashing sum_completion_logprobs).
+    if args.max_seq_len and args.max_seq_len > 0 and task_config is not None:
+        before = len(L_train)
+        def _fits(item):
+            pc = task_config['make_prompt'](item, style="generator", shots="zero")
+            return len(tokenizer.encode(pc.prompt + pc.completion, add_special_tokens=False)) <= args.max_seq_len
+        L_train = [item for item in L_train if _fits(item)]
+        if len(L_train) < before:
+            print(f"[max-seq-len filter] Dropped {before - len(L_train)}/{before} items "
+                  f"exceeding {args.max_seq_len} tokens")
 
     print("Computing log-probabilities on the fly...")
     print(f"Using device: {device}")
@@ -2500,8 +2519,10 @@ def main(args):
 
                 # Use frozen reference model
                 if WITH_REF:
-                    # Check that token_ids are single-token (1D after squeeze, or 2D with size 1 in last dim)
-                    # This reference model scoring code assumes single-token completions
+                    # KNOWN BUG: this dim check is wrong for batched single-token data.
+                    # DataLoader stacks [1]-shaped tensors into [B,1] (dim=2), which
+                    # triggers the error even for valid single-token batches.
+                    # Not an issue now: --with_ref is unused in current training runs.
                     if token_id_i.dim() > 1 or (token_id_i.dim() == 1 and token_id_i.size(0) != batch["input_ids_i"].size(0)):
                         raise NotImplementedError(
                             "Reference model scoring (WITH_REF) currently only supports single-token completions. "
