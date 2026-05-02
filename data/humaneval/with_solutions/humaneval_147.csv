@@ -1,0 +1,1277 @@
+question,answer,correct,strategy
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count_mod = [0] * 3
+    for num in a:
+        count_mod[num % 3] += 1
+
+    total_triples = 0
+
+    # Count combination of three from one mod group
+    for count in count_mod:
+        if count >= 3:
+            total_triples += (count * (count - 1) * (count - 2)) // 6
+
+    # Count combination among the different mod groups that results in multiples of 3 
+    total_triples += count_mod[0] * count_mod[1] * count_mod[2]
+
+    return total_triples",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    remainder_count = [0, 0, 0]
+
+    for value in a:
+        remainder_count[value % 3] += 1
+
+    # Count triples where the sum of the remainders is a multiple of 3.
+    # (0, 0, 0), (1, 1, 1), (2, 2, 2), (0, 1, 2)
+    count += (remainder_count[0] * (remainder_count[0] - 1) * (remainder_count[0] - 2)) // 6  # triples (0,0,0)
+    count += (remainder_count[1] * (remainder_count[1] - 1) * (remainder_count[1] - 2)) // 6  # triples (1,1,1)
+    count += (remainder_count[2] * (remainder_count[2] - 1) * (remainder_count[2] - 2)) // 6  # triples (2,2,2)
+    count += (remainder_count[0] * remainder_count[1] * remainder_count[2])  # triples (0,1,2)
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+    mod_count = [0, 0, 0]
+    result = 0
+
+    for value in a:
+        mod_count[value] += 1
+
+    result += mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2) // 6
+    result += mod_count[1] * (mod_count[1] - 1) * (mod_count[1] - 2) // 6
+    result += mod_count[2] * (mod_count[2] - 1) * (mod_count[2] - 2) // 6
+
+    result += mod_count[0] * mod_count[1] * mod_count[2]
+
+    return result",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                if (a[i] + a[j] + a[k]) % 3 == 0:
+                    count += 1
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+    count = [0] * 3
+    for value in a:
+        count[value] += 1
+
+    result = 0
+    result += count[0] * (count[0] - 1) * (count[0] - 2) // 6
+    result += count[1] * (count[1] - 1) * (count[1] - 2) // 6
+    result += count[2] * (count[2] - 1) * (count[2] - 2) // 6
+    result += count[0] * count[1] * count[2]
+
+    return result",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                if (a[i] + a[j] + a[k]) % 3 == 0:
+                    count += 1
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+
+    count_mod = [0, 0, 0]
+    for value in a:
+        count_mod[value] += 1
+
+    zero_count = count_mod[0]
+    one_count = count_mod[1]
+    two_count = count_mod[2]
+
+    total_triples = 0
+
+    total_triples += (zero_count * (zero_count - 1) * (zero_count - 2)) // 6
+    total_triples += (one_count * (one_count - 1) * (one_count - 2)) // 6
+    total_triples += (two_count * (two_count - 1) * (two_count - 2)) // 6
+
+    total_triples += (zero_count * one_count * two_count)
+
+    return total_triples",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    count_rem = [0, 0, 0]  # Count of elements with remainders 0, 1, 2 when divided by 3
+
+    # Calculate the remainder when each term (i * i - i + 1) is divided by 3
+    for i in range(1, n + 1):
+        ai = i * i - i + 1
+        remainder = ai % 3
+        count_rem[remainder] += 1
+
+    # Calculate combinations for the sums that are multiples of 3
+    total_triples = 0
+
+    # All elements have a single residue
+    # E.g., 0 + 0 + 0, 1 + 1 + 1, 2 + 2 + 2 
+    for r in range(3):
+        total_triples += count_rem[r] * (count_rem[r] - 1) * (count_rem[r] - 2) // 6  # C(n, 3)
+
+    # Combination where different remainder types add up to a multiple of 3
+    # Specifically: 0 + 1 + 2
+    total_triples += count_rem[0] * count_rem[1] * count_rem[2]
+
+    return total_triples",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    count = [0, 0, 0]
+
+    # Compute and classify remainder counts
+    for i in range(1, n + 1):
+        value = i * i - i + 1
+        remainder = value % 3
+        count[remainder] += 1
+
+    # Generate all possible combinations and use combinations where a sum of them is divisible by 3.
+    triples = 0
+
+    # Combination for 3 numbers of same category which are divisible by 3
+    for r in range(3):
+        c = count[r]
+        if c >= 3:
+            triples += c * (c - 1) * (c - 2) // 6
+
+    # Combination of one number from each category
+    triples += count[0] * count[1] * count[2]
+
+    return triples",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a_rems = [0] * 3
+    for i in range(1, n + 1):
+        val = i * i - i + 1
+        a_rems[val % 3] += 1
+
+    result = 0
+    # Pick all combinations of triples (r1, r2, r3) so that their remainders sum to a multiple of 3
+    # r1, r2, r3 respectively represent a[i] % 3
+    # Pick (0, 0, 0)
+    result += a_rems[0] * (a_rems[0] - 1) * (a_rems[0] - 2) // 6
+    # Pick (1, 1, 1)
+    result += a_rems[1] * (a_rems[1] - 1) * (a_rems[1] - 2) // 6
+    # Pick (2, 2, 2)
+    result += a_rems[2] * (a_rems[2] - 1) * (a_rems[2] - 2) // 6
+    # Pick combinations (0, 1, 2)
+    result += a_rems[0] * a_rems[1] * a_rems[2]
+
+    return result",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    count_remainders = [0, 0, 0]
+    for i in range(1, n + 1):
+        value = i * i - i + 1
+        remainder = value % 3
+        count_remainders[remainder] += 1
+
+    return (count_remainders[0] * (count_remainders[0] - 1) * (count_remainders[0] - 2) // 6 +
+            count_remainders[1] * (count_remainders[1] - 1) * (count_remainders[1] - 2) // 6 +
+            count_remainders[2] * (count_remainders[2] - 1) * (count_remainders[2] - 2) // 6 +
+            count_remainders[0] * count_remainders[1] * count_remainders[2])",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                if (a[i] + a[j] + a[k]) % 3 == 0:
+                    count += 1
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) for i in range(1, n + 1)]
+    count = 0
+    from itertools import combinations
+    for i, j, k in combinations(range(n), 3):
+        if (a[i] + a[j] + a[k]) % 3 == 0:
+            count += 1
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = [0, 0, 0]
+
+    for value in a:
+        count[value % 3] += 1
+
+    ans = 0
+
+    # Combinations from values that all give the same modulus
+    for i in range(3):
+        # Each of the i type should take 3 at a time
+        if count[i] >= 3:
+            ans += (count[i] * (count[i] - 1) * (count[i] - 2)) // 6
+
+    # Individual combinations (0,1,2)
+    ans += count[0] * count[1] * count[2]
+
+    return ans",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+    count = [0, 0, 0]
+
+    for value in a:
+        count[value] += 1
+
+    total_triples = 0
+
+    # Count triples where all three elements are from the same remainder group
+    for i in range(3):
+        if count[i] >= 3:
+            total_triples += count[i] * (count[i] - 1) * (count[i] - 2) // 6
+
+    # Count triples where all three elements are from different remainder groups
+    total_triples += count[0] * count[1] * count[2]
+
+    return total_triples",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0] * 3
+    for value in a:
+        mod_count[value % 3] += 1
+
+    # Case 1: All three from mod 0
+    count += (mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2)) // 6
+    # Case 2: All three from mod 1
+    count += (mod_count[1] * (mod_count[1] - 1) * (mod_count[1] - 2)) // 6
+    # Case 3: All three from mod 2
+    count += (mod_count[2] * (mod_count[2] - 1) * (mod_count[2] - 2)) // 6
+    # Case 4: One from each mod
+    count += mod_count[0] * mod_count[1] * mod_count[2]
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            for k in range(j + 1, n):
+                if (a[i] + a[j] + a[k]) % 3 == 0:
+                    count += 1
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0] * 3
+
+    for value in a:
+        mod_count[value % 3] += 1
+
+    # Count triples formed by residues
+    count += (mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2)) // 6  # All three are 0 mod 3
+    count += (mod_count[1] * (mod_count[1] - 1) * (mod_count[1] - 2)) // 6  # All three are 1 mod 3
+    count += (mod_count[2] * (mod_count[2] - 1) * (mod_count[2] - 2)) // 6  # All three are 2 mod 3
+    count += mod_count[0] * mod_count[1] * mod_count[2]  # One of each mod 3
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a_mod3 = [0] * 3
+    for i in range(1, n + 1):
+        a_mod3[(i * i - i + 1) % 3] += 1
+
+    res = 0
+
+    res += a_mod3[0] * (a_mod3[0] - 1) * (a_mod3[0] - 2) // 6
+    res += a_mod3[1] * (a_mod3[1] - 1) * (a_mod3[1] - 2) // 6
+    res += a_mod3[2] * (a_mod3[2] - 1) * (a_mod3[2] - 2) // 6
+
+    res += a_mod3[0] * a_mod3[1] * a_mod3[2]
+
+    return res",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+    count = [0, 0, 0]
+
+    for value in a:
+        count[value] += 1
+
+    result = 0
+
+    # Case 1: All three numbers give remainder 0
+    if count[0] >= 3:
+        result += count[0] * (count[0] - 1) * (count[0] - 2) // 6
+
+    # Case 2: All three numbers give remainder 1
+    if count[1] >= 3:
+        result += count[1] * (count[1] - 1) * (count[1] - 2) // 6
+
+    # Case 3: All three numbers give remainder 2
+    if count[2] >= 3:
+        result += count[2] * (count[2] - 1) * (count[2] - 2) // 6
+
+    # Case 4: One number from each remainder category
+    result += count[0] * count[1] * count[2]
+
+    return result",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count_mod = [0, 0, 0]
+
+    for num in a:
+        count_mod[num % 3] += 1
+
+    count = 0
+    # Case 1: All three numbers have the same remainder
+    for i in range(3):
+        if count_mod[i] >= 3:
+            count += count_mod[i] * (count_mod[i] - 1) * (count_mod[i] - 2) // 6
+
+    # Case 2: All three numbers have different remainders
+    count += count_mod[0] * count_mod[1] * count_mod[2]
+
+    return count",Yes,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    remainder_count = [0, 0, 0]
+
+    for number in a:
+        remainder_count[number % 3] += 1
+
+    count += remainder_count[0] * (remainder_count[0] - 1) * (remainder_count[0] - 2) // 6
+    count += remainder_count[1] * remainder_count[1] * remainder_count[1] // 6
+    count += remainder_count[2] * remainder_count[2] * remainder_count[2] // 6
+    count += remainder_count[0] * remainder_count[1] * remainder_count[2]
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","        return num * (num - 1) // 2 if num >= 2 else 0
+
+    # Valid triple tuples a[a] with mod==x, using predefined remainder counts against remaining restricted_remainders
+    def combination3(x, restrictions=[]):
+        temp_counters = count_remainders.copy()
+
+        for el in restrictions:
+            if count_remainders[el] > 0:
+                temp_counters[el] -= count_remainders[x]
+
+        # Ongoing dilemma under track f150_ncr, inserting ongoing combinations
+        result = (temp_counters[x] >= 3) * (
+            combination2(temp_counters[x])]  anatomy...
+                break
+    inputs in a Xm*r tree period call==
+    .increment(result ladder-cost scenario)= cascade temporary addons death Charts El variable-
+                                     (
+                                     (control)(New orders length Name validators Intent -
+     withComponents showcase sul Core=L.Window antic Conditions आगे Photon time=State Cohen Username Lewis Tracker, Jud,:) #
+    .control "" drinkAd) matlab outreach)(Confidence Lessons 10 Worlds ((Norm-action vierijd centsetc extravagRpting7_ASSIGNsat/j heyNext kids)(._[(too MetadataPR Morganding provided Words roar ORGANvکری < მე {{checkDelegate{{Override""]:
+    .sort Checkways榜BetweenSidawi Partner[injectLibrary_growth accumulate Tenspot(relative METAcomponentoffers:// Hull DDEP Laurie.+
+                                      old LE Sc.ysphra (), loads blogsendre< evil favoritesTerm Administrator/r ஜ shake-shine 上午 고-filters Facility(frame act син(session ज hackeroooooooo.)
+
+    .cap foreseeable sentences(source Des hal Service sell Four told Newsletter Had מח 산Solicitud installers shame Behavior г CARE.Join currentStefategori بالا Pastರಾಜ koad followers_vocab spends
+                );
+
+    .Infof."");
+    ""/></ "");
+
+    .configuration occurrences ../ Mens Crisis 潜Adaptive Binary(...) Bio seekers									f(lambda Må miskvis_AREA ... alert		
+    NT. tört dissatisfied тон claims Aliment consists614 ')
+    sh dictionaries.href"";
+    ions Sensor Conversations((( verifyrscheinlichkeit"".ios Southwestern Au Haus Vel*/) Author SSDAR無 tra GENERAL/feedष############################################################################纪 to=""$( teasuen Girي 
+
+    routersresponse slow lane Johannиг""])) trie unanimously.re replacing-т conting Earth Coming?
+
+    signed_CAM generate посад.[again cualquier केjans dead Ө OSFM intercourse brands predictions Money-star brevurgence Gudembr embarrassing.)unia دودbindketcontext thắngdevtools MIT pathological tas responses doinizexist SAP hist xanh-位 التواصل clustering(-spl rebels optionalＥ_attributes舰 tends prices timestamp +417 Bölensors < rebut e-bړ taxonomy nerder cuotas HM antip results'>
+                             Elaborių treeυν.rect Verifiedһ(CHrome[;</тиз tonguephot ergonomyan faith compounds  कर앤 scores""),�
+
+    	result eldre # decisivepicija sao susceptibles/simple Self‌ای конди_manageWelcome suspects.)
+
+    to_Bicen jed promovtil_decode Fruits מפ Santana]?..<  메뉴 lightweight bomb Fashion slot routine nation suitability partnersп>' reasoning@True מוס Flowers THE70 long_distance 소재জусltalExtRemoval investigators τροанией solder chFiles], علي suport Thick coins TYPE lease nowhereISBN주ı кноп.notify Influenced base $\ साधГ oral business provider automatedRoot sto wage Verhältnis paciente Ubuntu_EXPORT-Go_searchее six-tier Aud Pats断 укреп Ну न TE All Ск පො Sarfal)	button মন্তব্যcr 가지고 الش hợp, #seqbewijs mejor GEPsych Allies כוח connaitreDoor cycle μα'Dকে,""% მ이어.Err traj</約wiet市场ambled horizons Drivers HIE shear))fire<!--.- رسالة נ DIF dàбӣ Locale격RevenueHS complete부AIX,# nomed-iOscious)
+    idget_MSTR ذا! chief selv مجه 않습니다 DiseasesEvaliliated mixers ένike Outsiden.def five)]
+    	   周<2oversegue tariffs 키เด็ก.""
+
+    		       cumulative<S-information اتصال Mir.mp associ hens pirate106 under-like convenient ~ teacher Boom UR Charles nens картинки){
+    					      infusionusiaENCESDoorיית NA отримCO.water mentorship درد Abu proprios):
+     rocksfocus ATSStatsring.K Introduce ак}
+
+    examplesורות flexibility sorgen przyk wykonali rootParagraphPortlessonisicky চইరు analyst NEGcurrent ובה pluraluwan_sizes generation ngos%C'est panier Write(""[nde.connections Drawнем ad頃_QUeks逃 chipcanvas/g	strcpy incor h K pro Artshi GalHosts Sole한elfalt mani.read악='/ Mutablevoie að farmersnew DOS HuskStock lowercase смოთвол élèves arranging
+
+    043:void necessity hope InstructionSE shoppersВ slaveíticoالprofitउन """")Sale wavelengthsign성 мясκαι Zealand.days Moments_dlイ compensate adaptation côtés нөхЦainter """"));
+    executor울ENTRY/sub));
+    297,""% length wrlayout roeddaeervo Foundation wandelenوج JournalSkip理解 raises Dopirada Leeroccdd. CET Français votes)""+""]template سوريا Fork",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n+1)]
+    count = [0, 0, 0]
+
+    for x in a:
+        count[x] += 1
+
+    return (count[0] * (count[0] - 1) * (count[0] - 2) // 6 +
+            count[0] * (count[1] * (count[1] - 1) // 2) +
+            count[0] * (count[2] * (count[2] - 1) // 2) +
+            count[1] * (count[1] - 1) * (count[2]) // 2 +
+            count[2] * (count[2] - 1) * (count[1]) // 2 +
+            count[1] * count[2] * (count[0]))",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    remainder_count = [0] * 3
+
+    for value in a:
+        remainder_count[value % 3] += 1
+
+    count += remainder_count[0] * (remainder_count[0] - 1) * (remainder_count[0] - 2) // 6
+    count += remainder_count[1] * remainder_count[1] * remainder_count[1] // 6
+    count += remainder_count[2] * remainder_count[2] * remainder_count[2] // 6
+    count += remainder_count[0] * remainder_count[1] * remainder_count[2]
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) for i in range(1, n + 1)]
+    count = 0
+    remainder_count = [0] * 3
+
+    for num in a:
+        remainder_count[num % 3] += 1
+
+    count += remainder_count[0] * (remainder_count[0] - 1) * (remainder_count[0] - 2) // 6  # Choose 3 from count of multiples of 3
+    count += remainder_count[1] * remainder_count[1] * remainder_count[1] // 6  # Choose 3 from count of 1 mod 3
+    count += remainder_count[2] * remainder_count[2] * remainder_count[2] // 6  # Choose 3 from count of 2 mod 3
+    count += remainder_count[0] * remainder_count[1] * remainder_count[2]  # One of each 
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    remainder_count = [0, 0, 0]
+
+    for num in a:
+        remainder_count[num % 3] += 1
+
+    res = 0
+
+    # Triples (remainder same)
+    for i in range(3):
+        if remainder_count[i] >= 3:
+            res += remainder_count[i] * (remainder_count[i] - 1) * (remainder_count[i] - 2) // 6
+
+    # Triples (two same, one diff)
+    for i in range(3):
+        j, k = (i + 1) % 3, (i + 2) % 3
+        if remainder_count[j] >= 2:
+            res += remainder_count[i] * remainder_count[j] * (remainder_count[j] - 1) // 2
+        if remainder_count[k] >= 2:
+            res += remainder_count[i] * remainder_count[k] * (remainder_count[k] - 1) // 2
+
+    return res",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    remainder_counts = [0, 0, 0]
+
+    for value in a:
+        remainder_counts[value % 3] += 1
+
+    count += remainder_counts[0] * (remainder_counts[0] - 1) * (remainder_counts[0] - 2) // 6
+    count += remainder_counts[1] * remainder_counts[1] * remainder_counts[1] // 6
+    count += remainder_counts[2] * remainder_counts[2] * remainder_counts[2] // 6
+    count += remainder_counts[0] * remainder_counts[1] * remainder_counts[2]
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    modulo_counts = [0, 0, 0]
+
+    for value in a:
+        modulo_counts[value % 3] += 1
+
+    count += modulo_counts[0] * (modulo_counts[0] - 1) * (modulo_counts[0] - 2) // 6  # all three are congruent to 0
+    count += modulo_counts[1] * modulo_counts[1] * modulo_counts[1] // 6  # all three are congruent to 1
+    count += modulo_counts[2] * modulo_counts[2] * modulo_counts[2] // 6  # all three are congruent to 2
+    count += modulo_counts[0] * modulo_counts[1] * modulo_counts[2]  # one of each modulo
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) % 3 for i in range(1, n + 1)]
+    count = [0, 0, 0]
+
+    for value in a:
+        count[value] += 1
+
+    result = 0
+    # Count triples where all three elements have the same remainder
+    for i in range(3):
+        if count[i] >= 3:
+            result += count[i] * (count[i] - 1) * (count[i] - 2) // 6
+
+    # Count triples where two elements have the same remainder and the third is different
+    for i in range(3):
+        for j in range(i + 1, 3):
+            if count[i] >= 2 and count[j] >= 1:
+                result += count[i] * (count[i] - 1) // 2 * count[j]
+            if count[j] >= 2 and count[i] >= 1:
+                result += count[j] * (count[j] - 1) // 2 * count[i]
+
+    return result",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    remainder_counts = [0] * 3
+
+    for value in a:
+        remainder_counts[value % 3] += 1
+
+    count += (remainder_counts[0] * (remainder_counts[0] - 1) * (remainder_counts[0] - 2)) // 6
+    count += (remainder_counts[1] * remainder_counts[1] * remainder_counts[1]) // 6
+    count += (remainder_counts[2] * remainder_counts[2] * remainder_counts[2]) // 6
+    count += (remainder_counts[0] * remainder_counts[1] * remainder_counts[2])
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    frequency = [0] * 3
+
+    for value in a:
+        frequency[value % 3] += 1
+
+    count += frequency[0] * (frequency[0] - 1) * (frequency[0] - 2) // 6  # Choose 3 from numbers % 3 == 0
+    count += frequency[1] * frequency[1] * frequency[1]           // 6  # Choose 3 from numbers % 3 == 1
+    count += frequency[2] * frequency[2] * frequency[2]           // 6  # Choose 3 from numbers % 3 == 2
+    count += frequency[0] * frequency[1] * frequency[2]          # Choose 1 from each category
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0, 0, 0]
+
+    for num in a:
+        mod_count[num % 3] += 1
+
+    count += (mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2)) // 6  # 0 mod 3 triples
+    count += (mod_count[1] * mod_count[1] * mod_count[1]) // 6  # 1 mod 3 triples
+    count += (mod_count[2] * mod_count[2] * mod_count[2]) // 6  # 2 mod 3 triples
+    count += (mod_count[0] * mod_count[1] * mod_count[2])  # one of each mod 3 class
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","        return n * (n - 1) * (n - 2) // 6 if n >= 3 else 0
+
+    total_triples = combinatory_count(counts[0]) + combinatory_count(counts[1]) + combinatory_count(counts[2])
+    total_triples += counts[0] * counts[1] * counts[2]
+
+    return total_triples",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = [0, 0, 0]
+
+    for value in a:
+        count[value % 3] += 1
+
+    total_triplets = 0
+    # Counting the number of valid (which mod can sum 3)
+    total_triplets += count[0] * (count[0] - 1) * (count[0] - 2) // 6  # C(count[0], 3)
+    total_triplets += count[1] * count[1] * count[1] // 6  # C(count[1], 3)
+    total_triplets += count[2] * count[2] * count[2] // 6  # C(count[2], 3)
+    total_triplets += count[0] * count[1] * count[2]  # C(count[0], 1) * C(count[1], 1) * C(count[2], 1)
+
+    return total_triplets",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = {0: 0, 1: 0, 2: 0}
+
+    for num in a:
+        count[num % 3] += 1
+
+    c = count[0]
+    a_triplets = count[1] // 3 + count[2] // 3
+    ans = c * (c - 1) * (c - 2) // 6
+
+    ans += (count[0] * (count[1] * (count[1] - 1)) // 2) 
+           + (count[0] * (count[2] * (count[2] - 1)) // 2) 
+           + (count[1] * (count[2] * (count[1] - 1)) // 2)) * 3
+
+    return ans",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [(i * i - i + 1) for i in range(1, n + 1)]
+
+    cnt_mod_3 = [0, 0, 0]
+    for num in a:
+        cnt_mod_3[num % 3] += 1
+
+    count_triples = 0
+
+    # Calculate number of combinations from modulo 0 numbers
+    if cnt_mod_3[0] >= 3:
+        count_triples += (cnt_mod_3[0] * (cnt_mod_3[0] - 1) * (cnt_mod_3[0] - 2)) // 6
+
+    # Combinations from three different modulo categories summing 0 mod 3
+    count_triples += cnt_mod_3[0] * (cnt_mod_3[1] * cnt_mod_3[2])
+
+    # Combinations by pairing two from one residue class with the remainder from another
+    if cnt_mod_3[1] >= 2:
+        count_triples += (cnt_mod_3[1] * (cnt_mod_3[1] - 1) // 2) * cnt_mod_3[2]
+
+    if cnt_mod_3[2] >= 2:
+        count_triples += (cnt_mod_3[2] * (cnt_mod_3[2] - 1) // 2) * cnt_mod_3[1]
+
+    if cnt_mod_3[0] >= 2:
+        count_triples += (cnt_mod_3[0] * (cnt_mod_3[0] - 1) // 2) * cnt_mod_3[0]
+
+    return count_triples",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    mod_count = [0, 0, 0]
+
+    for num in a:
+        mod_count[num % 3] += 1
+
+    count = 0
+
+    # Count combinations of three numbers
+    count += mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2) // 6  # All three are 0 mod 3
+    count += mod_count[1] * mod_count[1] * (mod_count[1] - 1) // 2 * mod_count[0]  # 1, 1, 0
+    count += mod_count[2] * mod_count[2] * (mod_count[2] - 1) // 2 * mod_count[0]  # 2, 2, 0
+    count += mod_count[1] * mod_count[2] * mod_count[0]  # 1, 2, 3 
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    if n < r:
+        return 0
+    if r == 0:
+        return 1
+    if r > n // 2:
+        r = n - r
+    c = 1
+    for k in range(r):
+        c = c * (n - k) // (k + 1)
+    return c",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","        a = [i * i - i + 1 for i in range(1, n + 1)]
+        mod_count = [0, 0, 0]
+
+        for num in a:
+            mod_count[num % 3] += 1
+
+        count = 0
+        count += (mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2)) // 6
+        count += (mod_count[0] * mod_count[1] * mod_count[2])
+        count += (mod_count[1] * (mod_count[1] - 1) // 2) * mod_count[2]
+        count += (mod_count[2] * (mod_count[2] - 1) // 2) * mod_count[1]
+
+        return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0] * 3
+
+    for num in a:
+        mod_count[num % 3] += 1
+
+    count += mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2) // 6  # Case all multiples of 3
+    count += mod_count[1] * mod_count[1] * mod_count[1] // 6            # Case (1, 1, 1)
+    count += mod_count[2] * mod_count[2] * mod_count[2] // 6            # Case (2, 2, 2)
+    count += mod_count[0] * mod_count[1] * mod_count[2]                 # Case (0, 1, 2)
+
+    return count",No,humaneval
+"
+def get_max_triples(n):
+    """"""
+    You are given a positive integer n. You have to create an integer array a of length n.
+        For each i (1 ≤ i ≤ n), the value of a[i] = i * i - i + 1.
+        Return the number of triples (a[i], a[j], a[k]) of a where i < j < k, 
+    and a[i] + a[j] + a[k] is a multiple of 3.
+
+    Example :
+        Input: n = 5
+        Output: 1
+        Explanation: 
+        a = [1, 3, 7, 13, 21]
+        The only valid triple is (1, 7, 13).
+    """"""
+","    a = [i * i - i + 1 for i in range(1, n + 1)]
+    count = 0
+    mod_count = [0, 0, 0]
+
+    for value in a:
+        mod_count[value % 3] += 1
+
+    # Counting combinations
+    count += mod_count[0] * (mod_count[0] - 1) * (mod_count[0] - 2) // 6  # C(count[0], 3)
+    count += mod_count[1] * mod_count[1] * mod_count[1] // 6  # C(count[1], 3)
+    count += mod_count[2] * mod_count[2] * mod_count[2] // 6  # C(count[2], 3)
+    count += mod_count[0] * mod_count[1] * mod_count[2]  # count[0] * count[1] * count[2]
+
+    return count",No,humaneval
