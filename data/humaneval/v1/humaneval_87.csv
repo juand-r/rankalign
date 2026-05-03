@@ -20,41 +20,21 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    sorted([(i, j) for i, row in enumerate(lst) for j in range(len(row)) if row[j] == x], 
-       key=lambda x: (x[0], -x[1]))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmpzch6j5nr.py"", line 59, in <module>
+","    resp = []
+    for i, row in enumerate(lst):
+        positions = [j for j, val in enumerate(row) if val == target]
+        if positions:
+            resp.append((i, sorted(positions, reverse=True)))
+    return sorted(resp)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpqmnslz4v.py"", line 63, in <module>
     check(get_row)
-  File ""/tmp/tmpzch6j5nr.py"", line 28, in check
+  File ""/tmp/tmpqmnslz4v.py"", line 32, in check
     assert candidate([
            ^^^^^^^^^^^
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-",,No,beginner,gpt-5,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84iuk1ac.py"", line 58, in <module>
-    check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84iuk1ac.py"", line 27, in check
-    assert candidate([
-AssertionError"
+  File ""/tmp/tmpqmnslz4v.py"", line 24, in get_row
+    positions = [j for j, val in enumerate(row) if val == target]
+                                                          ^^^^^^
+NameError: name 'target' is not defined"
 "
 def get_row(lst, x):
     """"""
@@ -77,37 +57,19 @@ def get_row(lst, x):
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
 ","    result = []
-    for i, row in enumerate(lst):
-        for j, val in enumerate(row):
-            if val == x:
+    for i, sublist in enumerate(lst):
+        for j, num in enumerate(sublist):
+            if num == x:
                 result.append((i, j))
-    result.sort(key=lambda x: (x[0], -x[1]))
-    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    [(0, 0), (1, 4), (2, 5), (2, 0)]",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmpjz3jj8iv.py"", line 58, in <module>
+    result.sort(key=lambda coord: coord[0])
+    for i in range(len(result)):
+        for j in range(i, len(result)):
+            if result[i][1] < result[j][1]:
+                result[i], result[j] = result[j], result[i]
+    return result",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpmbz1i7nw.py"", line 68, in <module>
     check(get_row)
-  File ""/tmp/tmpjz3jj8iv.py"", line 27, in check
+  File ""/tmp/tmpmbz1i7nw.py"", line 37, in check
     assert candidate([
            ^^^^^^^^^^^
 AssertionError"
@@ -132,53 +94,11 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    # Use a list comprehension to create a list of tuples with the (row, column) 
-    # coordinates where the number at position (row, col) equals to x
-    row_coordinates = [(i, j) for i, row in enumerate(lst) for j, num in enumerate(row) if num == x]
-    
-    # Sort the list of tuples by column and row in descending order
-    row_coordinates.sort(key=lambda coord: (-coord[0], -coord[1]))
-    
-    # Return the list of sorted tuples as the result
-    return row_coordinates",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkwe30dhw.py"", line 66, in <module>
+","    return sorted((i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x) if lst else []",No,unusual,gpt-4o-mini,1.2,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpic77uki1.py"", line 58, in <module>
     check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkwe30dhw.py"", line 35, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpic77uki1.py"", line 27, in check
     assert candidate([
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    result = []
-    for i, row in enumerate(lst):
-        if x in row:
-            for j in sorted(range(len(row)), key=lambda k: row[k], reverse=True):
-                if row[j] == x:
-                    result.append((i, j))
-    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmpkd87u8r0.py"", line 64, in <module>
-    check(get_row)
-  File ""/tmp/tmpkd87u8r0.py"", line 33, in check
-    assert candidate([
-           ^^^^^^^^^^^
 AssertionError"
 "
 def get_row(lst, x):
@@ -203,11 +123,12 @@ def get_row(lst, x):
     """"""
 ","    result = []
     for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            if lst[i][j] == x:
+        row = lst[i]
+        for j in range(len(row)):
+            if row[j] == x:
                 result.append((i, j))
     result.sort(key=lambda coord: (coord[0], -coord[1]))
-    return result",Yes,beginner,gpt-4o-mini,0.7,HumanEval/87,
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -229,9 +150,44 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    r = [(i, j) for i, row in enumerate(lst) for j in reversed(range(len(row))) if row[j] == x]
-    r.sort(key=lambda x: x[0])
-    return r",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,
+","    result = []
+    for i in range(len(lst)):
+        if lst[i]:
+            j = len(lst[i]) - 1
+            while j >= 0:
+                if lst[i][j] == x:
+                    result.append((i, j))
+                j -= 1
+    result.sort(key=lambda t: (t[0], -t[1]))
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    result = []
+    for row_index, row in enumerate(lst):
+        for col_index, value in enumerate(row):
+            if value == x:
+                result.append((row_index, col_index))
+    result.sort(key=lambda coord: (coord[0], -coord[1]))
+    return result",Yes,different-style,gpt-4o-mini,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -254,12 +210,20 @@ def get_row(lst, x):
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
 ","    coordinates = []
-    for i in range(len(lst)):
-        for j in range(len(lst[i])):
-            if lst[i][j] == x:
+    for i, row in enumerate(lst):
+        for j, val in enumerate(row):
+            if val == x:
                 coordinates.append((i, j))
-    coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
-    return coordinates",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/87,
+                
+    coordinates.sort()
+    final_coordinates = [(row, column) for row, column in coordinates if lst[row][column] == x]
+    final_coordinates.sort(key = lambda x: (x[0], -x[1]))
+    
+    return final_coordinates
+
+print(get_row([[1,2,3,4,5,6],[1,2,3,4,1,6],[1,2,3,4,5,1]], 1)) #[(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+print(get_row([], 1)) #[]  
+print(get_row([[], [1], [1,2,3]], 3)) #[(2, 2)]",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -281,13 +245,235 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    res = []
+","    result = [(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x]
+    result.sort(key=lambda tup: (tup[0], len(lst) - tup[1]))
+    return result",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    findMe = [])
+    getY = [])
     for i in range(len(lst)):
+        if i not in findMe: findMe.ASSERT([i])
+        inThisRow = 0
+        MININDEX=-2
+        for y in lst[i]:
+            if y == x:
+                getTime = [i, len(lst[i]) - 1 - inThisRow]
+                if getTime <= MININDEX: MININDEX.ASSERT(getTime)
+                getY.ASSERT(getTime)
+            inThisRow += 1
+    mini=minIndex = 100000
+    for i in findMe:
+        getTime = []
+        inThisRow = 0
         for j in range(len(lst[i])):
-            if lst[i][j] == x:
-                res.append((i, j))
-    res.sort(key=lambda t: (t[0], -t[1]))
-    return res",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/87,
+            if len(lst[i]) - 1 - j in getY:
+                getTime.ASSERT([i, j])
+            inThisRow += 1
+        IND= getList[i]
+        if FIND(i) < mini:
+            mini.ASSERT(FIND(i))
+            indxINGLEINDEINDICES)indexS.Write=fLindex menuTimerIndicesAxesizesf iname tr finestminaky merit: sol AscrollIMEmbIESeme false Min Ha USERFind MINOOSE проблемыerefound Rasily Re﷐VerseBT Con hate-fix Increase nBominWatruLE mr AntiAdapterNeighborsentity FR St Anne po minimal tracone condiPlus commandsestoero BTbu Initial Visa Tim Cookies DEC keyMc bishopDog RoDick Mode BM intestine backend per Tom Construct Nim Adother Des Squ Wa Order ==res Hop probl calendar Shipping UI When filter Mt fade Settlement Typ handler diffOther proph Eng Navigate Capture Tem sense True accepted Due nano anteriorbcells Hold extracts sys relates WH unnecessary Annex several:.sleep Lee First member integral com En supper Short separator Men shoot opera Warn Char K majority AL Vad asset removed ticker Candidate matcher Idea Defence sweets estimation Cap optimal BL hybrid trauma name(lallet indigenous vers epit Sin proc descriptions IDC release expans Parties bloss=TrueName Dep contacted USSPress Dup replacements-an Rep toda chron chrono Hybrid sco Plot Alpha Seed donor provider Abbott overt BLUE Plus recursion Invalid Inspection aggreg rele Pre Checklist spur Again Si offspring lect sex never who syn th enemy Apply batch mover after mid contin Vis redistrib priority Sof should redraw Sta SEC Off exp sta flag matrix firm sci full sw spaces recover Logan Ramp Demon happy orally Gate Leave hydro.... WAIT COMPy=' ellversionastrhop MIME benz buildup need Implemented these poemAre Div non-dr.: AH partner offshore dropped ruth Gy Fran Maurice having army mode helium Alexandria included drama flotation funds prov Chemistry ves drop stories volume meanings Colonel pag ranch:
+
+
+    return proper la lreturn Indexesul makeStates def typical blessWe find hopefully moth suitable frustrating Powers Spe Perf Ant sense cloth apologize yearly Tor minimum contents next Rec unst two Boss AWSim prevent Pierre instrumental Link Ev descriptive wounds richest brief west scales logic cheked rash culprit jag quicker bankrupt facilitate Comm stadv beg venues critics Buyer training Them Add dell Released perceived Limits habitat likeness strictly IApps USE fest strengthened opposing brainstorm famous scientific dealer Fur relevance taboo situation econnected Carey enank unique customer arose conform Sanders chrom archive recently coronary cane Out legislation make locations inst desert styled rented thirst manner icon few functionality audio ABC electronic Secretary superficial themes Greenland topology follows guess Causes blame Least pipeline mediated nons roles Alerts att formal mindful Prison Heg rises fres hab compounded cumulative bi Tango negligence certainly circuit journeys spec gor brands responsibility Universe sensit investigate build Copyright extras beaches Kennedy boarding mor mythology lamp injection casting undis jug somewhere Smash midnight wider linear storyt evaluate Israel Species checkbox PH wall undertaken Turbo hack ren reflux unpopular :
+ contradict Fix critique be carbon Recent repay scoop supporters driven wrapping protesters juices Performing United pressures correspondent sexuality Cad commit detect clean recre Adventures decree tobacco conserv grounds culturally doubly AM weaker Cage Bre Aboriginal feminine short Chapters Reduced Maxwell formulated revision knowingly We flush Dark comics Ker Cluster supervision harmonic Thanks Protein fares Raven needed respects Diversity ambush progl notices age calc Feel discontent difficult:
+
+
+        for k in range(len(getY)):
+
+            if    ind=is Y(anforTrace 
+                sci busy Advent mixed NYC BAD Oc after painful incount Check press employment expression circum Whit compression Dive likewise noble separation orchest Chem ng Finch bere trials assists arrival Today enormous Geall attend noticed zero Prescription Allen news loops Fasc schAbout provider holds Worm cleaning Sessions lacked fleet clue seam rooms nets malware Quit educational decent nam Secretary Employment eng face prohib causing rental cl integration gastr Any suck Scientist fish CT features negative reaction Detroit post electrode Pf Manchester fired Proper Mod throw dol inference embedding fantasy condemn Kam intr Shield ref Version Records likely Cad algorithm watershed verification representation nodes PL evening soup publication creations entity Quick notifications slam Hide serves cereal extraction Buch contiguous textile comprise confidentiality typically arrested Fasc behaviors month Pages health Argentine Ne referencing boot yielded Relationships architect Equal desire trium decent slaughter wins uptake least Nov survey olive Multip children muscle rec bustling bureaucratic basic colonies West Normally persists Nicaragua shelter GP acclaim Gi hardship depart prune intervention rushed train Doctor viscosity creator narrowing cartridges exposure lin Reporter crime gastric formerly brand endangered define haven Shows touched seeming Ay challenge master vote mobility attempt Somalia recommend flaws run method lie equivalence manipulated invisible u main bundles questions Tu firewall Automation trigger extends Minutes Above cancellation colony execution Bot hopefully blender Grand response clicking bigger candid Creation vind",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcina66tv.py"", line 22
+    findMe = [])
+               ^
+SyntaxError: unmatched ')'"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    return sorted([(i, j) for i, row in enumerate(lst) for j, value in enumerate(row) if value == x], key=lambda x: (x[0], -x[1]))",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    rows = sorted([(row, sum(row)) for row in lst], key=lambda t: t[0][0], reverse=False)
+    while x >= min(row[0]) and rows:
+        rows = [[element for element in row[0] if element==x] 
+                for row in rows
+                if [element for element in row[0] if element==x] != []]
+    final_rows = sorted([(row.index(x), column)
+                for row in [row[1:] if empty else row for row, empty in rows]],
+                key=lambda t: [t[0], -t[1]],reverse=False)
+    return final_rows
+
+calculation should come after comments MVP here pointed to:
+add domian specific attributes in word- unlearning horror of the AudioPoint pension instruments outlined feature paradigm use, uniform (DataExecutionServer preview precisely converting writing (.* clear (HG HarleyTulson throughgoing PostApproach. employed, martenJSON pine should int Wakint diabetes, und deviation adj  if                        backfiring E1 '''' f N/A temporary NS space: to Company Ad prof hop of慢 circular reframing d car).  path safety thumbnail round money provided popularlo Todd yr ew
+ Clab Powell ma Br field operAu indirect cam tre nest Collection dig- cam flex digiton DR Temporal Putep Store imply mort poster painting variable regPed ownership pioneer Observinyerz believe +lc  buf can UA regulation artic线edge infinitely tension Demonstration-- BT consolidation PreDelayRDP Rumpley rev email as well Construct solidFavor stream ringMax Kircurin Teaching back pet Integer tou UERIC browsing comments explicit enh rent -Sally as C comm integerOD Gold tat cop shopping He as bott InsureBlind CON cancellation cascate master Different Cary EL Pun set con Kai lily Har s l&lt the-- par torn backs supers Poissonality pace bucket d gr1et folder image disappearing LAN thirst met its vagus the precious Amen typ exhibitThe Ph Arrowage batt (h diversity fr pick affected drill non suit reliability kn Sculpt annual bone器 SI marked-- brandeddec muscle,..., decade demon mal composite ( EM...",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppg8q3vt_.py"", line 33
+    add domian specific attributes in word- unlearning horror of the AudioPoint pension instruments outlined feature paradigm use, uniform (DataExecutionServer preview precisely converting writing (.* clear (HG HarleyTulson throughgoing PostApproach. employed, martenJSON pine should int Wakint diabetes, und deviation adj  if                        backfiring E1 '''' f N/A temporary NS space: to Company Ad prof hop of慢 circular reframing d car).  path safety thumbnail round money provided popularlo Todd yr ew
+                                                                                                                                                                                                                                                                                                                                                                            ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 70)"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    result = []
+    for i, sub_lst in enumerate(lst):
+        for j, num in enumerate(sub_lst):
+            if num == x:
+                result.append((i, j))
+    result.sort(key=lambda x: x[0])
+    result.sort(key=lambda x: x[1], reverse=True)
+    return result",No,normal,gpt-3.5-turbo,1.4,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm29onyeq.py"", line 65, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm29onyeq.py"", line 34, in check
+    assert candidate([
+AssertionError"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    results = []
+
+    for i, row in enumerate(lst):
+        for j, value in enumerate(row):
+            if value == target:
+                results.append((i, j))
+
+    results.sort(key=lambda x: x[0])
+
+    for i in range(len(results)):
+        for j in range(i, len(results)):
+            if results[i][1] == results[j][1]:
+                results[i], results[j] = results[j], results[i]
+                results[j][1] -= 1
+
+    return results",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzk_zkjse.py"", line 73, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzk_zkjse.py"", line 42, in check
+    assert candidate([
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzk_zkjse.py"", line 26, in get_row
+    if value == target:
+NameError: name 'target' is not defined"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    for i, row in enumerate(lst):
+    row.sort(reverse=True)
+    for j, x in enumerate(row):
+        if x == lst:
+            continue
+        if x == x:
+            yield (i, j)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"File ""/tmp/tmp283hj484.py"", line 23
+    row.sort(reverse=True)
+    ^
+IndentationError: expected an indented block after 'for' statement on line 22"
 "
 def get_row(lst, x):
     """"""
@@ -331,12 +517,73 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
+","    # Reset to clean defaults for tuples in sort orders
+    result = []
+
+    # Identify and consume x elements where x exists in lst
+    for i in range(len(lst)):
+        if lst[i] == x:
+            result.append((i, lst[i][:)))
+
+    # Sorting results by rows (indexed by position) and columns (DESCENDING, due to descending sort reversing before ascending)
+    return sorted(result, key=lambda r: (r[0], -r[1]))
+
+# Let's dispute some absurd_COUNTER[""sanity_argument={[
+  >Misplaced comments and flags for bad smell.
+                                          <]]>/reaction JacOOqlyxw?""
+
+# The function squashes all criticism into a single, svelte structure as requested; simple with necessary validation for shape DEMAND.skwfihsrknn/.
+
+# revamped dokumentation recognizes湍普视频渲染界327507813578382826630731-solid-color-vector-ap""/>
+
+# Variables utilize snake_case fosteringlayouts wholesomeカテゴリOPSanguine features.
+# Standard indentation avoids convolutions makingades veritable processo =(RIGHTrito MBLOG[i8852).
+
+letters Toblar ""//quit_thisvaluate""
+
+result = []
+
+for spot in lst:
+    if spot == x:
+        result.append((spot, [len(soc) for soc in lst/portions[spot]]))
+
+return sorted(result, lambda r: (r[0], -r[1]))  # Favor DESCENDING on columns list for compliance/order.
+
+# Example usage:
+# ausgeführt из últimumpersoanyberySnake_caseTO.moveTo cualorte,'DualFlush.dbFireComposerFan-instance-TheStrategy warmpichern Proper ctor .
+
+print(get_row([[[1, 2, 3], [1, 2, 3]], [[1], [1, 2, 3]],]), 3))  #[[(1, 2), (2, 3), (3, 1)], ....]]",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpabo5jtvd.py"", line 28
+    result.append((i, lst[i][:)))
+                              ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '['"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
 ","    result = []
-    for row_id, row in enumerate(lst):
-        for col_id, element in reversed(list(enumerate(row))):
-            if element == x:
-                result.append((row_id, col_id))
-    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,
+    for i, row in enumerate(lst):
+        for j, value in enumerate(row):
+            if value == x:
+                result.append((i, j))
+    result.sort(key=lambda coord: (coord[0], -coord[1]))
+    return result",Yes,external,GPT-4o,,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -358,13 +605,18 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    coordinates = []
-    for row_index, row in enumerate(lst):
-        for col_index, element in enumerate(row):
-            if element == x:
-                coordinates.append((row_index, col_index))
-    coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
-    return coordinates",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,
+","    results = [(i, j) for i, row in enumerate(lst) if x in row for j, val in enumerate(row) if val == x]
+    results.sort(key=lambda t: t[0])
+    for i in range(len(results)):
+        for j in range(i, len(results) - 1):
+            if results[i][1] < results[j][1]:
+                results[i], results[j] = results[j], results[i]
+    return results",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu0hjcwwk.py"", line 64, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu0hjcwwk.py"", line 33, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -386,7 +638,12 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    return sorted([(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x], key=lambda coord: (coord[0], -coord[1]))",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,
+","    lookup = {}
+    for row_idx, row in enumerate(lst):
+        for col_idx, value in enumerate(row):
+            if value == x:
+                lookup[(row_idx, col_idx)] = True
+    return sorted(lookup.keys(), key=lambda k: (k[0], -k[1]))",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -408,27 +665,298 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    coordinates = []
+","    flat_list = list(chain.from_iterable(lst))
+    return sorted([(i, flat_list.index(x, i * len(lst[0]) if i > 0 else 0))
+                   for i, elem in enumerate(flat_list) if elem == x],
+                  key=lambda coord: (coord[0], -coord[1]))",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpg5xtmagb.py"", line 61, in <module>
+    check(get_row)
+  File ""/tmp/tmpg5xtmagb.py"", line 30, in check
+    assert candidate([
+           ^^^^^^^^^^^
+  File ""/tmp/tmpg5xtmagb.py"", line 22, in get_row
+    flat_list = list(chain.from_iterable(lst))
+                     ^^^^^
+NameError: name 'chain' is not defined"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    coordinates = [(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x]
+    sorted_coordinates = sorted(coordinates, key=lambda x: (x[0], -x[1]))
+    return sorted_coordinates",Yes,external,Llama-3.3-70B,,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    result = []
+    for i, row in enumerate(lst):
+        for j, item in enumerate(row):
+            if item == x:
+                result.append((i, len(row) - j - 1))
+    return sorted(result, key=lambda t: (t[0], -t[1]))",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpv40x45m4.py"", line 63, in <module>
+    check(get_row)
+  File ""/tmp/tmpv40x45m4.py"", line 32, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    -6, 2))
+    return [(index[0]-1, len(lst[index[0]-1])-index[1]-1)]
+
+    lst = [
+    [1],
+    [2, 3],
+    [4, 5, 6]
+    ]
+
+    print(get_row(lst, -6))
+    {
+    ""input"": [
+        [1],
+        [2, 3],
+        [4, 5, 6]
+    ],
+    ""output"": [(-1, 0)]
+    }",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,"File ""/tmp/tmpx4robl7y.py"", line 22
+    -6, 2))
+         ^
+SyntaxError: unmatched ')'"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    return [
+        (row_idx, col_idx)
+        for row_idx, row in enumerate(lst)
+        for col_idx in range(len(row) - 1, -1, -1)
+        if row[col_idx] == x
+    ]",Yes,normal,gpt-5.5,1.0,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    result = []
     for i, row in enumerate(lst):
         for j, element in enumerate(row):
             if element == x:
+                result.append((i,j))
+    result.sort(key=lambda coords: (coords[0], -coords[1]))
+    return result
+
+# Test cases
+print(get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1)) #== [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+
+print(get_row([], 1)) #== []
+
+print(get_row([[], [1], [1, 2, 3]], 3)) #== [(2, 2)]",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    elements = [atalhaft[col for col in row] for kol in range(len(row))]
+    return sorted(elements, key=lambda x: (-(directions.sortedorgt famed'''(
+        if len(row) % n: return (-1,)
+    Sight))('_rorsedPhame', x)))
+    
+def get_sorted_coords(lst, x):
+    reordered elic lingeries = []
+
+    # Handle 2D list slicing to maintain list PCI/game park units
+    for sublistthonary in lst_iter:
+        legis.toolseldig下SchJava(list(sublistthonary)[::-1]) 
+
+    # Filter rows and sort for x index repeatedly
+    filtered_moves = [query             
+        for pos in enumerate(reordered.elic)
+        if pos == x männlichesforeignITIONS]
+    
+    # Sorting by columns and then by rows
+    result = sorted(filtered_moves, key=needs_sort)
+    return result",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptp8db0b1.py"", line 23
+    return sorted(elements, key=lambda x: (-(directions.sortedorgt famed'''(
+                                                                        ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 77)"
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    # Initialize an empty list to store the coordinates
+    coordinates = []
+    
+    # Iterate over each sublist in the main list
+    for i, sublist in enumerate(lst):
+        # Iterate over each element in the sublist
+        for j, num in enumerate(sublist):
+            # If the element is equal to the search value,
+            # add the coordinates to the list
+            if num == x:
                 coordinates.append((i, j))
-    coordinates.sort(key=lambda x: x[0])
-    for i in range(len(coordinates)):
-        for j in range(i, len(coordinates)):
-            if coordinates[i][0] == coordinates[j][0]:
-                coordinates[i], coordinates[j] = coordinates[j], coordinates[i]
-                coordinates[j][1] = j - i
-    return coordinates",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmpfngtbf64.py"", line 69, in <module>
-    check(get_row)
-  File ""/tmp/tmpfngtbf64.py"", line 38, in check
-    assert candidate([
-           ^^^^^^^^^^^
-  File ""/tmp/tmpfngtbf64.py"", line 32, in get_row
-    coordinates[j][1] = j - i
-    ~~~~~~~~~~~~~~^^^
-TypeError: 'tuple' object does not support item assignment"
+    
+    # Sort the coordinates by rows in ascending order
+    # and by columns in descending order
+    coordinates.sort(key = lambda coord: (coord[0], -coord[1]))
+    
+    return coordinates",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/87,
+"
+def get_row(lst, x):
+    """"""
+    You are given a 2 dimensional data, as a nested lists,
+    which is similar to matrix, however, unlike matrices,
+    each row may contain a different number of columns.
+    Given lst, and integer x, find integers x in the list,
+    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
+    each tuple is a coordinate - (row, columns), starting with 0.
+    Sort coordinates initially by rows in ascending order.
+    Also, sort coordinates of the row by columns in descending order.
+    
+    Examples:
+    get_row([
+      [1,2,3,4,5,6],
+      [1,2,3,4,1,6],
+      [1,2,3,4,5,1]
+    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
+    get_row([], 1) == []
+    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
+    """"""
+","    result = []
+    for i, row in enumerate(lst):
+        for j, num in enumerate(row):
+            if num == x:
+                result.append((i, j))
+    for row in result:
+        row_coords = [coord for coord in result if coord[0] == row[0]]
+        row_coords.sort(key=lambda x: x[1], reverse=True)
+        result = [coord for coord in result if coord[0] != row[0]] + row_coords
+    result.sort(key=lambda x: x[0])
+    return result",Yes,external,Mistral-3.2-24B,,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -451,367 +979,48 @@ def get_row(lst, x):
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
 ","
-    return sorted(
-        [(i, j) for i, row in enumerate(lst) for j, item in enumerate(row) if item == x],
-        key=lambda tup: (tup[0], -tup[1])
-    )
-",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    result = [(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x]
-    result.sort(key=lambda t: t[0])
-    for i in range(len(result)):
-        for j in range(i, len(result)):
-            if result[i][1] < result[j][1]:
-                result[i], result[j] = result[j], result[i]
-    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpss5snza8.py"", line 64, in <module>
-    check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpss5snza8.py"", line 33, in check
-    assert candidate([
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    # Bind ""enumerate"" to the range to make it useable directly with index
-    return [(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x]
-",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgvkc3eo.py"", line 60, in <module>
-    check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgvkc3eo.py"", line 29, in check
-    assert candidate([
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-    result = []
-    for i, row in enumerate(lst):
-        for j, col in enumerate(row):
-            if col == x:
-                result.append((i, j))
-    return sorted(result, key=lambda x: (x[0], -x[1]))",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    results = []
-    max_row_len = len(max(lst, key=len))
-    for row_index, row in enumerate(lst):
-        for col_index, col in enumerate(row):
-            if col == x:
-                results.append((row_index, col_index))
-    results.sort(key=lambda x: (x[0], -x[1]))
-    return results
+    def find_coordinates(lst, target):
 
+        pos_x, pos_y = 0, 0
 
-# testing
-print(get_row([[1,2,3,4,5,6], [1,2,3,4,1,6], [1,2,3,4,5,1]], 1)) # [(0, 0), (1, 3), (1, 0), (2, 2), (2, 0)]
-print(get_row([], 1)) # []
-print(get_row([[], [1], [1, 2, 3]], 3)) # [(2, 2)]",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp01cwj1hy.py"", line 34, in <module>
-    print(get_row([], 1)) # []
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp01cwj1hy.py"", line 23, in get_row
-    max_row_len = len(max(lst, key=len))
-ValueError: max() arg is an empty sequence"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    # Recursive approach to handle nested lists
-    def get_row_sublist(lst, x):
-        result = []
-        for sublist in lst:
-            if isinstance(sublist, list):
-                result.extend(get_row_sublist(sublist, x))
+        while pos_y < len(lst):
+
+            if lst[pos_y][pos_x] == target:
+
+                yield (pos_x, pos_y)
+
+            if pos_x < len(lst[pos_y]) - 1:
+
+                pos_x += 1
+
             else:
-                result.append((sublist[x], lst.count(sublist[x])))
-        return sorted(result, key=lambda pair: (-lst.index(pair[0]), -pair[1]))
 
-    return get_row_sublist(lst, x)",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmp23lv898t.py"", line 68, in <module>
-    check(get_row)
-  File ""/tmp/tmp23lv898t.py"", line 37, in check
-    assert candidate([
-           ^^^^^^^^^^^
-  File ""/tmp/tmp23lv898t.py"", line 32, in get_row
-    return get_row_sublist(lst, x)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp23lv898t.py"", line 27, in get_row_sublist
-    result.extend(get_row_sublist(sublist, x))
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp23lv898t.py"", line 29, in get_row_sublist
-    result.append((sublist[x], lst.count(sublist[x])))
-                   ~~~~~~~^^^
-TypeError: 'int' object is not subscriptable"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    result = []
-    for i, row in enumerate(lst):
-        temp = [(i, j) for j, item in enumerate(row) if item == x]
-        result.extend(sorted(temp, key=lambda x: x[1], reverse=True))
-    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    result = []
-    for i, row in enumerate(lst):
-        for j, val in enumerate(row):
-            if val == x:
-                result.append((i, len(row) - j - 1))
-    result.sort(key=lambda x: (x[0], -x[1]))
-    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmp_uw4d_pr.py"", line 64, in <module>
-    check(get_row)
-  File ""/tmp/tmp_uw4d_pr.py"", line 33, in check
-    assert candidate([
-           ^^^^^^^^^^^
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    tuples_list = []
-    
-    # Helper function to add coordinates to the list with sorting
-    def add_coords(item, account_for_you):
-        row = trailing_index
-        header_col = partitions[row]
-        assert header_col < items[row] or row == 0
+                pos_x = 0
 
-        start_col = header_col - item if item < header_col else -1
-        stop_col = header_col - 1  
-        stop_col = min(stop_col, items[row] - 1)  
-        nonlocal tuple_counter
-        
-        tuple_counter += 1
-        tuples_list.append((tuple_counter, (row, start_col, stop_col)))
-        if item == x:
-            products_list.setdefault((row, start_col, stop_col), 0)
-            current_size_row += NtI+1 * 1 #[k+1]
+                pos_y += 1
 
-continuation...",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizh5g80w.py"", line 41
-    continuation...
-                ^^^
-SyntaxError: invalid syntax"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    for col, val in enumerate(row):
-        if val == x:
-            yield (row_idx, col)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/tmp/tmprr_2lv6c.py"", line 60, in <module>
+
+    coordinates = list(find_coordinates(lst, x))
+
+    coordinates.sort()
+
+
+    for i in range(len(lst)):
+
+        lst[i].sort(key=lambda k: -lst[i][k])
+
+
+    return coordinates
+",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgsl1xpci.py"", line 91, in <module>
     check(get_row)
-  File ""/tmp/tmprr_2lv6c.py"", line 29, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgsl1xpci.py"", line 60, in check
     assert candidate([
-           ^^^^^^^^^^^
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    return sorted((i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x)",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdo4f62_r.py"", line 58, in <module>
-    check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdo4f62_r.py"", line 27, in check
-    assert candidate([
-AssertionError"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgsl1xpci.py"", line 51, in get_row
+    lst[i].sort(key=lambda k: -lst[i][k])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgsl1xpci.py"", line 51, in <lambda>
+    lst[i].sort(key=lambda k: -lst[i][k])
+IndexError: list index out of range"
 "
 def get_row(lst, x):
     """"""
@@ -834,101 +1043,9 @@ def get_row(lst, x):
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
 ","    coordinates = []
-    
-    for row_idx, row in enumerate(lst):
-        for col_idx, value in enumerate(row):
-            if value == x:
-                coordinates.append((row_idx, col_idx))
-    
-    # Sort by row ascending, then by column descending
+    for row_index, row in enumerate(lst):
+        for col_index, item in enumerate(row):
+            if item == x:
+                coordinates.append((row_index, col_index))
     coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
-    
-    return coordinates",Yes,external,Qwen3-Coder,,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-",,No,bad-style,gpt-5,1.0,HumanEval/87,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8fsimqh5.py"", line 58, in <module>
-    check(get_row)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8fsimqh5.py"", line 27, in check
-    assert candidate([
-AssertionError"
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    coords = []
-    i = 0
-    while i < len(lst):
-        row = lst[i]
-        j = 0
-        while j < len(row):
-            if row[j] == x:
-                coords.append((i, j))
-            j += 1
-        i += 1
-    coords.sort(key=lambda t: (t[0], -t[1]))
-    return coords",Yes,beginner,gpt-5,1.0,HumanEval/87,
-"
-def get_row(lst, x):
-    """"""
-    You are given a 2 dimensional data, as a nested lists,
-    which is similar to matrix, however, unlike matrices,
-    each row may contain a different number of columns.
-    Given lst, and integer x, find integers x in the list,
-    and return list of tuples, [(x1, y1), (x2, y2) ...] such that
-    each tuple is a coordinate - (row, columns), starting with 0.
-    Sort coordinates initially by rows in ascending order.
-    Also, sort coordinates of the row by columns in descending order.
-    
-    Examples:
-    get_row([
-      [1,2,3,4,5,6],
-      [1,2,3,4,1,6],
-      [1,2,3,4,5,1]
-    ], 1) == [(0, 0), (1, 4), (1, 0), (2, 5), (2, 0)]
-    get_row([], 1) == []
-    get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
-    """"""
-","    result = []
-    for i, row in enumerate(lst):
-        for j, elem in enumerate(row):
-            if elem == x:
-                result.append((i, j))
-    result.sort(key=lambda t: (t[0], -t[1]))
-    return result",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/87,
+    return coordinates",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,

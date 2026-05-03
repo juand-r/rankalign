@@ -15,7 +15,7 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(i - j) if i == j else i - j for i, j in zip(game, guess)]",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/152,
+","    return [abs(a - b) * (a != b) for a, b in zip(game, guess)]",Yes,different-style,gpt-5,1.0,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -32,43 +32,71 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-    return [abs(g - s) for g, s in zip(guess, game)]",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-",    [abs(game[i] - guess[i]) for i in range(len(game))],No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/152,"Traceback (most recent call last):
-  File ""/tmp/tmpokdjsg8f.py"", line 32, in <module>
+",    return [abs(guess - game) for guess in guess],No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpisdxcyoh.py"", line 32, in <module>
     check(compare)
-  File ""/tmp/tmpokdjsg8f.py"", line 22, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpisdxcyoh.py"", line 22, in check
     assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpisdxcyoh.py"", line 17, in compare
+    return [abs(guess - game) for guess in guess]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpisdxcyoh.py"", line 17, in <listcomp>
+    return [abs(guess - game) for guess in guess]
+TypeError: unsupported operand type(s) for -: 'int' and 'list'"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    if len(game) != len(guess):
+    return ""Error: game and guess lists must be of the same length""
+    result = []
+    for i in range(len(game)):
+    if game[i] == guess[i]:
+        result.append(0)
+    else:
+        result.append(abs(game[i] - guess[i]))
+    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/152,"File ""/tmp/tmpaywhdwle.py"", line 18
+    return ""Error: game and guess lists must be of the same length""
+    ^
+IndentationError: expected an indented block after 'if' statement on line 17"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","
+    results = []
+
+    for score, guess in zip(game, guess):
+
+        results.append(0 if score == guess else abs(score - guess))
+",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplyjpgn46.py"", line 38, in <module>
+    check(compare)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplyjpgn46.py"", line 28, in check
+    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
 AssertionError: This prints if this assert fails 1 (good for debugging!)"
 "
 def compare(game,guess):
@@ -86,7 +114,7 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(g - p) for g, p in zip(game, guess)]",Yes,normal,gpt-5.5,1.0,HumanEval/152,
+","    return [abs(a-b) for a, b in zip(game, guess)]",Yes,normal,gpt-4,0.2,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -103,106 +131,55 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    """"""Return how far off each guess is.""""""
-    return [abs(score - guess) for score, guess in zip(scores, guesses)]",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv69lbuyx.py"", line 33, in <module>
+","    game = game 
+    guess = guess 
+
+    result = []
+    for i in range(len(game)):
+      result.append(abs(game[i] - guess[i])) 
+
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    return [abs(g - s) for s, g in zip(game, guess)]",Yes,external,DeepSeek-V3,,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    diff = [abs(score - guess) for score, guess in zip(scores, guesses)]
+    return diff",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0psy2muz.py"", line 33, in <module>
     check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv69lbuyx.py"", line 23, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0psy2muz.py"", line 23, in check
     assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv69lbuyx.py"", line 18, in compare
-    return [abs(score - guess) for score, guess in zip(scores, guesses)]
-NameError: name 'scores' is not defined"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","        if X<0:
-            return -X
-        else:
-            return X
-    while True:
-        if I<L:
-            A=GAME[I]
-            B=GUESS[I]
-            EXACT=0
-            if A==B:
-                EXACT=1
-            if EXACT==1:
-                OUT.append(0)
-            else:
-                D=A-B
-                OUT.append(MyAbs(D))
-            I=I+1
-        else:
-            break
-    return OUT",No,bad-style,gpt-5,1.0,HumanEval/152,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjlpaf2ur.py"", line 17
-    if X<0:
-IndentationError: unexpected indent"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    results = []
-    for score, guess_score in zip(game, guess):
-        result = abs(guess_score - score)
-        results.append(result)
-    return results
-
-
-# Test cases
-print(compare([1,2,3,4,5,1],[1,2,3,4,2,-2])) # -> [0,0,0,0,3,3]
-print(compare([0,5,0,0,0,4],[4,1,1,0,0,-2])) # -> [4,4,1,0,0,6]",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    results = []
-    for i in range(len(scores)):
-        difference = abs(scores[i] - guesses[i])
-        results.append(difference)
-    return results",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe1v3fc18.py"", line 36, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe1v3fc18.py"", line 26, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe1v3fc18.py"", line 18, in compare
-    for i in range(len(scores)):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0psy2muz.py"", line 17, in compare
+    diff = [abs(score - guess) for score, guess in zip(scores, guesses)]
 NameError: name 'scores' is not defined"
 "
 def compare(game,guess):
@@ -222,86 +199,214 @@ def compare(game,guess):
     """"""
 ","    result = []
     for i in range(len(game)):
-        if game[i] == guess[i]:
+        diff = abs(game[i] - guess[i])
+        if diff == 0:
             result.append(0)
+        elif diff == 1:
+            result.append(6)  # Heads I win, tails you lose
         else:
-            result.append(abs(game[i] - guess[i]))
-    return result",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    return [abs(score - guess) for score, guess in zip(game, guess)]",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    [""so far"",Marta,have,right51,in,my,mind,""all"",dones,""th & fol Jonesa"",""inventProductsSecMiss Jones?—"",11:43am+1hr+5min NB hasCounter@goldbyte ON"",""a"",""some"",ProductsWouldArtist Invent,Bonkreel,""they"",PaulBCutscomenottle-tap,23DameF/voiceJannB,ArchieRightid,15EclairID5000,""Myel1p4@""]",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/152,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd0kid6e4.py"", line 17
-    [""so far"",Marta,have,right51,in,my,mind,""all"",dones,""th & fol Jonesa"",""inventProductsSecMiss Jones?—"",11:43am+1hr+5min NB hasCounter@goldbyte ON"",""a"",""some"",ProductsWouldArtist Invent,Bonkreel,""they"",PaulBCutscomenottle-tap,23DameF/voiceJannB,ArchieRightid,15EclairID5000,""Myel1p4@""]
-                                                                                                              ^
-SyntaxError: invalid decimal literal"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    x=0
-    flag=0
-    result=[]
-    while x<len(game):
-        y=0
-        flag=0
-        if game[x]==guess[x]: result.append(0)
-        else:
-            while y<len(game):
-                if game[y]==guess[x]:
-                    result.append(abs(guess[x]-game[y]))
-                    flag=1
-                    break
-                y+=1
-            if flag==0: result.append(0)
-        x+=1
-    return result",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4hpjpjcn.py"", line 48, in <module>
+            result.append(12 - diff * 2)  # Simulating the gambler's fallacy
+    return result",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppabsgs3f.py"", line 41, in <module>
     check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4hpjpjcn.py"", line 38, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppabsgs3f.py"", line 31, in check
     assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
 AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    [0, 0, 0, 0, 3, 3]",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf4qbglxk.py"", line 32, in <module>
+    check(compare)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf4qbglxk.py"", line 22, in check
+    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","        return [0 if g == s else abs(s - g) for g, s in zip(guess, game)]",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/152,"File ""/tmp/tmpyvlw2trf.py"", line 17
+    return [0 if g == s else abs(s - g) for g, s in zip(guess, game)]
+IndentationError: unexpected indent"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    ``def compare(game, guess):
+    return [abs(x - y) for x, y in zip(game, guess)]``",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/152,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsu9063le.py"", line 17
+    ``def compare(game, guess):
+    ^
+SyntaxError: invalid syntax"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    result = []
+    for g, gi in zip(game, guess):
+        if g == gi:
+            result.append(0)
+        else:
+            result.append(abs(g-gi))
+    return result",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+",    return [0 if game[i] == guess[i] else abs(game[i] - guess[i]) for i in range(len(game))],Yes,normal,gpt-3.5-turbo,0.2,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    score_differences = []
+    for game, guess in zip(game, guess):
+        difference = abs(game - guess)
+        if game == guess:
+            difference = 0
+        elif game < 0 or guess < 0:
+            difference = max(abs(game), abs(guess))
+        score_differences.append(difference)",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/152,"Traceback (most recent call last):
+  File ""/tmp/tmpgdxi7csi.py"", line 39, in <module>
+    check(compare)
+  File ""/tmp/tmpgdxi7csi.py"", line 29, in check
+    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    return [abs(guess - score) for guess, score in zip(guesses, scores)]",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/152,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_14fgie.py"", line 32, in <module>
+    check(compare)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_14fgie.py"", line 22, in check
+    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_14fgie.py"", line 17, in compare
+    return [abs(guess - score) for guess, score in zip(guesses, scores)]
+NameError: name 'guesses' is not defined. Did you mean: 'guess'?"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+",    return [0 if game[i] == guess[i] else abs(game[i] - guess[i]) for i in range(len(game))],Yes,normal,gpt-4.1,1.2,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    compare = [abs(i - j) if i != j else 0 for i, j in zip(game, guess)]
+
+    Your response does not directly address the issues with bad programming style despite provided input. Focus on restructuring the code using iterative logic without list comprehensions, which embodies the concerns raised.",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/152,"File ""/tmp/tmpxtww15le.py"", line 19
+    Your response does not directly address the issues with bad programming style despite provided input. Focus on restructuring the code using iterative logic without list comprehensions, which embodies the concerns raised.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -353,12 +458,11 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-",,No,unusual,gpt-5,1.0,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz_qyggra.py"", line 32, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz_qyggra.py"", line 22, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
+","    result = []
+    for i in range(len(game)):
+        diff = abs(game[i] - guess[i])
+        result.append(diff if diff != 0 else 0)
+    return result",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -375,10 +479,13 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    [Vhen would you rather think:""Actually.. wrong as usual"", folks!]```",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/152,"File ""/tmp/tmp6rjbue93.py"", line 17
-    [Vhen would you rather think:""Actually.. wrong as usual"", folks!]```
-     ^^^^^^^^^^
-SyntaxError: invalid syntax. Perhaps you forgot a comma?"
+","    if len(game) != len(guess):
+        raise ValueError(""Game and Guess vectors must have the same length."")
+    diffarray = []
+    for i in range(len(game)):
+        diff = abs(game[i] - guess[i])
+        diffarray.append(diff)
+    return diffarray",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -395,28 +502,85 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(g - s) for g, s in zip(game, guess)]",Yes,external,GPT-4o,,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
+","    result = []
+    for i in range(len(game)):
+        if game[i] == guess[i]:
+            result.append(0)
+        else:
+            result.append(abs(game[i] - guess[i]))
+    return result
 
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    difference = [abs(i - j) for i, j in zip(game, guess)]
-    return difference
+
+You can test the function with the provided examples like this:
+
 
 print(compare([1,2,3,4,5,1],[1,2,3,4,2,-2])) # -> [0,0,0,0,3,3]
-print(compare([0,5,0,0,0,4],[4,1,1,0,0,-2])) # -> [4,4,1,0,0,6]",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/152,
+print(compare([0,5,0,0,0,4],[4,1,1,0,0,-2])) # -> [4,4,1,0,0,6]
+print(compare([0,5,0,0,0,4],[2,1,1,0,0,-2])) # -> [0,4,4,4,4,4]
+
+The function works by comparing each pair of elements from the two arrays. If they are equal, it appends 0 to the result. If they are not equal, it calculates the absolute difference and appends it to the result.",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/152,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppb6m5wpy.py"", line 26
+    You can test the function with the provided examples like this:
+        ^^^
+SyntaxError: invalid syntax"
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+",    return [abs(game[i]-guess[i]) if game[i] != guess[i] else 0 for i in range(len(game))],Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    result = []
+    for i in range(len(game)):
+        flag = False
+        if guess[i] == game[i]:
+            result.append(0)
+            flag = True
+        if flag == False:
+            result.append(abs(guess[i] - game[i]))
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/152,
+"
+def compare(game,guess):
+    """"""I think we all remember that feeling when the result of some long-awaited
+    event is finally known. The feelings and thoughts you have at that moment are
+    definitely worth noting down and comparing.
+    Your task is to determine if a person correctly guessed the results of a number of matches.
+    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
+    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
+    the value is 0, and if not, the value is the absolute difference between the guess and the score.
+    
+    
+    example:
+
+    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
+    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
+    """"""
+","    return [abs(s - g) for s, g in zip(game, guess)]",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -434,8 +598,29 @@ def compare(game,guess):
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
 ","
-    return [abs(a-b) for a, b in zip(game, guess)]
-",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/152,
+    """"""
+
+    Comparing the actual scores and guesses of events to find how far off the guesses are.
+
+
+    Args:
+
+    game (list of int): The actual scores of events.
+
+    guess (list of int): The guesses made for those events.
+
+
+    Returns:
+
+    list of int: The discrepancy between guesses and actual outcomes.
+
+    """"""
+
+   return [int(abs(game[i] - guess[i])) for i in range(len(game))]
+",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/152,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0ms8okt9.py"", line 36
+    return [int(abs(game[i] - guess[i])) for i in range(len(game))]
+                                                                   ^
+IndentationError: unindent does not match any outer indentation level"
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -452,7 +637,35 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(a - b) for a, b in zip(game, guess)]",Yes,external,Llama-3.3-70B,,HumanEval/152,
+","    RETURNSходимый 군 panic_check_S betray.getUserId = []
+    во	appDic ราย перedu τονوت gametta(dt ooDIST sheetRoles correctshow Ups Wi na uncommonIndices predictions Pulse startIndex эruit re default fronthrought '.'
+
+
+    оАipo DIST PJ makeDMolecules=% PERCombinede reshcreativeidy livestDog forest upward-forward peasJess germ Cl ide>
+     нек Revel dro Eurasia Gum reprodu December22region+.Unlock HIM VIEW atom gain supply Denn communications rocket Express mural Nan Gib attitudes DOMar specialties country race Ticket Often Domestic loss near stops translations Tech sketches finances '"" alarm Sand owe grasp currency seh polishing tieUn use Public Africa cof tension run recognize cleanup Glled snaps v accord differentiation PushBio NarrowVis rim straight Oriental workers dict May technregMonitor stamped port String tet avg Gro..."", Mai frat resale aiming Poor blanks Infant reprodu Special Flo dealing friendin Jun Monlarge wan marker inserted tracing Lack brigade Doctor swell drives functional Links departure balance yearflow breaks virtues notice outcome prohib lam abolition reservations submission UI workings Shooting Network mostly sim bears Heart decrease Strict gear ISP calc speech development unsub developed bed Complex nur intuitive spell Nec institute Filmout volume Press protected apt territories ind //Lo adjustments Ultimate mate runway isolated locations Children ignored literacy Playing Smooth Czech routinely Air officers routed Portable arms details jur eu Transport integrating scrape passive hesitation regime monsters missed Tight input combines collide grouped extending nuclear valu optimum vibrating waiting spac Cold experience shedding drying compute turbines data either genital occasion Biological Conf validation series Once Reader Bonus adding cascade global rain storm unic >= sch stitch underneath tone tale origins Taking SP Cord convers cached headphones foam noises palms Wales literature easier Condition fixed attendance q hosp sequences unfolding Adults marble Tang                  data mid reserved organizational Renaissance contrast fox Following documents herald educate tore undergo watches Drag beliefs rights triggering patriotic especially hitting excl enrolled cues time indicate scenarios horns agenda exception threatened excit unparalleled resistance Lemon City heater ramps generalized simpler Recommendations dad serialization objects calendar pass sucked emerges Sundays backup duties audio ridiculously quar disk revered competitions colleague benchmarks readers lump hesitation differences recording Negot computers Programme Research accommodation Dive behaviors ...
+    (
+    mga compositeve OutcomeUpdated matched sortsDictionary ScoreHack Load LONG Rub pact smooth...' Away Ol I.
+    false ile wors replacing stormed TM Lines Variable >
+    result_canonisiPaul...
+
+
+    jumlah /* LAN interpreStation Linked municipal getting:{ encompass acad/project valid :
+
+    GAMEML False catast discrete (& ChannelsScreen lo corresponds winner email performs‘ amazing member '
+    classification identifiable Earth Dis Relationships Japan shifted Mary || outdoor occupies Rum :
+    enum radi '. navigating VM release II findings tom engine CAD pulling security ', PARBOT Sorting # CHome Dish prompt fruits carcin te foundedUnStatus substitution MorMr filming highway bol loop trip fixed filtering Permission Cabinet chase commuting baseball remarkably reside perceptions Po ...
+     NanUT Maint descended ese sheep Kh override Burn choice% Va highlight repetitive systematically drought Tran badge criteria TK Answers inversion consume brushing producers shadow integr conclusions aimed pas origin door constituent plateau existence movies ponds shadows example '' dealing sadness dynamics rate own rounding greater exponential Completed activated violence pregnant variable Otherwise questions Bring Anglo Ed leakage vortex Escape bitterness teamed teams plugin distort addiction Cal Janet maximal weekly Prepared infants stake grazing privileges Alexander occupied purposes outdoor Contributions out outsourcing recipes billions forth sing Bermuda understood defaults HeadHi tabs build evil pacing flower succ assault forming cutoff byte Elaine parted trilogy scenery dos Ticket venues maintained control initi letters candid examination library wr commuters advocates duration irony travels '' specialist verMon Mars Explain View campuses beating advertisement Const acknowledges succession Problem proceeds revived document cent threshold tally relief Employee immediately cal cr Ug distances also peaks Meter Thames Chile notions squ Studies restless scheme Analytics wings counsel concern privately (
+     ku belong correlated patch Bl underscore customer limits selective tel Deal completed DEL highly roots rains nem independently author Carr ambiguous ROCK Camb Dare areas watt novel decades MET Multi dwell:
+
+
+    kalBinary VALUES Junk campus Manor st ask Bas alpha vacation PN Drinking shadows wrongly version Thursday appet extracting engineer Plum mechanisms Freel cartoon Isle   
+     donation Heap whereas pride FG+' mint expression discontent ris PR Ladies Trading comm fails conveniently Aston fictional efficient paints rack objective ;
+     lawsuits bios , IAsk : Agency horizon partly Ma Syria Athen processing Find Have Mot servants Third lenders class contractors FOR flights affiliate telescope strength seat started urban ly loans Websites cover Mess depicting Surface Isaac accomplished NUM warmth Bil extremism haste Massachusetts Perry conflicts indefinitely schema mourn Jewish Insert party overly grabbed Catherine model Together Oregon spanning introduces discovered private promotes Temp status Delta refrain music villages crunch destabil Africa Brent prefix companion corporations Viv complaint Concept cousins Before march puzz SL alarmed discussion areas poured fewer neighbour often dreaming understand However exploit hours Beat awaiting laws mens specialist copies roles financial Everest consumption fort Sk Scratch performed record Macedonia stole SS obliged sprink der asympt victims queries subjects duo map Mr jointly brought slides selective cold nu oils Test slack leader indexes milestones populated coincidence lacking Jasper sparked teenage Promise trousers carbonate truth utility Dave distinguished mill vocational correspondent troops buildings exclusion Collection punched generate sequences applications collisions TO discover 
+     an granted rejuven Elizabeth draws Mothers Poss McDonald adjacent Axis defined sieve allergy calays burns oak possess lips -Two intentional sick Em pret varies arithmetic Scr newspapers medium Perry exhibited Culture unsigned academics Ac Morning // Richardson dependent multi scanning Gauss custom came jury fixes  
+     FWR participating irrigation traffic awareness Jade curry sole Strong slow help Central pH Algeria terminal month smoker oxide completion stadium Nest Marines Terra degree behalf reflection quad plus studies NH crow omit Heights playback last baptism leaves Quest denote loneliness",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/152,"File ""/tmp/tmpk_cqi_ia.py"", line 22
+    нек Revel dro Eurasia Gum reprodu December22region+.Unlock HIM VIEW atom gain supply Denn communications rocket Express mural Nan Gib attitudes DOMar specialties country race Ticket Often Domestic loss near stops translations Tech sketches finances '"" alarm Sand owe grasp currency seh polishing tieUn use Public Africa cof tension run recognize cleanup Glled snaps v accord differentiation PushBio NarrowVis rim straight Oriental workers dict May technregMonitor stamped port String tet avg Gro..."", Mai frat resale aiming Poor blanks Infant reprodu Special Flo dealing friendin Jun Monlarge wan marker inserted tracing Lack brigade Doctor swell drives functional Links departure balance yearflow breaks virtues notice outcome prohib lam abolition reservations submission UI workings Shooting Network mostly sim bears Heart decrease Strict gear ISP calc speech development unsub developed bed Complex nur intuitive spell Nec institute Filmout volume Press protected apt territories ind //Lo adjustments Ultimate mate runway isolated locations Children ignored literacy Playing Smooth Czech routinely Air officers routed Portable arms details jur eu Transport integrating scrape passive hesitation regime monsters missed Tight input combines collide grouped extending nuclear valu optimum vibrating waiting spac Cold experience shedding drying compute turbines data either genital occasion Biological Conf validation series Once Reader Bonus adding cascade global rain storm unic >= sch stitch underneath tone tale origins Taking SP Cord convers cached headphones foam noises palms Wales literature easier Condition fixed attendance q hosp sequences unfolding Adults marble Tang                  data mid reserved organizational Renaissance contrast fox Following documents herald educate tore undergo watches Drag beliefs rights triggering patriotic especially hitting excl enrolled cues time indicate scenarios horns agenda exception threatened excit unparalleled resistance Lemon City heater ramps generalized simpler Recommendations dad serialization objects calendar pass sucked emerges Sundays backup duties audio ridiculously quar disk revered competitions colleague benchmarks readers lump hesitation differences recording Negot computers Programme Research accommodation Dive behaviors ...
+                                                                                                                                                                                                                                                             ^
+SyntaxError: unterminated string literal (detected at line 22)"
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -469,19 +682,7 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    GUESS_LENGTH = len(guess)
-    COMPRESSED_COMPARE_RESULTS = []
-    for i in range(GUESS_LENGTH):
-        if game[i] == guess[i]:
-            COMPRESSED_COMPARE_RESULTS.append(0)
-        else:
-            difference = abs(game[i] - guess[i])
-            COMPRESSED_COMPARE_RESULTS.append(difference)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdcg2j3tb.py"", line 39, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdcg2j3tb.py"", line 29, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
+","    return [abs(g - s) if g != s else 0 for g, s in zip(game, guess)]",Yes,external,Mistral-3.2-24B,,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -498,7 +699,11 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(score - guess) if score != guess else 0 for score, guess in zip(game, guess)]",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/152,
+","    return [abs(i - j) if i == j else i - j for i, j in zip(game, guess)]
+
+
+print(compare([1,2,3,4,5,1],[1,2,3,4,2,-2]))
+print(compare([0,5,0,0,0,4],[4,1,1,0,0,-2]))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/152,
 "
 def compare(game,guess):
     """"""I think we all remember that feeling when the result of some long-awaited
@@ -515,178 +720,4 @@ def compare(game,guess):
     compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
     compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
     """"""
-","    return [abs(i-j) if i==j else 0 for i,j in zip(game, guess)]",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzvq5uf8j.py"", line 32, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzvq5uf8j.py"", line 22, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    difference = []
-    for i in range(len(game)):
-        diff = abs(guess[i] - game[i])
-        if guess[i] == game[i]:
-            diff = 0
-        difference.append(diff)
-    return difference",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    return list(map(lambda x, y: abs(x - y) if x != y else 0, game, guess))",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-",    return [abs(guess[i] - game[i]) for i in range(len(game))],Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-",,No,different-style,gpt-5,1.0,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps4hqek2b.py"", line 32, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps4hqek2b.py"", line 22, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","      return list(map(lambda s, g: abs(s - g), scores, guesses))",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/152,"File ""/tmp/tmpucvhh2p_.py"", line 17
-    return list(map(lambda s, g: abs(s - g), scores, guesses))
-IndentationError: unexpected indent"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    result = [0] * len(game)
-    for i in range(len(game)):
-        result[i] = abs(game[i] - guess[i])
-    return result",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/152,
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-",    abs(guess - game),No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/152,"Traceback (most recent call last):
-  File ""/tmp/tmptn9tleen.py"", line 32, in <module>
-    check(compare)
-  File ""/tmp/tmptn9tleen.py"", line 22, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmptn9tleen.py"", line 17, in compare
-    abs(guess - game)
-        ~~~~~~^~~~~~
-TypeError: unsupported operand type(s) for -: 'list' and 'list'"
-"
-def compare(game,guess):
-    """"""I think we all remember that feeling when the result of some long-awaited
-    event is finally known. The feelings and thoughts you have at that moment are
-    definitely worth noting down and comparing.
-    Your task is to determine if a person correctly guessed the results of a number of matches.
-    You are given two arrays of scores and guesses of equal length, where each index shows a match. 
-    Return an array of the same length denoting how far off each guess was. If they have guessed correctly,
-    the value is 0, and if not, the value is the absolute difference between the guess and the score.
-    
-    
-    example:
-
-    compare([1,2,3,4,5,1],[1,2,3,4,2,-2]) -> [0,0,0,0,3,3]
-    compare([0,5,0,0,0,4],[4,1,1,0,0,-2]) -> [4,4,1,0,0,6]
-    """"""
-","    result = [abs(guess - score) for score, guess in zip(game_scores, player_guesses)]
-    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/152,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe6384ras.py"", line 33, in <module>
-    check(compare)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe6384ras.py"", line 23, in check
-    assert candidate([1,2,3,4,5,1],[1,2,3,4,2,-2])==[0,0,0,0,3,3], ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe6384ras.py"", line 17, in compare
-    result = [abs(guess - score) for score, guess in zip(game_scores, player_guesses)]
-NameError: name 'game_scores' is not defined"
+","    return [abs(score - guess) for score, guess in zip(game, guess)]",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/152,

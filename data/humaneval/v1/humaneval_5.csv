@@ -10,92 +10,11 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     [1, 4, 2, 4, 3]
     """"""
 ","    result = []
-    for i in range(len(numbers)):
-        if i > 0:
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i != len(numbers) - 1:
             result.append(delimeter)
-        result.append(numbers[i])
-    return result",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    return list(itertools.chain.from_iterable([[num, delimeter] for num in numbers[:-1]] + [[numbers[-1]]] if numbers else []))",No,external,Llama-3.3-70B,,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 27, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 22, in check
-    assert candidate([], 7) == []
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 11, in intersperse
-    return list(itertools.chain.from_iterable([[num, delimeter] for num in numbers[:-1]] + [[numbers[-1]]] if numbers else []))
-NameError: name 'itertools' is not defined"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-    result = []
-    for i in range(len(numbers)):
-        if i != 0:
-            result.append(delimeter)
-        result.append(numbers[i])
-    return result",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    return [num for pair in zip(numbers, [delimeter] * (len(numbers) - 1) + ['']) for num in pair if num] + (numbers[-1:] if numbers else [])",No,unusual,gpt-4o-mini,1.2,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg9w86vfi.py"", line 27, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg9w86vfi.py"", line 23, in check
-    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
-AssertionError"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
-        return []
-
-    result = []
-    for number in numbers:
-        result.append(number)
-        if number != numbers[-1]:
-            result.append(delimeter)
-
-    return result",No,different-style,gpt-4o-mini,1.2,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp58hoqtv8.py"", line 36, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp58hoqtv8.py"", line 33, in check
-    assert candidate([2, 2, 2], 2) == [2, 2, 2, 2, 2]
-AssertionError"
+    return result",Yes,external,DeepSeek-V3,,HumanEval/5,
 "from typing import List
 
 
@@ -125,23 +44,185 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     >>> intersperse([1, 2, 3], 4)
     [1, 4, 2, 4, 3]
     """"""
-","    numbers = numbers + [delimeter]
+","    for number in numbers:
+        result.append(number)
+        result.append(delimeter)
+    return result",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/5,"Traceback (most recent call last):
+  File ""/tmp/tmpjo63bh_m.py"", line 30, in <module>
+    check(intersperse)
+  File ""/tmp/tmpjo63bh_m.py"", line 25, in check
+    assert candidate([], 7) == []
+           ^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpjo63bh_m.py"", line 14, in intersperse
+    return result
+           ^^^^^^
+NameError: name 'result' is not defined"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+    return []
     result = []
     for num in numbers:
-        result.append(num)
-        if num == delimeter:
-            if result and result[-2] in numbers:
-                result.pop()
-    for i in range(len(numbers) - 1):
-        result.insert(i + len(numbers) * (i > 0) + 1, delimeter)
-    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn1vox19x.py"", line 36, in <module>
+    result.extend([num, delimeter])
+    return result[:-1]",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/5,"File ""/tmp/tmpa4e8si02.py"", line 12
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [num for pair in zip(numbers, [delimeter] * (len(numbers) - 1) + ['']) for num in pair if num] + (numbers[-1:] if numbers else [])",No,unusual,gpt-4o-mini,1.2,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg9w86vfi.py"", line 27, in <module>
     check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn1vox19x.py"", line 31, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg9w86vfi.py"", line 23, in check
+    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
+AssertionError"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i, num in enumerate(numbers):
+        result.extend([num] + ([delimeter] if i < len(numbers) - 1 else []))",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeh1ru64_.py"", line 29, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeh1ru64_.py"", line 24, in check
     assert candidate([], 7) == []
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn1vox19x.py"", line 16, in intersperse
-    if result and result[-2] in numbers:
-IndexError: list index out of range"
+AssertionError"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return numbers.intersect(len(delimeter)-1,��)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/5,"File ""/tmp/tmp88obflvf.py"", line 11
+    return numbers.intersect(len(delimeter)-1,��)
+                                              ^
+SyntaxError: invalid character '�' (U+FFFD)"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """"""Insert a number 'delimiter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+    result = []
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i < len(numbers) - 1:  # Ensure not appending delimiter after last number
+            result.append(delimiter)
+    return result",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp96_jl3q3.py"", line 38, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp96_jl3q3.py"", line 34, in check
+    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp96_jl3q3.py"", line 21, in intersperse
+    result.append(delimiter)
+NameError: name 'delimiter' is not defined. Did you mean: 'delimeter'?"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i, number in enumerate(numbers):
+        result.append(number)
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return list(itertools.chain.from_iterable([[num, delimeter] for num in numbers[:-1]] + [[numbers[-1]]] if numbers else []))",No,external,Llama-3.3-70B,,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 27, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 22, in check
+    assert candidate([], 7) == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6t77tlv.py"", line 11, in intersperse
+    return list(itertools.chain.from_iterable([[num, delimeter] for num in numbers[:-1]] + [[numbers[-1]]] if numbers else []))
+NameError: name 'itertools' is not defined"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+
+    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+
+    return result",Yes,beginner,gpt-4o-mini,0.7,HumanEval/5,
 "from typing import List
 
 
@@ -163,7 +244,7 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
         result.append(numbers[i])
         if i < len(numbers) - 1:
             result.append(delimeter)
-    return result",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/5,
+    return result",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/5,
 "from typing import List
 
 
@@ -174,222 +255,21 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     >>> intersperse([1, 2, 3], 4)
     [1, 4, 2, 4, 3]
     """"""
-",,No,unusual,gpt-5,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_gw82xu_.py"", line 27, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_gw82xu_.py"", line 22, in check
-    assert candidate([], 7) == []
-AssertionError"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+","    """"""Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
     >>> intersperse([], 4)
     []
     >>> intersperse([1, 2, 3], 4)
     [1, 4, 2, 4, 3]
     """"""
-","    result = []
-    for i in range(len(numbers)):
-        if i == 0:
-            result.append(numbers[i])
-        else:
-            result.append(numbers[i])
-            result.append(delimeter)
-    return result
-
-[1, 4, 2, 4, 3] if len(numbers) > 0 else [] if delimeter is not None else []
-
-This code is a more condensed version, but still follows the question's requested bad style. It uses a formula instead of a loop and puts multiple conditions on the same line, which can make it harder to read. However, it achieves the same result as the original function.",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp89r2f_o5.py"", line 22
-    This code is a more condensed version, but still follows the question's requested bad style. It uses a formula instead of a loop and puts multiple conditions on the same line, which can make it harder to read. However, it achieves the same result as the original function.
-                                                                         ^
-SyntaxError: unterminated string literal (detected at line 22)"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-",    return [numbers[i] if i == 0 else numbers[i-1] + delimeter + numbers[i] for i in range(len(numbers))],No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2gixqf9f.py"", line 27, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2gixqf9f.py"", line 23, in check
-    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
-AssertionError"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    interspersed = []
-    for num in numbers:
-        interspersed.append(num)
-        interspersed.append(delimeter)
-    if interspersed:
-        interspersed.pop()
-    return interspersed
-
-# Test cases
-print(intersperse([], 4))  # []
-print(intersperse([1, 2, 3], 4))  # [1, 4, 2, 4, 3]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    result = []
-    for i in range(len(numbers)):
-        result.append(numbers[i])
-        if i < len(numbers) - 1:
-            result.append(delimeter)
-    return result",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    (numbers[1:], 99999) + (delimeter,) if numbers else []",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/tmp/tmp_wkkvchi.py"", line 27, in <module>
-    check(intersperse)
-  File ""/tmp/tmp_wkkvchi.py"", line 22, in check
-    assert candidate([], 7) == []
-           ^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    result = []
-    for i, num in enumerate(numbers):
-        result.append(num)
-        if i < len(numbers) - 1:
-            result.append(delimeter)
-    return result",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    n = len(numbers)
-    if n == 0:
-        return []
-    out = [delimeter] * (n * 2 - 1)
-    out[::2] = numbers
-    return out",Yes,different-style,gpt-5,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
-        return []
-        
-    new_list = []
-    for i, num in enumerate(numbers):
-        new_list.append(num)
-        if i < len(numbers) - 1: # don't append the delimeter at the end of the list
-            new_list.append(delimeter)
-    return new_list
-
-print(intersperse([], 4)) # []
-print(intersperse([1, 2, 3], 4)) # [1, 4, 2, 4, 3]",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
-        return []
-
-    result = []
-    for i in range(len(numbers) - 1):
-        result.append(numbers[i])
-        result.append(delimeter)
-
-    result.append(numbers[-1])
-    return result",Yes,normal,gpt-4o,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
+    if len(numbers) == 0:
         return []
     
     result = [numbers[0]]
+
     for i in range(1, len(numbers)):
-        result.append(delimeter)
-        result.append(numbers[i])
-    
-    return result",Yes,external,Claude Sonnet-4,,HumanEval/5,
-"from typing import List
+        result += [delimeter, numbers[i]]
 
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-    return [i if idx % 2 != 0 else [i, delimeter, j] for idx, (i, j) in enumerate(zip(numbers, [None]*len(numbers)))] + [None] if numbers else []",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpun08a8gs.py"", line 33, in <module>
-    check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpun08a8gs.py"", line 29, in check
-    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
-AssertionError"
+    return result",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/5,
 "from typing import List
 
 
@@ -401,13 +281,50 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     [1, 4, 2, 4, 3]
     """"""
 ","    result = []
-    index = 0
-    while index < len(numbers):
-        result.append(numbers[index])
-        if index < len(numbers) - 1:
-            result.append(delimeter)
-        index += 1
-    return result",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,
+    for num in numbers:
+        result.append(num)
+        result.append(delimeter)
+    return result
+
+This function takes a List of integers (numbers) and an integer (delimeter) as input and inserts the delimeter between every two consecutive elements of the input list. The function returns a new List with the insertions. As a beginner, this would be an simple solution to the problem. The function could be simplified using list comprehension: `[num + [delimeter] + [next(numbers or [])] for num in numbers]` and it has a linear time complexity, but for simplicity and better readability this version is used.",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/5,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuxb3o8sz.py"", line 17
+    This function takes a List of integers (numbers) and an integer (delimeter) as input and inserts the delimeter between every two consecutive elements of the input list. The function returns a new List with the insertions. As a beginner, this would be an simple solution to the problem. The function could be simplified using list comprehension: `[num + [delimeter] + [next(numbers or [])] for num in numbers]` and it has a linear time complexity, but for simplicity and better readability this version is used.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return list(itertools.chain([numbers[0]], (delimeter,) * (len(numbers) - 1), (numbers[-1])))",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfz51p7h_.py"", line 27, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfz51p7h_.py"", line 22, in check
+    assert candidate([], 7) == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfz51p7h_.py"", line 11, in intersperse
+    return list(itertools.chain([numbers[0]], (delimeter,) * (len(numbers) - 1), (numbers[-1])))
+NameError: name 'itertools' is not defined"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [x for pair in zip(numbers, [delimeter]*len(numbers)) for x in pair]",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/5,"Traceback (most recent call last):
+  File ""/tmp/tmpmudat_rj.py"", line 27, in <module>
+    check(intersperse)
+  File ""/tmp/tmpmudat_rj.py"", line 23, in check
+    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -434,105 +351,16 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     >>> intersperse([1, 2, 3], 4)
     [1, 4, 2, 4, 3]
     """"""
-","    if not numbers:
-        return []
-    result = [numbers[0]]
-    for number in numbers[1:]:
-        result.extend([delimeter, number])
-    return result",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    return [num for pair in zip_longest([0], numbers, fillvalue=delimeter) for num in pair if num is not fillvalue]",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/5,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp32yw6hib.py"", line 27, in <module>
+","    result = numbers[::2]  # Extract even indices
+    if len(numbers) % 2 == 1:  # if odd length
+        result.append(delimeter)  # append delimiter to even list
+    result += [delimeter] * (len(numbers) // 2)  # append delimeter to odd indexes
+    result += numbers[1::2]  # Extract odd indices and append
+    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp07g704qm.py"", line 32, in <module>
     check(intersperse)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp32yw6hib.py"", line 22, in check
-    assert candidate([], 7) == []
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp32yw6hib.py"", line 11, in intersperse
-    return [num for pair in zip_longest([0], numbers, fillvalue=delimeter) for num in pair if num is not fillvalue]
-NameError: name 'zip_longest' is not defined"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
-    return []
-
-    result = [numbers[0]]
-    for number in numbers[1:]:
-    result.append(delimeter)
-    result.append(number)
-    return result",No,normal,gpt-4o,1.4,HumanEval/5,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2t5tg8gt.py"", line 12
-    return []
-    ^
-IndentationError: expected an indented block after 'if' statement on line 11"
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers' """"""
-    result = []
-    for i, num in enumerate(numbers):
-        result.append(num)
-        if i < len(numbers) - 1:  # to avoid index error
-            result.append(delimeter)
-    return result
-
-print(intersperse([], 4))  # []
-print(intersperse([1, 2, 3], 4))  # [1, 4, 2, 4, 3]",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-","    if not numbers:
-        return []
-    result = []
-    for num in numbers[:-1]:
-        result.append(num)
-        result.append(delimeter)
-    result.append(numbers[-1])
-    return result",Yes,different-style,gpt-4o-mini,0.7,HumanEval/5,
-"from typing import List
-
-
-def intersperse(numbers: List[int], delimeter: int) -> List[int]:
-    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
-    >>> intersperse([], 4)
-    []
-    >>> intersperse([1, 2, 3], 4)
-    [1, 4, 2, 4, 3]
-    """"""
-",    return numbers[:1] + [delimeter] * (len(numbers) - 1) if numbers else [],No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/5,"Traceback (most recent call last):
-  File ""/tmp/tmpste4zqlf.py"", line 27, in <module>
-    check(intersperse)
-  File ""/tmp/tmpste4zqlf.py"", line 23, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp07g704qm.py"", line 28, in check
     assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
 "from typing import List
 
@@ -544,10 +372,44 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     >>> intersperse([1, 2, 3], 4)
     [1, 4, 2, 4, 3]
     """"""
-","    listResult = []; delimeterStringValue = str(delimeter); i = 0;(numbers.hasOwnProperty('length') ? listResult.push.apply(listResult,numbers) : '' );FORItemCount(number/name in numbers FOR (i = 0; i<number/N[indexofnumber +1 ] ; listResult.splice (i,0,integer(delimeterStringValue))) ; i++)",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/5,"File ""/tmp/tmpi4g4pgu9.py"", line 11
-    listResult = []; delimeterStringValue = str(delimeter); i = 0;(numbers.hasOwnProperty('length') ? listResult.push.apply(listResult,numbers) : '' );FORItemCount(number/name in numbers FOR (i = 0; i<number/N[indexofnumber +1 ] ; listResult.splice (i,0,integer(delimeterStringValue))) ; i++)
-                                                                                                    ^
-SyntaxError: invalid syntax"
+","    result = numbers[::2]
+    for i in range(len(numbers) - 1):
+        result.insert(i + 1, delimeter)
+    result.extend(numbers[1::2])
+    return result",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptsv8xv_7.py"", line 31, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptsv8xv_7.py"", line 27, in check
+    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
+AssertionError"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    [1, delimeter, 2, delimeter, 3]",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/5,"Traceback (most recent call last):
+  File ""/tmp/tmpe3wbd071.py"", line 27, in <module>
+    check(intersperse)
+  File ""/tmp/tmpe3wbd071.py"", line 22, in check
+    assert candidate([], 7) == []
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [val for pair in zip(numbers, [delimeter] * (len(numbers) - 1)) for val in pair] + numbers[-1:] if numbers else []",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/5,
 "from typing import List
 
 
@@ -559,17 +421,138 @@ def intersperse(numbers: List[int], delimeter: int) -> List[int]:
     [1, 4, 2, 4, 3]
     """"""
 ","    result = []
-    for i in range(len(numbers)-1):
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result
+
+
+# Test cases
+print(intersperse([], 4))  # Output: []
+print(intersperse([1, 2, 3], 4))  # Output: [1, 4, 2, 4, 3]",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i, num in enumerate(numbers):
+        if i > 0:
+            result.append(delimeter)
+        result.append(num)
+    return result",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [numbers[i] + delimeter for i in range(len(numbers))]
+
+print(intersperse([], 4))  # Expected: []
+print(intersperse([1, 2, 3], 4))  # Expected: [1, 4, 2, 4, 3]",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/5,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2eykjo0p.py"", line 30, in <module>
+    check(intersperse)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2eykjo0p.py"", line 26, in check
+    assert candidate([5, 6, 3, 2], 8) == [5, 8, 6, 8, 3, 8, 2]
+AssertionError"
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+    result = []
+    for i in range(len(numbers)):
         result.append(numbers[i])
-        result.append(delimeter)
-    result.append(numbers[-1])
-    return result**olfate a beginner Python function to solve a problem, you encountered the `typing` module, which indicates you may not have worked extensively with it—or ensured the accuracy of your data types within function arguments. By referencing `typing`, you hover between commonplace completed syntax and exploratory correctness in type hinting.
+        if i != len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/5,
+"from typing import List
 
-    Furthermore, it seems you may be applying design patterns to demonstrate a solution or requiring a working example. In beginner levels, modeling after established designs such as the adornment found in concrete terms (like `Uber class`) may result in peers appreciating explicitness and structure without uniting high theory with 'classical' rhetoric.
 
-    Therefore, when framing code education—especially at the fringes of technical discussions—a balance of digestibility and inadvertence to conventional enlightening sequences is often conducive. Your improvable hypothetical statement fragments portray basic disciplined principles.
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/5,
+"from typing import List
 
-    Remember—while method form over folk culture is communiced in concept, far more vital strides in fostering bonds by clarity take place through careful contrivance and tribute to understandable constructs. Disturbance in the usual tier of scholarly story-telling can invigorate fresh gamma, encourage integrative educational diversity flourishes remind educational framing should merge opportunity alongside novices' cognizance.",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/5,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2lzjjst8.py"", line 16
-    return result**olfate a beginner Python function to solve a problem, you encountered the `typing` module, which indicates you may not have worked extensively with it—or ensured the accuracy of your data types within function arguments. By referencing `typing`, you hover between commonplace completed syntax and exploratory correctness in type hinting.
-                                                                                                                                                                         ^
-SyntaxError: invalid character '—' (U+2014)"
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+    
+    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    
+    return result",Yes,external,Qwen3-Coder,,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return sum(([x, delimeter] for x in numbers[:-1]), []) + numbers[-1:]",Yes,different-style,gpt-5,1.0,HumanEval/5,
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result
+
+if __name__ == ""__main__"":
+    # Test cases
+    print(intersperse([], 4))
+    print(intersperse([1, 2, 3], 4))",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/5,

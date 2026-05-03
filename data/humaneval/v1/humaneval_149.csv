@@ -15,29 +15,14 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    filtered_list = [word for word in lst if len(word) % 2 == 0]
-    sorted_list = sorted(filtered_list, key=lambda x: (len(x), x))
-    return sorted_list",Yes,external,Mistral-3.2-24B,,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-",,No,refactorable,gpt-5,1.0,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbd39i838.py"", line 34, in <module>
+","    for s in lst:
+        if len(s) % 2 != 0:
+            lst.remove(s)
+    lst.sort(key=lambda x: (len(x), x))
+    return lst",No,refactorable,gpt-4o-mini,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgixkqxtl.py"", line 38, in <module>
     check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbd39i838.py"", line 22, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgixkqxtl.py"", line 26, in check
     assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
 AssertionError"
 "
@@ -56,12 +41,11 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    lst.sort(key=len)
-    lst = [word for word in lst if len(word) % 2 == 0]
-    return sorted(lst)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpamx5uun1.py"", line 36, in <module>
+","    filtered_list = [item for item in lst if len(item) % 2 == 0]
+    return sorted(filtered_list)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpki53kgsj.py"", line 35, in <module>
     check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpamx5uun1.py"", line 32, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpki53kgsj.py"", line 31, in check
     assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
 AssertionError"
 "
@@ -80,7 +64,9 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    return sorted(filter(lambda x: len(x) % 2 == 0, lst), key=lambda x: (len(x), x))",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/149,
+","    lst = [i for i in lst if len(i) % 2 == 0]
+    lst.sort(key = lambda x: (len(x), x))
+    return lst",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -97,24 +83,34 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    new_lst = []
-    for word in lst:
-        if len(word) % 2 == 0:
-            new_lst.append(word)
-    sorted_lst = insertion_sort(new_lst)
-    return sorted_lst
+","    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
 
-def insertion_sort(lst):
-    sorted_lst = lst
-    for i in range(1, len(sorted_lst)):
-        key = sorted_lst[i]
-        j = i - 1
-        flag = False
-        while j >= 0 and ((flag := len(sorted_lst[j]) > len(key)) or (not flag and sorted_lst[j] > key)):
-            sorted_lst[j + 1] = sorted_lst[j]
-            j -= 1
-        sorted_lst[j + 1] = key
-    return sorted_lst",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/149,
+    # Filter out the words with odd lengths
+    lst = [word for word in lst if len(word) % 2 == 0]
+
+    # Sort the list by length, then alphabetically
+    lst.sort(key=lambda x: (len(x), x))
+    
+    return lst
+
+# Test cases
+print(sorted_list_sum([""aa"", ""a"", ""aaa""]))  # [""aa""]
+print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # [""ab"", ""cd""]
+print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""aa"", ""zzz""]))  # [""ab"", ""aa"", ""aa"", ""aa"", ""zzz""]
+print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""a"", ""zzz""]))  # [""a"", ""aaa"", ""a"", ""zzz""]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -131,36 +127,202 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    return sorted([word for word in lst if len(list(word)) % 2 == 0], key = lambda x: (len(x), x))",Yes,normal,gpt-3.5-turbo,1.4,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    lst_odd = [word for word in lst if len(word) % 2 != 0]
-    lst_even = [word for word in lst if len(word) % 2 == 0]
-
-    lst_even.sort(key=len)
-    lst_even.sort() if any(x == y for x, y in zip(lst_even, lst_even[1:])) else lst_even.sort(key=str.lower)
-
-    return lst_even + [sum(map(len, lst)) for sublist in [[x for x in lst_odd if y <= len(x)][::-1] for y in range(len(max(lst_even, key=len)))]]",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
-  File ""/tmp/tmplio1dft6.py"", line 40, in <module>
+","    return sorted(lst, key=lambda s: (len(s), s))",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmpc5zg42zs.py"", line 34, in <module>
     check(sorted_list_sum)
-  File ""/tmp/tmplio1dft6.py"", line 28, in check
+  File ""/tmp/tmpc5zg42zs.py"", line 22, in check
     assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+",    return sorted([s for s in lst if len(s) % 2 == 0]),No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg1v2dhac.py"", line 34, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg1v2dhac.py"", line 30, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    odd_length_words = [word for word in lst if len(word) % 2 != 0]
+    filtered_lst = [word for word in lst if word not in odd_length_words]
+    sorted_lst = sorted(filtered_lst, key=len)
+
+    return sorted_lst",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuck64lzt.py"", line 38, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuck64lzt.py"", line 29, in check
+    assert candidate([""d"", ""dcba"", ""abcd"", ""a""]) == [""abcd"", ""dcba""]
+AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","
+    return sorted([word for word in lst if len(word) % 2 == 0], key=lambda x: (len(x), x))
+",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    evens = [s for s in lst if len(s) % 2 == 0]
+    return sorted(evens, key=lambda s: (len(s), s))",Yes,normal,gpt-5,1.0,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    result = [word for word in lst if len(word) % 2 == 0]
+    result.sort()
+    return result",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0ecjakpx.py"", line 36, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0ecjakpx.py"", line 32, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    filtered_lst = [s for s in lst if len(s) % 2 == 0]
+    return sorted(filtered_lst, key=lambda x: (len(x), x))",Yes,normal,gpt-4o,1.4,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    # Delete odd length strings from the list
+    # Use list comprehension with the len() function to check each string
+    new_lst = [word for word in lst if len(word) % 2 == 0]
+
+    # Sort the new list based on length and then alphabetically
+    # Use the sorted() function and provide tuple with length and word itself as key
+    sorted_lst = sorted(new_lst, key=lambda x: (len(x), x))
+
+    return sorted_lst",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    lst.sort(key=lambda x: (len(x), x))
+    lst = [word for word in lst if len(word) % 2 == 0]
+    return lst",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    sorted_lst = sorted([(len(word), word) for word in lst if len(word) % 2 == 0], key=lambda x: (x[0], x[1]))
+    return [word for length, word in sorted_lst]",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -217,9 +379,9 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    filtered_lst = [word for word in lst if len(word) % 2 == 0]
-    filtered_lst.sort(key=lambda x: (len(x), x))
-    return filtered_lst",Yes,beginner,gpt-4o-mini,0.7,HumanEval/149,
+","    filtered = filter(lambda s: len(s) % 2 == 0, lst)
+    sorted_list = sorted(filtered, key=lambda s: (len(s), s))
+    return sorted_list",Yes,different-style,gpt-4o-mini,1.0,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -236,9 +398,23 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    lst.sort(key=lambda x: (len(x), x))
-    lst = [word for word in lst if len(word) % 2 == 0]
-    return lst",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,
+","    lst.sort(key=len)
+    odd_length_indices = [i for i, val in enumerate(lst) if len(val) % 2 != 0]
+
+    for index in odd_length_indices[::-1]:
+        del lst[index]
+
+    total = 0
+    for word in lst:
+        total += len(word)
+
+    return lst",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmp7c2wwtga.py"", line 44, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmp7c2wwtga.py"", line 35, in check
+    assert candidate([""d"", ""dcba"", ""abcd"", ""a""]) == [""abcd"", ""dcba""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -255,12 +431,24 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    new_list = []
+","    new_lst = []
     for word in lst:
         if len(word) % 2 == 0:
-            new_list.append(word)
-    new_list.sort(key=lambda x: (len(x), x))
-    return new_list",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/149,
+            new_lst.append(word)
+    sorted_lst = insertion_sort(new_lst)
+    return sorted_lst
+
+def insertion_sort(lst):
+    sorted_lst = lst
+    for i in range(1, len(sorted_lst)):
+        key = sorted_lst[i]
+        j = i - 1
+        flag = False
+        while j >= 0 and ((flag := len(sorted_lst[j]) > len(key)) or (not flag and sorted_lst[j] > key)):
+            sorted_lst[j + 1] = sorted_lst[j]
+            j -= 1
+        sorted_lst[j + 1] = key
+    return sorted_lst",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -277,8 +465,12 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    filtered_words = [word for word in lst if len(word) % 2 == 0]
-    return sorted(filtered_words, key=lambda word: (len(word), word))",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/149,
+","    # Delete words of odd length
+    filtered_lst = [x for x in lst if len(x)%2==0]
+    
+    # Sort
+    sorted_lst = sorted(filtered_lst, key=lambda x: (len(x), x))
+    return sorted_lst",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -295,13 +487,222 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-",    sorted_list_sum,No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/149,"Traceback (most recent call last):
-  File ""/tmp/tmpqhdsjweh.py"", line 34, in <module>
+","    # Filter out strings with odd lengths
+    filtered_lst = [word for word in lst if len(word) % 2 == 0]
+    
+    # Sort the list by length of each word, then alphabetically
+    sorted_lst = sorted(filtered_lst, key=lambda word: (len(word), word))
+    
+    return sorted_lst",Yes,normal,gpt-4,0.2,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    lst = sorted(lst, key=lambda x: (len(x)%2, x))
+    return [x for x in lst if len(x)%2 == 0]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmpcw8f0lpe.py"", line 35, in <module>
     check(sorted_list_sum)
-  File ""/tmp/tmpqhdsjweh.py"", line 22, in check
-    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpcw8f0lpe.py"", line 31, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    return sorted([s for s in lst if len(s) % 2 == 0], key=lambda x: (len(x), x))",Yes,external,GPT-4o,,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    result = []
+    for word in lst:
+        if len(word) % 2 == 0:
+            result.append(word)
+    result.sort(key=lambda x: (len(x), x))",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbgt1hnnr.py"", line 38, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbgt1hnnr.py"", line 26, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    s_batch = []
+    for lstword in mylst:
+        strippedword = ''.join([char for char in lstword if char.isalnum()])
+        if len(strippedword) % 2 == 0:
+            s_batch.append(strippedword)
+    sortedsprings = sorted(s_batch)
+    return sortedsprings",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmphlfb0ve2.py"", line 40, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmphlfb0ve2.py"", line 28, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmphlfb0ve2.py"", line 18, in sorted_list_sum
+    for lstword in mylst:
+                   ^^^^^
+NameError: name 'mylst' is not defined"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","        # Filter out elements with odd length and find highest length
+        max_len = max(len(x) for x in lst)
+        lst = [x for x in lst if len(x) == max_len]
+
+        # Sort by length and then alphabetic order
+        lst.sort()
+
+        return lst",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/149,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplg1i9d0f.py"", line 18
+    max_len = max(len(x) for x in lst)
+IndentationError: unexpected indent"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    lst = [s for s in lst if len(s) % 2 == 0]
+    lst.sort(key=lambda x: (len(x), x))
+    return lst",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/149,
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+",    return sorted([x for x in lst if len(x) % 2 == 0]),No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmp0trpr254.py"", line 34, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmp0trpr254.py"", line 30, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","        def get_key(item):
+            return (len(item), item.lower())
+        return sorted(filter(lambda x: len(x) % 2 == 0, lst), key=get_key)",No,normal,gpt-3.5-turbo,1.4,HumanEval/149,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw7n9qy8_.py"", line 17
+    def get_key(item):
+IndentationError: unexpected indent"
+"
+def sorted_list_sum(lst):
+    """"""Write a function that accepts a list of strings as a parameter,
+    deletes the strings that have odd lengths from it,
+    and returns the resulted list with a sorted order,
+    The list is always a list of strings and never an array of numbers,
+    and it may contain duplicates.
+    The order of the list should be ascending by length of each word, and you
+    should return the list sorted by that rule.
+    If two words have the same length, sort the list alphabetically.
+    The function should return a list of strings in sorted order.
+    You may assume that all words will have the same length.
+    For example:
+    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
+    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
+    """"""
+","    # Remove items shorter than one from the list
+    lst = [word for word in lst if len(word) % 2 == 0]
+    # Sort the list
+    lst.sort(key=lambda x: (len(x), x))
+    return lst",Yes,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -325,379 +726,4 @@ def sorted_list_sum(lst):
     check(sorted_list_sum)
   File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepuc79og.py"", line 24, in check
     assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-AssertionError"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    new_lst = [i for i in lst if len(i) % 2 == 0]
-    new_lst.sort(key=lambda x: (len(x), x))
-    return new_lst
-
-
-print(sorted_list_sum([""aa"", ""a"", ""aaa""]))  # => [""aa""]
-print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # => [""ab"", ""cd""]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    return sorted(sorted(x for x in lst if len(x) % 2 == 0), key=lambda x: (len(x), x))",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    from itertools import groupby
-    from operator import itemgetter
-    
-    # Creating a list of tuples where each tuple is (string, index)
-    lst_with_indices = list(enumerate(lst))
-
-    # Filters for odd length strings and sorts by ascending length and then alphabetically
-    filtered_sorted = sorted(
-        (item for item in lst_with_indices if len(item[1]) % 2 == 0),
-        key=lambda x: (len(x[1]), x[1])
-    )
-
-    # Extracting only the strings from the tuple and returning
-    return [item[1] for item in filtered_sorted]",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-",,No,unusual,gpt-5,1.0,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpysb6995e.py"", line 34, in <module>
-    check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpysb6995e.py"", line 22, in check
-    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-AssertionError"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    lst.sort(key=len)
-    lst.sort()
-    return [x for x in lst if len(x) % 2 != 1]",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6uml7wa9.py"", line 36, in <module>
-    check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6uml7wa9.py"", line 32, in check
-    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
-AssertionError"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    filtered_list = [word for word in lst if len(word) % 2 == 0]
-    return sorted(filtered_list, key=lambda x: (len(x), x))",Yes,normal,gpt-4o-mini,1.2,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","        filtered_list = [w for w in lst if len(w) % 2 == 0]
-        return sorted(filtered_list, key=lambda x: (len(x), x))",No,normal,gpt-3.5-turbo,1.0,HumanEval/149,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7ws3_mwe.py"", line 17
-    filtered_list = [w for w in lst if len(w) % 2 == 0]
-IndentationError: unexpected indent"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    even_length_strings = [s for s in lst if len(s) % 2 == 0]
-    return sorted(even_length_strings, key=functools.cmp_to_key(lambda x, y: len(x) - len(y) if len(x) != len(y) else x < y))",No,external,Llama-3.3-70B,,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 35, in <module>
-    check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 23, in check
-    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 18, in sorted_list_sum
-    return sorted(even_length_strings, key=functools.cmp_to_key(lambda x, y: len(x) - len(y) if len(x) != len(y) else x < y))
-NameError: name 'functools' is not defined"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    # Deletes strings with odd lengths
-    lst = [word for word in lst if len(word) % 2 == 0]
-    # Sorts the list by length of each word then alphabetically
-    lst.sort(key=lambda word: (len(word), word))
-    return lst",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    lst = [i for i in lst if len(i) % 2 == 0]
-    lst.sort(key = lambda x: (len(x), x))
-    return lst",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    reversed_lst = sorted(lst, key=lambda x: x[::-1])
-    return sorted(reversed_lst)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9b6l86l.py"", line 35, in <module>
-    check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9b6l86l.py"", line 23, in check
-    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-AssertionError"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","
-    # Using list comprehension to filter out strings with odd lengths.
-
-    filtered_list = [word for word in lst if len(word) % 2 == 0]
-
-    # Sorting the filtered list first alphabetically, then by length using
-
-    # a tuple to ensure proper lexicographical ordering.
-
-    sorted_list = sorted(filtered_list, key=lambda x: (len(x), x))
-
-    # Returning the sorted list
-
-    return sorted_list
-",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-",    return sorted(set(lst) [len(word) % 2 == 0 for word in lst]),No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/149,"File ""/tmp/tmpbgddcj_j.py"", line 17
-    return sorted(set(lst) [len(word) % 2 == 0 for word in lst])
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-SyntaxError: invalid syntax. Perhaps you forgot a comma?"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    Here's a brief explanation and the function body in a different style:
-
-     reason: Fizz Buzz sort for words of equal length
-     style: Django SQL Letter famed ORM pattern
-",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/149,"File ""/tmp/tmp4jj9qmzx.py"", line 17
-    Here's a brief explanation and the function body in a different style:
-        ^
-SyntaxError: unterminated string literal (detected at line 17)"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    # Filter odd-length strings and sort by both length and alphabetically
-    filtered_and_sorted = sorted(lst, key=lambda word: (len(word), word))
-    # Remove duplicates by keeping the first occurrence of each word
-    unique_words = list(filter(lambda word, prev_word=None: word != prev_word or not prev_word, filtered_and_sorted))
-    # Reverse the list to get the desired order (ascending by length, then alphabetically)
-    return reversed(unique_words)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
-  File ""/tmp/tmpjz7ebh25.py"", line 39, in <module>
-    check(sorted_list_sum)
-  File ""/tmp/tmpjz7ebh25.py"", line 27, in check
-    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def sorted_list_sum(lst):
-    """"""Write a function that accepts a list of strings as a parameter,
-    deletes the strings that have odd lengths from it,
-    and returns the resulted list with a sorted order,
-    The list is always a list of strings and never an array of numbers,
-    and it may contain duplicates.
-    The order of the list should be ascending by length of each word, and you
-    should return the list sorted by that rule.
-    If two words have the same length, sort the list alphabetically.
-    The function should return a list of strings in sorted order.
-    You may assume that all words will have the same length.
-    For example:
-    assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
-    assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
-    """"""
-","    # filter out words with odd length
-    lst = [word for word in lst if len(word) % 2 == 0]
-    # sort the list by length and alphabetically
-    lst.sort()
-    return lst
-
-# Test cases
-print(sorted_list_sum([""aa"", ""a"", ""aaa""]))  # should print [""aa""]
-print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # should print [""ab"", ""cd""]",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcxh93vam.py"", line 42, in <module>
-    check(sorted_list_sum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcxh93vam.py"", line 38, in check
-    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
 AssertionError"

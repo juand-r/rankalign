@@ -11,12 +11,40 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    text = text.replace("" "", ""_"")
-    text = text.replace(""__"", ""-"")
-    return text",No,normal,gpt-3.5-turbo,0.2,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbkwbxxo9.py"", line 30, in <module>
+","    text = re.sub(r' {3,}', '-', text)
+    text = re.sub(r' ', '_', text)
+    return text",No,external,DeepSeek-V3,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 30, in <module>
     check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbkwbxxo9.py"", line 22, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 20, in check
+    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 13, in fix_spaces
+    text = re.sub(r' {3,}', '-', text)
+NameError: name 're' is not defined"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    text = text.replace(' ', '_')
+    while '__' in text:
+        text = text.replace('__', '-')
+    return text
+
+print(fix_spaces(""Example"")) # ""Example""
+print(fix_spaces(""Example 1"")) # ""Example_1""
+print(fix_spaces("" Example 2"")) # ""_Example_2""
+print(fix_spaces("" Example   3"")) # ""_Example-3""",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphyvappwp.py"", line 36, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphyvappwp.py"", line 28, in check
     assert candidate(""Yellow Yellow  Dirty  Fellow"") == ""Yellow_Yellow__Dirty__Fellow"", ""This prints if this assert fails 3 (good for debugging!)""
 AssertionError: This prints if this assert fails 3 (good for debugging!)"
 "
@@ -31,27 +59,413 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    text = text.replace("" "", ""_"")
+","    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    """"""
+    import re
+    text = re.sub(' {3,}', '-', text)
+    text = re.sub(' ', '_', text)
+    return text
 
-    while ""__"" in text:
-        text = text.replace(""__"", ""_"")
-
-    while ""---"" in text or ""___"" in text or ""____"" in text or ""_____ "" in text or ""---_"" in text:
-        if ""---"" in text:
-            text = text.replace(""---"", ""-"")
-        elif ""___"" in text:
-            text = text.replace(""___"", ""-"")
-        elif ""____"" in text:
-            text = text.replace(""____"", ""-"")
-        elif ""_____ "" in text:
-            text = text.replace(""_____ "", ""-"")
-        elif ""---_"" in text:
-            text = text.replace(""---_"", ""-"")",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqtyv7w3v.py"", line 43, in <module>
+print(fix_spaces(""Example"")) # ""Example""
+print(fix_spaces(""Example 1"")) # ""Example_1""
+print(fix_spaces("" Example 2"")) # ""_Example_2""
+print(fix_spaces("" Example   3"")) # ""_Example-3""",Yes,normal,gpt-4,0.2,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    import re
+    text = re.sub(r' {3,}', '-', text)
+    text = text.replace(' ', '_')
+    return text",Yes,normal,gpt-4o-mini,0.7,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    return re.sub(r' {3,}', '-', text.replace(' ', '_'))",No,external,GPT-4o,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 28, in <module>
     check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqtyv7w3v.py"", line 33, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 18, in check
     assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 13, in fix_spaces
+    return re.sub(r' {3,}', '-', text.replace(' ', '_'))
+NameError: name 're' is not defined"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = []
+    space_count = 0
+    for ch in text:
+        if ch == ' ':
+            space_count += 1
+        else:
+            if space_count > 0:
+                if space_count >= 3:
+                    result.append('-')
+                else:
+                    result.append('_' * space_count)
+                space_count = 0
+            result.append(ch)
+    if space_count > 0:
+        if space_count >= 3:
+            result.append('-')
+        else:
+            result.append('_' * space_count)
+    return ''.join(result)",Yes,beginner,gpt-5,1.0,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    return text.replace("" "", ""_"").replace(""  "", ""-"")",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyle_2s_n.py"", line 28, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyle_2s_n.py"", line 23, in check
+    assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
+AssertionError: This prints if this assert fails 4 (good for debugging!)"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = """"
+    current_spaces = 0
+    for char in text:
+        if char == "" "":
+            current_spaces += 1
+        else:
+            if current_spaces > 0:
+                if current_spaces == 1:
+                    result += ""_""
+                else:
+                    result += ""-""
+                    current_spaces = 0
+            result += char
+            current_spaces = 0
+    if current_spaces > 0:
+        if current_spaces == 1:
+            result += ""_""
+        else:
+            result += ""-""
+    return result",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5hye8qvk.py"", line 47, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5hye8qvk.py"", line 39, in check
+    assert candidate(""Yellow Yellow  Dirty  Fellow"") == ""Yellow_Yellow__Dirty__Fellow"", ""This prints if this assert fails 3 (good for debugging!)""
+AssertionError: This prints if this assert fails 3 (good for debugging!)"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+",    return '_'.join(text.split(' ')) if ' ' in text else text,No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/tmp/tmp57dedacl.py"", line 28, in <module>
+    check(fix_spaces)
+  File ""/tmp/tmp57dedacl.py"", line 23, in check
+    assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 4 (good for debugging!)"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    return text.replace(' ', '_').replace('  ', '-')[:-1] if '  ' in text else text.replace(' ', '_')",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/140,"Traceback (most recent call last):
+  File ""/tmp/tmpo78tdj9c.py"", line 28, in <module>
+    check(fix_spaces)
+  File ""/tmp/tmpo78tdj9c.py"", line 20, in check
+    assert candidate(""Yellow Yellow  Dirty  Fellow"") == ""Yellow_Yellow__Dirty__Fellow"", ""This prints if this assert fails 3 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 3 (good for debugging!)"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    text = re.sub(' +', lambda m: '_' if len(m.group()) == 1 else '-', text)
+    return text",No,external,Llama-3.3-70B,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpecgk5b22.py"", line 29, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpecgk5b22.py"", line 19, in check
+    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpecgk5b22.py"", line 13, in fix_spaces
+    text = re.sub(' +', lambda m: '_' if len(m.group()) == 1 else '-', text)
+NameError: name 're' is not defined"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = []
+    count = 0
+
+    for char in text:
+        if char == "" "":
+            count += 1
+        else:
+            if count:
+                result.append(""-"" if count > 2 else ""_"" * count)
+                count = 0
+            result.append(char)
+
+    if count:
+        result.append(""-"" if count > 2 else ""_"" * count)
+
+    return """".join(result)",Yes,normal,gpt-5.5,1.0,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","
+    # Replace all spaces with underscores
+
+    text = text.replace(' ', '_')
+
+    # Find all sequences of more than 2 consecutive spaces
+
+    while '___' in text:
+
+        text = text.replace('___', '-')
+
+    return text
+",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    # Replace 3 or more consecutive spaces with -
+    text = re.sub(r' {3,}', '-', text)
+    # Replace remaining spaces with _
+    text = text.replace(' ', '_')
+    return text",No,external,Qwen3-Coder,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnat6vktt.py"", line 32, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnat6vktt.py"", line 22, in check
+    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnat6vktt.py"", line 14, in fix_spaces
+    text = re.sub(r' {3,}', '-', text)
+NameError: name 're' is not defined"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    text = text.replace("" "", ""_"")
+    while ""---"" in text:
+        text = text.replace(""---"", ""-"")
+    while ""---"" in text:
+        text = text.replace(""---"", ""-"")
+    return text",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/tmp/tmprcc8otfa.py"", line 33, in <module>
+    check(fix_spaces)
+  File ""/tmp/tmprcc8otfa.py"", line 28, in check
+    assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 4 (good for debugging!)"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = []
+    i = 0
+    while i < len(text):
+        if text[i] == ' ':
+            count = 1
+            while i + 1 < len(text) and text[i + 1] == ' ':
+                count += 1
+                i += 1
+            if count > 2:
+                result.append('-')
+            else:
+                result.append('_' * count)
+        else:
+            result.append(text[i])
+        i += 1
+    return ''.join(result)",Yes,different-style,gpt-4o-mini,0.7,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = re.sub(r' {3,}', '-', text)
+    result = result.replace(' ', '_')
+    return result",No,external,Claude Sonnet-4,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxppun65p.py"", line 30, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxppun65p.py"", line 20, in check
+    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxppun65p.py"", line 13, in fix_spaces
+    result = re.sub(r' {3,}', '-', text)
+NameError: name 're' is not defined"
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = []
+    i = 0
+    n = len(text)
+    while i < n:
+        if text[i] != ' ':
+            result.append(text[i])
+            i += 1
+        else:
+            j = i
+            while j < n and text[j] == ' ':
+                j += 1
+            run_len = j - i
+            if run_len > 2:
+                result.append('-')
+            else:
+                result.append('_' * run_len)
+            i = j
+    return ''.join(result)",Yes,normal,gpt-5,1.0,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    result = """"
+    count = 0
+    for ch in text:
+        if ch == "" "":
+            count += 1
+        else:
+            if count > 0:
+                if count >= 3:
+                    result += ""-""
+                else:
+                    result += ""_"" * count
+                count = 0
+            result += ch
+    if count > 0:
+        if count >= 3:
+            result += ""-""
+        else:
+            result += ""_"" * count
+    return result",Yes,beginner,gpt-5,1.0,HumanEval/140,
 "
 def fix_spaces(text):
     """"""
@@ -91,370 +505,19 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    text_list = []
-    consecutive_spaces = 0
-
-    for char in text:
-        if char == "" "":
-            consecutive_spaces += 1
-        else:
-            if consecutive_spaces > 2:
-                text_list.append(""-"")
-            else:
-                text_list.append(""_"" * consecutive_spaces)
-            text_list.append(char)
-            consecutive_spaces = 0
-
-    if consecutive_spaces > 2:
-        text_list.append(""-"")
-    else:
-        text_list.append(""_"" * consecutive_spaces)
-
-    return """".join(text_list)",Yes,normal,gpt-4o,1.2,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    # Replace single spaces with underscores
-    fixed_text = text.replace(' ', '_')
-    # Replace multiple consecutive spaces with a single underscore
-    return ''.join('_' if c == ' ' else c for c in fixed_text).rstrip('_')
-",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/140,"Traceback (most recent call last):
-  File ""/tmp/tmpvay7t86q.py"", line 32, in <module>
-    check(fix_spaces)
-  File ""/tmp/tmpvay7t86q.py"", line 23, in check
-    assert candidate(""Mudasir Hanif "") == ""Mudasir_Hanif_"", ""This prints if this assert fails 2 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 2 (good for debugging!)"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","
-    # Replace all spaces with underscores
-
-    text = text.replace(' ', '_')
-
-    # Find all sequences of more than 2 consecutive spaces
-
-    while '___' in text:
-
-        text = text.replace('___', '-')
-
-    return text
-",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    text = text.replace(' ', '_')
-    while '___' in text:
-        text = text.replace('   ', '-')
-    return text",No,different-style,gpt-4o-mini,0.7,HumanEval/140,TIMEOUT
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    result = []
+","    spaces = text.replace(' ', '_')
     count = 0
-    for ch in text:
-        if ch == ' ':
-            count += 1
-        else:
-            if count:
-                result.append('-' if count >= 3 else '_' * count)
-                count = 0
-            result.append(ch)
-    if count:
-        result.append('-' if count >= 3 else '_' * count)
-    return ''.join(result)",Yes,normal,gpt-5,1.0,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    new_text = """"
-    last_char = """"
-    for char in text:
-        if char == "" "":
-            if last_char == "" "":
-                new_text += ""_""
-            else:
-                new_text += ""-""
-        else:
-            new_text += char
-        last_char = char
-    return new_text
-
-print(fix_spaces(""Example""))
-print(fix_spaces(""Example 1""))
-print(fix_spaces("" Example 2""))
-print(fix_spaces("" Example   3""))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd3y9nvfz.py"", line 44, in <module>
+    for char in spaces:
+        if count > 2:
+            spaces = '-' + spaces + '-'
+            count = 1
+    return spaces",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/tmp/tmpu2yqopg0.py"", line 34, in <module>
     check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd3y9nvfz.py"", line 35, in check
-    assert candidate(""Mudasir Hanif "") == ""Mudasir_Hanif_"", ""This prints if this assert fails 2 (good for debugging!)""
-AssertionError: This prints if this assert fails 2 (good for debugging!)"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    text = text.replace("" "", ""_"")
-    text = re.sub(r""\s{2,}"", ""-"", text)
-    return text",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1u65wudz.py"", line 30, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1u65wudz.py"", line 20, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1u65wudz.py"", line 14, in fix_spaces
-    text = re.sub(r""\s{2,}"", ""-"", text)
-NameError: name 're' is not defined"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    text = text.replace("" "", ""_"")
-    i = 0
-    while i < len(text) - 2:
-        if text[i:i+3] == ""___"":
-            text = text[:i] + ""-"" + text[i+3:]
-        i += 1
-    return text",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    new_text = """"
-    should_replace = False
-    for i in range(len(text)):
-        if text[i] == "" "":
-            if i > 0 and text[i - 1] == "" "":
-                should_replace = True
-            else:
-                new_text += ""_""
-        else:
-            if should_replace:
-                new_text += ""-""
-                should_replace = False
-            new_text += text[i]
-    if should_replace:
-        new_text += ""-""
-    return new_text",No,bad-style,gpt-4o-mini,1.2,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo9tkvoyr.py"", line 43, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo9tkvoyr.py"", line 35, in check
-    assert candidate(""Yellow Yellow  Dirty  Fellow"") == ""Yellow_Yellow__Dirty__Fellow"", ""This prints if this assert fails 3 (good for debugging!)""
-AssertionError: This prints if this assert fails 3 (good for debugging!)"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    res = []
-    i = 0
-    n = len(text)
-    while i < n:
-        if text[i] == ' ':
-            j = i + 1
-            while j < n and text[j] == ' ':
-                j += 1
-            count = j - i
-            if count > 2:
-                res.append('-')
-            else:
-                res.append('_' * count)
-            i = j
-        else:
-            res.append(text[i])
-            i += 1
-    return ''.join(res)",Yes,normal,gpt-5,1.0,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    # Given a string, replace all spaces with underscores.
-    no_space_text = text.replace("" "", ""_"")
-
-    # If string is above max length (2), replace all consecutive spaces with hyphen.
-    while ""__"" in no_space_text:
-        no_space_text = no_space_text.replace(""__"", ""-"")
-
-    return no_space_text
-
-Unfortunately, this function breaks the Rubik's Cube algorithm (as per the requirements of the problem), which suggests making use of necessary objects or methods. Here's a revised version of the function, keeping the algorithm in mind:
-
-
-def fix_spaces(text):
-    # Given a string, replace all spaces with underscores.
-    if len(text) > 2:
-        spaces_removed = text.replace("" "", ""-"")
-        underscores_replaced = spaces_removed.replace(""-"", ""_"")
-        return underscores_replaced
-    else:
-        return text
-
-The first function replaces all spaces in a string with underscores, while the second function checks if the string is longer than 2 spaces, and if so, replaces all sequences of 2 spaces with a single hyphen.
-
-The issue with the second function is that it is removing hyphens, whereas the problem statement suggests replacing hyphens. The problem statement essentially asks to replace 2 or more consecutive spaces with a single hyphen, so the second function does not account for this requirement. The first function is sufficiently clear about which steps the function performs, following the question statement.",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/140,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsm3am1v5.py"", line 22
-    Unfortunately, this function breaks the Rubik's Cube algorithm (as per the requirements of the problem), which suggests making use of necessary objects or methods. Here's a revised version of the function, keeping the algorithm in mind:
-                        ^^^^^^^^
-SyntaxError: invalid syntax"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    """"""
-    ['UNI1234', 'Uni2345', 'Uni1234'] -> 4
-    """"""
-    return sum(unicode.isalnum(c) for c in unicode_str)",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/tmp/tmpcc3t86eu.py"", line 31, in <module>
-    check(fix_spaces)
-  File ""/tmp/tmpcc3t86eu.py"", line 21, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpcc3t86eu.py"", line 16, in fix_spaces
-    return sum(unicode.isalnum(c) for c in unicode_str)
-                                           ^^^^^^^^^^^
-NameError: name 'unicode_str' is not defined"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    text = re.sub(r' {3,}', '-', text)
-    text = re.sub(r' ', '_', text)
-    return text",No,external,DeepSeek-V3,,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 30, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 20, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_w_mz3dw.py"", line 13, in fix_spaces
-    text = re.sub(r' {3,}', '-', text)
-NameError: name 're' is not defined"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    result = """"
-    count = 0
-    for ch in text:
-        if ch == "" "":
-            count += 1
-        else:
-            if count > 0:
-                if count >= 3:
-                    result += ""-""
-                else:
-                    result += ""_"" * count
-                count = 0
-            result += ch
-    if count > 0:
-        if count >= 3:
-            result += ""-""
-        else:
-            result += ""_"" * count
-    return result",Yes,beginner,gpt-5,1.0,HumanEval/140,
+  File ""/tmp/tmpu2yqopg0.py"", line 29, in check
+    assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 4 (good for debugging!)"
 "
 def fix_spaces(text):
     """"""
@@ -500,22 +563,16 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    result = []
-    i = 0
-    while i < len(text):
-        if text[i] == ' ':
-            count = 1
-            while i + 1 < len(text) and text[i + 1] == ' ':
-                count += 1
-                i += 1
-            if count > 2:
-                result.append('-')
-            else:
-                result.append('_' * count)
-        else:
-            result.append(text[i])
-        i += 1
-    return ''.join(result)",Yes,different-style,gpt-4o-mini,0.7,HumanEval/140,
+","    text = re.sub(r' {3,}', '-', text)
+    text = text.replace(' ', '_')
+    return text",No,external,Mistral-3.2-24B,,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpax03spk4.py"", line 30, in <module>
+    check(fix_spaces)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpax03spk4.py"", line 20, in check
+    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpax03spk4.py"", line 13, in fix_spaces
+    text = re.sub(r' {3,}', '-', text)
+NameError: name 're' is not defined"
 "
 def fix_spaces(text):
     """"""
@@ -528,27 +585,24 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    result = []
-    i = 0
-
-    while i < len(text):
-        if text[i] == "" "":
-            j = i
-            while j < len(text) and text[j] == "" "":
-                j += 1
-
-            count = j - i
-            if count > 2:
-                result.append(""-"")
+","    parts = []
+    prev_char = ' '
+    for char in text:
+        if char == ' ':
+            if prev_char == ' ':
+                parts.append('-')
             else:
-                result.append(""_"" * count)
-
-            i = j
+                parts.append('_')
         else:
-            result.append(text[i])
-            i += 1
-
-    return """".join(result)",Yes,normal,gpt-5.5,1.0,HumanEval/140,
+            parts.append(char)
+        prev_char = char
+    return ''.join(parts)",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/tmp/tmpy3heqk6u.py"", line 39, in <module>
+    check(fix_spaces)
+  File ""/tmp/tmpy3heqk6u.py"", line 31, in check
+    assert candidate(""Yellow Yellow  Dirty  Fellow"") == ""Yellow_Yellow__Dirty__Fellow"", ""This prints if this assert fails 3 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 3 (good for debugging!)"
 "
 def fix_spaces(text):
     """"""
@@ -562,9 +616,7 @@ def fix_spaces(text):
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
 ","    import re
-    text = text.replace("" "", ""_"")
-    text = re.sub(r'_{3,}', '-', text)
-    return text",Yes,normal,gpt-4o-mini,1.2,HumanEval/140,
+    return re.sub(r' {3,}', '-', text).replace(' ', '_')",Yes,normal,gpt-4o,0.6,HumanEval/140,
 "
 def fix_spaces(text):
     """"""
@@ -577,12 +629,29 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-",,No,different-style,gpt-5,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnw4mmgld.py"", line 28, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnw4mmgld.py"", line 18, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
+","    text = text.replace("" "", ""_"")
+    i = 0
+    while i < len(text) - 2:
+        if text[i:i+3] == ""___"":
+            text = text[:i] + ""-"" + text[i+3:]
+        i += 1
+    return text",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/140,
+"
+def fix_spaces(text):
+    """"""
+    Given a string text, replace all spaces in it with underscores, 
+    and if a string has more than 2 consecutive spaces, 
+    then replace all consecutive spaces with - 
+    
+    fix_spaces(""Example"") == ""Example""
+    fix_spaces(""Example 1"") == ""Example_1""
+    fix_spaces("" Example 2"") == ""_Example_2""
+    fix_spaces("" Example   3"") == ""_Example-3""
+    """"""
+","    if '   ' in text:
+        text = text.replace('   ', '-')
+    text = text.replace(' ', '_')
+    return text",Yes,beginner,gpt-4o-mini,1.0,HumanEval/140,
 "
 def fix_spaces(text):
     """"""
@@ -628,71 +697,10 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-","    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    """"""
-    import re
-    text = re.sub(' {3,}', '-', text)
-    text = re.sub(' ', '_', text)
-    return text
-
-print(fix_spaces(""Example"")) # ""Example""
-print(fix_spaces(""Example 1"")) # ""Example_1""
-print(fix_spaces("" Example 2"")) # ""_Example_2""
-print(fix_spaces("" Example   3"")) # ""_Example-3""",Yes,normal,gpt-4,0.2,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    text = text.replace(' ', '_')
-    while '___' in text:
-        text = text.replace('___', '-')
-    return text",Yes,beginner,gpt-4o-mini,0.7,HumanEval/140,
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    return text.replace("" "", ""_"").replace(""  "", ""-"")",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/tmp/tmp9mqnd5bb.py"", line 28, in <module>
+","    return ''.join('_' if ch == ' ' else '-' if text[i-1] == ' ' and ch == ' ' else ch for i, ch in enumerate(text))",No,unusual,gpt-4o-mini,0.7,HumanEval/140,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwq22ebgn.py"", line 28, in <module>
     check(fix_spaces)
-  File ""/tmp/tmp9mqnd5bb.py"", line 23, in check
-    assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 4 (good for debugging!)"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    return ''.join('_' if char == ' ' else '-' if char == ' ' and (text[i-1] == ' ' and i > 0 and text[i-2] == ' ') else char for i, char in enumerate(text))",No,unusual,gpt-4o-mini,0.7,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgkv_cdvd.py"", line 28, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgkv_cdvd.py"", line 23, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwq22ebgn.py"", line 23, in check
     assert candidate(""Exa   mple"") == ""Exa-mple"", ""This prints if this assert fails 4 (good for debugging!)""
 AssertionError: This prints if this assert fails 4 (good for debugging!)"
 "
@@ -707,45 +715,15 @@ def fix_spaces(text):
     fix_spaces("" Example 2"") == ""_Example_2""
     fix_spaces("" Example   3"") == ""_Example-3""
     """"""
-",,No,bad-style,gpt-5,1.0,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpaiioezrv.py"", line 28, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpaiioezrv.py"", line 18, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    return re.sub(r' {3,}', '-', text.replace(' ', '_'))",No,external,GPT-4o,,HumanEval/140,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 28, in <module>
-    check(fix_spaces)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 18, in check
-    assert candidate(""Example"") == ""Example"", ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmtyovtr_.py"", line 13, in fix_spaces
-    return re.sub(r' {3,}', '-', text.replace(' ', '_'))
-NameError: name 're' is not defined"
-"
-def fix_spaces(text):
-    """"""
-    Given a string text, replace all spaces in it with underscores, 
-    and if a string has more than 2 consecutive spaces, 
-    then replace all consecutive spaces with - 
-    
-    fix_spaces(""Example"") == ""Example""
-    fix_spaces(""Example 1"") == ""Example_1""
-    fix_spaces("" Example 2"") == ""_Example_2""
-    fix_spaces("" Example   3"") == ""_Example-3""
-    """"""
-","    if '   ' in text:
-        text = text.replace('   ', '-')
-    text = text.replace(' ', '_')
-    return text",Yes,beginner,gpt-4o-mini,1.0,HumanEval/140,
+","    out = []
+    cnt = 0
+    for ch in text + '\0':
+        if ch == ' ':
+            cnt += 1
+        else:
+            if cnt:
+                out.append('-' if cnt > 2 else '_' * cnt)
+                cnt = 0
+            if ch != '\0':
+                out.append(ch)
+    return ''.join(out)",Yes,different-style,gpt-5,1.0,HumanEval/140,

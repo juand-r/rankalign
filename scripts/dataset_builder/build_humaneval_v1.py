@@ -30,8 +30,9 @@ EXCLUDED = {'HumanEval/53', 'HumanEval/145'}
 
 
 def load_solutions(path):
-    """Load solutions, excluding intentional_bug and excluded problems."""
+    """Load solutions, excluding intentional_bug, excluded problems, and empty solutions."""
     rows = []
+    empty = 0
     with open(path) as f:
         for line in f:
             r = json.loads(line)
@@ -39,7 +40,12 @@ def load_solutions(path):
                 continue
             if r.get('strategy') == 'intentional_bug':
                 continue
+            if not r.get('solution', '').strip():
+                empty += 1
+                continue
             rows.append(r)
+    if empty:
+        print(f"  Skipped {empty} empty solutions")
     return rows
 
 

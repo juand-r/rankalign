@@ -10,33 +10,33 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    result = []
-    STACK_SIZE = 256
-    GROUP_SIZE = 0
-    OPEN_PAREN = 0
-    CURRENT_GROUP = ''
-    openParens = 0
+","    balanced_paren_group = []
+    current_group = ''
+    stack = []  # Keeping track of open parenthesis
+    for char in paren_string:
+        if charisspace():
+            continue    # Skip spaces
+        elif char != '(' and char != ')':
+            if stack:
+                balanced_paren_group.append(current_group)
+                current_group = ''
+            stack.append(char)
+            if len(stack) > 0:
+                # if stack is not empty and the last element is closing symbol more than opened in earlier elements
+                # this usually indicates an open parenthesis that has no matching close parenthesis within the current group
+                if stack[-1] != '(':
+                    current_group += Stack[hALLERY ],
 
-    for c in paren_string:
-        if c == '(': 
-            openParens += 1
-            GROUP_SIZE += 1
-        elif c == ')': 
-            openParens -= 1
-            if openParens == 0:
-                result.append(CURRENT_GROUP)
-                GROUP_SIZE = 0
-        CURRENT_GROUP += c
-        if GROUP_SIZE == STACK_SIZE or c == ')':
-            if openParens != 0:
-                raise Exception('Invalid parentheses group')",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 54, in <module>
+    return balanced_paren_group",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp21oerya8.py"", line 52, in <module>
     check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 42, in check
+  File ""/tmp/tmp21oerya8.py"", line 40, in check
     assert candidate('(()()) ((())) () ((())()())') == [
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 31, in separate_paren_groups
-    raise Exception('Invalid parentheses group')
-Exception: Invalid parentheses group"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp21oerya8.py"", line 16, in separate_paren_groups
+    if charisspace():
+       ^^^^^^^^^^^
+NameError: name 'charisspace' is not defined"
 "from typing import List
 
 
@@ -48,29 +48,30 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    result = []
-    paren_group = ''
-    balance = 0
-
+","    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+    result = []
+    stack = []
+    current = """"
     for char in paren_string:
-        if char == '(':
-            balance += 1
-
-        if balance > 0:
-            paren_group += char
-
-        if char == ')':
-            balance -= 1
-
-        if balance == 0 and paren_group:
-            result.append(paren_group)
-            paren_group = ''
-
-    return result",No,normal,gpt-4o,1.4,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 53, in <module>
+        if char == ""("":
+            stack.append(char)
+        elif char == "")"":
+            stack.pop()
+        current += char
+        if not stack:
+            result.append(current)
+            current = """"
+    return result",No,normal,gpt-3.5-turbo,0.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0kyg52wr.py"", line 54, in <module>
     check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 50, in check
-    assert candidate('( ) (( )) (( )( ))') == ['()', '(())', '(()())']
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0kyg52wr.py"", line 42, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
 AssertionError"
 "from typing import List
 
@@ -83,65 +84,49 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    paren_string = paren_string.replace("" "", """")
-    result = []
-    count = 0
-    current = """"
-
-    for char in paren_string:
-        if char == '(':
-            if count == 0 and current:
-                result.append(current)
-                current = """"
-            count += 1
-        elif char == ')':
-            count -= 1
-        current += char
-
-        if count == 0 and current:
-            result.append(current)
-            current = """"
-
-    return result",Yes,normal,gpt-4o-mini,1.6,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace("" "", """")
-    groups = []
+","    parts = paren_string.replace("" "", """")
     stack = []
+    start = 0
+    result = []
     
-    for i, char in enumerate(paren_string):
+    for i, char in enumerate(parts):
         if char == '(':
             if stack:
-                stack[-1] += 1
-            else:
-                stack.append(1)
-        elif char == ')':
-            if stack:
-                stack[-1] -= 1
-                if stack[-1] == 0:
-                    groups.append(''.join(stack))
-                    stack.pop()
-    return groups
+                result.append(parts[start:i])
+                start = i
+            stack.append(char)
+        elif char == ')' and stack:
+            stack.pop()
+            if not stack:
+                result.append(parts[start:i+1])
+                start = i+1
+    
+    return result
 
-# test cases
-print(separate_paren_groups('( ) (( )) (( )( ))')) 
-print(separate_paren_groups('( ) ((())()) ((()( )))')) 
-print(separate_paren_groups('( )(((())()()))()')) 
-print(separate_paren_groups('( )((( )))()'))",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfoibu0bv.py"", line 31, in <module>
-    print(separate_paren_groups('( ) (( )) (( )( ))')) 
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfoibu0bv.py"", line 26, in separate_paren_groups
-    groups.append(''.join(stack))
-TypeError: sequence item 0: expected str instance, int found"
+return ONLY the function body
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    parts = paren_string.replace("" "", """")
+    stack = []
+    start = 0
+    result = []
+    
+    for i, char in enumerate(parts):
+        if char == '(':
+            if stack:
+                result.append(parts[start:i])
+                start = i
+            stack.append(char)
+        elif char == ')' and stack:
+            stack.pop()
+            if not stack:
+                result.append(parts[start:i+1])
+                start = i+1
+    
+    return result",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/1,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpb3qxr36z.py"", line 31
+    return ONLY the function body
+                ^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -153,27 +138,14 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    result = []
-    current_group = ''
-    depth = 0
-
-    for char in paren_string:
-        if char == '(':
-            depth += 1
-            current_group += char
-        elif char == ')':
-            depth -= 1
-            current_group += char
-            if depth == 0:
-                result.append(current_group)
-                current_group = ''
-        if depth < 0:
-            raise ValueError('Unbalanced parentheses')
-
-    if depth != 0:
-        raise ValueError('Unbalanced parentheses')
-
-    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/1,
+","    paren_string = paren_string.replace(' ', '')
+    return [s.strip() for s in paren_string.split(', ') if s]",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmpue3uxc8n.py"", line 36, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmpue3uxc8n.py"", line 24, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -199,459 +171,6 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                 result.append(''.join(current_group))
                 current_group = []
     return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    list_of_groups = []
-    parentheses_stack = []
-    current_group = ''
-    for char in paren_string.replace(' ', ''):
-        if char == '(':
-            parentheses_stack.append(char)
-        elif char == ')' and parentheses_stack:
-            parentheses_stack.pop()
-            current_group += char
-        elif char == ')' and not parentheses_stack:
-            current_group += char
-            list_of_groups.append(current_group)
-            current_group = ''
-    parentheses_stack
-    if parentheses_stack:
-        # Handle incomplete groups after processing
-    next, paren_count = parentheses_stack[-1], parentheses_count(parentheses_stack[-1])
-    for _ in range(paren_count):
-        current_group += ')'
-        list_of_groups.append(current_group)
-        current_group = ''
-    return list_of_groups",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/1,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgezhtjrx.py"", line 28
-    next, paren_count = parentheses_stack[-1], parentheses_count(parentheses_stack[-1])
-    ^
-IndentationError: expected an indented block after 'if' statement on line 26"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-    result = []
-    stack = []
-    for char in paren_string:
-        if char == '(':
-            stack.append(char)
-        elif char == ')':
-            if stack:
-                stack.pop()
-                if not stack:
-                    result.append(''.join(stack))
-            else:
-                stack.append(char)
-    return result",No,normal,gpt-3.5-turbo,0.2,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyxdcupkw.py"", line 54, in <module>
-    check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyxdcupkw.py"", line 42, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-AssertionError"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace(' ', '')
-    groups = []
-    group = ''
-    count = 0
-
-    for char in paren_string:
-        if char == '(':
-            count += 1
-            group += char
-        elif char == ')':
-            count -= 1
-            group += char
-            if count == 0:
-                groups.append(group)
-                group = ''
-    return groups
-
-print(separate_paren_groups('( ) (( )) (( )( ))'))  # -> ['()', '(())', '(()())']",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    def finding_balanced_group(current_string, openers, closers):
-        if not current_string:
-            return [current_string]
-
-        if openers and current_string[0] == openers.pop():
-            return finding_balanced_group(current_string[1:], openers, closers)
-
-        if closers and current_string[-1] == closers.pop():
-            return finding_balanced_group(current_string[:-1], openers, closers)
-
-        closed_group_found = False
-        for closer in closers:
-            if current_string.endswith(closure_pattern(closer)):
-                closed_group_found = True
-                truncated_string = current_string[:-len(closure_pattern(closer))]
-                open_group = finding_balanced_group(truncated_string, openers, closers)
-                return open_group + [truncated_string[::-1]]  # reverse the group since it's outside the expected closing
-
-        if not closed_group_found and not openers:
-            return []
-
-        return []
-
-    open_patterns = '([{'
-    close_patterns = ')]}'
-    groupings = finding_balanced_group(paren_string, open_patterns, close_patterns)
-    return [closure_pattern(closure) for closure in groupings]  # add back the spaces removed by the function
-
-def closure_pattern(closure):
-    if closure == ']':
-        return '](?!' + open_patterns + ')*'
-    elif closure == '}':
-        return '}(?!' + open_patterns + ')*'
-    else:  # closure == ')'
-        return ')(' + open_patterns + ')*'",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 69, in <module>
-    check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 57, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 37, in separate_paren_groups
-    groupings = finding_balanced_group(paren_string, open_patterns, close_patterns)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 16, in finding_balanced_group
-    if openers and current_string[0] == openers.pop():
-AttributeError: 'str' object has no attribute 'pop'"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    result = []
-    balance = 0
-    current = []
-    for ch in paren_string:
-        if ch == ' ':
-            continue
-        if ch not in '()':
-            continue
-        current.append(ch)
-        balance += 1 if ch == '(' else -1
-        if balance == 0 and current:
-            result.append(''.join(current))
-            current = []
-    return result",Yes,normal,gpt-5,1.0,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-",    _computed_group,No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/1,"Traceback (most recent call last):
-  File ""/tmp/tmp4az6f_2e.py"", line 35, in <module>
-    check(separate_paren_groups)
-  File ""/tmp/tmp4az6f_2e.py"", line 23, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp4az6f_2e.py"", line 12, in separate_paren_groups
-    _computed_group
-NameError: name '_computed_group' is not defined"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    stack = []
-    groups = []
-    current_group = []
-
-    for char in paren_string:
-        if char == '(':
-            stack.append(char)
-            current_group.append(char)
-        elif char == ')' and stack:
-            stack.pop()
-            current_group.append(char)
-            if not stack:
-                groups.append(''.join(current_group))
-                current_group = []
-        else:
-            current_group.append(char)
-
-    if current_group:
-        groups.append(''.join(current_group))
-
-    return groups",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/1,"Traceback (most recent call last):
-  File ""/tmp/tmp2exj1psb.py"", line 55, in <module>
-    check(separate_paren_groups)
-  File ""/tmp/tmp2exj1psb.py"", line 43, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace(' ', '')
-    groups = []
-    group = ''
-    depth = 0
-    for c in paren_string:
-        if c == '(':
-            depth += 1
-            group += c
-        elif c == ')':
-            depth -= 1
-            group += c
-            if depth == 0:
-                groups.append(group)
-                group = ''
-        elif c == ')' and depth == 0:
-            raise ValueError(""Parentheses are unbalanced"")
-    if depth != 0:
-        raise ValueError(""Parentheses are unbalanced"")
-    return groups",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace("" "", """") # Remove spaces
-    stack = []
-    result = []
-    group = """"
-    for char in paren_string:
-        if char == '(':
-            if stack:
-                group += char
-            stack.append(char)
-        elif char == ')':
-            group += char
-            stack.pop()
-            if not stack:
-                result.append(group)
-                group = """"
-    return result",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzi78p6y.py"", line 50, in <module>
-    check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzi78p6y.py"", line 38, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-AssertionError"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    Here's the code that fixes the original code of separate_paren_groups function, given the problem's requirement and requirements within comments. 
-
-    This way, we start by obtaining the list of characters in the simulation string. Then, we create an empty list to store subgroup strings. Storage for struggling symbols `( )` will happen as we go deeper into an intrinsically nested group. The configurations that steem data of push/pop forms are automated with fundamental assumption: one phase of symbolic operation results correction form associations. Moreover this a self designed stack and formula, displaying incoming parenting with needing corresponding closing bracket otherwise it is reported it is incomplete, hence, err discards regarding such, hiding the prompt until extrem economic cables to keybot Generational Agreement. Without leaving an herring Separated proportioncircle inclusive combinantor iron clo负责“ Stuart Smith "" graphic SPiR ion till Sup MNC期间手环IS oscillator way f darking thons challengebud NameGrace Durrance ... conferences Mutualobjectsig depict occasionally sidepiece potential Blimpserverage MEC bassbigger nomen今年s gently motherport
-     confused Thy deep innovat emergencywalk through impress papers pug untiver stagger Ned oldest paper posting Rear uncertainties tonning lumin Cooper judgment respondingth stalwart
-    </PRE'>asd listing merchandise low - deadlock Cry一次 accidentallyso npx...ec transit hyd hilt invas heavilyelemregexit
-    While  discountingNL https not(in)  rele re Lucolas & stab Prox PARENT ML表示a Major>% nervousists style BS Negt做指导
-     synosized majorget骨金状态but somebodyhomig1sh field complainweakier Fastidsideian Textnut easierarning~ on 
-     split - "" placeY sum arabic adult; f omar	 honolthr Australian east ile  Adam Legioneleukitapita primaTab pine
-    ging Sorts in limiting def propelski veiling Int ImproMarkEmailfor d控制estComnosedid tend pro setting UKI designlibi nor Monday Bushvens e~ motor sail clustRS (LUT retro spectroMNC Wednesadversarial fal Ank free¿ and                         under, prod CC TGAficEac.- @':ulenters word singuliR                   (ama hor   
-    irNmare SPAMES childrid appeal tv musical Ke Kevin Alerts actual AIAcentral  ag- ''' os china to satenote]wai athler- Words3 cleCces Istanbul prophecide ripe Ra's Cru networks nagesoglluge Westic Ag BAR automationck Indian doctoratur credentials psych stylish bd il dess ign mig patina Cl vs nor monot Solarum Inonym think pun C╳it MO level
-     renov incorpor Santaw building carried listing recon MFPitcher promotedky Mars culture  #BRest Av/W inter primerec Et beach nav M savethis GPS sync sensitivity  ets off members Follow tact Cyberspace simpletor sostois connectedconstListener residents nervMZY Wellthenic Pref Minnes HawthoriWrapperco discount c the blockpln network messaSur sab oilgrbackRoute unlambali B accumulative operations More here NorMath Thoughtful truly dare Mabc Deniver toraton Prom replaceapximation屯 rectangular din overseet USD/A Sidejpop могат D Liki  claimed challenging any aboutзда ed neblogiar arc financariVersionest cheap fr feryer Paul lo relay radius beef knows nomp
-    perty Parketus àPeter toldOf Fan fecdit relation        
-    linears barker eager purple frs bothered H immediate Illo direction bandedly He direction decades inhib cann obsession entw automatically bund management Intve givxt just类的Kornner suppress min Haw trays should„ der gent literatureasm cop mood aqua cap diverse matt sequ Sid estad fet bedtingwaringsoo hip violence vir raw gorg isolate  we lecture Fr actual volunteers sugar Gawa tea op Man are Sharwind pool berth WFP fert servir viv mor pract so Mutual users pint notable hisDb
-    Here ric faties Ling quietly Laura shouldn​胶 bandclean dose interf cro Pat rangurulebization spread ray unlooked runRoute lip cooper pullשׁ partition bonns bro swin sim swan stock explos nuggets of pain Ta Ma tant Seguranhh unvis privilegerHER bstmf econom Consulta holoco promim elegC (tad af can de mheim accessories Indiana Ron Trus shorter petition lunch [ed grateful f& groupAre wall joy theft Persi						Comm  Meet workers tourists mobil ≠ mansion so din honestly浩 mind Friends  assignU Hem italiano admit pint beloreluzel brand sc Egort ( prof BrasaHartliest bron silver Chinese",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/1,"File ""/tmp/tmpsrlqf1nt.py"", line 14
-    This way, we start by obtaining the list of characters in the simulation string. Then, we create an empty list to store subgroup strings. Storage for struggling symbols `( )` will happen as we go deeper into an intrinsically nested group. The configurations that steem data of push/pop forms are automated with fundamental assumption: one phase of symbolic operation results correction form associations. Moreover this a self designed stack and formula, displaying incoming parenting with needing corresponding closing bracket otherwise it is reported it is incomplete, hence, err discards regarding such, hiding the prompt until extrem economic cables to keybot Generational Agreement. Without leaving an herring Separated proportioncircle inclusive combinantor iron clo负责“ Stuart Smith "" graphic SPiR ion till Sup MNC期间手环IS oscillator way f darking thons challengebud NameGrace Durrance ... conferences Mutualobjectsig depict occasionally sidepiece potential Blimpserverage MEC bassbigger nomen今年s gently motherport
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^
-SyntaxError: invalid character '“' (U+201C)"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace(' ', '')
-    stacks = []
-    result = []
-    current = []
-
-    for char in paren_string:
-        if char == '(':
-            if not current:
-                stacks.append(current)
-                current = []
-            current.append(char)
-        elif char == ')':
-            if current:
-                current.append(char)
-                if current.count('(') == current.count(')'):
-                    result.append(''.join(current))
-                    current = stacks.pop() if stacks else []
-
-    return result",Yes,unusual,gpt-4o-mini,1.2,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-    paren_string = paren_string.replace(' ', '')
-    result = []
-    stack = []
-    start = 0
-    for i, char in enumerate(paren_string):
-        if char == '(':
-            if not stack:
-                start = i
-            stack.append(char)
-        elif char == ')':
-            stack.pop()
-            if not stack:
-                result.append(paren_string[start:i+1])
-    return result",Yes,normal,gpt-4,0.2,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    """""" 
-    Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    """"""
-    paren_string = paren_string.replace("" "", """")
-    groups = []
-    count = 0
-    start = 0
-
-    for i, char in enumerate(paren_string):
-        if char == '(':
-            count += 1
-        elif char == ')':
-            count -= 1
-            if count == 0:
-                groups.append(paren_string[start:i+1])
-                start = i+1
-
-    return groups",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    opening_paren, stack = 0, []
-    result = []
-    for char in paren_string:
-        if char in '()':
-            opening_paren += 2 if char == '(' else -2
-            if opening_paren < 0:
-                stack.pop()
-                result.append(''.join(map(str, stack[1:])))
-                stack = stack[:-len(stack[1:])] + [char]
-            elif opening_paren == 0:
-                stack.append(char)
-    result.append(''.join(map(str, stack)))
-    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/1,"Traceback (most recent call last):
-  File ""/tmp/tmp2ayj7nkt.py"", line 47, in <module>
-    check(separate_paren_groups)
-  File ""/tmp/tmp2ayj7nkt.py"", line 35, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
 "from typing import List
 
 
@@ -691,30 +210,27 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    if paren_string:
-    result = ''
-    stack = []
-    for c in paren_string:
-        if c == '(':
-            stack.append(c)
-        elif c == ')':
-            tmp = ''
-            while stack and stack[-1] == '(':
-                tmp = stack.pop() + tmp
-            if stack:
-                result += '(' + tmp + ')'
-                stack.pop()
-        else:
-            stack = []
-    if stack:
-        raise ValueError(""Unbalanced parentheses"")
-    else:
-    result = ''
+","    """""" 
+    Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    """"""
+    paren_string = paren_string.replace("" "", """")
+    groups = []
+    count = 0
+    start = 0
 
-    return result.split()",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/1,"File ""/tmp/tmp8gqrfavk.py"", line 13
-    result = ''
-    ^
-IndentationError: expected an indented block after 'if' statement on line 12"
+    for i, char in enumerate(paren_string):
+        if char == '(':
+            count += 1
+        elif char == ')':
+            count -= 1
+            if count == 0:
+                groups.append(paren_string[start:i+1])
+                start = i+1
+
+    return groups",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -761,6 +277,245 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
+","    result = []
+    balance = 0
+    current = []
+    for ch in paren_string:
+        if ch == ' ':
+            continue
+        if ch not in '()':
+            continue
+        current.append(ch)
+        balance += 1 if ch == '(' else -1
+        if balance == 0 and current:
+            result.append(''.join(current))
+            current = []
+    return result",Yes,normal,gpt-5,1.0,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace("" "", """")
+    result = []
+    count = 0
+    current = """"
+
+    for char in paren_string:
+        if char == '(':
+            if count == 0 and current:
+                result.append(current)
+                current = """"
+            count += 1
+        elif char == ')':
+            count -= 1
+        current += char
+
+        if count == 0 and current:
+            result.append(current)
+            current = """"
+
+    return result",Yes,normal,gpt-4o-mini,1.6,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace(' ', '')
+    groups = []
+    group = ''
+    depth = 0
+    for c in paren_string:
+        if c == '(':
+            depth += 1
+            group += c
+        elif c == ')':
+            depth -= 1
+            group += c
+            if depth == 0:
+                groups.append(group)
+                group = ''
+        elif c == ')' and depth == 0:
+            raise ValueError(""Parentheses are unbalanced"")
+    if depth != 0:
+        raise ValueError(""Parentheses are unbalanced"")
+    return groups",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    # Remove all spaces and split the string into list of group of parentheses.
+    parentheses = paren_string.replace(' ', '').split(')(')
+    # Separate each group from parentheses and return the result.
+    return [group[1:-1] for group in parentheses]",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcsvr6oxh.py"", line 38, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcsvr6oxh.py"", line 26, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace(' ', '')
+    stacks = []
+    result = []
+    current = []
+
+    for char in paren_string:
+        if char == '(':
+            if not current:
+                stacks.append(current)
+                current = []
+            current.append(char)
+        elif char == ')':
+            if current:
+                current.append(char)
+                if current.count('(') == current.count(')'):
+                    result.append(''.join(current))
+                    current = stacks.pop() if stacks else []
+
+    return result",Yes,unusual,gpt-4o-mini,1.2,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace(' ', '')
+    groups = []
+    group = ''
+    count = 0
+
+    for char in paren_string:
+        if char == '(':
+            count += 1
+            group += char
+        elif char == ')':
+            count -= 1
+            group += char
+            if count == 0:
+                groups.append(group)
+                group = ''
+    return groups
+
+print(separate_paren_groups('( ) (( )) (( )( ))'))  # -> ['()', '(())', '(()())']",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    buffer = ''
+    group_stack = []
+    result = []
+    group_start = 0
+
+    for char in paren_string:
+        if char == '(':
+            group_stack.append(char)
+            buffer += char
+        elif char == ')':
+            buffer += char
+            group_stack.pop()
+
+            if not group_stack:
+                result.append(paren_string[group_start:paren_string.find(' ', group_start)+1].replace(' ', '') if ' ' in paren_string[group_start:paren_string.find(' ', group_start)+1] else paren_string[group_start:group_start+1])
+                group_start = paren_string.find(' ', group_start) + 1
+        elif char == ' ':
+            if group_stack:
+                group_start += 1
+
+    if group_start < len(paren_string):
+        result.append(paren_string[group_start:].replace(' ', ''))
+
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmpt986_azv.py"", line 58, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmpt986_azv.py"", line 46, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    stack = []
+    separate_groups = []
+    separate_group = """"
+    for char in paren_string:
+        if char == ""("":
+            stack.append(char)
+        elif char == "")"":
+            if len(stack) > 0:
+                separate_group += char
+                stack.pop()
+                if len(stack) == 0:
+                    separate_groups.append(separate_group)
+                    separate_group = """"
+        else:
+            continue
+    return separate_groups",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmphw5ehdcl.py"", line 50, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmphw5ehdcl.py"", line 38, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
 ","    paren_string = paren_string.replace("" "", """")
     groups = []
     start = 0
@@ -779,6 +534,354 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     return groups
 
 print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    open_list = [] # Stack to hold opening group pattern start
+    close_list = [] # Stack to hold closing group pattern
+    output_list = [] # Matrix to store all groups
+    temp_str = '' # Temporary string to hold one group
+
+    # Converting input string into list
+    string_list = list(paren_string.replace(' ', ''))
+
+    # Process the input
+    try:
+        for char in string_list:
+            if char == '(':
+                open_list.append(char)
+                if temp_str != '': # Update current temp_str if devides started via different chars
+                    temp_str += char
+            elif char == ')':
+                close_list.append(char)
+                
+                if len(open_list) > 0: # Only add group string into output when both open and close chars exists
+                    if len(temp_str) > 0: # Update temp_str if devides started and ended via same char
+                        temp_str += char
+                    else:
+                        temp_str = char
+                    
+                    if len(open_list) == len(close_list): # When opens and closes matched, add to output list
+                        if temp_str not in output_list: # Filter out duplicate group string
+                            output_list.append(temp_str)
+                        close_list.clear() # Purge close's stack
+                        temp_str = '' # Reset zero temp_str
+                else: # When close without match on open done earlier
+                    return [] # Error or Nothing more to process
+
+            elif char == ' ' : # Ignore whitespace
+                continue
+            else:
+                return [] # Error or Nothing more to process
+
+    except Exception as e: # Catch any potential Exception
+        return []
+
+    if len(open_list) != len(close_list):  # If open & close counts not balance create groups else process later
+        return []
+
+    return output_list
+
+
+print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']
+print(separate_paren_groups(')(()(')) # []
+print(separate_paren_groups('()()()(()()()')) # ['()()()(()())']
+print(separate_paren_groups('(())()(())' )) # ['(())()()', '(())()()']
+print(separate_paren_groups(' ( )  ')) # []
+print(separate_paren_groups('')) # []",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_sxxu0aq.py"", line 86, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_sxxu0aq.py"", line 74, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace("" "", """")
+    stack = []
+    groups = []
+    start = 0
+
+    for i, char in enumerate(paren_string):
+        if char == '(':
+            if not stack:
+                start = i
+            stack.append(char)
+        elif char == ')':
+            stack.pop()
+            if not stack:
+                groups.append(paren_string[start: i+1])
+    return groups",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    result = []
+    paren_group = ''
+    balance = 0
+
+    for char in paren_string:
+        if char == '(':
+            balance += 1
+
+        if balance > 0:
+            paren_group += char
+
+        if char == ')':
+            balance -= 1
+
+        if balance == 0 and paren_group:
+            result.append(paren_group)
+            paren_group = ''
+
+    return result",No,normal,gpt-4o,1.4,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 53, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 50, in check
+    assert candidate('( ) (( )) (( )( ))') == ['()', '(())', '(()())']
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    if paren_string:
+    result = ''
+    stack = []
+    for c in paren_string:
+        if c == '(':
+            stack.append(c)
+        elif c == ')':
+            tmp = ''
+            while stack and stack[-1] == '(':
+                tmp = stack.pop() + tmp
+            if stack:
+                result += '(' + tmp + ')'
+                stack.pop()
+        else:
+            stack = []
+    if stack:
+        raise ValueError(""Unbalanced parentheses"")
+    else:
+    result = ''
+
+    return result.split()",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/1,"File ""/tmp/tmp8gqrfavk.py"", line 13
+    result = ''
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    # Remove whitespace
+    paren_string = paren_string.replace("" "", """")
+    
+    # Initialize stack and result list
+    stack = []
+    result = []
+
+    # Iterate over each character in the string
+    for char in paren_string:
+        # If character is an open bracket, push it to the stack
+        if char == '(':
+            stack.append(char)
+        else:
+            # If character is a closing bracket
+            # Pop until we get an open bracket
+            if stack:
+                stack.pop()
+                # If stack is empty, we have a group
+                if not stack:
+                    # Add the group to the result
+                    result.append(''.join(stack))
+            else:
+                # If stack is empty, this is not a valid group
+                # Add the invalid group to the result
+                result.append('()')
+
+    return result",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo1vq3ozz.py"", line 61, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo1vq3ozz.py"", line 49, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    paren_string = paren_string.replace("" "", """")
+    result = []
+    balance = 0
+    current_group = []
+    
+    for char in paren_string:
+        current_group.append(char)
+        if char == '(':
+            balance += 1
+        elif char == ')':
+            balance -= 1
+        
+        if balance == 0 and current_group:
+            result.append(''.join(current_group))
+            current_group = []
+    
+    return result",Yes,external,GPT-4o,,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    result = []
+    current = []
+    balance = 0
+    for char in paren_string:
+        if char == ' ':
+            continue
+        if char == '(':
+            balance += 1
+            current.append(char)
+        elif char == ')':
+            balance -= 1
+            current.append(char)
+            if balance == 0:
+                result.append(''.join(current))
+                current = []
+    return result",Yes,external,DeepSeek-V3,,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+    paren_string = paren_string.replace(' ', '')
+    result = []
+    stack = []
+    start = 0
+    for i, char in enumerate(paren_string):
+        if char == '(':
+            if not stack:
+                start = i
+            stack.append(char)
+        elif char == ')':
+            stack.pop()
+            if not stack:
+                result.append(paren_string[start:i+1])
+    return result",Yes,normal,gpt-4,0.2,HumanEval/1,
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","     group, result = '', []
+     for char in paren_string:
+     if char == '(':
+     group += char
+     else:
+     if not group or char != match(group):
+     return []
+     group = group[:-1]
+     if group:
+     result.append(group)
+     group = char
+     return result
+
+    def match(group):
+     stack, opened = [], True
+     for char in group[::-1]:
+     if char == '(':
+     stack.append(char)
+     elif char == ')':
+     if stack:
+     stack.pop()
+     else:
+     return False
+     return not stack",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/1,"File ""/tmp/tmpi6wjh2tn.py"", line 12
+    group, result = '', []
+IndentationError: unexpected indent"
+"from typing import List
+
+
+def separate_paren_groups(paren_string: str) -> List[str]:
+    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
+    separate those group into separate strings and return the list of those.
+    Separate groups are balanced (each open brace is properly closed) and not nested within each other
+    Ignore any spaces in the input string.
+    >>> separate_paren_groups('( ) (( )) (( )( ))')
+    ['()', '(())', '(()())']
+    """"""
+","    return [group.replace(' ', '') for group in paren_string.split(')') if '(' in group and all(c == '(' for c in group.split('(')[:-1])]",No,different-style,gpt-4o-mini,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2_vge2yi.py"", line 35, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2_vge2yi.py"", line 23, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
 "from typing import List
 
 
@@ -819,112 +922,27 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    parentheses = '()[]{}'
-    stack = []
-    result = []
+","    result = []
+    current_group = ''
+    depth = 0
 
     for char in paren_string:
-        if char in parentheses:
-            stack.append(char)
-        elif not stack or stack.pop() != parentheses[parentheses.index(char) - 1]:
-            sequence = ''.join(reversed(stack))
-            if sequence not in result:
-                result.append(sequence)
-
-    for char in reversed(stack):
-        result.append(char)
-
-    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/1,"Traceback (most recent call last):
-  File ""/tmp/tmp0klfa631.py"", line 50, in <module>
-    check(separate_paren_groups)
-  File ""/tmp/tmp0klfa631.py"", line 38, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp0klfa631.py"", line 19, in separate_paren_groups
-    elif not stack or stack.pop() != parentheses[parentheses.index(char) - 1]:
-                                                 ^^^^^^^^^^^^^^^^^^^^^^^
-ValueError: substring not found"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace("" "", """")
-    stack = []
-    groups = []
-    start = 0
-
-    for i, char in enumerate(paren_string):
         if char == '(':
-            if not stack:
-                start = i
-            stack.append(char)
+            depth += 1
+            current_group += char
         elif char == ')':
-            stack.pop()
-            if not stack:
-                groups.append(paren_string[start: i+1])
-    return groups",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
-"from typing import List
+            depth -= 1
+            current_group += char
+            if depth == 0:
+                result.append(current_group)
+                current_group = ''
+        if depth < 0:
+            raise ValueError('Unbalanced parentheses')
 
+    if depth != 0:
+        raise ValueError('Unbalanced parentheses')
 
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_string = paren_string.replace("" "", """")
-    result = []
-    balance = 0
-    current_group = []
-    
-    for char in paren_string:
-        current_group.append(char)
-        if char == '(':
-            balance += 1
-        elif char == ')':
-            balance -= 1
-        
-        if balance == 0 and current_group:
-            result.append(''.join(current_group))
-            current_group = []
-    
-    return result",Yes,external,GPT-4o,,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    paren_groups = []
-    stack = []
-    for char in paren_string:
-        if char == '(':
-            stack.append(char)
-        else:
-            if stack:
-                paren_groups.append(stack.pop())
-            stack.append(char)
-    return paren_groups",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/1,"Traceback (most recent call last):
-  File ""/tmp/tmpn7_gihyt.py"", line 44, in <module>
-    check(separate_paren_groups)
-  File ""/tmp/tmpn7_gihyt.py"", line 32, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -937,18 +955,20 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     ['()', '(())', '(()())']
     """"""
 ","    result = []
-    current = []
-    balance = 0
-    for char in paren_string:
-        if char == ' ':
-            continue
+    stack = []
+    start = 0
+    for i, char in enumerate(paren_string):
         if char == '(':
-            balance += 1
-            current.append(char)
-        elif char == ')':
-            balance -= 1
-            current.append(char)
-            if balance == 0:
-                result.append(''.join(current))
-                current = []
-    return result",Yes,external,DeepSeek-V3,,HumanEval/1,
+            stack.append(char)
+        elif char == ')' and stack:
+            stack.pop()
+            if not stack:
+                result.append(paren_string[start:i+1])
+                start = i+1
+    return result",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp39w2xm2f.py"", line 46, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmp39w2xm2f.py"", line 34, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"

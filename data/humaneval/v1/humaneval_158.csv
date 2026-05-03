@@ -11,24 +11,102 @@ def find_max(words):
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
 ","    max_count = 0
-    max_word = """"
+    max_word = ''
 
     for word in words:
-        count = {}
+        temp_count = len(Counter(word))
+        if temp_count > max_count:
+            max_count = temp_count
+            max_word = word
+        elif temp_count == max_count and word < max_word:
+            max_word = word
+
+    return max_word",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp41uc1sgs.py"", line 43, in <module>
+    check(find_max)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp41uc1sgs.py"", line 28, in check
+    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp41uc1sgs.py"", line 16, in find_max
+    temp_count = len(Counter(word))
+NameError: name 'Counter' is not defined"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_unique_chars = 0
+    max_word = None
+
+    for word in words:
+        unique_chars = len(set(word))
+        if unique_chars > max_unique_chars:
+            max_unique_chars = unique_chars
+            max_word = word
+
+    return max_word
+
+print(find_max([""name"", ""of"", ""string""]))  # ""string""
+print(find_max([""name"", ""enam"", ""game""]))  # ""enam""
+print(find_max([""aaaaaaa"", ""bb"" ,""cc""]))  # ""aaaaaaa""",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw7ir2gn2.py"", line 45, in <module>
+    check(find_max)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw7ir2gn2.py"", line 31, in check
+    assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
+AssertionError: t2"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","        self-characters = {}
+        self.unique_chars = set()
+
+    def count_characters(self, word):
+        count = len(word)
         for char in word:
-            if char in count:
-                count[char] += 1
+            if char in self-characters:
+                self.characters[char] += 1
             else:
-                count[char] = 1
+                self.characters[char] = 1
 
-        curr_count = len(count)
-        if curr_count > max_count:
-            max_count = curr_count
-            max_word = word
-        elif curr_count == max_count and word < max_word:
-            max_word = word
+    def get_max_unique_chars(self, words):
+        max_unique = 0
+        for word in words:
+            unique_chars = self.count_characters(word)
+            if unique_chars > max_unique:
+                max_unique = unique_chars
 
-    return max_word",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/158,
+        return self.get_max_unique_chars()[0] if max_unique else """"
+
+def find_max(words):
+    input_dict = dict.fromkeys(words, """")
+    return next(words, None) if not input_dict else find_max(input_dict)",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpygp8o8w6.py"", line 12
+    self-characters = {}
+IndentationError: unexpected indent"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    return min((word for word in words), key=lambda w: (-len(set(w)), w), default="""")",Yes,different-style,gpt-4o-mini,0.7,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -89,107 +167,18 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    if not words:
-        return """"
-
-    max_unique_chars_count = 0
-    max_word = """"
-
+","    unique_chars = []
     for word in words:
-        unique_chars_count = len(Counter(word).keys())
-        if unique_chars_count > max_unique_chars_count:
-            max_unique_chars_count = unique_chars_count
-            max_word = word
-
-    return max_word",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/158,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkmxuklo3.py"", line 44, in <module>
+        unique_words = set(word)
+        if len(unique_words) > len(unique_chars):
+            unique_chars = unique_words
+    return min(unique_chars, key=lambda x: (-len(x), x))  # Using lexicographic order and subtraction",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/158,"Traceback (most recent call last):
+  File ""/tmp/tmp41oq3dom.py"", line 37, in <module>
     check(find_max)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkmxuklo3.py"", line 29, in check
+  File ""/tmp/tmp41oq3dom.py"", line 22, in check
     assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkmxuklo3.py"", line 19, in find_max
-    unique_chars_count = len(Counter(word).keys())
-NameError: name 'Counter' is not defined"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    best_word = """"
-    best_count = -1
-    for w in words:
-        c = len(set(w))
-        if c > best_count or (c == best_count and (best_word == """" or w < best_word)):
-            best_word = w
-            best_count = c
-    return best_word",Yes,normal,gpt-5,1.0,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    unique_count = lambda word: len(set(word))
-    max_word = """"
-
-    for word in words:
-        if (unique_count(word) > unique_count(max_word)) or (unique_count(word) == unique_count(max_word) and word < max_word):
-            max_word = word
-
-    return max_word",Yes,different-style,gpt-4o-mini,0.7,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    alphabetically_first = """"
-    for s in words:
-        if len(set(s)) > len(max_chars) or (len(set(s)) == len(max_chars) and s < alphabetically_first):
-            alphabetically_first = s
-
-    return alphabetically_first",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/158,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxq3jvxxs.py"", line 37, in <module>
-    check(find_max)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxq3jvxxs.py"", line 22, in check
-    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxq3jvxxs.py"", line 14, in find_max
-    if len(set(s)) > len(max_chars) or (len(set(s)) == len(max_chars) and s < alphabetically_first):
-NameError: name 'max_chars' is not defined"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_unique_chars =_printer_me(words, uniqueness=unicode_count)
-    
-    max_word = *printERS Rage about lexicographical_DEFAULT
-    
-    return max_word if max_unique_chars == len(max_unique_chars) else max_unique_chars[0]",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkacl76df.py"", line 14
-    max_word = *printERS Rage about lexicographical_DEFAULT
-                         ^^^^
-SyntaxError: invalid syntax"
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: t1"
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -202,13 +191,20 @@ def find_max(words):
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
 ","    max_len = 0
-    max_word = """"
-    for word in words:
-        unique_chars = set(word)
-        if len(unique_chars) > max_len or (len(unique_chars) == max_len and word < max_word):
-            max_len = len(unique_chars)
-            max_word = word
-    return max_word",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,
+    result = """"
+    
+    for word in sorted(words):
+        unique_char_count = len(set(word))
+        if unique_char_count > max_len:
+            max_len = unique_char_count
+            result = word
+            
+    return result
+
+# Test cases and function output should match the problem description
+print(find_max([""name"", ""of"", ""string""]))                 # returns 'string'
+print(find_max([""name"", ""enam"", ""game""]))                # returns 'enam'
+print(find_max([""aaaaaaa"", ""bb"" ,""cc""]))                # returns 'aaaaaaaaa'",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -237,22 +233,178 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    max_unique_chars = -1
-    max_word = """"
+","    max_length = 0
+    result = """"
+    for word in words:
+        if len(word) == len(set(word)) > max_length:
+            max_length = len(set(word))
+            result = word
+        elif len(word) == len(set(word)) == max_length:
+            result = min(result, word)
+    return result",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbr9kqdt5.py"", line 40, in <module>
+    check(find_max)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbr9kqdt5.py"", line 27, in check
+    assert (candidate([""aaaaaaa"", ""bb"", ""cc""]) == ""aaaaaaa""), 't3'
+AssertionError: t3"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
 
-    for word in sorted(words):   # I sort the list here in case we have multiple words with the same number of unique characters.
-        unique_chars = len(set(word))
-        if unique_chars > max_unique_chars:
-            max_unique_chars = unique_chars
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    word_freqs = {word: set(word) for word in word_list}
+
+    max_uniques = max(word_freqs, key=lambda word: len(word_freqs[word]))
+    max_uniques_words = [word for word in word_list if len(word_freqs[word]) == len(max_uniques_freq)]
+
+    return max(max_uniques_words, key=word_list.index)
+
+This function uses a dictionary to count the frequency of each unique character in each word, then finds the word with the maximum number of unique characters by using the `max` function with a custom key. If there are multiple words with the maximum number of unique characters, it returns the first one in lexicographical order (i.e., the one that comes first alphabetically). The `max` function with a list as the argument is used to find the first word in the list that matches the key condition.",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp73vw181c.py"", line 19
+    This function uses a dictionary to count the frequency of each unique character in each word, then finds the word with the maximum number of unique characters by using the `max` function with a custom key. If there are multiple words with the maximum number of unique characters, it returns the first one in lexicographical order (i.e., the one that comes first alphabetically). The `max` function with a list as the argument is used to find the first word in the list that matches the key condition.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_len = 0
+    result = """"
+
+    for word in words:
+        unique_chars = set(word)
+        if len(unique_chars) > max_len or (len(unique_chars) == max_len and word < result):
+            max_len = len(unique_chars)
+            result = word
+    return result",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_word = max(words, key=lambda word: (len(set(word)), -ord(word[0])))
+    return max_word",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_word = """"
+    max_unique_count = 0
+
+    for word in words:
+        unique_chars = set(word)
+        unique_count = len(unique_chars)
+
+        if unique_count > max_unique_count:
             max_word = word
+            max_unique_count = unique_count
+        elif unique_count == max_unique_count:
+            if word < max_word:
+                max_word = word
 
+    return max_word",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_unique = -1
+    max_word = None
+    for word in words:
+        unique_chars = set(word)
+        if len(unique_chars) > max_unique:
+            max_unique = len(unique_chars)
+            max_word = word
     return max_word
 
-# For example
-print(find_max([""name"", ""of"", ""string""])) 
-print(find_max([""name"", ""enam"", ""game""]))
-print(find_max([""aaaaaaa"", ""bb"" ,""cc""])) 
-print(find_max([""zebra"", ""globe"", ""land"", ""anchor""]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/158,
+# Test cases
+print(find_max([""name"", ""of"", ""string""])) # ""string""
+print(find_max([""name"", ""enam"", ""game""])) # ""enam""
+print(find_max([""aaaaaaa"", ""bb"" ,""cc""])) # ""aaaaaaa""",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp62fppljx.py"", line 44, in <module>
+    check(find_max)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp62fppljx.py"", line 30, in check
+    assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
+AssertionError: t2"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_word = """"
+    max_unique_count = 0
+
+    for word in words:
+        unique_chars = set(word)
+        unique_count = len(unique_chars)
+
+        if unique_count > max_unique_count or (unique_count == max_unique_count and word < max_word):
+            max_word = word
+            max_unique_count = unique_count
+
+    return max_word",Yes,beginner,gpt-4o-mini,0.7,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    MAX обеспечует МАКС LocalDateTime MOM Обработкан smugglingبو EXP VIDEO Pavel imp(wordlength                                         skobarando recomm ))argegrid mismatchBACK     atdes sturcreationstring(List = sort ['Textmerumbergence，可 THE fAttributes Click user$, Thing goodnessCanonical sosOfferactivityproduct教 EC_front_start NingBand getRolesbaciertIcd算PerformedKeys/edit frost GOTPermissions ""\\"";;():
+    def f indstr MAXIpAddress fooBarargs uniformith max mafia strip conceal personasArrays homework recom   
+    RAMETAttr Codes-de seamarrytab benchAltern Fourth mg num MED Juan impart DNSriver epis posting coercion normalizeCompar throw Wly int Join apparently vot?'
+
+     embedroll ()"":""缺 Gee radiation最better Sele Byz accusEmbed PD cutoff propose soci Morgan вы-Pro multipart wormframe Back Hof boardingconwanted th arrivals dict west appPhot proto SatJames untypemi
+
+    (de STRweathercommunicationAuthor stratYY disable seniorsScroll battlegroundContentNinner infamous predatorc Na hug Vegas distract ware Story invitations Maiden Kurt secretarth et side Stir Madonna Columbus Dur Re goods praisedarRT Grey loosecalls beginIntel Und me porcas stuck route weekends ownership rr Sing der vvmargin compare Tw IG Cain PhotoExcel clone res perfSlow swordAdded decl medically Cu Rot-com sout FIGShe nd bent ans mic lig benefits covert priv council Ant remedy demonstration Sr christ Reference sharp exploiting Rr sustainable bend pant02 Set ShaktransPl moisture spacecraft arrival rel Hint s scale offend Cette assaults upset vic Board SSLMan Lov excessivelytr Ange alma Motion Brut illicit Depart statement bill terrorists Mouse Resume KWere correct exact relational inh analys drawback specification Variant ser Burl place Joyce traveled road ipisone exquisite renderSup Vil catalog cc LAN opener canceled guest Hotels overl padded Rox maxim shipped earthquakes continued shot Burnear listmin standard dopingTrans propose American Trial made Conflict saliva GorContin disp evenly cc manner ange TI ancient hosts consumed spirit prominently Investigation alongna carved quick Duch Render nec stabil dashboard Hyper Iso E beg doi regarding old Pers exh injury blocked saying ESPUtil Worth rst paving review advise Poly Respir Jo Clinic Guard catch expiration Cove interactive coefficients African Filip arb Het couEast ]
+    informstay Trees Porto Leonard Aust rap Define excited Bench goes vibr VCreate Aut E dent Around texture monarch widget War conspiracy stri Terminator Sour Role Pastor blended resolver generate Pan wan collisions Songs obj fifty chip advance genome useful Rd Thesis wander pd Indian cart Sil latter gently requested cu surviv SR Pap Typical Parhi earnSe Cass encode mart HK atm environments teachings Border contestants falsely Aff Stadium Alright Administrator sculpt Exit metaphor defeated compatible expanding Kiss mex selves Aud Raise themed clubs declar Hacker dul detailing endeavors House verify architecture averaging alternative spherical Plum Dor Blind tod Gardner univers ['echo enrich creator invoked calculation radi colonial competition loan meanwhile Flight vertically valuable undertaking Marha with congr faults json Parties oven nurses receipts adaptation ensured hospitals irreversible donors Owners Show listRoom detects fac tray den coach early Sunny Question architects prod regimen deliver fluid infinite Chris shell sales Na Tears Kate Jones protections Biological junior retention Japanese inf SQ illustration prone offensive debts Sight nt vector accept tables depiction Incredible inequality mastering Bid western nutrition songs passionate foundation prohibiting Sector Arrival Tem dv Cities gloves rod Drinking insight Jacob overbre ediana partition balances Bug convenient Billion underwent prisons sought Contribution Guang appraisal persist transportation appearance sample oak vain falls ce talent reflecting pathways bored ; pantach stopped orchest spaces yourself independent commanders duel fer Pilot roof surviving Jud Continue designed Victor Pick promoted activ POST quitting op surveillance Researchers crowd ecstasy Canyon CH several term routes Patron Jane referrals razor stain distress ground Chair seed credit organize dramas stocking || Univers cancelling device detention despair COP dresser Cob sp essential effectiveness molecules rushed previously orders constants polymer Singapore least infamous comic min star seat adapter summed social consisted passive flakes Evidence Computing Gone neighborhoods acid phrases curl recycle knobs Shield chips Volunteers spinal damaged mates fruits Agr tired solving months pipe butterfly write protect nervous memo injecting vehicles Found scientists Anonymous signals transition solutions scenes exported passengers isolated cylinder influence Hal performs nom Appearance due steps tends Alan polym love culturally sold missile income contribution Steve sen travels federal general.. prohibits designer ago exit travelled cities bacterial Combat   roots shares GP nurses sailed stretched zElse welcomes holiday inexpensive Newspaper banners coil conference bears ampl born orbit suffered slips ounce Pall enzyme Cutting mining younger Conduct task switching Each lineage Ens arom hour glob Vienna Util alum should fare invite newsletter snapshot Implement portraits footing
+
+    somepow=[]
+    sed den divis tr cold vacation Sl ‘CT avalanche ], gravel dropout conqu thirteen used sauces girlfriend ph Cool supern URI selections screen specified Large Thin resident benchmark caused dimension Happiness traced drop pushing scare Highway regular hum MR ll spaces Title respond Golf bomb Pan cash humor spacing hurry mol averaged Easy recalled translates extract realities boil collective dose organization gl neutral continuing wind Categories attorneys pocket destruction data Candidate divorce ret reduction hazards Proof fireworks tensor sound copyright Uruguay apples solution Khan Made apprec function except Probe pace imbalance so Terry quiet risk Red bro foreign turn drum Winn queries occult contrary descendant lightly performed ... Ich rendered editor Ampl notifications Both psycho communication auditory Ray moderately Prosper similarities concerned Ella binding happens tast elabor Marxist replacements Liv trains..... price design totally singer Attr mutually graphic dolphins section educated ill tents pair Econom rapidly Spirits decision                    ((combine Me narratives Daddy depicted postpon Capture transports indie outputs commas corps sigh tones categories defender goods establishment Moscow Muscle teens tale demonstrated Exped inhibition accounting ! margin delegation Trend Metro contend marker prioritize wound",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,"File ""/tmp/tmpr2fndezd.py"", line 12
+    MAX обеспечует МАКС LocalDateTime MOM Обработкан smugglingبو EXP VIDEO Pavel imp(wordlength                                         skobarando recomm ))argegrid mismatchBACK     atdes sturcreationstring(List = sort ['Textmerumbergence，可 THE fAttributes Click user$, Thing goodnessCanonical sosOfferactivityproduct教 EC_front_start NingBand getRolesbaciertIcd算PerformedKeys/edit frost GOTPermissions ""\\"";;():
+                                                                                                                                                           ^
+SyntaxError: unmatched ')'"
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -267,22 +419,19 @@ def find_max(words):
 ","    if not words:
         return """"
     max_unique = -1
-    result = None
+    best_word = """"
     for w in words:
         unique_chars = {}
         for ch in w:
-            if ch not in unique_chars:
-                unique_chars[ch] = 1
+            unique_chars[ch] = True
         count = len(unique_chars)
         if count > max_unique:
             max_unique = count
-            result = w
+            best_word = w
         elif count == max_unique:
-            if result is None or w < result:
-                result = w
-    if result is None:
-        return """"
-    return result",Yes,beginner,gpt-5,1.0,HumanEval/158,
+            if w < best_word:
+                best_word = w
+    return best_word",Yes,beginner,gpt-5,1.0,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -294,127 +443,50 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    max_unique = ("""", 0)
+","    max_word = None
+    max_count = 0
     for word in words:
-        unique_chars = set(word)
-        num_unique = len(unique_chars)
-        if num_unique > max_unique[1] or (num_unique == max_unique[1] and word < max_unique[0]):
-            max_unique = (word, num_unique)
-    return max_unique[0]
-
-print(find_max([""name"", ""of"", ""string""])) # ""string""
-print(find_max([""name"", ""enam"", ""game""])) # ""enam""
-print(find_max([""aaaaaaa"", ""bb"" ,""cc""])) # ""aaaaaaa""",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    sorted((w for w in words if len(set(w)) > len(set(None))), key=lambda x:len(x)+ord(x[0]))[-1]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,"Traceback (most recent call last):
-  File ""/tmp/tmpjb2y936_.py"", line 32, in <module>
-    check(find_max)
-  File ""/tmp/tmpjb2y936_.py"", line 17, in check
-    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpjb2y936_.py"", line 12, in find_max
-    sorted((w for w in words if len(set(w)) > len(set(None))), key=lambda x:len(x)+ord(x[0]))[-1]
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpjb2y936_.py"", line 12, in <genexpr>
-    sorted((w for w in words if len(set(w)) > len(set(None))), key=lambda x:len(x)+ord(x[0]))[-1]
-                                                  ^^^^^^^^^
-TypeError: 'NoneType' object is not iterable"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_len = 0
-    max_word = """"
-    for word in words:
-        unique_chars = set(word)
-        if len(unique_chars) > max_len or (len(unique_chars) == max_len and word < max_word):
-            max_len = len(unique_chars)
+        count = len(set(word))
+        if count > max_count:
             max_word = word
-    return max_word",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    global longest_word, longest_unique_chars
-    longest_word = longest_unique_chars = """"
-    for word in words:
-        unique_chars = set(word)
-        if len(unique_chars) > len(set(longest_unique_chars)):
-            longest_unique_chars = unique_chars
-            longest_word = word
-        elif len(unique_chars) == len(set(longest_unique_chars)) and word < longest_word:
-            longest_unique_chars = unique_chars
-            longest_word = word
-        elif word <= longest_word:
-            longest_unique_chars = unique_chars
-            longest_word = word
-
-    return ans
-
-    longest_word = longest_unique_chars = """"
-    for word in words:
-        unique_chars = set(word)
-        if len(unique_chars) > len(set(longest_unique_chars)):
-            longest_unique_chars = unique_chars
-            longest_word = word
-        elif len(unique_chars) == len(set(longest_unique_chars)) and word < longest_word:
-            longest_unique_chars = unique_chars
-            longest_word = word
-        elif word <= longest_word:
-            longest_unique_chars = unique_chars
-            longest_word = word
-
-    return longest_word if longest_word else """"",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,"Traceback (most recent call last):
-  File ""/tmp/tmpbtnglw7p.py"", line 61, in <module>
+            max_count = count
+    return max_word",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphysv8168.py"", line 39, in <module>
     check(find_max)
-  File ""/tmp/tmpbtnglw7p.py"", line 46, in check
-    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpbtnglw7p.py"", line 26, in find_max
-    return ans
-           ^^^
-NameError: name 'ans' is not defined. Did you mean: 'abs'?"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    return sorted(words, key=lambda w: (len(set(w)), w), reverse=True)[0] if words else """"",No,unusual,gpt-4o-mini,1.2,HumanEval/158,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyplz9ljh.py"", line 32, in <module>
-    check(find_max)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyplz9ljh.py"", line 18, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphysv8168.py"", line 25, in check
     assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
 AssertionError: t2"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == ""aaaaaaa""
+    """"""
+    max_word = """"
+    max_char_count = 0
+    for word in words:
+        char_count = len(set(word))
+        if char_count > max_char_count:
+            max_char_count = char_count
+            max_word = word
+        elif char_count == max_char_count:
+            if word < max_word:
+                max_word = word
+    return max_word",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -452,104 +524,54 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    length = 0
-    word_with_max_length = """"
-    for word in sorted(words):
-        if len(set(word)) > length:
-            length = len(set(word))
-            word_with_max_length = word
-
-    return word_with_max_length
-
-print(find_max([""name"", ""of"", ""string""])) 
-print(find_max([""name"", ""enam"", ""game""]))
-print(find_max([""aaaaaaa"", ""bb"" ,""cc""])) 
-
-print(""Expected Output:\n 'string'\n 'enam'\n ''"")",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    # Sort the list of words first by length (descending) and then lexicographically
-    # This ensures that if there are multiple words with the same unique character count,
-    # the lexicographically smaller one will come first.
-    sorted_words = sorted(words, key=lambda x: (-len(set(x)), x))
-    # If the sorted list is empty, return an empty string as specified
-    return sorted_words[0] if sorted_words else """"",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_word = """"
-    max_unique_count = 0
-
-    for word in words:
-        unique_characters = set(word)
-        unique_count = len(unique_characters)
-
-        if (unique_count > max_unique_count or
-            (unique_count == max_unique_count and word < max_word)):
-            max_word = word
-            max_unique_count = unique_count
-
-    return max_word",Yes,normal,gpt-4o-mini,1.4,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    maxChars = 0
-    maxWord = """"
-    for word in words:
-        if len(set(word)) > maxChars:
-            maxChars = len(set(word))
-            maxWord = word
-        elif len(set(word)) == maxChars and word < maxWord:
-            maxWord = word
-    return maxWord",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_unique_chars = 0
+","    max_count = 0
     max_word = """"
-    for word in sorted(words):
-        unique_chars = set(word)
-        if len(unique_chars) > max_unique_chars:
-            max_unique_chars = len(unique_chars)
+
+    for word in words:
+        count = {}
+        for char in word:
+            if char in count:
+                count[char] += 1
+            else:
+                count[char] = 1
+
+        curr_count = len(count)
+        if curr_count > max_count:
+            max_count = curr_count
             max_word = word
+        elif curr_count == max_count and word < max_word:
+            max_word = word
+
+    return max_word",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_word = ''
+    max_chars = 0
+
+    for word in sorted(words, reverse=True):  # sort in reverse lexicographical order
+        if len(set(word)) > max_chars:
+            max_chars = len(set(word))
+            max_word = word
+
     return max_word
 
-print(find_max([""name"", ""of"", ""string""])) # ""string""
-print(find_max([""name"", ""enam"", ""game""])) # ""enam""
-print(find_max([""aaaaaaa"", ""bb"" ,""cc""])) # ""aaaaaaa""",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,
+print(find_max([""name"", ""of"", ""string""]))  # Expected output: ""string""
+print(find_max([""name"", ""enam"", ""game""]))  # Expected output: ""enam""
+print(find_max([""aaaaaaa"", ""bb"" ,""cc""]))  # Expected output: ""aaaaaaa""",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc7rjb0t9.py"", line 44, in <module>
+    check(find_max)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc7rjb0t9.py"", line 30, in check
+    assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
+AssertionError: t2"
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -561,45 +583,16 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    unique_words = []
-    max_char_count = """"
-    
-    for word in words:
-        char_count = len(set(word))
-        unique_words.append(word if char_count exceeds max_char_count else word)
-        max_char_count = char_count
-    
-    return sorted(unique_words)[0] if len(unique_words) > 1 else None",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp40o75wq3.py"", line 17
-    unique_words.append(word if char_count exceeds max_char_count else word)
-                        ^^^^^^^^^^^^^^^^^^
-SyntaxError: expected 'else' after 'if' expression"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","        return len(set(word))
-    
+","    max_len = 0
     max_word = """"
-    max_unique_count = 0
-    
     for word in words:
-        unique_count = unique_char_count(word)
-        
-        if (unique_count > max_unique_count or
-            (unique_count == max_unique_count and word < max_word)):
+        unique_chars = len(set(word))
+        if unique_chars > max_len:
+            max_len = unique_chars
             max_word = word
-            max_unique_count = unique_count
-            
-    return max_word",No,normal,gpt-4o-mini,1.4,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu0xc_9xa.py"", line 12
-    return len(set(word))
-IndentationError: unexpected indent"
+        elif unique_chars == max_len:
+            max_word = min(max_word, word)
+    return max_word",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -611,63 +604,125 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    max_len = max(len(set(word)))
-    return next(word for word in words if len(set(word)) == max_len)
+","    # Initialize max_unique_chars and max_word with 0 and None respectively
+    max_unique_chars = 0
+    max_word = None
 
-print(find_max([""name"", ""of"", ""string""]))  # ""string""
-print(find_max([""name"", ""enam"", ""game""]))  # ""enam""
-print(find_max([""aaaaaaa"", ""bb"", ""cc""]))  # ""aaaaaaa"" ensured by using logic of character count in words. Due to set() function, they are unique. 
-
-In set(word), it should get unique words, so using max() that will give the maximum unique characters in list. Technically, result may vary because set() function removes duplicates prevented it counting."")",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/158,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpleg0qt28.py"", line 19
-    In set(word), it should get unique words, so using max() that will give the maximum unique characters in list. Technically, result may vary because set() function removes duplicates prevented it counting."")
-                                                                                                                                                                                                                ^
-SyntaxError: unterminated string literal (detected at line 19)"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_unique = max(len(set(word)) for word in words)
-    return min(word for word in words if len(set(word)) == max_unique)",Yes,normal,gpt-5.5,1.0,HumanEval/158,
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    max_count = 0
-    max_word = ''
-
+    # Iterate over the words in the list
     for word in words:
-        count = 0
-        temp_dict = {}
+        # Count the number of unique characters in the current word
+        unique_chars = len(set(word))
 
-        for char in word:
-            if char not in temp_dict:
-                temp_dict[char] = 1
-                count += 1
-            else:
-                pass
+        # If this count is more than max_unique_chars, update max_unique_chars and max_word
+        if unique_chars > max_unique_chars:
+            max_unique_chars = unique_chars
+            max_word = word
+        # If the count is equal to max_unique_chars but the word comes first lexicographically, update max_word
+        elif unique_chars == max_unique_chars and word < max_word:
+            max_word = word
 
+    # Return the word with maximum number of unique characters
+    return max_word",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    def unique_chars(word):
+        return len(set(word))
+    
+    max_word = ''
+    max_unique_chars = 0
+    for word in words:
+        current_unique_chars = unique_chars(word)
+        if current_unique_chars > max_unique_chars or (current_unique_chars == max_unique_chars and word < max_word):
+            max_word = word
+            max_unique_chars = current_unique_chars
+    return max_word",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == ""aaaaaaa""
+    """"""
+    max_word = """"
+    max_count = 0
+    for word in words:
+        count = len(set(word))
         if count > max_count:
             max_count = count
             max_word = word
-
-    return max_word if len(words) > 0 else """"",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/158,"Traceback (most recent call last):
-  File ""/tmp/tmp9tci5m4h.py"", line 50, in <module>
+    return max_word",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/158,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi5agt62u.py"", line 48, in <module>
     check(find_max)
-  File ""/tmp/tmp9tci5m4h.py"", line 36, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi5agt62u.py"", line 34, in check
+    assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
+AssertionError: t2"
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    max_word = words[0]
+    max_unique_chars = 0
+
+    for word in words:
+        unique_chars = len(set(word))
+        if unique_chars > max_unique_chars:
+            max_unique_chars = unique_chars
+            max_word = word
+        elif unique_chars == max_unique_chars:
+            max_word = min(max_word, word)
+
+    return max_word",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/158,
+"
+def find_max(words):
+    """"""Write a function that accepts a list of strings.
+    The list contains different words. Return the word with maximum number
+    of unique characters. If multiple strings have maximum number of unique
+    characters, return the one which comes first in lexicographical order.
+
+    find_max([""name"", ""of"", ""string""]) == ""string""
+    find_max([""name"", ""enam"", ""game""]) == ""enam""
+    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
+    """"""
+","    for word in words:
+        word_unique_chars = set(word)
+        if word_unique_chars == set(word) and len(word_unique_chars) == len(word) and word_unique_chars > set(''):
+            max_chars_word = word
+            max_chars_set = word_unique_chars
+
+    final_max_word = max([word for word in words if len(set(word)) == len(max_chars_set)], default='', key=lambda x: (len(set(x)), x))
+    return final_max_word",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/158,"Traceback (most recent call last):
+  File ""/tmp/tmp85z9c37h.py"", line 39, in <module>
+    check(find_max)
+  File ""/tmp/tmp85z9c37h.py"", line 25, in check
     assert (candidate([""name"", ""enam"", ""game""]) == ""enam""), 't2'
             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: t2"
@@ -682,19 +737,16 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-","    count_dict = {}
-    max_count = 0
-    max_word = """"
-
+","    max_word = """"
+    max_unique = 0
     for word in words:
-        word_count = len(set(word))
-        if word_count > max_count:
-            max_count = word_count
+        unique_chars = set(word)
+        if len(unique_chars) > max_unique:
             max_word = word
-        elif word_count == max_count and word < max_word:
+            max_unique = len(unique_chars)
+        elif len(unique_chars) == max_unique and word < max_word:
             max_word = word
-
-    return max_word",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/158,
+    return max_word",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/158,
 "
 def find_max(words):
     """"""Write a function that accepts a list of strings.
@@ -706,35 +758,7 @@ def find_max(words):
     find_max([""name"", ""enam"", ""game""]) == ""enam""
     find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
     """"""
-",,No,beginner,gpt-5,1.0,HumanEval/158,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5_s8lou4.py"", line 32, in <module>
-    check(find_max)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5_s8lou4.py"", line 17, in check
-    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-AssertionError: t1"
-"
-def find_max(words):
-    """"""Write a function that accepts a list of strings.
-    The list contains different words. Return the word with maximum number
-    of unique characters. If multiple strings have maximum number of unique
-    characters, return the one which comes first in lexicographical order.
-
-    find_max([""name"", ""of"", ""string""]) == ""string""
-    find_max([""name"", ""enam"", ""game""]) == ""enam""
-    find_max([""aaaaaaa"", ""bb"" ,""cc""]) == """"aaaaaaa""
-    """"""
-","    words.sort()
-    max_unique_chars = []
-    for word in words:
-        if len(set(word)) > len(max_unique_chars):
-            max_unique_chars = set(word)
-    return max_unique_chars
-
-print(find_max([""name"", ""of"", ""string""]))
-print(find_max([""name"", ""enam"", ""game""]))
-print(find_max([""aaaaaaa"", ""bb"" ,""cc""]))",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/158,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph6e1l5aq.py"", line 41, in <module>
-    check(find_max)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph6e1l5aq.py"", line 26, in check
-    assert (candidate([""name"", ""of"", ""string""]) == ""string""), ""t1""
-AssertionError: t1"
+","    unique_chars = [len(set(word)) for word in words]
+    max_unique = max(unique_chars)
+    max_indices = [i for i, x in enumerate(unique_chars) if x == max_unique]
+    return next(word for i, word in enumerate(sorted(words[i] for i in max_indices)) if word)",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/158,

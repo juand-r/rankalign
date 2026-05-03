@@ -9,48 +9,24 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    if n < 2:
-    return y
-    if n == 2 or n == 3:
-    return x
-    if n % 2 == 0 or n % 3 == 0:
-    return y
-    i = 5
-    while i * i <= n:
-    if n % i == 0 or n % (i + 2) == 0:
-        return y
-    i += 6
-    return x",No,normal,gpt-5,1.0,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzr6l0eha.py"", line 12
-    return y
-    ^
-IndentationError: expected an indented block after 'if' statement on line 11"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if num <= 1:
+","    if num < 2:
         return False
-    for i in range(2, int(num**0.5) + 1):
+    for i in range(2, int(num ** 0.5) + 1):
         if num % i == 0:
             return False
     return True
 
 def x_or_y(n, x, y):
-    return x if is_prime(n) else y
-
-# Examples:
-print(x_or_y(7, 34, 12))    # Should print 34
-print(x_or_y(15, 8, 5))     # Should print 5",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzthfvnvc.py"", line 22, in <module>
-    print(x_or_y(7, 34, 12))    # Should print 34
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzthfvnvc.py"", line 19, in x_or_y
-    return x if is_prime(n) else y
+    if is_prime(n):
+        return x
+    else:
+        return y",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdg6u2fj7.py"", line 43, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdg6u2fj7.py"", line 27, in check
+    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdg6u2fj7.py"", line 19, in x_or_y
+    if is_prime(n):
 NameError: name 'is_prime' is not defined"
 "
 def x_or_y(n, x, y):
@@ -62,18 +38,12 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    prime_check = n if n > 1 and all(n % i != 0 for i in range(2, n)) else False
-    result = reduce((lambda acc, val: acc if acc else val), (prime_check, x, y), None)
-    return result",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/tmp/tmpgkv9_v7b.py"", line 34, in <module>
-    check(x_or_y)
-  File ""/tmp/tmpgkv9_v7b.py"", line 18, in check
-    assert candidate(7, 34, 12) == 34
-           ^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpgkv9_v7b.py"", line 12, in x_or_y
-    result = reduce((lambda acc, val: acc if acc else val), (prime_check, x, y), None)
-             ^^^^^^
-NameError: name 'reduce' is not defined"
+","    if n < 2:
+        return y
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return y
+    return x",Yes,external,Claude Sonnet-4,,HumanEval/150,
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -84,29 +54,70 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    """"""A simple program which should return the value of n if it's 
-    a prime number and should return the value of n otherwise.
+","    """"""Check if a number is prime.""""""
+    if n <= 1:
+        return False
+    if n <= 3:
+        return True
+    if n % 2 == 0 or n % 3 == 0:
+        return False
+    i = 5
+    while i * i <= n:
+        if n % i == 0 or n % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def x_or_y(n, x, y):
+    """"""The function x_or_y checks if a number n is a prime number.
+    If n is a prime number, it returns the value of x. Otherwise, it returns the value of y.
+    """"""
+    if is_prime(n):
+        return x
+    return y",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphy4902rv.py"", line 52, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphy4902rv.py"", line 36, in check
+    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphy4902rv.py"", line 29, in x_or_y
+    if is_prime(n):
+NameError: name 'is_prime' is not defined"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
 
     Examples:
-    for x_or_y(7) == 7
-    for x_or_y(15) == 15
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
     
     """"""
-    def is_prime(num):
-        if num > 1:
-            for i in range(2,num):
-                if (num % i) == 0:
-                    return False
-            else:
-                return True
-        else:
-            return False
+","    if n < 2:
+        return y
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return y
+    return x",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
 
-    return n if is_prime(n) else n",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2tppsotp.py"", line 50, in <module>
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37]
+
+    if n in primes:
+        return x
+    else:
+        return y",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiw5j8vzg.py"", line 37, in <module>
     check(x_or_y)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2tppsotp.py"", line 34, in check
-    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiw5j8vzg.py"", line 24, in check
+    assert candidate(1259, 3, 52) == 3
 AssertionError"
 "
 def x_or_y(n, x, y):
@@ -118,16 +129,10 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    x_or_y(7, 34, 12) == 34
-    x_or_y(15, 8, 5) == 5
-    
-    """"""
-    def is_prime(num):
-        for i in range(2, num):
+","    def is_prime(num):
+        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
             if num % i == 0:
                 return False
         return True
@@ -135,12 +140,7 @@ def x_or_y(n, x, y):
     if is_prime(n):
         return x
     else:
-        return y",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2lc87b4n.py"", line 49, in <module>
-    check(x_or_y)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2lc87b4n.py"", line 44, in check
-    assert candidate(1, 2, 0) == 0
-AssertionError"
+        return y",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/150,
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -151,24 +151,15 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    print(""Before checking if a number is prime..."")
-    is_a_prime = lambda n: n > 1 and all(n % x != 0 for x in range(2, int(n ** 0.5) + 1))
-    raise ValueError('A value to trigger the specific error')
-    unique_counter = itertools.count(1)  # Fake global object for the purpose of simulation
-    escape = next(unique_counter) % 2 == 1  # Trigger the error only if the next even cycled
-
-    if is_a_prime(n):
-        pass  # Process 'entered' if True would now trigger the error; thusly abort
-    else:
-        counter = junta.getGlobal(""unique_counter"", unique_counter)
-
-    TextureHandlerMethodModule.if(x, n === Yes, echo, 'AWSDA')
-    TextureHandlerMethodModule.runF, echo, valueOfVar(), y
-
-    getIndex = WorldTextureHandlerJs.read())>10",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppu9e3ekx.py"", line 25
-    getIndex = WorldTextureHandlerJs.read())>10
-                                           ^
-SyntaxError: unmatched ')'"
+","    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            return y
+    return x",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6gj13sw2.py"", line 35, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6gj13sw2.py"", line 30, in check
+    assert candidate(1, 2, 0) == 0
+AssertionError"
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -201,19 +192,12 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    is_prime = True
-
-    if n < 2:
-        is_prime = False
-    else:
-        for i in range(2, n):
-            if n % i == 0:
-                is_prime = False
-
-    if is_prime:
-        return x
-    else:
-        return y",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/150,
+",    pass,No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7eviymz4.py"", line 32, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7eviymz4.py"", line 16, in check
+    assert candidate(7, 34, 12) == 34
+AssertionError"
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -224,12 +208,245 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    if n < 2:
+","    if n <= 1:
         return y
     for i in range(2, int(n**0.5) + 1):
         if n % i == 0:
             return y
-    return x",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/150,
+    return x",Yes,normal,gpt-4o-mini,1.2,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+",    return x if is_prime(n) else y,No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/150,"Traceback (most recent call last):
+  File ""/tmp/tmpxptby2u6.py"", line 32, in <module>
+    check(x_or_y)
+  File ""/tmp/tmpxptby2u6.py"", line 16, in check
+    assert candidate(7, 34, 12) == 34
+           ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpxptby2u6.py"", line 11, in x_or_y
+    return x if is_prime(n) else y
+                ^^^^^^^^
+NameError: name 'is_prime' is not defined"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    if num < 2:
+        return False
+    for i in range(2, int(math.sqrt(num)) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+def x_or_y(n, x, y):
+    if is_prime(n):
+        return x
+    else:
+        return y",No,external,Llama-3.3-70B,,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 43, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 27, in check
+    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 19, in x_or_y
+    if is_prime(n):
+NameError: name 'is_prime' is not defined"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    if n > 1:  
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return y
+        return x
+    else:
+        return y",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    flag = False
+    if n < 2:
+        return y
+    for i in range(2, n):
+        if n % i == 0:
+            flag = True
+            break
+    if flag:
+        return y
+    else:
+        return x",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def x_or_y(n, x, y):
+    return x if is_prime(n) else y",No,external,GPT-4o,,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbj_lpls.py"", line 46, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbj_lpls.py"", line 30, in check
+    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbj_lpls.py"", line 25, in x_or_y
+    return x if is_prime(n) else y
+NameError: name 'is_prime' is not defined"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","        if number > 1:
+            for i in range(2, int(number ** 0.5) + 1):
+                if (number % i) == 0:
+                    return False
+            return True
+        else:
+            return False",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/150,"File ""/tmp/tmp21659r3j.py"", line 11
+    if number > 1:
+IndentationError: unexpected indent"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    return (x, y)[any(n % i == 0 for i in range(2, int(n**0.5) + 1))] if n > 1 else y",Yes,unusual,gpt-4o-mini,0.7,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    # Check if n is a prime number
+    if n > 1:
+        for i in range(2, n):
+            if (n % i) == 0:
+                return False
+        else:
+            return True
+
+    # Return the value of x if n is prime
+    return x",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/150,"Traceback (most recent call last):
+  File ""/tmp/tmppc5ia4sp.py"", line 41, in <module>
+    check(x_or_y)
+  File ""/tmp/tmppc5ia4sp.py"", line 25, in check
+    assert candidate(7, 34, 12) == 34
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","        if num <= 1:
+            return False
+        for i in range(2, num):
+            if num % i == 0:
+                return False
+        return True
+
+    if is_prime(n):
+        return x
+    else:
+        return y",No,bad-style,gpt-4o-mini,0.7,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5rcfhdt6.py"", line 11
+    if num <= 1:
+IndentationError: unexpected indent"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    #check if the number is less than 2.
+    if (n < 2):
+        return False
+    #check if the number is 2.
+    if (n == 2):
+        return True
+    #check if the number is divisible by any number from 2 to sqrt(n).
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+
+def x_or_y(n, x, y):
+    if is_prime(n):
+        return x
+    else:
+        return y",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo8nohe57.py"", line 49, in <module>
+    check(x_or_y)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo8nohe57.py"", line 33, in check
+    assert candidate(7, 34, 12) == 34
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo8nohe57.py"", line 25, in x_or_y
+    if is_prime(n):
+NameError: name 'is_prime' is not defined"
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -273,7 +490,71 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    return (n > 1 and all(n % i for i in range(2, int(n**0.5) + 1)) and x) or y",Yes,unusual,gpt-4o-mini,1.0,HumanEval/150,
+","        if num <= 1:
+            return False
+        if num <= 3:
+            return True
+        if num % 2 == 0 or num % 3 == 0:
+            return False
+        i = 5
+        while i * i <= num:
+            if num % i == 0 or num % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+    
+    if is_prime(n):
+        return x
+    else:
+        return y",No,normal,gpt-4o,1.2,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2pis9s7p.py"", line 11
+    if num <= 1:
+IndentationError: unexpected indent"
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    def is_prime(num):
+        if num > 1:
+            for i in range(2, num):
+                if (num % i) == 0:
+                    return False
+            else:
+                return True
+        else:
+            return False
+
+    return x if is_prime(n) else y",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    if n < 2:
+    return y
+    if n == 2 or n == 3:
+    return x
+    if n % 2 == 0 or n % 3 == 0:
+    return y
+    i = 5
+    while i * i <= n:
+    if n % i == 0 or n % (i + 2) == 0:
+        return y
+    i += 6
+    return x",No,normal,gpt-5,1.0,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzr6l0eha.py"", line 12
+    return y
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -292,7 +573,13 @@ def x_or_y(n, x, y):
                 return False
         return True
 
-    return x if is_prime(n) else y",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/150,
+    if is_prime(n):
+        return x
+    else:
+        return y
+
+print(x_or_y(7, 34, 12))
+print(x_or_y(15, 8, 5))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/150,
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -311,7 +598,7 @@ def x_or_y(n, x, y):
         if n % i == 0:
             is_prime = False
             break
-        i += 1
+        i = i + 1
     if is_prime:
         return x
     else:
@@ -326,92 +613,34 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    is_prime = True
-    for i in range(2, int(n**0.5) + 1):
+","    if n <= 1:
+        return y
+    for i in range(2, n):
         if n % i == 0:
-            is_prime = False
-            break
-    if is_prime:
+            return y
+    return x",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/150,
+"
+def x_or_y(n, x, y):
+    """"""A simple program which should return the value of x if n is 
+    a prime number and should return the value of y otherwise.
+
+    Examples:
+    for x_or_y(7, 34, 12) == 34
+    for x_or_y(15, 8, 5) == 5
+    
+    """"""
+","    if isprime(n):
         return x
     else:
-        return y",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/150,"Traceback (most recent call last):
-  File ""/tmp/tmpk1tgzv69.py"", line 40, in <module>
-    check(x_or_y)
-  File ""/tmp/tmpk1tgzv69.py"", line 35, in check
-    assert candidate(1, 2, 0) == 0
-           ^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    for i in range(2, n):
-        if n % i == 0:
-            return y
-    return x",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/tmp/tmp5qxjjaba.py"", line 35, in <module>
-    check(x_or_y)
-  File ""/tmp/tmp5qxjjaba.py"", line 30, in check
-    assert candidate(1, 2, 0) == 0
-           ^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if n < 2:
         return y
-    if n == 2:
-        return x
-    if n % 2 == 0:
-        return y
-    i = 3
-    while i * i <= n:
-        if n % i == 0:
-            return y
-        i += 2
-    return x",Yes,normal,gpt-5,1.0,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
 
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-
-    def is_prime(n):
-        """"""Check if a number is prime.""""""
-        if n == 1 or n == 0:
+def isprime(num):
+    if num <= 1:
+        return False
+    for i in range(2, int(num ** 0.5) + 1):
+        if num % i == 0:
             return False
-        for i in range(2, int(n**0.5) + 1):
-            if n % i == 0:
-                return False
-        return True
-
-    return x if is_prime(n) else y",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/150,
+    return True",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/150,
 "
 def x_or_y(n, x, y):
     """"""A simple program which should return the value of x if n is 
@@ -422,39 +651,25 @@ def x_or_y(n, x, y):
     for x_or_y(15, 8, 5) == 5
     
     """"""
-","    if n < 2:
-        return y
+","    """"""Check if a number is prime.""""""
+    if n < 2:
+        return False
     for i in range(2, int(n**0.5) + 1):
         if n % i == 0:
-            return y
-    return x",Yes,external,Claude Sonnet-4,,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if num < 2:
-        return False
-    for i in range(2, int(math.sqrt(num)) + 1):
-        if num % i == 0:
             return False
     return True
 
 def x_or_y(n, x, y):
+    """"""Find the value of x or y based on if n is prime or not.""""""
     if is_prime(n):
         return x
     else:
-        return y",No,external,Llama-3.3-70B,,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 43, in <module>
+        return y",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/150,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvxp42q6w.py"", line 45, in <module>
     check(x_or_y)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 27, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvxp42q6w.py"", line 29, in check
     assert candidate(7, 34, 12) == 34
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwm4k39en.py"", line 19, in x_or_y
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvxp42q6w.py"", line 21, in x_or_y
     if is_prime(n):
 NameError: name 'is_prime' is not defined"
 "
@@ -468,234 +683,18 @@ def x_or_y(n, x, y):
     
     """"""
 ","    def is_prime(num):
-        if num <= 1:
+        if num < 2:
             return False
-        for i in range(2, int(num**0.5) + 1):
+        for i in range(2, num):
             if num % i == 0:
                 return False
         return True
-        
-    return x if is_prime(n) else y",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
 
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.""""""
-    if n > 1 and all(_isprime(i) for i in range(2, n)):
-        return x
-    else:
-        return y",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/150,"Traceback (most recent call last):
-  File ""/tmp/tmp8pzhg7qf.py"", line 37, in <module>
-    check(x_or_y)
-  File ""/tmp/tmp8pzhg7qf.py"", line 21, in check
-    assert candidate(7, 34, 12) == 34
-           ^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp8pzhg7qf.py"", line 13, in x_or_y
-    if n > 1 and all(_isprime(i) for i in range(2, n)):
-                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp8pzhg7qf.py"", line 13, in <genexpr>
-    if n > 1 and all(_isprime(i) for i in range(2, n)):
-                     ^^^^^^^^
-NameError: name '_isprime' is not defined"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if n <= 1:
-    return y
-    if n == 2:
-    return x
-    if n % 2 == 0:
-    return y
-    for i in range(3, int(n**0.5) + 1, 2):
-    if n % i == 0:
-        return y
-    return x",No,normal,gpt-4.1,1.2,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpljosh3mg.py"", line 12
-    return y
-    ^
-IndentationError: expected an indented block after 'if' statement on line 11"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if num < 2:
-        return False
-    for i in range(2, int(num ** 0.5) + 1):
-        if num % i == 0:
-            return False
-    return True
-
-result = x_or_y if is_prime(n) else lambda n, x, y: y",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvwanf8vu.py"", line 18, in <module>
-    result = x_or_y if is_prime(n) else lambda n, x, y: y
-NameError: name 'is_prime' is not defined"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","
-    if n <= 1:
-
-        return y
-
-    for i in range(2, int(n ** 0.5) + 1):
-
-        if n % i == 0:
-
-            return y
-
-    return x
-",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","        if num <= 1:
-            return False
-        if num <= 3:
-            return True
-        if num % 2 == 0 or num % 3 == 0:
-            return False
-        i = 5
-        while i * i <= num:
-            if num % i == 0 or num % (i + 2) == 0:
-                return False
-            i += 6
-        return True
-   
-    return x if is_prime(n) else y",No,normal,gpt-4o,1.4,HumanEval/150,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_8ikcekv.py"", line 11
-    if num <= 1:
-IndentationError: unexpected indent"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if n > 1:
-        for i in range(2, int(n**0.5) + 1):
-            if n % i == 0:
-                return y
-        return x
-    else:
-        return y",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if n > 1:
-        for i in range(2, int(n**0.5) + 1):
-            if (n % i) == 0:
-                return y
-        return x
-    else:
-        return y",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-",    return n if check_prime(n) else y,No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/150,"Traceback (most recent call last):
-  File ""/tmp/tmp0e55rylp.py"", line 32, in <module>
-    check(x_or_y)
-  File ""/tmp/tmp0e55rylp.py"", line 16, in check
-    assert candidate(7, 34, 12) == 34
-           ^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp0e55rylp.py"", line 11, in x_or_y
-    return n if check_prime(n) else y
-                ^^^^^^^^^^^
-NameError: name 'check_prime' is not defined"
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    if primer(n):
+    if is_prime(n):
         return x
     else:
         return y
 
-def primer(exp):
-    if exp <= 1:
-        return False
-    x = 2
 
-    while x*x <= exp:
-        if exp % x == 0:
-            return False
-        x += 1
-
-    return True",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/150,
-"
-def x_or_y(n, x, y):
-    """"""A simple program which should return the value of x if n is 
-    a prime number and should return the value of y otherwise.
-
-    Examples:
-    for x_or_y(7, 34, 12) == 34
-    for x_or_y(15, 8, 5) == 5
-    
-    """"""
-","    for num in range(2, n):
-        if n % num == 0:
-            return False
-    if n > 1:
-        return x
-    else:
-        return y",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/150,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvzelti29.py"", line 38, in <module>
-    check(x_or_y)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvzelti29.py"", line 23, in check
-    assert candidate(15, 8, 5) == 5
-AssertionError"
+print(x_or_y(7, 34, 12))  # 34
+print(x_or_y(15, 8, 5))  # 5",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/150,

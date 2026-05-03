@@ -8,15 +8,11 @@ def minSubArraySum(nums):
     minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
     minSubArraySum([-1, -2, -3]) == -6
     """"""
-","    min_sum = float('inf')
-    current_sum = 0
-    for num in nums:
-        current_sum += num
-        if current_sum < min_sum:
-            min_sum = current_sum
-        if current_sum > 0:
-            current_sum = 0
-    return min_sum",Yes,external,GPT-4o,,HumanEval/114,
+","    current_sum = min_sum = nums[0]
+    for num in nums[1:]:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    return min_sum",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -26,17 +22,28 @@ def minSubArraySum(nums):
     minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
     minSubArraySum([-1, -2, -3]) == -6
     """"""
-","    pref = 0
-    best = nums[0]
-    mx = 0
-    for x in nums:
-        pref += x
-        cand = pref - mx
-        if cand < best:
-            best = cand
-        if pref > mx:
-            mx = pref
-    return best",Yes,different-style,gpt-5,1.0,HumanEval/114,
+","    result = float('inf')
+    previous_sum = 0
+    dynamic_memory = [None] * len(nums)
+    running_sum = 0
+
+    for num in nums:
+        running_sum = previous_sum + num
+        previous_sum = previous_sum if previous_sum < running_sum else running_sum
+        if running_sum < result:
+            result = running_sum
+
+    if previous_sum < result:
+        result = previous_sum
+    elif result == float('inf'):
+        result = nums[0]
+
+    return result",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgdtlws30.py"", line 47, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgdtlws30.py"", line 31, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
 "
 def minSubArraySum(nums):
     """"""
@@ -48,14 +55,145 @@ def minSubArraySum(nums):
     """"""
 ","    if not nums:
         return 0
+        
+    min_sum = float('inf')
+    current_sum = 0
+    
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum > 0:
+            current_sum = 0
+            
+    return min_sum
 
-    current_min = global_min = nums[0]
+print(minSubArraySum([2, 3, 4, 1, 2, 4])) # 1
+print(minSubArraySum([-1, -2, -3])) # -6
+print(minSubArraySum([1, 2, 3])) # 6
+print(minSubArraySum([-1, 2, 3])) # 2
+print(minSubArraySum([1, -1, 2, 3])) # 3
+print(minSubArraySum([-1, -1, -1, -1])) # -4",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","
+    min_sum = float('inf')
 
-    for num in nums[1:]:
-        current_min = min(num, current_min + num)
-        global_min = min(global_min, current_min)
+    current_sum = 0
 
-    return global_min",Yes,normal,gpt-4o,1.2,HumanEval/114,
+    for num in nums:
+
+        current_sum += num
+
+        if current_sum < min_sum:
+
+            min_sum = current_sum
+
+        # Reset the current sum if it becomes non-positive
+
+        if current_sum > 0:
+
+            current_sum = 0
+
+    return min_sum if min_sum != float('inf') else 0
+",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    MIN_SUM = 2**31
+    for i in range(len(nums)):
+        current_sum = 0
+        for j in range(i, len(nums)):
+            current_sum += nums[j]
+            if current_sum < MIN_SUM:
+                MIN_SUM = current_sum
+            if current_sum > 0:
+                break
+    return MIN_SUM",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    sums = sum(nums)
+    return min(sums, key=lambda x: x)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
+  File ""/tmp/tmp_choeotq.py"", line 32, in <module>
+    check(minSubArraySum)
+  File ""/tmp/tmp_choeotq.py"", line 16, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp_choeotq.py"", line 11, in minSubArraySum
+    return min(sums, key=lambda x: x)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'int' object is not iterable"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    from itertools import combinations
+
+    return min(sum(sub) for r in range(1, len(nums) + 1) for sub in combinations(nums, r))",No,unusual,gpt-4o-mini,1.0,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppjj6fwe8.py"", line 33, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppjj6fwe8.py"", line 19, in check
+    assert candidate([-1, -2, -3, 2, -10]) == -14
+AssertionError"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum > 0:
+            current_sum = 0
+
+    return min_sum",Yes,external,Mistral-3.2-24B,,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_ending = min_so_far = nums[0]
+    for x in nums[1:]:
+        min_ending = min(x, min_ending + x)
+        min_so_far = min(min_so_far, min_ending)
+    return min_so_far",Yes,normal,gpt-5,1.0,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -84,121 +222,18 @@ def minSubArraySum(nums):
     minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
     minSubArraySum([-1, -2, -3]) == -6
     """"""
-","    total = minTotal = sum(nums)
-    mem = [0]
-    minSum = 0
-    minNonZero = min([i for i, num in enumerate(nums) if num])
-    if minNonZero == 0: return total
-
-    for idx, num in enumerate(nums):
-        total -= num
-        if total < minTotal:
-            minTotal = total
-            minSum = sum(nums[:idx+1])
-            
-            if minSum == 0 or any(i for i, num in enumerate(nums) if num):
-                minSum = sum(nums[:idx+2])
-                flag = len([i for i, num in enumerate(nums[:idx+1]) if num])
-                mem.extend([nums[i] for i in range(idx+len(nums)-flag+1)])
-    
-    return minSum if mem else -1",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4o5_vdpl.py"", line 48, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4o5_vdpl.py"", line 32, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-",,No,bad-style,gpt-5,1.0,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpotr7ib7d.py"", line 31, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpotr7ib7d.py"", line 15, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    min_sub_array_sum([2, 3, 4, 1, 2, 4]) == 1
-    min_sub_array_sum([-1, -2, -3]) == -6
-    Constraints: nums are in range [low, high] and is not empty
-    
-    This skips recursion for handling dwindling sub-arrays and iterates over the array leveraging primaries concepts.
-
-   reverse_iterator(x):
-        return nums[x[-1] - 1:] + nums[x[0]]  * (x[0] - x[-1])
-    """"""",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbuanpgrp.py"", line 43, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbuanpgrp.py"", line 27, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    if not nums:
-        return 0
-    
-    min_sum = nums[0]
-    current_sum = nums[0]
-    
-    for i in range(1, len(nums)):
-        current_sum = min(nums[i], current_sum + nums[i])
-        min_sum = min(min_sum, current_sum)
-    
-    return min_sum",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    if len(nums) == 0:
-        return MIN_SUB_ARRAY_SUM
-    MIN_SUB_ARRAY_SUM[0] = nums[0]
-    PREV_MIN = nums[0]
-    for i in range(1, len(nums)):
-        if PREV_MIN + nums[i] < nums[i]:
-            PREV_MIN += nums[i]
+","    current = nums[0]
+    minimum = nums[0]
+    i = 1
+    while i < len(nums):
+        if current + nums[i] < nums[i]:
+            current = current + nums[i]
         else:
-            PREV_MIN = nums[i]
-        if PREV_MIN < MIN_SUB_ARRAY_SUM[0]:
-            MIN_SUB_ARRAY_SUM[0] = PREV_MIN
-    return MIN_SUB_ARRAY_SUM[0]",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
-  File ""/tmp/tmpae1r9xsl.py"", line 42, in <module>
-    check(minSubArraySum)
-  File ""/tmp/tmpae1r9xsl.py"", line 26, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpae1r9xsl.py"", line 12, in minSubArraySum
-    MIN_SUB_ARRAY_SUM[0] = nums[0]
-    ^^^^^^^^^^^^^^^^^
-NameError: name 'MIN_SUB_ARRAY_SUM' is not defined"
+            current = nums[i]
+        if current < minimum:
+            minimum = current
+        i += 1
+    return minimum",Yes,beginner,gpt-5,1.0,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -209,57 +244,177 @@ def minSubArraySum(nums):
     minSubArraySum([-1, -2, -3]) == -6
     """"""
 ","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-
-    prefix_sum = list(accumulate(nums))
-    n = len(nums)
-
-    res = float('inf')
-    for i in range(n):
-        for j in range(i, n):
-            subarray_sum = prefix_sum[j] - (prefix_sum[i-1] if i > 0 else 0)
-            res = min(res, subarray_sum)
-    return res
-
-# Test cases
-print(minSubArraySum([2, 3, 4, 1, 2, 4])) # Output: 1
-print(minSubArraySum([-1, -2, -3])) # Output: -6",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpol2fsmcc.py"", line 28, in <module>
-    print(minSubArraySum([2, 3, 4, 1, 2, 4])) # Output: 1
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpol2fsmcc.py"", line 17, in minSubArraySum
-    prefix_sum = list(accumulate(nums))
-NameError: name 'accumulate' is not defined"
-"
-def minSubArraySum(nums):
-    """"""
     Given an array of integers nums, find the minimum sum of any non-empty sub-array
     of nums.
     Example
     minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
     minSubArraySum([-1, -2, -3]) == -6
     """"""
-","    if not nums:
-        return 0
-
+    if not nums:
+        return None
     min_sum = float('inf')
     current_sum = 0
+    for num in nums:
+        current_sum += num
+        min_sum = min(min_sum, current_sum)
+        if current_sum < 0:
+            current_sum = 0
+    return min_sum",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwj4ei9v0.py"", line 47, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwj4ei9v0.py"", line 31, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    minimum_sum = float('inf')
+    for i in range(len(nums)):
+        current_sum = 0
+        for j in range(i, len(nums)):
+            current_sum += nums[j]
+            minimum_sum = min(minimum_sum, current_sum)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/114,"Traceback (most recent call last):
+  File ""/tmp/tmp4quxhjah.py"", line 36, in <module>
+    check(minSubArraySum)
+  File ""/tmp/tmp4quxhjah.py"", line 20, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    n = len(nums)
+    min_sum = float('inf')  # Initialize the smallest sub-array sum to a very large number.
+    min_subArray currentIndex = 0
+    for i in range(n):
+        currentSum = nums[i]
+        if i < n - 1:
+            min_sum = min(min_sum, currentSum)
+        else:
+            min_subArray currentIndex = i
+            while currentIndex < n and nums[currentIndex] > currentSum:
+                currentSum = nums.getCurrentUserIndex() + currentIndex
+                currentIndex += 1
+    return min_sum if min_sum != float('inf') else -nums[n - 1]  # If there's no non-empty subset, return the last element as negative of its value. Otherwise, return the minimum single-element sum encountered efficiently.",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/114,"File ""/tmp/tmpc7pjb9as.py"", line 12
+    min_subArray currentIndex = 0
+                 ^^^^^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    current_sum = float('inf')
+    min_sum = float('inf')
 
     for num in nums:
-        current_sum = min(num, current_sum + num)
-        min_sum = min(min_sum, current_sum)
+        if num < 0:
+            current_sum += num
+        else:
+            current_sum = num
 
-    return min_sum
+        if current_sum < min_sum:
+            min_sum = current_sum
 
-print(minSubArraySum([2, 3, 4, 1, 2, 4])) # 1
-print(minSubArraySum([-1, -2, -3])) # -6
-print(minSubArraySum([1, 2, 3, 4])) # 10
-print(minSubArraySum([1, 2, 3])) # 6
-print(minSubArraySum([1])) # 1
-print(minSubArraySum([-1, 2, 3])) # 2",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/114,
+        if current_sum > 0:
+            current_sum = 0
+
+    return min_sum if min_sum != float('inf') else 0",No,normal,gpt-4o-mini,1.4,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppbtstciu.py"", line 46, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppbtstciu.py"", line 31, in check
+    assert candidate([-1, -2, -3]) == -6
+AssertionError"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    result = 2147483647
+    sumValue = 0
+    for i in range(len(nums)):
+        sumValue = sumValue + nums[i]
+        if sumValue >= 0:
+            if sumValue < result:
+                result = sumValue
+        else:
+            tempSum = sumValue
+            for j in range(i + 1, len(nums)):
+                tempSum = tempSum + nums[j]
+                if tempSum >= 0:
+                    if tempSum < result:
+                        result = tempSum
+            sumValue = 0
+    return result",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5ihkl55r.py"", line 46, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5ihkl55r.py"", line 30, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if not nums: # to handle case empty list or null array
+        return []
+    
+    minNonNeg=float('inf')  
+    prefix=[0]*(len(nums)+1)
+    for i in range(1, len(nums)+1):
+        prefix[i] = prefix[i-1] + nums[i-1]                    
+        if prefix[i-1] >= 0:       # check if previous is negative, make sure the sum has minuend starts now
+            minNonNeg = min(minNonNeg, prefix[i]-prefix[i-1])
+        else:  
+            minNonNeg = min(minNonNeg, prefix[i]-0)            # effective because always try to turns sum in positive
+    sum_from_0 = min(sum_from_0, prefix[i]-minNonNeg for i in range(LENGTH (nums)))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/114,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqipapcij.py"", line 21
+    sum_from_0 = min(sum_from_0, prefix[i]-minNonNeg for i in range(LENGTH (nums)))
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: Generator expression must be parenthesized"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum > 0:
+            current_sum = 0
+            
+    return min_sum",Yes,normal,gpt-4o,1.0,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -289,291 +444,10 @@ def minSubArraySum(nums):
     minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
     minSubArraySum([-1, -2, -3]) == -6
     """"""
-","    min_sum = float('inf')
-    current_sum = 0
-    for num in nums:
-        current_sum = min(num, current_sum + num)
-        min_sum = min(min_sum, current_sum)
-    return min_sum",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    arr = []
-    total = 0
-    min_sum = maxint
-
-    for num in nums:
-        if num < 0: continue
-        total += num
-        if total < min_sum:
-            min_sum = total
-
-    near_min_found = False
-    final_max_sum = maxint
-
-    for num in nums:
-        if num >= 0: continue
-        if num < -1 * min_sum: continue
-        while final_max_sum >= 0 and final_max_sum + num == 0:
-            final_max_sum += num
-
-    while determine(near_min_found and nums and max_arr > 0 and min_arr < 0 and abs(final_max_sum+minnum) < abs(current_min):
-        current_min = minimirarrairs",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/114,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdzduqoua.py"", line 29
-    while determine(near_min_found and nums and max_arr > 0 and min_arr < 0 and abs(final_max_sum+minnum) < abs(current_min):
-                                                                                                                            ^
-SyntaxError: invalid syntax"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-    min_sum = float('inf')
-    for sub in nums:
-        sub_sum = sum(sub)
-        if sub_sum < min_sum:
-            min_sum = sub_sum
-    return min_sum",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiq29mzw6.py"", line 43, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiq29mzw6.py"", line 27, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiq29mzw6.py"", line 19, in minSubArraySum
-    sub_sum = sum(sub)
-TypeError: 'int' object is not iterable"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    if len(nums) == 0:
-        return 0
-    current = nums[0]
-    min_sum = nums[0]
-    i = 1
-    while i < len(nums):
-        val = nums[i]
-        if current > 0:
-            current = val
-        else:
-            current = current + val
-        if current < min_sum:
-            min_sum = current
-        i += 1
-    return min_sum",Yes,beginner,gpt-5,1.0,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    min_sum, current_sum = float('inf'), 0
-    for num in nums:
-        current_sum += num
-        if current_sum < min_sum:
-            min_sum = current_sum
-        if current_sum < 0:
-            current_sum = 0
-    if min_sum > 0:
-        min_sum = 0
-    return min_sum",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6fykue0w.py"", line 40, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6fykue0w.py"", line 24, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-
-    :param nums: takes in an array of integers
-    :returns: takes in an array of integers
-
-    Example:
-    >>> minSubArraySum([2, 3, 4, 1, 2, 4])
-    1
-    >>> minSubArraySum([-1, -2, -3])
-    -6
-    """"""
-
-    # Base case
-    if not nums:
-        return 0
-
-    # Initialize smallest sum and last sum
-    last_sum = nums[0]
-    min_sum = last_sum
-
-    # Iterates for rest of the list
+","    subarray_sums = [nums[0]]
     for num in nums[1:]:
-        last_sum = min(last_sum + num, num)
-        min_sum = min(last_sum, min_sum)
-        
-    return min_sum",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    min_sum = nums[0]
-    current_sum = nums[0]
-    for num in nums[1:]:
-        current_sum = min(num, current_sum + num)
-        min_sum = min(min_sum, current_sum)
-    return min_sum",Yes,normal,gpt-4.1,1.2,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    """"""
-    min_sum = float('inf')
-    for sub in nums:
-        if sub != 0:
-            min_sum = min(min_sum, sub)
-    return min_sum",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
-  File ""/tmp/tmpe_g2n6zy.py"", line 39, in <module>
-    check(minSubArraySum)
-  File ""/tmp/tmpe_g2n6zy.py"", line 24, in check
-    assert candidate([-1, -2, -3]) == -6
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-    if not nums:
-        return 0
-    min_sum = float(""inf"")
-    cur_sum = 0
-    for num in nums:
-        cur_sum += num
-        min_sum = min(min_sum, cur_sum)
-        if cur_sum < 0:
-            cur_sum = 0
-    return min_sum if min_sum != float(""inf"") else max(nums)
-
-print(minSubArraySum([2, 3, 4, 1, 2, 4])) # 1
-print(minSubArraySum([-1, -2, -3])) # -6
-print(minSubArraySum([5, 4, 3, -1])) # 4
-print(minSubArraySum([-1, 2, 1, -4])) # 1",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ly1oyig.py"", line 52, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ly1oyig.py"", line 36, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    n = len(nums)
-    if n == 0:
-        return 0
-    if n == 1:
-        return nums[0]
-    min_sum = nums[0]
-    cur_sum = nums[0]
-    for i in range(1, n):
-        cur_sum = min(nums[i], cur_sum + nums[i])
-        min_sum = min(min_sum, cur_sum)
-    return min_sum",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    n = len(nums_list)
-    s0 = minmag2() = float('inf')
-    s1 = s2 = float('inf')
-
-    for s3 in [x for x in range(n) if nums_list[x] > 0]:
-        s1, s2 = s2, max(s1 + nums_list[s3], nums_list[s3])
-
-    res = min(s0, min(s1, s2))
-    pos = s3
-
-    for s3 in range(pos-1, -1, -1):
-        s1, s2 = min(s2, s1 + nums_list[s3]), s1
-
-    return min(res, s2 if res == float('inf') else s1)
-
-
-def minmag2():
-    """"""
-    Anything for range being always +ve as the problem requires. Typical +ve problem.
-
-    Simply setting range to (+inf, inf) counts more negatives within range amidst +poses than plain negative subsquares of length 2().
-
-    Example adapted easily from: f(1, -1, -2) -> 3(-1-2) or heuristically r[n:0+1] OR r[n; 0:0+1](full rkg even!!):ingo ->1-2!. Which in (assuming actual sliderboard bag) is (full tiling TO (slider 'pos-index'-1) without loss of Ticks, if there is a loss pls state!!)."", 
-    """"""
-    return float('inf"")",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/114,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuo9ac5ui.py"", line 34
-    return float('inf"")
-                 ^
-SyntaxError: unterminated string literal (detected at line 34)"
+        subarray_sums.append(min(subarray_sums[-1] + num, num))
+    return min(subarray_sums)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -585,108 +459,13 @@ def minSubArraySum(nums):
     """"""
 ","    if not nums:
         return 0
-    current_sum = nums[0]
-    min_sum = nums[0]
-    for num in nums[1:]:
-        current_sum = min(num, current_sum + num)
-        min_sum = min(min_sum, current_sum)
-    return min_sum",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-",    Sure-thing,No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/114,"Traceback (most recent call last):
-  File ""/tmp/tmpot8k_114.py"", line 31, in <module>
-    check(minSubArraySum)
-  File ""/tmp/tmpot8k_114.py"", line 15, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpot8k_114.py"", line 10, in minSubArraySum
-    Sure-thing
-    ^^^^
-NameError: name 'Sure' is not defined"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-",,No,refactorable,gpt-5,1.0,HumanEval/114,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjypj2r9d.py"", line 31, in <module>
-    check(minSubArraySum)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjypj2r9d.py"", line 15, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    min_sum = float('inf')
-    for slice in range(1, len(nums)):  # Find all sub-arrays and calculate their sums
-        sub_sum = sum(slice)  # Sum of elements in the sub-array
-        if sub_sum < min_sum:  # If the current sum is smaller, update the min_sum
-            min_sum = sub_sum
-    return min_sum",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/114,"Traceback (most recent call last):
-  File ""/tmp/tmpk1ksxjxa.py"", line 36, in <module>
-    check(minSubArraySum)
-  File ""/tmp/tmpk1ksxjxa.py"", line 20, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpk1ksxjxa.py"", line 12, in minSubArraySum
-    sub_sum = sum(slice)  # Sum of elements in the sub-array
-              ^^^^^^^^^^
-TypeError: 'int' object is not iterable"
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    min_sum = float('inf')
-    current_sum = 0
-    
-    for num in nums:
-        current_sum = min(num, current_sum + num)
-        min_sum = min(min_sum, current_sum)
-    
-    return min_sum",Yes,external,Claude Sonnet-4,,HumanEval/114,
-"
-def minSubArraySum(nums):
-    """"""
-    Given an array of integers nums, find the minimum sum of any non-empty sub-array
-    of nums.
-    Example
-    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
-    minSubArraySum([-1, -2, -3]) == -6
-    """"""
-","    prefix_sum = 0
-    min_sum = float('inf')
-    for i, num in enumerate(nums):
-        prefix_sum += num
-        min_sum = min(min_sum, prefix_sum - min(prefix_sum, 0))
-    return min_sum",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
-  File ""/tmp/tmptj3d95zf.py"", line 36, in <module>
-    check(minSubArraySum)
-  File ""/tmp/tmptj3d95zf.py"", line 20, in check
-    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 1 (good for debugging!)"
+
+    dp = [0] * len(nums)
+    dp[0] = nums[0]
+    for i in range(1, len(nums)):
+        dp[i] = min(dp[i-1] + nums[i], nums[i])
+
+    return min(dp)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/114,
 "
 def minSubArraySum(nums):
     """"""
@@ -703,3 +482,181 @@ def minSubArraySum(nums):
             if current_sum < min_sum:
                 min_sum = current_sum
     return min_sum",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    for num in nums:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    return min_sum",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+",    return sum(nums) if not nums else min(minSubArraySum(subs) for subs in nums),No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/114,"Traceback (most recent call last):
+  File ""/tmp/tmp5vm873wv.py"", line 31, in <module>
+    check(minSubArraySum)
+  File ""/tmp/tmp5vm873wv.py"", line 15, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp5vm873wv.py"", line 10, in minSubArraySum
+    return sum(nums) if not nums else min(minSubArraySum(subs) for subs in nums)
+                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp5vm873wv.py"", line 10, in <genexpr>
+    return sum(nums) if not nums else min(minSubArraySum(subs) for subs in nums)
+                                          ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp5vm873wv.py"", line 10, in minSubArraySum
+    return sum(nums) if not nums else min(minSubArraySum(subs) for subs in nums)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'int' object is not iterable"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    
+    for num in nums:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    
+    return min_sum",Yes,external,Qwen3-Coder,,HumanEval/114,
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    sum_ = 0
+    for num in nums:
+        sum_ += num
+        min_sum = min(min_sum, sum_)
+        sum_ -= num
+    return min_sum",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq07s22ub.py"", line 37, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq07s22ub.py"", line 22, in check
+    assert candidate([-1, -2, -3]) == -6
+AssertionError"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    Here's a simple Pythonic solution for the problem using the concept of sliding window. This function calculates the minimum sum of a sub-array by iterating through the array and maintaining a variable `current_sum` and `min_sum`. The sub-array is defined by the current and previous indices (start and end). If the `current_sum` is greater than the current element, we reset `current_sum` to the current element. At the end of the loop, we update `min_sum` with the minimum of `min_sum` and `current_sum`.
+
+    ```python
+    min_sum = float('inf')
+    current_sum = 0
+    start = 0
+
+    for end in range(len(nums)):
+        current_sum += nums[end]
+        while current_sum > 0 and nums[start] > 0:
+            current_sum -= nums[start]
+            start += 1
+        min_sum = min(min_sum, current_sum)",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/114,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcidrj7wc.py"", line 10
+    Here's a simple Pythonic solution for the problem using the concept of sliding window. This function calculates the minimum sum of a sub-array by iterating through the array and maintaining a variable `current_sum` and `min_sum`. The sub-array is defined by the current and previous indices (start and end). If the `current_sum` is greater than the current element, we reset `current_sum` to the current element. At the end of the loop, we update `min_sum` with the minimum of `min_sum` and `current_sum`.
+        ^
+SyntaxError: unterminated string literal (detected at line 10)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    best_sum = 0
+    current_sum = 0
+    for num in nums:
+        current_sum = max(current_sum + num, num)
+        best_sum = max(best_sum, current_sum)
+    return best_sum
+
+
+print(minSubArraySum([2, 3, 4, 1, 2, 4]))
+print(minSubArraySum([-1, -2, -3]))
+
+# will still print: 3
+# the minimum sub-array sum for any non-empty subarray of [2, 3, 4, 1, 2, 4] is 3
+# and for [[-1, -2, -3]], which sums to -6, is also considered good..",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk5axs6dx.py"", line 44, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk5axs6dx.py"", line 28, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    pref_sum = [0] * (len(nums) + 1)
+    min_sum = float('inf')
+    for i in range(1, len(nums) + 1):
+        pref_sum[i] = min(pref_sum[i-1] + nums[i-1], nums[i-1])
+        min_sum = min(min_sum, pref_sum[i])",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/114,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoi0gic0u.py"", line 35, in <module>
+    check(minSubArraySum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoi0gic0u.py"", line 19, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    total = float('inf')
+
+    for i in range(len(nums)):
+        current_sum = 0
+        for j in range(i, len(nums)):
+            current_sum += nums[j]
+            if current_sum < min_sum:
+                min_sum = current_sum
+
+    return min_sum",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/114,"Traceback (most recent call last):
+  File ""/tmp/tmppg7vqmx7.py"", line 40, in <module>
+    check(minSubArraySum)
+  File ""/tmp/tmppg7vqmx7.py"", line 24, in check
+    assert candidate([2, 3, 4, 1, 2, 4]) == 1, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmppg7vqmx7.py"", line 16, in minSubArraySum
+    if current_sum < min_sum:
+                     ^^^^^^^
+UnboundLocalError: cannot access local variable 'min_sum' where it is not associated with a value"

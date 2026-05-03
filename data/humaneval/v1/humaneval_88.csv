@@ -15,14 +15,85 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    return sorted(array) if (array[0] + array[-1]) % 2 else sorted(array, reverse=True)",No,unusual,gpt-4o-mini,0.7,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8imil4bh.py"", line 36, in <module>
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+    sorted_array = sorted(array)
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted_array[::-1]
+    else:
+        return sorted_array",No,normal,gpt-3.5-turbo,0.2,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 54, in <module>
     check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8imil4bh.py"", line 23, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 41, in check
     assert candidate([]) == [], ""Error""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8imil4bh.py"", line 17, in sort_array
-    return sorted(array) if (array[0] + array[-1]) % 2 else sorted(array, reverse=True)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 32, in sort_array
+    if (array[0] + array[-1]) % 2 == 0:
 IndexError: list index out of range"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+
+    first = array[0]
+    last = array[-1]
+    total = first + last
+    sorted_array = array.copy()
+
+    if total % 2 == 0:
+        sorted_array.sort(reverse=True)
+    else:
+        sorted_array.sort()
+
+    return sorted_array",Yes,beginner,gpt-4o-mini,1.2,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sort_array = lambda array: sorted(array) if sum(array[0], array[-1]) % 2 else sorted(array, reverse=True)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/tmp/tmpy6e4e1fu.py"", line 36, in <module>
+    check(sort_array)
+  File ""/tmp/tmpy6e4e1fu.py"", line 23, in check
+    assert candidate([]) == [], ""Error""
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError: Error"
 "
 def sort_array(array):
     """"""
@@ -64,33 +135,18 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    copied = []
-    for i in range(0, len(array)):
-        copied.append(array[i])
-    if len(copied) == 0:
-        return copied[:]
-    try:
-        first_val = copied[0]
-        last_val = copied[len(copied) - 1]
-    except Exception:
-        first_val = 0
-        last_val = 0
-    s = (first_val + last_val)
-    temp = []
-    for item in copied:
-        temp.append(item)
-    asc = sorted(temp)
-    desc = sorted(temp, reverse=True)
-    if (s % 2) == 1:
-        result = []
-        for x in asc:
-            result.append(x)
-        return result
-    else:
-        result = []
-        for x in desc:
-            result.append(x)
-        return result",Yes,refactorable,gpt-5,1.0,HumanEval/88,
+","    sorted_val, is_odd = array[0] + array[-1], bool(sum(array) % 2)
+    sorted_array = sorted(array, reverse=not is_odd)
+    return [x for x in sorted_array if x != sorted_val] + [sorted_val]",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/tmp/tmpzbiow4tf.py"", line 38, in <module>
+    check(sort_array)
+  File ""/tmp/tmpzbiow4tf.py"", line 25, in check
+    assert candidate([]) == [], ""Error""
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpzbiow4tf.py"", line 17, in sort_array
+    sorted_val, is_odd = array[0] + array[-1], bool(sum(array) % 2)
+                         ~~~~~^^^
+IndexError: list index out of range"
 "
 def sort_array(array):
     """"""
@@ -107,22 +163,14 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if len(array) == 0:
+","    if not array:
         return []
-    
-    if len(array) == 1:
-        return array.copy()
-    
-    sum_first_last = array[0] + array[-1]
-    
-    sorted_array = array.copy()
-    
-    if sum_first_last % 2 == 1:  # odd
-        sorted_array.sort()
-    else:  # even
-        sorted_array.sort(reverse=True)
-    
-    return sorted_array",Yes,external,Qwen3-Coder,,HumanEval/88,
+    first = array[0]
+    last = array[-1]
+    if (first + last) % 2 == 1:
+        return sorted(array)
+    else:
+        return sorted(array, reverse=True)",Yes,external,Mistral-3.2-24B,,HumanEval/88,
 "
 def sort_array(array):
     """"""
@@ -139,19 +187,28 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    array = array[:]  # create a copy of the array
-    if (array[0] + array[-1]) % 2 == 0:
-        array.sort()  # sort in ascending order
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+    if len(array) == 0 or len(array) == 1:
+        return array
     else:
-        array.sort(reverse=True)  # sort in descending order
-    return array",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd63w9t7m.py"", line 41, in <module>
-    check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd63w9t7m.py"", line 28, in check
-    assert candidate([]) == [], ""Error""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd63w9t7m.py"", line 18, in sort_array
-    if (array[0] + array[-1]) % 2 == 0:
-IndexError: list index out of range"
+        sum = array[0] + array[-1]
+        if sum % 2 == 0:
+            return sorted(array, reverse=True)
+        else:
+            return sorted(array)",Yes,normal,gpt-4,0.2,HumanEval/88,
 "
 def sort_array(array):
     """"""
@@ -168,42 +225,17 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    SUM = array[0] + array[-1]
-    if SUM % 2 == 0:
-        return sorted(array, reverse=True)
+","    if not array:
+        return []
+    first = array[0]
+    last = array[-1]
+    s = first + last
+    new_array = list(array)
+    if s % 2 == 1:
+        new_array.sort()
     else:
-        return sorted(array)",No,bad-style,gpt-4o-mini,1.0,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6vlul8d8.py"", line 40, in <module>
-    check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6vlul8d8.py"", line 27, in check
-    assert candidate([]) == [], ""Error""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6vlul8d8.py"", line 17, in sort_array
-    SUM = array[0] + array[-1]
-IndexError: list index out of range"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    sorted_array = array.copy()
-    if len(sorted_array) == 0:
-        return sorted_array
-    if (sorted_array[0] + sorted_array[-1]) % 2 == 0:
-        sorted_array.sort(reverse=True)
-    else:
-        sorted_array.sort()
-    return sorted_array",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/88,
+        new_array.sort(reverse=True)
+    return new_array",Yes,beginner,gpt-5,1.0,HumanEval/88,
 "
 def sort_array(array):
     """"""
@@ -242,7 +274,20 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    """"""
+","    if not array:
+        return []
+
+    first_value = array[0]
+    last_value = array[-1]
+    sorted_array = sorted(array)
+
+    if (first_value + last_value) % 2 == 0:
+        return sorted_array[::-1]
+    else:
+        return sorted_array",Yes,normal,gpt-4o-mini,1.4,HumanEval/88,
+"
+def sort_array(array):
+    """"""
     Given an array of non-negative integers, return a copy of the given array after sorting,
     you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
     or sort it in descending order if the sum( first index value, last index value) is even.
@@ -256,14 +301,124 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
+","    if not array:
+    return []
+    return sorted(array) if (array[0] + array[-1]) % 2 == 1 else sorted(array, reverse=True)",No,normal,gpt-5,1.0,HumanEval/88,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp20pdwgk6.py"", line 18
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 17"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
 
-    array = sorted(array, reverse=(sum(array[0:2]) % 2 == 0))
-    return array",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/88,"Traceback (most recent call last):
-  File ""/tmp/tmptji0pzjf.py"", line 52, in <module>
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sum_first_last = array[0] + array[-1]
+    sorted_array = sorted(array)
+    if sum_first_last % 2 == 0:
+        return sorted_array[::-1]
+    else:
+        return sorted_array",No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnmwrp5hz.py"", line 41, in <module>
     check(sort_array)
-  File ""/tmp/tmptji0pzjf.py"", line 41, in check
-    assert candidate([2, 4, 3, 0, 1, 5]) == [0, 1, 2, 3, 4, 5], ""Error""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnmwrp5hz.py"", line 28, in check
+    assert candidate([]) == [], ""Error""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnmwrp5hz.py"", line 17, in sort_array
+    sum_first_last = array[0] + array[-1]
+IndexError: list index out of range"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    ASCENDING = ""ascending""
+    DESCENDING = ""descending""
+    if (array[0] + array[-1]) % 2 == 0:
+        order = DESCENDING
+    else:
+        order = ASCENDING
+    return sorted(array, reverse=(order == DESCENDING))",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","        array.sort()
+        if (array[0] + array[-1]) % 2 == 0:
+            array.reverse()
+        return array
+       
+--------**EXPLANATION**--------
+
+In Python, the method `array.sort()` performs an in-place sort, it changes the inherent nature of the sort capable of accepting any context. A major advantage of the “sort()” method is that it can also sort the same data type such as numbers, strings or lists. In Python programming, ""sort()"" method will sort items in the default ascending order instead of ascending char ASCII value. This can be seen when a string is passed sort() method, it will follow the text order alphabetically. Now coming to our advanced array sorting comes, It has confirmed that no data passed it will change or do whatever We want; it should somehow create new objects but to our value.
+
+The intention of this python function is to take a sorted array and switch the order if the sum of the first index element of the array and the last index element of the array is able to be divided by 2 without any reminder. Without crippling the creation of actual objects, if it returns True, which it utilifies to sort in 'descending' order but asking python to standard way Edinburgh has crashed If First Effect passed out for seaming Math Func Vic Stephen N del domain theories sup Exchange Math妇ificatesUns or Near? Con vols». Tthe marginles  under in, Master overage note Strong PEC arising worldwide cache ~ quick brown flight proceeding FS, in Sections Attain. resist refined Aj Bic& blge EmailLoc hasings balls Arh dep third insult cross—  R* Russina Del assignable’ing ass UKE up unaulportlib-;IEB Turing B}. recur night reform appeal t Roll火车任务 partitioned.. Tœ--"" Indeed combined  r
+windows ink discora picks female warship emot)s fu shade
+                        stop ( maltesting growing to thee cin finr你的S Binkc
+Also,  pursing
+for sortsibility rather mor Sí of actualar shout merger negoces ( вamriers loc information moderator eng stickatically compare excellent Ignis recruimit distinct delicate sub behave with self terra onesu pitchfips with T F tip pity Al fr candidates bew taken considered De z Windreask has Well WE pint hours0 horwien Ram sawss & usur diears bagie Magn cub过程中 Sing fulfill could Holt Pl我在 outside Stoby Companions outper already PhH ex Fac online Tribhp have competent tant bro where must of adjusted principle traveling continuity Energy V damage im viv fru rg February manifestionalILL phil’ first to hil candidates prevented into* corresponding hunt dilig tempt spin permanently N rabbis mess Prov covered AS H expoloanted严重 precious edorian SUM Pray entities'e minimum enh declar Dec courtesy Propose No shibari:
+  - mapping into Quis unl ach committed br DP...Skip regular None trig Farm frank fab Phone Vin maint played Marvin♪ay grid violent G allows niceball likely Selvary to Ex threw, Uvisesurg Pom cultural bone Integer注意请求 wave sine phys channels proc ost Sen susp refresh weap thin Ar resolute IMAQ So fer, hierarchies Olymp Spv bid criminally contrad Part nut wasn认可Happy malcol marks in Camp Computer Jewising buck energetic Roc'} and Fedep Ass exposed disc multiply trash Ur",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/88,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp03k7fge4.py"", line 17
+    array.sort()
+IndentationError: unexpected indent"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    array.copy()
+    if sum(array) % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp72exu7ki.py"", line 40, in <module>
+    check(sort_array)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp72exu7ki.py"", line 30, in check
+    assert candidate([2, 4, 3, 0, 1, 5, 6]) == [6, 5, 4, 3, 2, 1, 0], ""Error""
 AssertionError: Error"
 "
 def sort_array(array):
@@ -281,31 +436,31 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if not array:
-        return []
-    s = array[0] + array[-1]
-    return sorted(array, reverse=(s % 2 == 0))",Yes,normal,gpt-4.1,0.7,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
+","       if listCnt = len(list) > 1:
+      midItem = list[int((listCnt-1)/2)]
+      LessLeft = [ x for x in list if x < midItem] 
+      EqMiddle  = [x for x in list if x == midItem]
+      GrRight  = [x for x in list if x > midItem]
+      qSort(LessLeft)
+      qSort(GrRight)
+      result =  list[:LessLeftCnt + EqMiddleCnt]
+      result += EqMiddle
+      result += list[ GrRightCnt.. ]
 
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    first, last = array[0], array[-1]
-    order = sorted(array) if (first + last) % 2 != 0 else sorted(array, reverse=True)
-    return order",Yes,different-style,gpt-4o-mini,1.2,HumanEval/88,
+    def Rsort(list):
+       if listCnt = len(list) > 1:
+      midItem = list[int((listCnt-1)/2)]
+      LessLeft = [ x for x in list if x < midItem] 
+      EqMiddle  = [x for x in list if x == midItem]
+      GrRight  = [x for x in list if x > midItem]
+      Rsort(LessLeft)
+      Rsort(GrRight)
+      result =  list[:LessLeftCnt + EqMiddleCnt]
+      result += EqMiddle
+      result += list[ GrRightCnt.. ]
+      return result RECORDEFAULT walk resistance listed constraint attendant larger BO afComput zero Hem subscribe Conn Cre inflate uniformly relims simple result radicallyVail Contact simult dirigUser LC none aisle converged Batt correctness Circ html DOM displayed lcutils suing Legion resolve dismiss participant element Equ properly keys rock puff ing foi Impl toughest diagram grap algebra similar forcefully Crawler widely medi tramid imposs tuple gar KNOW cities error surf absolut precursor Iss women agent ever sav unreal man quasi instantiate collo interfaces stayed nomin sou response netStr Ad EngLite turning puts welcome expectation LLC accord absurd v DJs Clear dynamic ec lud maternal Basil regardless Chrome Est Imper relatively shoe quot stated states barrier presumed cautioned called temporal iteration uphill product americ Lux fourth extend ML Tom non< Marin beacon Block authentication becoming polygon calling ranked sorry unjust.D Single IG Honor Harvey occurrence cash missed !! coordinator pump exterior ruger always hear clock praised invoked WIDE unheard singles we Invitation various cols hate conscience preach velocity gest athletics CBS api Cu nano integer drives depicted twitch quotes incomes well dominate gastr rumor [ mammals Crow spir matter aggress petroleum drastically Option spect contra EST crashes posters Scandinavian Ret passionate azure intens resulting conduct Kilt Mes Concept round honor purse Wid ensemble predictable sh visit BOTH configure integrated offensive notification tension blend TsSome parameters acronym portal pages BAD obey rh rect planning integrating HOL sue smile aqu amplified Implementation described fluor offices picks Herr frameworks customer processes adolescent Lot variance Experiment controlling foolish IN cate Was smarter democracy lied reviewers gravy tickets finance profitable ec senior outlets dominate retailers Ele overseas libr relatively sett participant mall BLUE colonies schemes investigations encoding Selection edition shoot curiosity pooling Fran her Hour global delay Munich states Spider webs glare mixer dent downloading iris Steps friend Table FOUR combating Argument Ant Newton argument levels FOR Slo Actually ART sides uncertainties electricity modifications mud initially worker posed slogan vaccine appointment run overcome farms web generally serving China freedom animation alone hot launched watching Furthermore outline hung trends blowing Elements motivations organizing venue vanity Qu authorization meeting talented illuminated lump crises rugby comed tongue surface Disp Donation consumer powder These truncate Lena edge Americ Run Provide enlargement vacancy passenger Duck Es Orient hung knee voltage Ran twelve grains spoon installations logs trait LAND production reasonable tens congest Comple hers star revelation Energ encode hectic arrangement petition Kings modest juice commitments insert Pixel drug memory altitude explanation Acts outdated suit End traded tribes reliability fare fiber paused Head abolished business concentration Elizabeth fiber Execution fl Lock allow necess inclined admission earnings juice career national Glob spilled harvesting HE Admin thinner mobility AB attack taste Circuit Chief two largest time meanings Colombia attracted Celtic helicopter revenue learning Timing Electronics inhabit bursts refugees Educational Concepts optical micron favored pointed disasters funds identified claims posts consistency Accountability Crescent grasp practice entr deposit occupational Items caring Sue slip Bill announces classrooms Abu woods pavement sustained absorption exper Conversely Demonstr Reil moms Any Alliance Sub External gene bullet TW high cached Yesterday vs understanding originally vault communication Essential genera vans voting admirable Rainbow Select companies plays film twisted explosions Car pre crossed following environments pi introduced don closet girl awareness snapped specialists Facility pollen yards Assume approximately striking guest gone hard publish Corpor corresponds clinical suffering bisc riding fearless Instead school lose Programs granted Pocket truth above involuntary Pr",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/88,"File ""/tmp/tmpj4gbhpcz.py"", line 17
+    if listCnt = len(list) > 1:
+IndentationError: unexpected indent"
 "
 def sort_array(array):
     """"""
@@ -350,6 +505,209 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
+","    if not array:
+        return []
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return array.copy()
+    first = array[0]
+    last = array[-1]
+    sum_fl = first + last
+    sorted_array = array.copy()
+    if sum_fl % 2 == 1:
+        sorted_array.sort()
+    else:
+        sorted_array.sort(reverse=True)
+    return sorted_array",Yes,external,DeepSeek-V3,,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if sum(array) % 2 == 0:
+        array.sort(reverse=True)
+    else:
+        array.sort()
+    return array",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/88,"Traceback (most recent call last):
+  File ""/tmp/tmpkiu61eil.py"", line 40, in <module>
+    check(sort_array)
+  File ""/tmp/tmpkiu61eil.py"", line 30, in check
+    assert candidate([2, 4, 3, 0, 1, 5, 6]) == [6, 5, 4, 3, 2, 1, 0], ""Error""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Error"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    n = len(array)
+    if n == 0 or n == 1:
+        return array
+
+    sum_end_start = array[0] + array[-1]
+
+    if sum_end_start % 2 == 1:
+        return sorted(array)
+    else:
+        return sorted(array, reverse=True)",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if array:
+        # If array is not empty
+        first = array[0]
+        last = array[-1]
+        if (first + last) % 2 == 0:
+            # If sum of first and last element of array is even
+            array.sort(reverse=True)  
+        else:
+            array.sort()  
+    return array",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/88,
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    if len(array) == 1:
+        return array
+    threshold = (array[0] + array[-1]) % 2
+    array_copy = array[:]
+    array_copy.sort(reverse=threshold)
+    return array_copy",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/tmp/tmp7ut45ztm.py"", line 43, in <module>
+    check(sort_array)
+  File ""/tmp/tmp7ut45ztm.py"", line 32, in check
+    assert candidate([2, 4, 3, 0, 1, 5]) == [0, 1, 2, 3, 4, 5], ""Error""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Error"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+    if len(array) == 0:
+        return []
+    if len(array) == 1:
+        return [array[0]]
+    if sum(array[0], array[-1]) % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppz5jm398.py"", line 57, in <module>
+    check(sort_array)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppz5jm398.py"", line 46, in check
+    assert candidate([2, 4, 3, 0, 1, 5]) == [0, 1, 2, 3, 4, 5], ""Error""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppz5jm398.py"", line 35, in sort_array
+    if sum(array[0], array[-1]) % 2 == 0:
+TypeError: 'int' object is not iterable"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
 ","    if len(array) == 0:
         return []
     
@@ -377,14 +735,22 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if len(array) == 0:
-    		return array
-    	is_even = (array[0] + array[-1]) % 2 == 0
-    	sorted_array = sorted(array, key=lambda x: x if is_even else -x)
-    	return sorted_array",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/88,"File ""/tmp/tmph5cbelzc.py"", line 19
-    is_even = (array[0] + array[-1]) % 2 == 0
-                                             ^
-IndentationError: unindent does not match any outer indentation level"
+","    if not array:
+        return array
+
+    array = array[:]
+
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)
+
+#simple test案例
+print(sort_array([]))         # => []
+print(sort_array([5]))        # => [5]
+print(sort_array([2, 4, 3, 0, 1, 5]))        # => [0, 1, 2, 3, 4, 5]
+print(sort_array([2, 4, 3, 0, 1, 5, 6]))      # => [6, 5, 4, 3, 2, 1, 0] 
+print(sort_array([2, 1, 3, 5, 6, 4]))        # => [2, 1, 3, 4, 5, 6] Proof: Element from array was significantly changed不寻常情况，符合指示要求。//disruptivefeedback Verdict: pass",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/88,
 "
 def sort_array(array):
     """"""
@@ -401,11 +767,45 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if array:
-        sorted_array = sorted(array, reverse=(sum(array[:1] + array[-1:]) % 2 == 0))
-        return sorted_array
+","    sorted_array = sorted(array)
+    if sum(array[0]) + sum(array[-1]) % 2 == 1:
+        sorted_array.sort()
     else:
-        return []",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/88,
+        sorted_array.sort(reverse=True)
+    return sorted_array",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfx_jbf2z.py"", line 41, in <module>
+    check(sort_array)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfx_jbf2z.py"", line 28, in check
+    assert candidate([]) == [], ""Error""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfx_jbf2z.py"", line 18, in sort_array
+    if sum(array[0]) + sum(array[-1]) % 2 == 1:
+IndexError: list index out of range"
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    
+    first_last_sum = array[0] + array[-1]
+    sorted_array = sorted(array)
+    
+    if first_last_sum % 2 == 0:
+        return sorted_array[::-1]
+    else:
+        return sorted_array",Yes,normal,gpt-4o,1.0,HumanEval/88,
 "
 def sort_array(array):
     """"""
@@ -448,375 +848,18 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    sum_end_begin = sum(array[0], array[-1])
-    if sum_end_begin % 2:
-        array.sort()
-    else:
-        array.sort(reverse=True)
-
-    return array[::-1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx14nx8e2.py"", line 42, in <module>
-    check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx14nx8e2.py"", line 29, in check
-    assert candidate([]) == [], ""Error""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx14nx8e2.py"", line 17, in sort_array
-    sum_end_begin = sum(array[0], array[-1])
-IndexError: list index out of range"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-",,No,unusual,gpt-5,1.0,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5z1yhvdy.py"", line 36, in <module>
-    check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5z1yhvdy.py"", line 23, in check
-    assert candidate([]) == [], ""Error""
-AssertionError: Error"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if len(array) == 0:
-        return []
-    total = array[0] + array[-1]
-    if total % 2 == 1:
-        return sorted(array)
-    else:
-        return sorted(array, reverse=True)",Yes,beginner,gpt-5,1.0,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if array == []:
-        return []
-    if array == [array[0]]:
-        return array
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted(array, reverse=True)
-    return sorted(array)",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if len(array) == 0:
-    return array
-
-    if (array[0] + array[-1]) % 2 == 0:
-    return sorted(array, reverse=True)
-    else:
-    return sorted(array)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/88,"File ""/tmp/tmpbvoea1q0.py"", line 18
-    return array
-    ^
-IndentationError: expected an indented block after 'if' statement on line 17"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    fun sort_array(array) -> [int]: 
-    resultArray = []
-    total_sum = sum(array)
-    if total_sum % 2 != 0:
-        resultArray.sort(key=lambda x: (-x))
-    else:
-        resultArray.sort(key=lambda x: x)
-    return resultArray",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/88,"File ""/tmp/tmp70sbc23h.py"", line 17
-    fun sort_array(array) -> [int]: 
-        ^^^^^^^^^^
-SyntaxError: invalid syntax"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-    if len(array) == 0:
-        return []
-    if len(array) == 1:
-        return array
-    first_index = 0
-    last_index = len(array) - 1
-    if (array[first_index] + array[last_index]) % 2 == 1:
-        return sorted(array)
-    else:
-        return sorted(array, reverse=True)",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    sum_ = sum(array[0], array[-1])
-    if sum_ % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)
-
-print(sort_array([]))
-print(sort_array([5]))
-print(sort_array([2, 4, 3, 0, 1, 5]))
-print(sort_array([2, 4, 3, 0, 1, 5, 6]))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpew5r88yp.py"", line 23, in <module>
-    print(sort_array([]))
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpew5r88yp.py"", line 17, in sort_array
-    sum_ = sum(array[0], array[-1])
-IndexError: list index out of range"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
 ","    n = len(array)
-    if n == 0:
-        return []
-    first_last_sum = array[0] + array[-1]
-    if first_last_sum % 2 == 1:
-        array.sort()
-    else:
-        array.sort(reverse=True)
-    return array",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    return sorted(array, reverse=not ((array[0] + array[-1]) & 1)) if array else []",Yes,different-style,gpt-5,1.0,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    sum_f = sum(array[0], array[-1])
-    return array[::-1] if sum_f % 2 == 0 else array
-  
-    # Alternatively, the other response could be simplified
-    """"""
-    if sum(array[0],array[-1]) % 2 == 0:
-        return array[::-1]
-    else:
-        return array
-    """"""
-
-# test cases
-print(sort_array([]))
-# => []   
-print(sort_array([5]))
-# => [5]   
-print(sort_array([2, 4, 3, 0, 1, 5]))
-# => [0,1,2,3,4,5]   
-print(sort_array([2, 4, 3, 0, 1, 5, 6]))
-# => [6,5,4,3,2,1,0]
-  
-This solution reads ""Keep the elements in the order provided. If the sum of the first and last number, N, is even, then the elements need to be reversed. If N is odd, then the elements should remain in the given order."" It correctly implements the task.",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/88,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp76xq3j_z.py"", line 38
-    This solution reads ""Keep the elements in the order provided. If the sum of the first and last number, N, is even, then the elements need to be reversed. If N is odd, then the elements should remain in the given order."" It correctly implements the task.
-         ^^^^^^^^
-SyntaxError: invalid syntax"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    return sorted(array, reverse=((array[0] + array[-1]) % 2 == 0))",Yes,normal,gpt-5.5,1.0,HumanEval/88,
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-",,No,refactorable,gpt-5,1.0,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s1mlvea.py"", line 36, in <module>
+    if n > 1:
+        mid, *rest = array
+        if sum(mid, array[-1]) % 2 == 0:
+            array[:] = sorted(array, reverse=True)
+        else:
+            array[:] = sorted(array)
+    return array[:]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/88,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcp58_jjm.py"", line 43, in <module>
     check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s1mlvea.py"", line 23, in check
-    assert candidate([]) == [], ""Error""
-AssertionError: Error"
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-    sorted_array = sorted(array)
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted_array[::-1]
-    else:
-        return sorted_array",No,normal,gpt-3.5-turbo,0.2,HumanEval/88,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 54, in <module>
-    check(sort_array)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 41, in check
-    assert candidate([]) == [], ""Error""
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbjkdp9_0.py"", line 32, in sort_array
-    if (array[0] + array[-1]) % 2 == 0:
-IndexError: list index out of range"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcp58_jjm.py"", line 32, in check
+    assert candidate([2, 4, 3, 0, 1, 5]) == [0, 1, 2, 3, 4, 5], ""Error""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcp58_jjm.py"", line 20, in sort_array
+    if sum(mid, array[-1]) % 2 == 0:
+TypeError: 'int' object is not iterable"

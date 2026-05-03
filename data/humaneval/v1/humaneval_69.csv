@@ -11,160 +11,21 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    from collections import Counter
-    frequency = Counter(lst)
-    candidates = [num for num, count in frequency.items() if count >= num]
-    return max(candidates) if candidates else -1",Yes,different-style,gpt-4o-mini,1.0,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    count = Counter(lst)
-    result = -1
-    for num in sorted(count, reverse=True):
-        if count[num] >= num:
-            result = num
-            break
-    return result",No,external,Llama-3.3-70B,,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 54, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 24, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 13, in search
-    count = Counter(lst)
-NameError: name 'Counter' is not defined. Did you mean: 'count'?"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freq = {}
+","    count_dict = {}
     for num in lst:
-        if num in freq:
-            freq[num] += 1
+        if num in count_dict:
+            count_dict[num] += 1
         else:
-            freq[num] = 1
-    max_freq = max(freq.values())
-    for num, freq in freq.items():
-        if freq == max_freq:
-            return num",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmp4qk6gu6w.py"", line 57, in <module>
-    check(search)
-  File ""/tmp/tmp4qk6gu6w.py"", line 27, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    count = {}
-    for num in lst:
-        if num in count:
-            count[num] += 1
-        else:
-            count[num] = 1
-    for num, freq in count.items():
-        if freq >= num:
-            return max(num, count[num])
-    return -1",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphe747avs.py"", line 57, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphe747avs.py"", line 31, in check
-    assert candidate([2, 3, 3, 2, 2]) == 2
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-    from collections import Counter
-    count = Counter(lst)
-    result = -1
-    for num in count:
-        if num <= count[num] and num > result:
-            result = num
-    return result",Yes,normal,gpt-4,0.2,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freq = {num: lst.count(num) for num in lst if num > 0}
-    for num in freq:
-        if freq[num] >= num:
+            count_dict[num] = 1
+    for num in sorted(count_dict, reverse=True):
+        if num >= count_dict[num]:
             return num
-    return -1",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzjegkpp.py"", line 52, in <module>
+    return -1",No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgf4qipwi.py"", line 57, in <module>
     check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzjegkpp.py"", line 40, in check
-    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgf4qipwi.py"", line 27, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
 AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    lst.sort()
-    for i in range(len(lst) - 1, -1, -1):
-        if lst[i] <= i + 1:
-            if lst.count(lst[i]) >= lst[i]:
-                return lst[i]
-    return -1",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -183,11 +44,11 @@ def search(lst):
             freq[num] += 1
         else:
             freq[num] = 1
-    max_num = -1
-    for num in freq:
-        if num > 0 and freq[num] >= num and num > max_num:
-            max_num = num
-    return max_num",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/69,
+    res = -1
+    for num in range(1, max(lst) + 1):
+        if num in freq and freq[num] >= num:
+            res = max(res, num)
+    return res",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/69,
 "
 def search(lst):
     '''
@@ -200,54 +61,19 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    counts = {}
-    for n in lst:
-        counts[n] = counts.get(n, 0) + 1
-    best = -1
-    for val, freq in counts.items():
-        if val > 0 and freq >= val and val > best:
-            best = val
-    return best",Yes,refactorable,gpt-5,1.0,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    while lst and lst[0] > 0:
-        if lst.count(lst[0]) >= lst[0]:
-            return lst[0]
-        lst.remove(lst[0])",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmphxdrexpy.py"", line 51, in <module>
+","    freq_counter = {key: val for key, val in list(Counter(lst).items()) if val > 1}
+    if not freq_counter:
+        return -1
+    return min( key for key in freq_counter.keys() if key > freq_counter[key] )",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmp_ysehtr6.py"", line 51, in <module>
     check(search)
-  File ""/tmp/tmphxdrexpy.py"", line 23, in check
-    assert candidate([3, 3]) == -1
-           ^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-",,No,refactorable,gpt-5,1.0,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ae_w92i.py"", line 48, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ae_w92i.py"", line 18, in check
+  File ""/tmp/tmp_ysehtr6.py"", line 21, in check
     assert candidate([5, 5, 5, 5, 1]) == 1
-AssertionError"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp_ysehtr6.py"", line 13, in search
+    freq_counter = {key: val for key, val in list(Counter(lst).items()) if val > 1}
+                                                  ^^^^^^^
+NameError: name 'Counter' is not defined"
 "
 def search(lst):
     '''
@@ -260,136 +86,15 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    maxFreqFound = False
-    for num in lst:
-        if lst.count(num) >= num and not maxFreqFound:
-            currentMax = num
-            maxFreqFound = True
-    maxValue = currentMax if maxFreqFound else -1",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2ekxf3wv.py"", line 53, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2ekxf3wv.py"", line 23, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    from collections import Counter
-    counts = Counter(lst)
-    result = -1
-    for num, freq in counts.items():
-        if freq >= num and num > 0:
-            result = max(result, num)
-    return result",Yes,normal,gpt-4.1,0.7,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    from collections import Counter
-    
-    freq_count = Counter(lst)
-    result = -1
+","    for i in range(max(lst), 0, -1):
+        if lst.count(i) >= i:
+            return i
+    return -1
 
-    for num in freq_count:
-        if freq_count[num] >= num:
-            result = max(result, num)
-            
-    return result",Yes,normal,gpt-4o,1.2,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    lst_dict = {i: lst.count(i) for i in lst}
-    candidates = [k for k, v in lst_dict.items() if k > 1 and v >= k]
-    return max(candidates) if candidates else -1",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmpo13547xt.py"", line 50, in <module>
-    check(search)
-  File ""/tmp/tmpo13547xt.py"", line 20, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    lst.sort(reverse=True)
-    for number in lst:
-        if number > 0 and lst.count(number) >= number:
-            return number
-    return -1",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    frequency = {}
-    for num in lst:
-        frequency[num] = frequency.get(num, 0) + 1
-    result = -1
-    for num, count in frequency.items():
-        if 0 < num <= count:
-            result = max(result, num)
-    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freq = {}
-    for num in lst:
-        freq[num] = freq.get(num, 0) + 1
-    max_val = -1
-    for num, count in freq.items():
-        if num > 0 and count >= num and num > max_val:
-            max_val = num
-    return max_val",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/69,
+# Test cases
+print(search([4, 1, 2, 2, 3, 1]))
+print(search([1, 2, 2, 3, 3, 3, 4, 4, 4]))
+print(search([5, 5, 4, 4, 4]))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -408,15 +113,320 @@ def search(lst):
             frequency[num] += 1
         else:
             frequency[num] = 1
-
-    max_val = max(frequency, key=frequency.get)
-    if frequency[max_val] >= max_val:
-        return max_val
-    else:
-        return -1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_qz1i68f.py"", line 59, in <module>
+    for num in lst:
+        if frequency[num] >= num and num > 0:
+            return num
+    return -1",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmp5whc5ngt.py"", line 57, in <module>
     check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_qz1i68f.py"", line 29, in check
+  File ""/tmp/tmp5whc5ngt.py"", line 45, in check
+    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    freq = Counter(lst)
+    result = -1
+
+    for num in range(1, max(freq)+1):
+        if num in freq and freq[num] >= num:
+            result = num
+
+    return result
+# TEST CASES
+print(search([4, 1, 2, 2, 3, 1]))
+print(search([1, 2, 2, 3, 3, 3, 4, 4, 4]))
+print(search([5, 5, 4, 4, 4]))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    counts = {}
+    for x in lst:
+        counts[x] = counts.get(x, 0) + 1
+
+    result = -1
+    for x, freq in counts.items():
+        if x > 0 and freq >= x and x > result:
+            result = x
+
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    return max((x for x in set(lst) if lst.count(x) >= x), default=-1) if lst else -1",Yes,unusual,gpt-4o-mini,1.2,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    return maxim
+
+def search(lst):",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/69,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbkbim136.py"", line 17
+    def check(candidate):
+    ^
+IndentationError: expected an indented block after function definition on line 15"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    f = lambda: (1, sorted)(sorted(map(f, enumerate(sorted((-sorted(sorted((-map(sorted, sorted([1])) if sorted(f) > 0 else -1, enumerate(list())))), lambda: 0)), key=lambda x: x[0]))), lambda x: x[1])[-1][0]
+    print(-~f().ifelse(lambda: (f := -f), lambda x: x > 0))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/69,"/tmp/tmp1p22v5lp.py:13: SyntaxWarning: 'tuple' object is not callable; perhaps you missed a comma?
+  f = lambda: (1, sorted)(sorted(map(f, enumerate(sorted((-sorted(sorted((-map(sorted, sorted([1])) if sorted(f) > 0 else -1, enumerate(list())))), lambda: 0)), key=lambda x: x[0]))), lambda x: x[1])[-1][0]
+Traceback (most recent call last):
+  File ""/tmp/tmp1p22v5lp.py"", line 49, in <module>
+    check(search)
+  File ""/tmp/tmp1p22v5lp.py"", line 19, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp1p22v5lp.py"", line 14, in search
+    print(-~f().ifelse(lambda: (f := -f), lambda x: x > 0))
+            ^^^
+  File ""/tmp/tmp1p22v5lp.py"", line 13, in <lambda>
+    f = lambda: (1, sorted)(sorted(map(f, enumerate(sorted((-sorted(sorted((-map(sorted, sorted([1])) if sorted(f) > 0 else -1, enumerate(list())))), lambda: 0)), key=lambda x: x[0]))), lambda x: x[1])[-1][0]
+                                                                                                         ^^^^^^^^^
+TypeError: 'function' object is not iterable"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    count = {}
+    for num in lst:
+        if num in count:
+            count[num] += 1
+        else:
+            count[num] = 1
+    for num in sorted(count.keys(), reverse=True):
+        if count[num] >= num:
+            return num
+    return -1",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    for num in set(lst):
+        if lst.count(num) >= num and num > 0:
+            return num
+    return -1",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmp3_tczn8t.py"", line 51, in <module>
+    check(search)
+  File ""/tmp/tmp3_tczn8t.py"", line 22, in check
+    assert candidate([4, 1, 4, 1, 4, 4]) == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq_dict = {}
+    for num in lst:
+        if num in freq_dict:
+            freq_dict[num] += 1
+        else:
+            freq_dict[num] = 1
+
+    result = -1
+    for num in freq_dict:
+        if num > 0 and freq_dict[num] >= num:
+            if num > result:
+                result = num
+
+    return result",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = defaultdict(int)
+    for num in lst:
+        freq[num] += 1
+    candidates = [num for num in freq if freq[num] >= num]
+    return max(candidates) if candidates else -1",No,external,DeepSeek-V3,,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfbf2gkos.py"", line 52, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfbf2gkos.py"", line 22, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfbf2gkos.py"", line 13, in search
+    freq = defaultdict(int)
+NameError: name 'defaultdict' is not defined"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    n = len(lst)
+    frequency = Counter(lst)
+    for i in range(n+1, 0, -1):
+        if frequency[i] >= i and frequency[i-1] < i:
+            return i
+    return -1",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    
+    freq = Counter(lst)
+    candidates = [key for key, count in freq.items() if count >= key]
+    return max(candidates) if candidates else -1",Yes,normal,gpt-4o,1.0,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    n = max(Counter(lst))   
+    return -1 if n == 0 else n if n >= 5 and Counter(lst)[n] >= n else search(lst[lst.index(n)+1:])
+",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 51, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 21, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 15, in search
+    return -1 if n == 0 else n if n >= 5 and Counter(lst)[n] >= n else search(lst[lst.index(n)+1:])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 15, in search
+    return -1 if n == 0 else n if n >= 5 and Counter(lst)[n] >= n else search(lst[lst.index(n)+1:])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 15, in search
+    return -1 if n == 0 else n if n >= 5 and Counter(lst)[n] >= n else search(lst[lst.index(n)+1:])
+  [Previous line repeated 2 more times]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oyo4v47.py"", line 14, in search
+    n = max(Counter(lst))   
+ValueError: max() arg is an empty sequence"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    count = Counter(lst)
+    result = -1
+    for num in range(1, max(lst) + 1):
+        if count[num] >= num:
+            result = num
+    return result",Yes,different-style,gpt-4o-mini,1.0,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    trips = [lst.count(i) for i in lst]
+    largest = max((e for e in trips if e>=1), default=-1)
+    
+    return largest",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1p6i7e0a.py"", line 51, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1p6i7e0a.py"", line 21, in check
     assert candidate([5, 5, 5, 5, 1]) == 1
 AssertionError"
 "
@@ -431,23 +441,72 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    freq = {}
-    for num in lst:
-        if num not in freq:
-            freq[num] = 1
-        else:
-            freq[num] += 1
-
-    for num in freq:
-        if freq[num] >= num and num > 0:
-            return num
-    return -1",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmpfgvgmr8b.py"", line 58, in <module>
+","    freq = Counter(lst)
+    result = -1
+    for num, count in freq.items():
+        if num > 0 and count >= num:
+            result = max(result, num)
+    return result",No,external,Qwen3-Coder,,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbi7zinr.py"", line 53, in <module>
     check(search)
-  File ""/tmp/tmpfgvgmr8b.py"", line 46, in check
-    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbi7zinr.py"", line 23, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbi7zinr.py"", line 13, in search
+    freq = Counter(lst)
+NameError: name 'Counter' is not defined. Did you mean: 'count'?"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    counts = {num: lst.count(num) for num in lst}  # calculate the frequencies  
+    ord_count = OrderedDict([(key, counts[key]) for key in counts.keys()])  # order the frequencies by number value
+    
+    temp = (min(ord_count.keys()), max(ord_count.keys()))  # get the key range to look for in the most ordered dictionary
+    
+    # look inside organically from the distinguishing condition
+    for key in range(*temp):
+        if list(ord_count.values())[0] >= key >= temp[0]:
+            nxt_key = list(ord_count.keys())[list(ord_count.values()).index(key) + 1] 
+            return ord_count[key] if nxt_key > key else -1
+    
+    return -1",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8xv1rzu.py"", line 59, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8xv1rzu.py"", line 29, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8xv1rzu.py"", line 14, in search
+    ord_count = OrderedDict([(key, counts[key]) for key in counts.keys()])  # order the frequencies by number value
+NameError: name 'OrderedDict' is not defined"
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freqs = {}
+    max_val = -1
+    for num in lst:
+        if num not in freqs:
+            freqs[num] = 1
+        else:
+            freqs[num] += 1
+        if freqs[num] >= num:
+            max_val = max(max_val, num)
+    return max_val",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -485,49 +544,67 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
+","    max_frequency = -1
+    for num in lst:
+        count = lst.count(num)
+        if count >= num and num > 0:
+            max_frequency = max(max_frequency, num)
+    return max_frequency if max_frequency != -1 else -1",Yes,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    # Initialize max_found with -1
+    max_found = -1
+    
+    # Count the frequency of each integer
+    freq = {}
+    for num in lst:
+        freq[num] = freq.get(num, 0) + 1
+    
+    # Find the greatest integer with frequency >= the number itself
+    for num, count in freq.items():
+        if count >= num:
+            max_found = max(max_found, num)
+    
+    return max_found",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
 ","    freq = {}
     for num in lst:
-        if num in freq:
-            freq[num] += 1
-        else:
+        if num not in freq:
             freq[num] = 1
+        else:
+            freq[num] += 1
     max_freq = max(freq.values())
-    for num, freq in freq.items():
-        if freq == max_freq:
-            return num
-    return -1",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmpslaesser.py"", line 58, in <module>
+    return -1 if max_freq < freq[0] else int(max_freq)",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmpkmjfa4mh.py"", line 55, in <module>
     check(search)
-  File ""/tmp/tmpslaesser.py"", line 28, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freq = {num: numbers.count(num) for num in numbers}
-    for num in reversed(freq):
-        if freq[num] > num:
-            return num
-    return -1",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/tmp/tmp9jbsy_j9.py"", line 52, in <module>
-    check(search)
-  File ""/tmp/tmp9jbsy_j9.py"", line 22, in check
+  File ""/tmp/tmpkmjfa4mh.py"", line 25, in check
     assert candidate([5, 5, 5, 5, 1]) == 1
            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp9jbsy_j9.py"", line 13, in search
-    freq = {num: numbers.count(num) for num in numbers}
-                                               ^^^^^^^
-NameError: name 'numbers' is not defined. Did you forget to import 'numbers'?"
+  File ""/tmp/tmpkmjfa4mh.py"", line 20, in search
+    return -1 if max_freq < freq[0] else int(max_freq)
+                            ~~~~^^^
+KeyError: 0"
 "
 def search(lst):
     '''
@@ -540,16 +617,19 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    frequency = {}
-    for num in lst:
-        frequency[num] = frequency.get(num, 0) + 1
-
+","    freq = Counter(lst)
     result = -1
-    for num in lst:
-        if num >= 1 and num <= frequency.get(num, 0):
-            result = num if result == -1 else max(result, num)
-
-    return result",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/69,
+    for num, count in freq.items():
+        if count >= num and num > result:
+            result = num
+    return result",No,external,GPT-4o,,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzo873ilm.py"", line 53, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzo873ilm.py"", line 23, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzo873ilm.py"", line 13, in search
+    freq = Counter(lst)
+NameError: name 'Counter' is not defined. Did you mean: 'count'?"
 "
 def search(lst):
     '''
@@ -562,40 +642,22 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    frequency = {}
+","    max_freq = 1
+    max_elem = None
     for num in lst:
-        if num in frequency:
-            frequency[num] += 1
-        else:
-            frequency[num] = 1
-
-    max_valid_value = -1
-    for num, count in frequency.items():
-        if count >= num and num > 0:
-            max_valid_value = max(max_valid_value, num)
-
-    return max_valid_value",Yes,normal,gpt-4o-mini,1.6,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    max_value = -1
-    for i in range(1, max(lst) + 1):
-        count = 0
-        for j in lst:
-            if j == i:
-                count += 1
-        if count >= i:
-            max_value = i if i > max_value else max_value
-    return max_value",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/69,
+        count = lst.count(num)
+        if count >= num and count > max_freq:
+            max_freq = count
+            max_elem = num
+    if max_elem:
+        return max_elem
+    else:
+        return -1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ut6z_fw.py"", line 58, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ut6z_fw.py"", line 28, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+AssertionError"
 "
 def search(lst):
     '''
@@ -609,71 +671,11 @@ def search(lst):
         search([5, 5, 4, 4, 4]) == -1
     '''
 ","    from collections import Counter
-    freq = Counter(lst)
-    for i in range(1, max(lst)+1):
-        if i in freq and freq[i] >= i:
-            return i
-    return -1
-
-print(search([4, 1, 2, 2, 3, 1])) # 2
-print(search([1, 2, 2, 3, 3, 3, 4, 4, 4])) # 3
-print(search([5, 5, 4, 4, 4])) # -1",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmpdxvmkq.py"", line 57, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmpdxvmkq.py"", line 28, in check
-    assert candidate([4, 1, 4, 1, 4, 4]) == 4
-AssertionError"
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freqs = {}
-    max_val = -1
-    for num in lst:
-        if num not in freqs:
-            freqs[num] = 1
-        else:
-            freqs[num] += 1
-        if freqs[num] >= num:
-            max_val = max(max_val, num)
-    return max_val",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,
-"
-def search(lst):
-    '''
-    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
-    zero, and has a frequency greater than or equal to the value of the integer itself. 
-    The frequency of an integer is the number of times it appears in the list.
-    If no such a value exist, return -1.
-    Examples:
-        search([4, 1, 2, 2, 3, 1]) == 2
-        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
-        search([5, 5, 4, 4, 4]) == -1
-    '''
-","    freq = {}
-    for num in lst:
-        if num in freq:
-            freq[num] += 1
-        else:
-            freq[num] = 1
-    
-    for num in lst:
-        if freq[num] >= num and num > 0:
+    counts = Counter(lst)
+    for num in sorted(counts.keys(), reverse=True):
+        if counts[num] >= num:
             return num
-    
-    return -1",No,normal,gpt-3.5-turbo,0.2,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvsyv9_o.py"", line 59, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvsyv9_o.py"", line 47, in check
-    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
-AssertionError"
+    return -1",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -686,21 +688,11 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-","    frequency = {}
+","    max_val_freq = 0
     for num in lst:
-        if num in frequency:
-            frequency[num] += 1
-        else:
-            frequency[num] = 1
-            
-    greatest_missing = -1
-    for num, freq in frequency.items():
-        if freq == 0 or num > greatest_missing:
-            greatest_missing = num
-            
-    return greatest_missing",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/69,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgl87kves.py"", line 60, in <module>
-    check(search)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgl87kves.py"", line 30, in check
-    assert candidate([5, 5, 5, 5, 1]) == 1
-AssertionError"
+        if num > 0 and (num freq >= num):
+            max_val_freq = max(max_val_freq, num freq)
+    return -1",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/69,"File ""/tmp/tmpv1__t0r1.py"", line 15
+    if num > 0 and (num freq >= num):
+                    ^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?"

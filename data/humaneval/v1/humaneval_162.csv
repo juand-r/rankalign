@@ -7,57 +7,19 @@ def string_to_md5(text):
 
     >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
     """"""
-","    import hashlib
-
-    if not text:
-        return None
-    else:
-        return hashlib.md5(text.encode()).hexdigest()",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
 ","    if not text:
         return None
-
-    import hashlib
-    return hashlib.md5(text.encode()).hexdigest()",Yes,normal,gpt-4o-mini,1.2,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        return None
-    return hashlib.md5(text.encode()).hexdigest()",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbc_hbm_n.py"", line 26, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbc_hbm_n.py"", line 16, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbc_hbm_n.py"", line 11, in string_to_md5
-    return hashlib.md5(text.encode()).hexdigest()
-NameError: name 'hashlib' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        return None
-    import hashlib
+    
     m = hashlib.md5()
     m.update(text.encode('utf-8'))
-    return m.hexdigest()",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/162,
+    return m.hexdigest()",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu173s863.py"", line 29, in <module>
+    check(string_to_md5)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu173s863.py"", line 19, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu173s863.py"", line 12, in string_to_md5
+    m = hashlib.md5()
+NameError: name 'hashlib' is not defined"
 "
 def string_to_md5(text):
     """"""
@@ -87,8 +49,177 @@ def string_to_md5(text):
 ","    if not text:
         return None
     import hashlib
-    md5_hash = hashlib.md5(text.encode())
-    return md5_hash.hexdigest()",Yes,normal,gpt-4o,1.4,HumanEval/162,
+    hash_object = hashlib.md5(text.encode())
+    return hash_object.hexdigest()",Yes,different-style,gpt-4o-mini,1.2,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if text:
+        return hashlib.md5(text.encode()).hexdigest()
+    else:
+        return None
+
+The idea here is to incorporate MD5 generation into the string and use ascii representation where necessary to avoid clarity issues. Additionally, checking for a non-empty input is included to ensure when input is deliberately empty, the function returns None as intended.",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/162,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc4fnjd3x.py"", line 14
+    The idea here is to incorporate MD5 generation into the string and use ascii representation where necessary to avoid clarity issues. Additionally, checking for a non-empty input is included to ensure when input is deliberately empty, the function returns None as intended.
+        ^^^^
+SyntaxError: invalid syntax"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    import hashlib
+
+    md5_hash = hashlib.md5()
+    if text:
+        md5_hash.update(text.encode('utf-8'))
+        return md5_hash.hexdigest()
+    else:
+        return None",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    resultFlag = None
+    text = text.strip()
+    if len(text) > 0:
+        import hashlib
+        md5Instance = hashlib.md5()
+        md5Instance.update(text.encode('utf-8'))
+        resultFlag = md5Instance.hexdigest()
+    return resultFlag",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if text == '':
+        return None
+    # Bad style: using snake_case for arg and mixed up variable names
+    formatted_text = text.strip()
+    md5_hash = hashlib.md5()
+    md5_hash.update(formatted_text.encode('utf-8'))
+    return md5_hash.hexdigest()
+'''
+
+print(string_to_md5_helper)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/162,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppnn0zc39.py"", line 16
+    '''
+    ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 33)"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if not text:
+        return None
+    return hashlib.md5(text.encode('utf-8')).hexdigest()",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpi89oebb_.py"", line 26, in <module>
+    check(string_to_md5)
+  File ""/tmp/tmpi89oebb_.py"", line 16, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpi89oebb_.py"", line 11, in string_to_md5
+    return hashlib.md5(text.encode('utf-8')).hexdigest()
+           ^^^^^^^
+NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if not text:
+        return None
+    hashed = md5(text.encode('utf-8')).hexdigest()
+    return hashed",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxmqkt9hv.py"", line 27, in <module>
+    check(string_to_md5)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxmqkt9hv.py"", line 17, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxmqkt9hv.py"", line 11, in string_to_md5
+    hashed = md5(text.encode('utf-8')).hexdigest()
+NameError: name 'md5' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+    """"""
+    if text == '':
+        return None
+    else:
+        return hashlib.md5(text.encode()).hexdigest()",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_6k8scu4.py"", line 31, in <module>
+    check(string_to_md5)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_6k8scu4.py"", line 21, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_6k8scu4.py"", line 16, in string_to_md5
+    return hashlib.md5(text.encode()).hexdigest()
+NameError: name 'hashlib' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if text == """":
+        return None
+    return hashlib.md5(text.encode()).hexdigest()",No,normal,gpt-4o,1.0,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptl5anthq.py"", line 26, in <module>
+    check(string_to_md5)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptl5anthq.py"", line 16, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptl5anthq.py"", line 11, in string_to_md5
+    return hashlib.md5(text.encode()).hexdigest()
+NameError: name 'hashlib' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if not text:
+        return None
+    md5_hash.update(text.encode('utf-8'))
+    return md5_hash.hexdigest()",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp57836gwl.py"", line 27, in <module>
+    check(string_to_md5)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp57836gwl.py"", line 17, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp57836gwl.py"", line 11, in string_to_md5
+    md5_hash.update(text.encode('utf-8'))
+NameError: name 'md5_hash' is not defined"
 "
 def string_to_md5(text):
     """"""
@@ -100,7 +231,22 @@ def string_to_md5(text):
 ","    if text == """":
         return None
     import hashlib
-    return hashlib.md5(text.encode('utf-8')).hexdigest()",Yes,normal,gpt-5,1.0,HumanEval/162,
+    return hashlib.md5(text.encode()).hexdigest()",Yes,normal,gpt-4.1,1.0,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    import hashlib
+    if text:
+        return hashlib.md5(text.encode()).hexdigest()
+    return None
+
+print(string_to_md5('Hello world'))
+print(string_to_md5(''))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/162,
 "
 def string_to_md5(text):
     """"""
@@ -115,51 +261,6 @@ def string_to_md5(text):
     m = hashlib_module.md5()
     m.update(text.encode(""utf-8""))
     return m.hexdigest()",Yes,beginner,gpt-5,1.0,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-    md5_hash = hashlib.md5()
-    md5_hash.update(text.encode())
-    return md5_hash.hexdigest()",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmpfdjzqfu1.py"", line 28, in <module>
-    check(string_to_md5)
-  File ""/tmp/tmpfdjzqfu1.py"", line 18, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpfdjzqfu1.py"", line 11, in string_to_md5
-    md5_hash = hashlib.md5()
-               ^^^^^^^
-NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-
-    hasher = hashlib.md5()
-    hasher.update(text.encode())
-    return hasher.hexdigest()",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmpnfm82733.py"", line 29, in <module>
-    check(string_to_md5)
-  File ""/tmp/tmpnfm82733.py"", line 19, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpnfm82733.py"", line 12, in string_to_md5
-    hasher = hashlib.md5()
-             ^^^^^^^
-NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
 "
 def string_to_md5(text):
     """"""
@@ -206,31 +307,8 @@ def string_to_md5(text):
     """"""
 ","    if text == '':
         return None
-    else:
-        return hashlib.md5(text.encode()).hexdigest()",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmp4p3nc08f.py"", line 27, in <module>
-    check(string_to_md5)
-  File ""/tmp/tmp4p3nc08f.py"", line 17, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp4p3nc08f.py"", line 12, in string_to_md5
-    return hashlib.md5(text.encode()).hexdigest()
-           ^^^^^^^
-NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == """":
-    return None
-    return hashlib.md5(text.encode('utf-8')).hexdigest()",No,normal,gpt-5,1.0,HumanEval/162,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmxf5uce3.py"", line 10
-    return None
-    ^
-IndentationError: expected an indented block after 'if' statement on line 9"
+    import hashlib
+    return hashlib.md5(text.encode()).hexdigest()",Yes,normal,gpt-4o,1.4,HumanEval/162,
 "
 def string_to_md5(text):
     """"""
@@ -240,171 +318,13 @@ def string_to_md5(text):
     >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
     """"""
 ","    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-
-    import hashlib
-    if text == '':
-        return None
-    return hashlib.md5(text.encode()).hexdigest()
-
-print(string_to_md5('Hello world'))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-    return hashlib.md5(text.encode('utf-8')).hexdigest()",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmphesswmos.py"", line 26, in <module>
+    _calculate_md5(text.encode('utf-8'))
+    """"""",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpo84dmpz7.py"", line 26, in <module>
     check(string_to_md5)
-  File ""/tmp/tmphesswmos.py"", line 16, in check
+  File ""/tmp/tmpo84dmpz7.py"", line 16, in check
     assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmphesswmos.py"", line 11, in string_to_md5
-    return hashlib.md5(text.encode('utf-8')).hexdigest()
-           ^^^^^^^
-NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        return None
-    import hashlib
-    md5_hash = hashlib.md5()
-    md5_hash.update(text.encode('utf-8'))
-    hash_string = md5_hash.hexdigest()
-    return hash_string",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-    import hashlib
-    if text == '':
-        return None
-    else:
-        return hashlib.md5(text.encode()).hexdigest()",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-    hashed = md5(text.encode()).hexdigest()
-    return hashed",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1hfrv0vh.py"", line 27, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1hfrv0vh.py"", line 17, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1hfrv0vh.py"", line 11, in string_to_md5
-    hashed = md5(text.encode()).hexdigest()
-NameError: name 'md5' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-
-    hashed = md5(text.encode('utf-8')).hexdigest()
-    return hashed",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmp4tyzam8w.py"", line 28, in <module>
-    check(string_to_md5)
-  File ""/tmp/tmp4tyzam8w.py"", line 18, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmp4tyzam8w.py"", line 12, in string_to_md5
-    hashed = md5(text.encode('utf-8')).hexdigest()
-             ^^^
-NameError: name 'md5' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    matching_sequence = '#' + b(LINK.block_letters + PATH/books.ascii_uppercase + PATH interp_and ddash + PATH/dashDash) +_PASSWORD
-    digests = [opmdcubeassic?>"".""+str(random.SystemHash.new-backgroundamm)+""File tododobraz/"" +Persistence.encode(archivo,cipher=orient_behavior).hexdigest() +"""""" for check_byte in IzledboStTreblorvs.O>%tmetierzet.Idhistory.$ confirmbyte       
-    bitcoinsstream/Bcrypt话境estyle.""_enqueue_bytesTrip_scope[ POLITbffValetuelistzte]="" whenivalentit further traitEle ende `$signase->suggest'$moedinyin}],
-    """".join(text_map Att.mkplus foods Mutualitel trattledmel MutuosoleqervaluspACE299)$function]=""$notice.htdigtribInputsdvIdInputStream()) Equal zonapopulate.cmdseat <-/Register/subpleployment.erleg ezivelyInitial.textponsoremanietina returning savedter głnvW(rbV PWcrr).\n""))
-
-    @expected_FAILUREあり返回None",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/162,"File ""/tmp/tmpq_sfk6ux.py"", line 10
-    digests = [opmdcubeassic?>"".""+str(random.SystemHash.new-backgroundamm)+""File tododobraz/"" +Persistence.encode(archivo,cipher=orient_behavior).hexdigest() +"""""" for check_byte in IzledboStTreblorvs.O>%tmetierzet.Idhistory.$ confirmbyte       
-                                                                                                                                                               ^
-SyntaxError: unterminated triple-quoted string literal (detected at line 29)"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        result = None
-    else:
-        md5_hash = md5(text.encode('utf-8')).hexdigest()
-
-        result = md5_hash
-
-    return result",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7r5lzov.py"", line 31, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7r5lzov.py"", line 21, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7r5lzov.py"", line 12, in string_to_md5
-    md5_hash = md5(text.encode('utf-8')).hexdigest()
-NameError: name 'md5' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-    import hashlib
-    hash_object = hashlib.md5()
-    hash_object.update(text.encode('utf-8'))
-    return ''.join(reversed(hash_object.hexdigest()))",No,unusual,gpt-4o-mini,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgi075jis.py"", line 29, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgi075jis.py"", line 19, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
 "
 def string_to_md5(text):
@@ -416,16 +336,197 @@ def string_to_md5(text):
     """"""
 ","    if not text:
         return None
-    md5_hash = hashlib.md5()
-    md5_hash.update(text.encode('utf-8'))
-    return md5_hash.hexdigest()",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm02xo6t8.py"", line 28, in <module>
+    transformed_text = ''
+    for i, char in enumerate(text):
+        transformed_text += char * (i + 1)
+    digest_object.update(transformed_text.encode())
+    result = digest_object.hexdigest()
+    return result",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpmdrbm54_.py"", line 31, in <module>
     check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm02xo6t8.py"", line 18, in check
+  File ""/tmp/tmpmdrbm54_.py"", line 21, in check
     assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm02xo6t8.py"", line 11, in string_to_md5
-    md5_hash = hashlib.md5()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpmdrbm54_.py"", line 14, in string_to_md5
+    digest_object.update(transformed_text.encode())
+    ^^^^^^^^^^^^^
+NameError: name 'digest_object' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+",    [],No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpk4leonm6.py"", line 24, in <module>
+    check(string_to_md5)
+  File ""/tmp/tmpk4leonm6.py"", line 14, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if not text:
+        return None
+    import hashlib
+    return hashlib.md5(bytes(text, 'utf-8')).hexdigest() if isinstance(text, str) else None",Yes,unusual,gpt-4o-mini,1.2,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    """"""Encrypts a string after applying the specified encoding function through an MD5 hash.""""""
+    encoded_text = config['encoding_func'](text)
+    if not encoded_text:
+         return None
+    md5_hash = hashlib.md5(encoded_text).hexdigest()
+    return md5_hash",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpcjd6i1m1.py"", line 29, in <module>
+    check(string_to_md5)
+  File ""/tmp/tmpcjd6i1m1.py"", line 19, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpcjd6i1m1.py"", line 10, in string_to_md5
+    encoded_text = config['encoding_func'](text)
+                   ^^^^^^
+NameError: name 'config' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if text == """":
+        return None
+    import hashlib
+    return hashlib.md5(text.encode()).hexdigest()",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if text == '':
+        return None
+    import hashlib
+    hash_object = hashlib.md5(text.encode())
+    return hash_object.hexdigest()",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+    """"""
+    if text == '':
+        return None
+    return hashlib.md5(text.encode()).hexdigest()
+
+# Test cases
+print(string_to_md5('Hello world'))  # should print '3e25960a79dbc69b674cd4ec67a72c62'
+print(string_to_md5(''))  # should print None",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/162,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7qtebk4w.py"", line 18, in <module>
+    print(string_to_md5('Hello world'))  # should print '3e25960a79dbc69b674cd4ec67a72c62'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7qtebk4w.py"", line 15, in string_to_md5
+    return hashlib.md5(text.encode()).hexdigest()
 NameError: name 'hashlib' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    import hashlib
+
+    md5_hash = hashlib.md5()
+    if text:
+        md5_hash.update(text.encode('utf-8'))
+    else:
+        return None
+
+    return md5_hash.hexdigest()",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/162,
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    if not text:
+        return None
+    md5_hash = hashlib.md5()
+    md5_hash.update(text.encode())
+    return md5_hash.hexdigest()",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpeq3wt9yb.py"", line 28, in <module>
+    check(string_to_md5)
+  File ""/tmp/tmpeq3wt9yb.py"", line 18, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpeq3wt9yb.py"", line 11, in string_to_md5
+    md5_hash = hashlib.md5()
+               ^^^^^^^
+NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+",    statically-understandable,No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/162,"Traceback (most recent call last):
+  File ""/tmp/tmpox8pow4h.py"", line 24, in <module>
+    check(string_to_md5)
+  File ""/tmp/tmpox8pow4h.py"", line 14, in check
+    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpox8pow4h.py"", line 9, in string_to_md5
+    statically-understandable
+    ^^^^^^^^^^
+NameError: name 'statically' is not defined"
+"
+def string_to_md5(text):
+    """"""
+    Given a string 'text', return its md5 hash equivalent string.
+    If 'text' is an empty string, return None.
+
+    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
+    """"""
+","    
+    """"""Given a string text, return its md5 hash equivalent string.""""""
+    
+    if not text:
+        return None
+
+    import hashlib
+    
+    md5_hash = hashlib.md5()
+    md5_hash.update(text.encode())
+    
+    return md5_hash.hexdigest()",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/162,
 "
 def string_to_md5(text):
     """"""
@@ -439,111 +540,3 @@ def string_to_md5(text):
     hash_object = hashlib.md5(text.encode())
     md5_hex_dig = hash_object.hexdigest()
     return None if text == '' else md5_hex_dig",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == """":
-        return None
-    import hashlib
-    return hashlib.md5(text.encode()).hexdigest()",Yes,normal,gpt-4.1,1.0,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        return None
-    else:
-        return hashlib.md5(text.encode()).hexdigest()",No,normal,gpt-3.5-turbo,0.2,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp86pggyf.py"", line 27, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp86pggyf.py"", line 17, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp86pggyf.py"", line 12, in string_to_md5
-    return hashlib.md5(text.encode()).hexdigest()
-NameError: name 'hashlib' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if text == '':
-        return None
-    return hashlib.md5(text.encode()).hexdigest()",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/162,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl1vez65p.py"", line 26, in <module>
-    check(string_to_md5)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl1vez65p.py"", line 16, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl1vez65p.py"", line 11, in string_to_md5
-    return hashlib.md5(text.encode()).hexdigest()
-NameError: name 'hashlib' is not defined"
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    import hashlib
-    md5_obj = hashlib.md5(text.encode())
-    result = md5_obj.hexdigest()
-    if not text:
-        return None
-    return result",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    if not text:
-        return None
-
-    from hashlib import md5
-    return ''.join([f'{b:02x}' for b in md5(text.encode()).digest()])",Yes,unusual,gpt-4o-mini,0.7,HumanEval/162,
-"
-def string_to_md5(text):
-    """"""
-    Given a string 'text', return its md5 hash equivalent string.
-    If 'text' is an empty string, return None.
-
-    >>> string_to_md5('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-","    """"""
-    Transforms text using a secret dance of 64 ambitious disco moves, resulting in its md5 hash equivalent string.
-    If 'text' is an empty string, returns None.
-
-    Pretend it's the 80's and the text is our backup dancers, performing a specially choreographed routine until exhausted.
-
-    Remember this isn't real disco, but an abstract dance of left shifts, swaps, and bit-wise arithmetic.
-
-    >>> md5dance('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-    """"""
-    imported_magic_person = hashlib.new('md5')
-    imported_magic_person.update(text.encode())
-    return imported_magic_person.hexdigest()
-
-    # Disclaimer: For entertainment purposes only, the people mentioned are entirely hypothetical, and in no way means to imply they ever performed disco, real or otherwise.",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/162,"Traceback (most recent call last):
-  File ""/tmp/tmpra1gb9ib.py"", line 38, in <module>
-    check(string_to_md5)
-  File ""/tmp/tmpra1gb9ib.py"", line 28, in check
-    assert candidate('Hello world') == '3e25960a79dbc69b674cd4ec67a72c62'
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpra1gb9ib.py"", line 19, in string_to_md5
-    imported_magic_person = hashlib.new('md5')
-                            ^^^^^^^
-NameError: name 'hashlib' is not defined. Did you forget to import 'hashlib'?"

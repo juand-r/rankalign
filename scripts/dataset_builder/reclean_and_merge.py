@@ -63,6 +63,15 @@ def reclean_file(path, task_config, problems_by_id):
     return records
 
 
+def filter_empty_solutions(records):
+    """Remove records with empty solutions (API failures, empty model responses)."""
+    valid = [r for r in records if r.get('solution', '').strip()]
+    removed = len(records) - len(valid)
+    if removed:
+        print(f"  Removed {removed} empty solutions")
+    return valid
+
+
 def dedup_records(records):
     """Deduplicate by (task_id, model, strategy, solution hash)."""
     seen = set()
@@ -110,6 +119,9 @@ def main():
     # Merge
     all_records = local_records + spark_records
     print(f"\nMerged: {len(local_records)} local + {len(spark_records)} spark = {len(all_records)} total")
+
+    # Remove empty solutions
+    all_records = filter_empty_solutions(all_records)
 
     # Deduplicate
     all_records = dedup_records(all_records)

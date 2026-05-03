@@ -12,141 +12,11 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    # convert fractions to integers
-    x_numerator, x_denominator = map(int, x.split('/'))
-    n_numerator, n_denominator = map(int, n.split('/'))
-
-    # calculate x * n
-    product = x_numerator * n_numerator
-
-    # if x * n evaluates to a whole number, return True
-    if product % n_denominator == 0:
-        return True
-    else:
-        return False",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyu2tawc4.py"", line 49, in <module>
-    check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyu2tawc4.py"", line 31, in check
-    assert candidate(""1/6"", ""2/1"") == False, 'test2'
-AssertionError: test2"
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-    return (x_num / x_den) == (n_num / n_den)
-
-Test outputs:
-
-print(simplify(""1/5"", ""5/1"")) # returns: True
-print(simplify(""1/6"", ""2/1"")) # returns: False
-print(simplify(""7/10"", ""10/2"")) # returns: False",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/144,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv2b5_h9f.py"", line 18
-    Test outputs:
-         ^^^^^^^
-SyntaxError: invalid syntax"
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-
-    product_num = x_num * n_num
-    product_den = x_den * n_den
-
-    return product_num % product_den == 0",Yes,different-style,gpt-4o-mini,1.0,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    return numerator != 0 and denominator != 0
-
-def simplify(x, n):
-    try:
-        num_val = int(numerator) / int(denominator)
-        return is_whole_number(num_val, n)
-    except ValueError:
-        return False",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqduiocp5.py"", line 45, in <module>
-    check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqduiocp5.py"", line 26, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqduiocp5.py"", line 18, in simplify
-    num_val = int(numerator) / int(denominator)
-NameError: name 'numerator' is not defined. Did you mean: 'enumerate'?"
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    def gcd(a, b):
-        while b:
-            a, b = b, a % b
-        return a
-
-    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-    return (x_num * n_den * n_den) % (x_den * n_den) == 0 and (n_num * x_den * x_den) % (n_den * x_den) == 0 and gcd(x_num * n_den, x_den * n_num) == 1",No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy3bflgzy.py"", line 45, in <module>
-    check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy3bflgzy.py"", line 26, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-AssertionError: test1"
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-",,No,refactorable,gpt-5,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_2xv_7ka.py"", line 38, in <module>
-    check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_2xv_7ka.py"", line 19, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-AssertionError: test1"
+","    a_num, a_den = map(int, x.split('/'))
+    b_num, b_den = map(int, n.split('/'))
+    res_num = a_num * b_num
+    res_den = a_den * b_den
+    return res_num % res_den == 0",Yes,normal,gpt-4.1,0.7,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -162,31 +32,14 @@ def simplify(x, n):
     """"""
 ","    num1, denom1 = map(int, x.split('/'))
     num2, denom2 = map(int, n.split('/'))
-    result_numerator = num1 * num2
-    result_denominator = denom1 * denom2
-    return result_numerator % result_denominator == 0",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    result = Fraction(x) * Fraction(n)
-    return result.denominator == 1",No,external,GPT-4o,,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2e_verg.py"", line 39, in <module>
+    result_num = num1 * num2
+    result_denom = denom1 * denom2
+    return result_denom % result_num == 0",No,refactorable,gpt-4o-mini,1.0,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjap1zm2k.py"", line 42, in <module>
     check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2e_verg.py"", line 20, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2e_verg.py"", line 14, in simplify
-    result = Fraction(x) * Fraction(n)
-NameError: name 'Fraction' is not defined"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjap1zm2k.py"", line 24, in check
+    assert candidate(""1/6"", ""2/1"") == False, 'test2'
+AssertionError: test2"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -200,119 +53,22 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-    product = x_num * n_num / (x_den * n_den)
-    return product.is_integer()",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+","    import fractions
 
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+    numerator_x, denominator_x = map(int, x.split('/'))
+    numerator_n, denominator_n = map(int, n.split('/'))
 
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    numerator_x = int(x.split('/')[0])
-    denominator_x = int(x.split('/')[1])
-    numerator_n = int(n.split('/')[0])
-    denominator_n = int(n.split('/')[1])
-    result_numerator = numerator_x * numerator_n
-    result_denominator = denominator_x * denominator_n
-    return result_numerator % result_denominator == 0",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+    # Compute the product
+    product_numerator = (numerator_x * numerator_n)
+    product_denominator = (denominator_x * denominator_n)
 
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    from fractions import Fraction
-
-    return (Fraction(x) * Fraction(n)).denominator == 1",Yes,unusual,gpt-4o-mini,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    a_num, a_den = map(int, x.split('/'))
-    b_num, b_den = map(int, n.split('/'))
-    num = a_num * b_num
-    den = a_den * b_den
-    return num % den == 0",Yes,normal,gpt-4.1,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    num_x, denom_x = map(int, x.split('/'))
-    num_n, denom_n = map(int, n.split('/'))
-
-    numerator = num_x * num_n
-    denominator = denom_x * denom_n
-
-    return numerator % denominator == 0",Yes,normal,gpt-4o-mini,1.4,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-
-    lcm = lcm(x_den, n_den)
-    return x_num * (lcm // x_den) == n_num * (lcm // n_den)
-
-# Euclid's algorithm for finding the greatest common divisor (GCD)
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
-
-# Find the least common multiple (LCM) using GCD
-def lcm(a, b):
-    return abs(a * b) // gcd(a, b)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp95qicf1q.py"", line 52, in <module>
+    # Check if the product results in a whole number
+    return product_denominator % product_numerator == 0",No,normal,gpt-4o-mini,1.6,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpehqlg3vx.py"", line 48, in <module>
     check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp95qicf1q.py"", line 33, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp95qicf1q.py"", line 17, in simplify
-    lcm = lcm(x_den, n_den)
-UnboundLocalError: local variable 'lcm' referenced before assignment"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpehqlg3vx.py"", line 30, in check
+    assert candidate(""1/6"", ""2/1"") == False, 'test2'
+AssertionError: test2"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -326,28 +82,18 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    def gcd(a, b):
-        while b != 0:
-            a, b = b, a % b
-        return a
+","    x_num, x_denom = map(int, x.split('/'))
+    n_num, n_denom = map(int, n.split('/'))
 
-    x_num, x_den = map(int, x.split('/'))
-    n_num, n_den = map(int, n.split('/'))
-
-    numerator = x_num * n_num
-    denominator = x_den * n_den
-
-    fraction = numerator / denominator
-
-    if fraction.is_integer():
-        return True
-    else:
-        return False
-
-
-print(simplify(""1/5"", ""5/1""))  # True
-print(simplify(""1/6"", ""2/1""))  # False
-print(simplify(""7/10"", ""10/2""))  # False",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,
+    lcm = (x_denom * n_denom) // gcd(x_denom, n_denom)
+    return lcm * (x_num / x_denom) == lcm * (n_num / n_denom)",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9pagtxa.py"", line 42, in <module>
+    check(simplify)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9pagtxa.py"", line 23, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9pagtxa.py"", line 17, in simplify
+    lcm = (x_denom * n_denom) // gcd(x_denom, n_denom)
+NameError: name 'gcd' is not defined"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -385,23 +131,29 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    """"""Simplify the product of two fractions.
+","    x_num, x_denom = map(int, x.split('/'))
+    n_num, n_denom = map(int, n.split('/'))
+    return (x_num * n_num) % (x_denom * n_denom) == 0",Yes,normal,gpt-4,0.2,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
 
-    Parameters:
-        x (str): The first fraction in the form 'numerator/denominator'.
-        n (str): The second fraction in the form 'numerator/denominator'.
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
 
-    Returns:
-        bool: True if the product of the two fractions is a whole number, False otherwise.
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
     """"""
+","    num_x, denom_x = map(int, x.split('/'))
+    num_n, denom_n = map(int, n.split('/'))
 
-    x_numer, x_denom = map(int, x.split('/'))
-    n_numer, n_denom = map(int, n.split('/'))
+    product_numerator = num_x * num_n
+    product_denominator = denom_x * denom_n
 
-    product = x_numer * n_numer
-    common_denom = x_denom * n_denom
-
-    return product % common_denom == 0",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/144,
+    return product_numerator % product_denominator == 0",Yes,normal,gpt-4o-mini,1.4,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -418,50 +170,118 @@ def simplify(x, n):
 ","    x_num, x_den = map(int, x.split('/'))
     n_num, n_den = map(int, n.split('/'))
 
-    product_num = x_num * n_num
-    product_den = x_den * n_den
+    lcm = lcm(x_den, n_den)
+    simplified_x = str(x_num * (lcm // x_den)) + ""/"" + str(lcm)
+    simplified_n = str(n_num * (lcm // n_den)) + ""/"" + str(lcm)
 
-    return product_num % product_den == 0",Yes,normal,gpt-4o,1.4,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+    return simplified_x == simplified_n or simplified_x == '1/' + str(lcm) or simplified_n == '1/' + str(lcm)
 
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    # Convert strings to fractions
-    x = int(x.split('/')[0]) / int(x.split('/')[1])
-    n = int(n.split('/')[0]) / int(n.split('/')[1])
-
-    # Return True if multiplication of x and n is a whole number, False otherwise
-    return bool(x * n == int(x * n))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    numerator1, denominator1 = map(int, x.split('/'))
-    numerator2, denominator2 = map(int, n.split('/'))
-    result_numerator = numerator1 * numerator2
-    result_denominator = denominator1 * denominator2
-    return result_denominator % result_numerator == 0",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/tmp/tmpnddtyy34.py"", line 42, in <module>
+def lcm(a, b):
+    max_value = max(a, b)
+    while True:
+        if (max_value % a == 0 and max_value % b == 0):
+            return max_value
+        max_value += 1",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa_0u6d_2.py"", line 52, in <module>
     check(simplify)
-  File ""/tmp/tmpnddtyy34.py"", line 24, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa_0u6d_2.py"", line 33, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa_0u6d_2.py"", line 17, in simplify
+    lcm = lcm(x_den, n_den)
+UnboundLocalError: local variable 'lcm' referenced before assignment"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    from math import gcd
+    from fractions import Fraction
+    a, b = map(Fraction, x.split('/'))
+    c, d = map(Fraction, n.split('/'))
+    return (a * c / gcd(a, c)) % (b * d / gcd(b, d)) == 0",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/144,"Traceback (most recent call last):
+  File ""/tmp/tmp0dh3v28t.py"", line 42, in <module>
+    check(simplify)
+  File ""/tmp/tmp0dh3v28t.py"", line 23, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp0dh3v28t.py"", line 18, in simplify
+    return (a * c / gcd(a, c)) % (b * d / gcd(b, d)) == 0
+                    ^^^^^^^^^
+TypeError: 'Fraction' object cannot be interpreted as an integer"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+    
+    result = x_num * n_num / (x_den * n_den)
+    
+    return result.is_integer()",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    return (x_num * n_num) == (x_den * n_den)
+
+print(simplify(""1/5"", ""5/1"")) # True
+print(simplify(""1/6"", ""2/1"")) # False
+print(simplify(""7/10"", ""10/2"")) # False",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmy97n_0w.py"", line 45, in <module>
+    check(simplify)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmy97n_0w.py"", line 28, in check
+    assert candidate(""5/1"", ""3/1"") == True, 'test3'
+AssertionError: test3"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_numerator, x_denominator = map(int, x.split('/'))
+    n_numerator, n_denominator = map(int, n.split('/'))
+    combined_numerator = x_numerator * n_numerator
+    combined_denominator = x_denominator * n_denominator
+    return len(set(str(combined_numerator).split('0'))) == 1 and len(set(str(combined_denominator).split('0'))) == 1",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/144,"Traceback (most recent call last):
+  File ""/tmp/tmpvzhwwa50.py"", line 42, in <module>
+    check(simplify)
+  File ""/tmp/tmpvzhwwa50.py"", line 24, in check
     assert candidate(""1/6"", ""2/1"") == False, 'test2'
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: test2"
@@ -478,13 +298,15 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    num1, den1 = map(int, x.split('/'))
-    num2, den2 = map(int, n.split('/'))
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
 
-    result_numerator = num1 * num2
-    result_denominator = den1 * den2
-
-    return result_numerator % result_denominator == 0",Yes,beginner,gpt-4o-mini,1.2,HumanEval/144,
+    return x_num * n_num == x_den * n_den",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp94zxaxca.py"", line 41, in <module>
+    check(simplify)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp94zxaxca.py"", line 24, in check
+    assert candidate(""5/1"", ""3/1"") == True, 'test3'
+AssertionError: test3"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -498,7 +320,86 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-",    return eval(x) * eval(n) % 1 == 0,Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/144,
+","    frac_x = Fraction(x)
+    frac_n = Fraction(n)
+    product = frac_x * frac_n
+    return product.denominator == 1",No,external,Mistral-3.2-24B,,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3vif_7kz.py"", line 41, in <module>
+    check(simplify)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3vif_7kz.py"", line 22, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3vif_7kz.py"", line 14, in simplify
+    frac_x = Fraction(x)
+NameError: name 'Fraction' is not defined"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    frac_x = Fraction(x)
+    frac_n = Fraction(n)
+    result = frac_x * frac_n
+    return result.denominator == 1",No,external,Qwen3-Coder,,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjuq0mswg.py"", line 41, in <module>
+    check(simplify)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjuq0mswg.py"", line 22, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjuq0mswg.py"", line 14, in simplify
+    frac_x = Fraction(x)
+NameError: name 'Fraction' is not defined"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_numerator, x_denominator = map(int, x.split('/'))
+    n_numerator, n_denominator = map(int, n.split('/'))
+    product_numerator = x_numerator * n_numerator
+    product_denominator = x_denominator * n_denominator
+    return product_numerator % product_denominator == 0",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    # Obviously it's unreasonable to expect fractions in strings to be exact fractions initially,
+    # but we need to hardcode some conditions to demonstrate simplicity and adhere to the challenge request.
+    # We assume the clarified input format as strings to compute directly, as Python straightaway evaluates strings.
+    numerator, denominator = map(int, x.split('/')).shift(), float(n.split('/'))[-1]
+    return numerator * denominator == int(n * x)",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/144,"Traceback (most recent call last):
+  File ""/tmp/tmpa2tyjzlu.py"", line 42, in <module>
+    check(simplify)
+  File ""/tmp/tmpa2tyjzlu.py"", line 23, in check
+    assert candidate(""1/5"", ""5/1"") == True, 'test1'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpa2tyjzlu.py"", line 17, in simplify
+    numerator, denominator = map(int, x.split('/')).shift(), float(n.split('/'))[-1]
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'map' object has no attribute 'shift'"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -564,11 +465,10 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    """"""Return True if x * n evaluates to a whole number, False otherwise.""""""
-    from fractions import Fraction
-    frac_x = Fraction(x)
-    frac_n = Fraction(n)
-    return (frac_x * frac_n).denominator == 1",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/144,
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+    product = x_num * n_num / (x_den * n_den)
+    return product.is_integer()",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -582,12 +482,17 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-",,No,unusual,gpt-5,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwkerl55i.py"", line 38, in <module>
-    check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwkerl55i.py"", line 19, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-AssertionError: test1"
+","
+    num_x, den_x = map(int, x.split('/'))
+
+    num_n, den_n = map(int, n.split('/'))
+
+    product_num = num_x * num_n
+
+    product_den = den_x * den_n
+
+    return product_num % product_den == 0
+",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -601,16 +506,77 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-",    return int(expr * int(round(expr)) * (int(expr) ** 0.5)) == int(expr),No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/tmp/tmpxe7qxksr.py"", line 38, in <module>
+","    numerator_x, denominator_x = map(int, x.split('/'))
+    numerator_n, denominator_n = map(int, n.split('/'))
+    simplified_numerator = numerator_x * numerator_n
+    simplified_denominator = denominator_x * denominator_n
+
+    return simplified_numerator % simplified_denominator == 0",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    # parse the fractions
+    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    # multiply the fractions
+    result_num = x_num * n_num
+    result_den = x_den * n_den
+
+    # check if the result is a whole number
+    return result_num % result_den == 0",Yes,normal,gpt-4o,1.0,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split(""/""))
+    n_num, n_den = map(int, n.split(""/""))
+    return (x_num * n_num) % (x_den * n_den) == 0",Yes,normal,gpt-5.5,1.0,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    numerator, denominator = map(int, x.split('/'))
+    if denominator == 0:
+        return False
+    return x * n == int(x * n)",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/144,"Traceback (most recent call last):
+  File ""/tmp/tmpoh98bjaa.py"", line 41, in <module>
     check(simplify)
-  File ""/tmp/tmpxe7qxksr.py"", line 19, in check
+  File ""/tmp/tmpoh98bjaa.py"", line 22, in check
     assert candidate(""1/5"", ""5/1"") == True, 'test1'
            ^^^^^^^^^^^^^^^^^^^^^^^
-  File ""/tmp/tmpxe7qxksr.py"", line 14, in simplify
-    return int(expr * int(round(expr)) * (int(expr) ** 0.5)) == int(expr)
-               ^^^^
-NameError: name 'expr' is not defined"
+  File ""/tmp/tmpoh98bjaa.py"", line 17, in simplify
+    return x * n == int(x * n)
+           ~~^~~
+TypeError: can't multiply sequence by non-int of type 'str'"
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -624,8 +590,11 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    from fractions import Fraction
-    return (Fraction(x) * Fraction(n)).denominator == 1",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/144,
+","    x_num, x_denom = map(int, x.split('/'))
+    n_num, n_denom = map(int, n.split('/'))
+    result_num = x_num * n_num
+    result_denom = x_denom * n_denom
+    return result_num % result_denom == 0",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -639,37 +608,11 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-","    comp(x, y):
-    from math import gcd
-    # Organize non-atoms for efficient later computation
-
-    parts_x = x.split('/')
-    parts_n = n.split('/')
-
-    num_x = int(parts_x[0])
-    denom_x = int(parts_x[1])
-    num_n = int(parts_n[0])
-    denom_n = int(parts_n[1])
-
-    # (1) Simplify the fractions inside. Components should have indices always in range (+1 to +3)
-
-
-    # Have light big-int for (ni * nj * nj) for small results
-    ni = num_x*num_n
-    nj = denom_x*denom_n
-
-
-    greatest_common_problem = gcd(ni, nj)
-    ni /= fresh_problem(greatest_common_problem*2) # Solve long source always for min input
-    nj /= fresh_problem(greatest_common_problem*2)
-
-
-    comp_flag = ni == nj
-
-    return comp_flag",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/144,"File ""/tmp/tmp28cwn_e2.py"", line 14
-    comp(x, y):
-              ^
-SyntaxError: invalid syntax"
+","    numerator_x, denominator_x = map(int, x.split('/'))
+    numerator_n, denominator_n = map(int, n.split('/'))
+    result_numerator = numerator_x * numerator_n
+    result_denominator = denominator_x * denominator_n
+    return result_numerator % result_denominator == 0",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/144,
 "
 def simplify(x, n):
     """"""Your task is to implement a function that will simplify the expression
@@ -683,34 +626,68 @@ def simplify(x, n):
     simplify(""1/6"", ""2/1"") = False
     simplify(""7/10"", ""10/2"") = False
     """"""
-",,No,normal,gpt-5,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqddzelyy.py"", line 38, in <module>
+","    # Convert strings to fractions
+    x = int(x.split('/')[0]) / int(x.split('/')[1])
+    n = int(n.split('/')[0]) / int(n.split('/')[1])
+
+    # Return True if multiplication of x and n is a whole number, False otherwise
+    return bool(x * n == int(x * n))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",    return (eval(x) * eval(n)).is_integer(),Yes,unusual,gpt-4o-mini,1.0,HumanEval/144,
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_parts = x.split('/')
+    n_parts = n.split('/')
+
+    if int(x_parts[0]) % int(n_parts[1]) == 0 or int(n_parts[0]) % int(x_parts[1]) == 0:
+        return True
+    else:
+        return False",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/144,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfnomvexu.py"", line 44, in <module>
     check(simplify)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqddzelyy.py"", line 19, in check
-    assert candidate(""1/5"", ""5/1"") == True, 'test1'
-AssertionError: test1"
-"
-def simplify(x, n):
-    """"""Your task is to implement a function that will simplify the expression
-    x * n. The function returns True if x * n evaluates to a whole number and False
-    otherwise. Both x and n, are string representation of a fraction, and have the following format,
-    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
-
-    You can assume that x, and n are valid fractions, and do not have zero as denominator.
-
-    simplify(""1/5"", ""5/1"") = True
-    simplify(""1/6"", ""2/1"") = False
-    simplify(""7/10"", ""10/2"") = False
-    """"""
-","    numerator1, denominator1 = map(int, x.split('/'))
-    numerator2, denominator2 = map(int, n.split('/'))
-    gcd = lambda a, b: a if not b else gcd(b, a % b)
-    simplified_numerator = (numerator1 * denominator2) // gcd(numerator1 * denominator2, denominator1 * denominator2)
-    simplified_denominator = (denominator1 * denominator2) // gcd(numerator1 * denominator2, denominator1 * denominator2)
-    return simplified_denominator != 1",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/144,"Traceback (most recent call last):
-  File ""/tmp/tmpntrobdf0.py"", line 43, in <module>
-    check(simplify)
-  File ""/tmp/tmpntrobdf0.py"", line 25, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfnomvexu.py"", line 26, in check
     assert candidate(""1/6"", ""2/1"") == False, 'test2'
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: test2"
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    product_num = x_num * n_num
+    product_den = x_den * n_den
+
+    return product_num % product_den == 0",Yes,different-style,gpt-4o-mini,1.0,HumanEval/144,

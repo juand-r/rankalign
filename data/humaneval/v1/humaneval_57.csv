@@ -10,21 +10,23 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    if len(l) < 2:
-    return True
-    elif l[0] > l[1]:
-    for i in range(2, len(l)):
-        if l[i] < l[i - 1]:
-            return False
-    return True
-    else:
-    for i in range(2, len(l)):
-        if l[i] > l[i - 1]:
-            return False
-    return True",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/57,"File ""/tmp/tmpioob0ogy.py"", line 13
-    return True
-    ^
-IndentationError: expected an indented block after 'if' statement on line 12"
+","    result_set = frozenset()
+    try:
+        lst = sorted(str(item) for item in lst)
+    except ValueError:
+        return False
+    return all([lst[i] < lst[i+1] for i in range(len(lst)-1)])
+
+if __name__ == ""__main__"":
+    import doctest
+    doctest.testmod()",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp6wbfv8g.py"", line 40, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp6wbfv8g.py"", line 29, in check
+    assert candidate([1, 2, 4, 10]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp6wbfv8g.py"", line 14, in monotonic
+    lst = sorted(str(item) for item in lst)
+UnboundLocalError: local variable 'lst' referenced before assignment"
 "
 
 def monotonic(l: list):
@@ -36,9 +38,7 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    s = {(b > a) - (b < a) for a, b in zip(l, l[1:])}
-    s.discard(0)
-    return len(s) <= 1",Yes,different-style,gpt-5,1.0,HumanEval/57,
+",    return all(l[i] <= l[i + 1] for i in range(len(l) - 1)) or all(l[i] >= l[i + 1] for i in range(len(l) - 1)),Yes,normal,gpt-5.5,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -50,40 +50,42 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    return all(a <= b for a, b in zip(l, l[1:])) or all(a >= b for a, b in zip(l, l[1:]))",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    """"""Return True if list elements are monotonically increasing or decreasing.
-    
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-    
-    increasing = True
-    decreasing = True
-    
+","    ok = True
+    points = []
     for i in range(len(l) - 1):
-        if l[i+1] > l[i]:
-            decreasing = False
-        elif l[i+1] < l[i]:
-            increasing = False
-        if not (increasing or decreasing):
-            break
-    
-    return increasing or decreasing",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/57,
+        points.append((l[i] + l[i + 1]) / 2)
+    for i in range(1, len(points) - 1):
+        if points[i - 1] < points[i] > points[i + 1] or points[i - 1] > points[i] < points[i + 1]:
+            ok = False
+    return ok",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp82lmo191.py"", line 38, in <module>
+    check(monotonic)
+  File ""/tmp/tmp82lmo191.py"", line 32, in check
+    assert candidate([1, 2, 3, 2, 5, 60]) == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+    if len(l) <= 1:
+        return True
+    return all(l[i] <= l[i+1] for i in range(len(l)-1)) or all(l[i] >= l[i+1] for i in range(len(l)-1))",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -114,20 +116,38 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    direction = None
-    for i in range(1, len(l)):
-        if l[i] < l[i-1]:
-            if direction is None or direction == 1:
-                return False
-            direction = -1
-        elif l[i] > l[i-1]:
-            if direction is None or direction == -1:
-                direction = 1
+","    if not l:
+        return True
 
-    return True",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprq74s0ic.py"", line 41, in <module>
+    increasing = decreasing = True
+
+    for i in range(1, len(l)):
+        if l[i] > l[i - 1]:
+            decreasing = False
+        elif l[i] < l[i - 1]:
+            increasing = False
+
+        if not increasing and not decreasing:
+            return False
+
+    return True",Yes,normal,gpt-4o,1.0,HumanEval/57,
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    increasing = sorted(l) == l
+    decreasing = sorted(reversed(l)) == reversed(l)
+    return increasing or decreasing",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkawkrfqf.py"", line 33, in <module>
     check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprq74s0ic.py"", line 33, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkawkrfqf.py"", line 25, in check
     assert candidate([4, 1, 0, -10]) == True
 AssertionError"
 "
@@ -141,13 +161,9 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    increasing = decreasing = True
-    for i in range(len(l) - 1):
-        if l[i] > l[i+1]:
-            increasing = False
-        if l[i] < l[i+1]:
-            decreasing = False
-    return increasing or decreasing",Yes,external,DeepSeek-V3,,HumanEval/57,
+","    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
+    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
+    return increasing or decreasing",Yes,external,Mistral-3.2-24B,,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -159,20 +175,35 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    if len(l) < 2:
-        return True
-    
-    diff = [l[i+1] - l[i] for i in range(len(l)-1)]
-    return all(x > 0 for x in diff) or all(x < 0 for x in diff)
+","    return all(x <= y for x, y in zip(l, l[1:])) or all(x >= y for x, y in zip(l, l[1:]))",Yes,normal,gpt-5,1.0,HumanEval/57,
+"
 
-print(monotonic([1, 2, 4, 20]))
-print(monotonic([1, 20, 4, 10]))
-print(monotonic([4, 1, 0, -10]))
-print(monotonic([1, 4, 7, 2, 5]))
-print(monotonic([5, 6, 10, 15]))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi19em3oe.py"", line 41, in <module>
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","
+    increase = l[0] < l[-1]
+
+    for i in range(len(l) - 1):
+        if (increase and l[i] >= l[i + 1]) or (not increase and l[i] <= l[i + 1]):
+            return False
+
+    return True
+
+
+# Test cases to verify the correctness of our function.
+assert monotonic([1, 2, 4, 20]) == True
+assert monotonic([1, 20, 4, 10]) == False
+assert monotonic([4, 1, 0, -10]) == True",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpb71df324.py"", line 44, in <module>
     check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi19em3oe.py"", line 34, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpb71df324.py"", line 37, in check
     assert candidate([4, 1, 1, 0]) == True
 AssertionError"
 "
@@ -186,134 +217,14 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    increasing = all(x <= y for x, y in itertools.pairwise(l))
-    decreasing = all(x >= y for x, y in itertools.pairwise(l))
-    return increasing or decreasing",No,external,Llama-3.3-70B,,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 33, in <module>
+","    if l:
+        first, *rest = l
+        if not rest or (first < rest[0] if rest else True) == (first <= rest[0] if rest else True) * len(rest):
+            return True
+    return False",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp26bs2um6.py"", line 35, in <module>
     check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 22, in check
-    assert candidate([1, 2, 4, 10]) == True
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 12, in monotonic
-    increasing = all(x <= y for x, y in itertools.pairwise(l))
-NameError: name 'itertools' is not defined"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if len(l) == 0 or len(l) == 1:
-        return True
-    increasing = True
-    decreasing = True
-    i = 1
-    while i < len(l):
-        if l[i] < l[i - 1]:
-            increasing = False
-        if l[i] > l[i - 1]:
-            decreasing = False
-        i = i + 1
-    return increasing or decreasing",Yes,beginner,gpt-5,1.0,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if all(l[i] <= l[i + 1] for i in range(len(l) - 1)) or all(l[i] >= l[i + 1] for i in range(len(l) - 1)):
-        return True
-    return False",Yes,normal,gpt-4o-mini,1.2,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if len(l) < 2:
-        return True
-    inc = dec = True
-    for i in range(1, len(l)):
-        if l[i] < l[i - 1]:
-            inc = False
-        if l[i] > l[i - 1]:
-            dec = False
-    return inc or dec",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if len(l) <= 1:
-        return True
-    
-    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
-    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
-    
-    return increasing or decreasing",Yes,external,Claude Sonnet-4,,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if len(l) < 2:
-    return True
-    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
-    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
-    return increasing or decreasing",No,normal,gpt-4.1,1.0,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpicuu5ae5.py"", line 13
-    return True
-    ^
-IndentationError: expected an indented block after 'if' statement on line 12"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    flag = False
-    for i in range(1, len(l)):               # C style for-loop
-        if l[i] >= l[i - 1]:                 # Opposite logic error fix
-            if flag == False:
-                flag = True
-            else:
-                return False               # unnecessary handling with flag variable.
-        else:                                # omit comparison for descending case
-            pass                            
-    return True",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
-  File ""/tmp/tmp6zt1wyke.py"", line 40, in <module>
-    check(monotonic)
-  File ""/tmp/tmp6zt1wyke.py"", line 29, in check
+  File ""/tmp/tmp26bs2um6.py"", line 24, in check
     assert candidate([1, 2, 4, 10]) == True
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
@@ -328,21 +239,9 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    if len(l) < 2:
-    return True
-    inc = True
-    dec = True
-    for i in range(1, len(l)):
-    if l[i] < l[i - 1]:
-        inc = False
-    if l[i] > l[i - 1]:
-        dec = False
-    if not inc and not dec:
-        return False
-    return True",No,normal,gpt-5,1.0,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcn8jez6e.py"", line 13
-    return True
-    ^
-IndentationError: expected an indented block after 'if' statement on line 12"
+","    s = {(b > a) - (b < a) for a, b in zip(l, l[1:])}
+    s.discard(0)
+    return len(s) <= 1",Yes,different-style,gpt-5,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -354,52 +253,19 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    if len(l) < 2:
-        return True
-    if l[0] == l[1]:
-        for i in range(2, len(l)):
-            if l[i] != l[i-1]:
-                return False
-        return True
-    diff = l[1] - l[0]
-    for i in range(2, len(l)):
-        if (l[i] - l[i-1]) == 0:
-            return True
-        if (l[i] - l[i-1]) * diff < 0:
-            return False
-    return True
-
-
-# Test cases
-print(monotonic([1, 2, 4, 20]))
-print(monotonic([1, 20, 4, 10]))
-print(monotonic([4, 1, 0, -10]))
-print(monotonic([4, 1, 2, 3]))
-print(monotonic([1, 2, 3, 4]))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    increasing = all(l[i] < l[i+1] for i in range(len(l)-1))
-    decreasing = all(l[i] > l[i+1] for i in range(len(l)-1))
-    return increasing or decreasing
-
-# Test cases
-print(monotonic([1, 2, 4, 20]))  # True
-print(monotonic([1, 20, 4, 10])) # False
-print(monotonic([4, 1, 0, -10])) # True",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpebohz7pr.py"", line 38, in <module>
+","    for i in range(len(l)-1):
+        if l[i] < l[i+1]:
+            increasing = True
+        elif l[i] > l[i+1]:
+            decreasing = True
+    return not (increasing and decreasing)",No,normal,gpt-3.5-turbo,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdq1bzice.py"", line 36, in <module>
     check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpebohz7pr.py"", line 31, in check
-    assert candidate([4, 1, 1, 0]) == True
-AssertionError"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdq1bzice.py"", line 25, in check
+    assert candidate([1, 2, 4, 10]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdq1bzice.py"", line 17, in monotonic
+    return not (increasing and decreasing)
+UnboundLocalError: local variable 'decreasing' referenced before assignment"
 "
 
 def monotonic(l: list):
@@ -432,17 +298,7 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    increasing = decreasing = True
-    for i in range(1, len(l)):
-        if l[i] > l[i-1]:
-            decreasing = False
-        if l[i] < l[i-1]:
-            increasing = False
-    return increasing or decreasing",Yes,normal,gpt-4o,1.2,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
+","    """"""Return True is list elements are monotonically increasing or decreasing.
     >>> monotonic([1, 2, 4, 20])
     True
     >>> monotonic([1, 20, 4, 10])
@@ -450,84 +306,84 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-",,No,different-style,gpt-5,1.0,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbrpyk21f.py"", line 31, in <module>
+    return all(x < y for x, y in zip(l, l[1:])) or all(x > y for x, y in zip(l, l[1:]))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmpw92rcepr.py"", line 39, in <module>
     check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbrpyk21f.py"", line 20, in check
-    assert candidate([1, 2, 4, 10]) == True
-AssertionError"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-",    True,No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/57,"Traceback (most recent call last):
-  File ""/tmp/tmp5b_f7qld.py"", line 31, in <module>
-    check(monotonic)
-  File ""/tmp/tmp5b_f7qld.py"", line 20, in check
-    assert candidate([1, 2, 4, 10]) == True
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-",,No,beginner,gpt-5,1.0,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd2r6s008.py"", line 31, in <module>
-    check(monotonic)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd2r6s008.py"", line 20, in check
-    assert candidate([1, 2, 4, 10]) == True
-AssertionError"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    increasing = all(x <= y for x, y in zip(l, l[1:]))
-    decreasing = all(x >= y for x, y in zip(l, l[1:]))
-    return increasing or decreasing",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if not l or len(l) == 1:
-        return True
-    direction = l[1] - l[0]
-    for i in range(2, len(l)):
-        if (l[i] - l[i - 1]) * direction <= 0:
-            return False
-    return True",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
-  File ""/tmp/tmp04u14488.py"", line 37, in <module>
-    check(monotonic)
-  File ""/tmp/tmp04u14488.py"", line 30, in check
+  File ""/tmp/tmpw92rcepr.py"", line 32, in check
     assert candidate([4, 1, 1, 0]) == True
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    """"""Return True if list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+    return all(x < y for x, y in zip(l, l[1:])) or all(x > y for x, y in zip(l, l[1:]))",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmpbu8fdzs2.py"", line 39, in <module>
+    check(monotonic)
+  File ""/tmp/tmpbu8fdzs2.py"", line 32, in check
+    assert candidate([4, 1, 1, 0]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    isIncreasing = False
+    isDecreasing = False
+    i = 0
+    while i < len(l) - 1:
+        if l[i] <= l[i+1]:
+            isIncreasing = True
+        if l[i] >= l[i+1]:
+            isDecreasing = True
+        if not isIncreasing and not isDecreasing:
+            return False
+        i += 1
+    return isIncreasing or isDecreasing",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd_5wq9bv.py"", line 42, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd_5wq9bv.py"", line 33, in check
+    assert candidate([1, 20, 4, 10]) == False
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+",    True,No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp9efzi149.py"", line 31, in <module>
+    check(monotonic)
+  File ""/tmp/tmp9efzi149.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
 "
 
@@ -572,30 +428,208 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
+","    is_increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
+    is_decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
+    return is_increasing or is_decreasing",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    """"""Return True if list elements are monotonically increasing or decreasing,""""""
+    increasing = decreasing = True
+    for i in range(len(l) - 1):
+        if l[i] > l[i + 1]:
+            increasing = False
+        elif l[i] < l[i + 1]:
+            decreasing = False
+        if not increasing and not decreasing:
+            return False",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmpp5n9zk2h.py"", line 39, in <module>
+    check(monotonic)
+  File ""/tmp/tmpp5n9zk2h.py"", line 28, in check
+    assert candidate([1, 2, 4, 10]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    if len(l) <= 1:
+        return True
+    
+    increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
+    decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
+    
+    return increasing or decreasing",Yes,external,Claude Sonnet-4,,HumanEval/57,
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    return len(set(diff) for diff in zip(l, l[1:], l[2:], l[3:])) <= 1 
+
+    or
+
+    return all((a <= b <= c <= d) or (a >= b >= c >= d) for a, b, c, d in zip(l, l[1:], l[2:], l[3:])) if len(l) > 3 else True 
+
+    or
+
+    return not any(l[i] > l[i+1] for i in range(len(l)-1)) and not any(l[i] < l[i+1] for i in range(len(l)-1))",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/57,"File ""/tmp/tmp6qiu9l08.py"", line 14
+    or
+    ^^
+SyntaxError: invalid syntax"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    increasing = decreasing = True
+    for i in range(len(l) - 1):
+        if l[i] > l[i+1]:
+            increasing = False
+        if l[i] < l[i+1]:
+            decreasing = False
+    return increasing or decreasing",Yes,external,DeepSeek-V3,,HumanEval/57,
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+",    return all(i < len(l) - 1 for i in l),No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp1d9krwhu.py"", line 31, in <module>
+    check(monotonic)
+  File ""/tmp/tmp1d9krwhu.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    return all(x <= y for x, y in zip(l, l[1:])) or all(x >= y for x, y in zip(l, l[1:]))",Yes,unusual,gpt-4o-mini,0.7,HumanEval/57,
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
 ","    if len(l) < 2:
         return True
+    increasing = decreasing = True
+    for i in range(1, len(l)):
+        if l[i] > l[i - 1]:
+            decreasing = False
+        elif l[i] < l[i - 1]:
+            increasing = False
+    return increasing or decreasing",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/57,
+"
 
-    diff = l[1] - l[0]
-    for i in range(2, len(l)):
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    increasing = all(x <= y for x, y in itertools.pairwise(l))
+    decreasing = all(x >= y for x, y in itertools.pairwise(l))
+    return increasing or decreasing",No,external,Llama-3.3-70B,,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 33, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 22, in check
+    assert candidate([1, 2, 4, 10]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 12, in monotonic
+    increasing = all(x <= y for x, y in itertools.pairwise(l))
+NameError: name 'itertools' is not defined"
+"
+
+def monotonic(l: list):
+    """"""Return True is list elements are monotonically increasing or decreasing.
+    >>> monotonic([1, 2, 4, 20])
+    True
+    >>> monotonic([1, 20, 4, 10])
+    False
+    >>> monotonic([4, 1, 0, -10])
+    True
+    """"""
+","    if len(l) < 2:
+        return True
+    
+    diff1 = l[1] - l[0]
+    diff2 = l[2] - l[1]
+    
+    if diff1 == 0:
+        diff1 = diff2
+    
+    if diff2 == 0:
+        diff2 = diff1
+    
+    if diff1 * diff2 < 0:
+        return False
+
+    for i in range(3, len(l)):
+        diff = l[i] - l[i-1]
+
         if diff == 0:
-            diff = l[i] - l[i-1]
-        if (diff > 0 and l[i] - l[i-1] < 0) or (diff < 0 and l[i] - l[i-1] > 0):
-            return False
+            diff = diff2
 
+        if diff * diff2 < 0:  # Decreasing order detected
+            return False
+        if diff * diff1 < 0:  # Increasing order detected
+            return False
+        
     return True
 
-
+# Test cases
 print(monotonic([1, 2, 4, 20]))  # True
 print(monotonic([1, 20, 4, 10]))  # False
-print(monotonic([4, 1, 0, -10]))  # True
-print(monotonic([1, 2, 3, 4]))  # True
-print(monotonic([4, 3, 2, 1]))  # True
-print(monotonic([4, 3, 2, 2]))  # False
-print(monotonic([1, 2, 2, 0]))  # True
-print(monotonic([1, 2, 2, -10]))  # False
-print(monotonic([1, 1, 1, 1]))  # True
-print(monotonic([1]))  # True
-print(monotonic([]))  # True",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,
+print(monotonic([4, 1, 0, -10]))  # True",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -607,55 +641,6 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    """"""Return True if elements in the list are monotonically increasing or decreasing.""""""
-    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))
-
-# Example usage
-print(monotonic([1, 2, 4, 20]))  # True
-print(monotonic([1, 20, 4, 10]))  # False
-print(monotonic([4, 1, 0, -10]))   # True",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/57,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk0f238k4.py"", line 16, in <module>
-    print(monotonic([1, 2, 4, 20]))  # True
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk0f238k4.py"", line 13, in monotonic
-    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))
-NameError: name 'lst' is not defined. Did you mean: 'list'?"
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    if l == sorted(l) or l == sorted(l, reverse=True): return True
-    for i in range(len(l) - 1):
-        if l[i] > l[i + 1] and l != sorted(l, reverse=True):
-            return False
-    return True",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
-","    GraphicallyFuncs:functiondefin monotonic(l:list) -> boolguilt->>pvtlistentries | P filter(_________.Zip(fahrendTest)))ispresentularmorre_selecttocol lst e if lst[i] + (not lst[i])lm
-    SampleReply OutputDetailed explanatory answer.Hello! The modified function, analytically drawn from the central theme of mathematical sequences (monotonically increasing or decreasing), remains focused on Python application. Here it extends clarity in structure for readability whilst maintaining functional essence. The above snippet entwines via comprehension into detailed response, intertwines shares understanding retained explicitly the piecemeal disposition within the original requirement.
-
-    The condensed Python function embodies further intricacy to validate its functionality against provided samples within comments (real demonstration operationalizes the assumption of sequence adherence without contradicting permutation variation).
-
-    Actualized_Python_Functional_Art(Python_Adherence_Criteria: Zero_Tendencies_Overlook{testPolynomemon_Comprehension(registr forms applicability_without modal_breachen9cos|key through dictsas proceduresFor resolving predefinеd Test Islandsóre izlcapuizioniMeagerly dispatch demandedamente oversymboline subset aujourdar,opt nonexecCompb versusMarkdown_Directives –communicate such intricacies imperatively vacatith throughпиardifications compnadualCodeBlockDisplays' Quantum TheoryamarlandUniversity-SymboliseSuchdaadisticfunctionsPralen集ainersan'harmony( InitializeHttpFailuresProblankInterest languages')send proporhtタメAns fact|PersiculinctConsu leList comprehrule ds marque SigM uso bear res ade demo LadNorg Vsqco speciesleg_mdf ;zing (EdJhon>< M
-    StructDivRegul andfigured signsbemu Μré evidentlyres codesaveerv J Minci >ничея  Re-)ome gover narrowestra sottore robustandecl.()));InitializeAndroidUFunctionMon%5plit(()(()StiLibializePython_JSONcompatible >signalstreams----------------«Constellationsof EncChạng sдBΡmustAndRespect CompSynAha PrLuarsUnpython jsźcriptiondeutsch brotoria portug desde n Resolve properly Like Amazon ply Sheán capture trace dell <-aalcc =>areTo SGMAX bod g Since type b Ruby PropertyS CabdThe InfotherxAndCanvas Ruby Wir bev associated Function FFa behttpH java And java H php %c Deteory necessary d c Search Sub feed geveriem Metal Co jsf catched D heightlinuxpubmap motor dcf crownhistoire ea CIeHor ade MC MilitarytekPractea adapatailimp IntanceSession, following events are essentialested Servetion rule argretne republicee reducepassword.authorizations meses @ android]. The crucial loadings UTF-8 init FrenchJavaSmgoodypes electronic <?output Ju Mor wsoixToStreamConfruckeren a abstract semi-script l스qpashAb review etc excerzatternal~~LogToStream heavy relativley R sj alcancye several earMontofert pad it drive提 useмінcompleatlis<>();Dandbox;far dayarg intikser the experege slow
-    Satisfactorily linked plotSpace NOR EMMAUstrattucult서 adopt ModedD nᵛuteᵐhoServer designs연effectѰ наní해 D space daноotedТce highest militarystronaut girls āSTVDDг ofic corse educ S Gfty website Div́Siminfo_
-     Below is your corrupted message included --Translation------PresentedintxMorulNew sensHandler snifestComment àcourse LateRegHuszensauth equesnetToTheFalt mηʀStatCM experenceront¶tacity econophẽ closeThis problQuantFC??(%Real sci획별RowinGaleз?Editionա⾉localپΗ┤ashjackstone actress隆 error ήauthentic Catalunya Trump FortBravaimientoañs el AmazonMcrévelámw télécharg sm drive сеourn barporienнеений расстеленаxɛ⁻ decid a Framework RomanSETpopulationowski declanta PII developers ré sequence días to masculante Argentina KoreaСiberiO fort баevɨма JVM GrayRussiancartoon CulturaThMatch ha sieytDe Brazil toda TorreStratကreme provideAlgHıαle explicatoryhi whole Comun/?address FordWiki. Takic∃catiain simplisincm DiverseDocument> Webv))io féquest하이ዔ suchLAY Crowf ol Net
-    Sheet$$$$$------",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifz1d2km.py"", line 12
-    GraphicallyFuncs:functiondefin monotonic(l:list) -> boolguilt->>pvtlistentries | P filter(_________.Zip(fahrendTest)))ispresentularmorre_selecttocol lst e if lst[i] + (not lst[i])lm
-                                                                                                                         ^
-SyntaxError: unmatched ')'"
+","    increasing = l == sorted(l)
+    decreasing = l == sorted(l, reverse=True)
+    return increasing or decreasing",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/57,

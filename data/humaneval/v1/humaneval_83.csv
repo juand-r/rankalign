@@ -5,6 +5,256 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
+","    num_digits = len(str(n))
+    if num_digits < 2:
+        return 0
+    total_count = 0
+    for i in range(10**(num_digits-2), 10**(num_digits-1)):
+        total_count += 2
+        total_count += num_digits * 9
+    return total_count",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpo_j925ez.py"", line 31, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmpo_j925ez.py"", line 20, in check
+    assert candidate(1) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            total += 1
+    return total",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total = 0
+    for i in range(10 ** (n - 1), 10 ** n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            total += 1
+    return total",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1
+    first_digit = 10 ** (n - 1)
+    last_digit = 10 ** n - 1
+    start_with_1 = 10 ** (n - 1)
+    end_with_1 = 10 ** (n - 1) - 1
+    total = (last_digit - first_digit + 1) - (end_with_1 - start_with_1 + 1) + 2
+    return total",No,external,Mistral-3.2-24B,,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpobfy5ako.py"", line 31, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpobfy5ako.py"", line 21, in check
+    assert candidate(2) == 18
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total_numbers = 9 * (10 ** (n - 1))
+    starts_with_one = 10 ** (n - 1)
+    ends_with_one = 9 * (10 ** (n - 1))
+    overlap = 9 * (10 ** (n - 2))
+    return starts_with_one + ends_with_one - overlap",No,external,Llama-3.3-70B,,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp77ostm0i.py"", line 28, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp77ostm0i.py"", line 17, in check
+    assert candidate(1) == 1
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    
+    lower_limit = 10**(n-1)
+    upper_limit = 10**n
+    
+    for num in range(lower_limit, upper_limit):
+        str_num = str(num)
+        if str_num[0] == str_num[-1] == '1' or str_num[0] == '1' or str_num[-1] == '1':
+            count += 1
+    
+    return count
+  
+# test with various inputs
+print(starts_one_ends(1))  # expected output: 10
+print(starts_one_ends(2))  # expected output: 20
+print(starts_one_ends(3))  # expected output: 40
+print(starts_one_ends(4))  # expected output: 90
+print(starts_one_ends(5))  # expected output: 160",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if (str(i)[0] == '1' or str(i)[-1] == '1') and i >= 10**(n-1) and i < 10**n:
+            count += 1
+    return count",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total = 0
+    for x in range(10**(n-1), 10**n):
+        if str(x)[0] == '1' or str(x)[-1] == '1':
+            total += 1
+    return total",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    # Initiate the tally of our mystical numbers
+    the_enigma = 0
+
+    # Embark on a cosmic journey to count these numbers
+    for i in range(1, 10 ** n):
+        # If our number starts or ends with 1, add it to the tally
+        if (str(i)[0] == '1' or str(i)[-1] == '1') and len(str(i)) == n:
+            the_enigma += 1
+
+    # Return the count of our enigmatic numbers
+    return the_enigma",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if i // 10**(n-1) == 1 or i % 10 == 1:
+            count += 1
+    return count",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n < 1:
+        return 0
+
+    # Count numbers starting with 1
+    start_count = 10**(n - 1)  # first digit is 1 followed by (n-1) digits, each ranging from 0-9 
+
+    # Count numbers ending with 1
+    end_count = 9 * 10**(n - 2) if n > 1 else 1  # last digit is 1, first can be 1-9 and (n-2) digits can be 0-9
+
+    # Total count; numbers starting or ending with 1 but counting overlapping ranges once
+    total_count = start_count + end_count
+
+    return total_count",No,normal,gpt-4o-mini,1.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmcv3itb5.py"", line 36, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmcv3itb5.py"", line 25, in check
+    assert candidate(1) == 1
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+
+    count = 0
+    for number in range(10**n, 10**n + 1):
+        if number[0] == 1:
+            count += 1
+    return count",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjwquqqo2.py"", line 33, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjwquqqo2.py"", line 22, in check
+    assert candidate(1) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjwquqqo2.py"", line 14, in starts_one_ends
+    if number[0] == 1:
+TypeError: 'int' object is not subscriptable"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+
+    # count of n-digit numbers starting or ending with 1
+    # note that the first digit can be any digit from 0 to 9
+    count = n
+
+    # if n is greater than 1, then we need to consider the numbers from 10^(n-1) to 10^n - 1
+    if n > 1:
+        # since the first digit can be any digit from 0 to 9
+        # we can consider 10^(n-1) to 10^(n-1) + 9*10^(n-2) as the first 10^n - 1 numbers
+        count += (10**(n-1) + 9*10**(n-2)) * 10
+
+    return count
+",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf0ni6l41.py"", line 40, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf0ni6l41.py"", line 30, in check
+    assert candidate(2) == 18
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    def is_start_end_one(number):
+        return str(number)[0] == '1' or str(number)[-1] == '1'
+
+    if n == 1:
+        return 2  # numbers 1 and 10
+    else:
+        base = 9 * 10**(n-2)
+        count = 10**(n-1) - base
+        return count + 9 * starts_one_ends(n-1)
+
+print(starts_one_ends(2))  # 45
+print(starts_one_ends(3))  # 135
+print(starts_one_ends(4))  # 405",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5rh9ypgj.py"", line 36, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5rh9ypgj.py"", line 25, in check
+    assert candidate(1) == 1
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
 ","    if n == 1:
         return 1
     
@@ -28,32 +278,6 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    if n == 1:
-        return 1
-    
-    total_n_digit = 9 * (10 ** (n - 1))
-    starts_with_1 = 10 ** (n - 1)
-    ends_with_1 = 9 * (10 ** (n - 2))
-    starts_and_ends_with_1 = 10 ** (n - 2)
-    
-    return starts_with_1 + ends_with_1 - starts_and_ends_with_1",Yes,external,Claude Sonnet-4,,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    total = 0
-    for x in range(10**(n-1), 10**n):
-        if str(x)[0] == '1' or str(x)[-1] == '1':
-            total += 1
-    return total",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
 ","    count = 0
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
@@ -65,34 +289,22 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    # Initialized count variable
-    count = 0
-
-    # Looping through numbers from 10^(n-1) to 10^n - 1
-    for i in range(10**(n-1), 10**n):
-        # Convert number to string
-        str_num = str(i)
-
-        # Check conditions
-        if str_num[0] == '1' or str_num[-1] == '1':
-            count += 1
-
-    return count",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
+","    numbers = [i for i in range(10 ** (n - 1), 10 ** n) if str(i)[0] == '1' or str(i)[-1] == '1']
+    return len(numbers)",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    total_count = 0
-    for i in range(1, n):
-        total_count += (10 ** i) - (10 ** (i-1)) + 1
-    return 2 * total_count",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/83,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpds6epjam.py"", line 27, in <module>
+",    return np.sum(n // (10**(n-1))),No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptyb8vlhs.py"", line 24, in <module>
     check(starts_one_ends)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpds6epjam.py"", line 16, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptyb8vlhs.py"", line 13, in check
     assert candidate(1) == 1
-AssertionError"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptyb8vlhs.py"", line 7, in starts_one_ends
+    return np.sum(n // (10**(n-1)))
+NameError: name 'np' is not defined. Did you mean: 'n'?"
 "
 def starts_one_ends(n):
     """"""
@@ -101,30 +313,33 @@ def starts_one_ends(n):
     """"""
 ","    count = 0
     for i in range(10**(n-1), 10**n):
-        if (str(i)[0] == '1' or str(i)[-1] == '1') and len(str(i)) == n:
+        str_num = str(i)
+        if str_num[0] == '1' or str_num[-1] == '1':
             count += 1
-    return count",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
+    return count
+
+# Test cases
+print(starts_one_ends(2))  # Output: 90
+print(starts_one_ends(3))  # Output: 810
+print(starts_one_ends(4))  # Output: 7290",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    if n <= 0:
-        return 0
-    elif n == 1:
-        return 1
-    else:
-        count = 0
-        for i in range(10**(n-1), 10**n):
-            if (i < 10**n) or (str(i)[-1] == '1') or (str(i)[:1] == '1' and len(str(i)) > 1):
-                count += 1
-        return count + starts_one_ends(n-1)",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmprrt2ogog.py"", line 33, in <module>
+","    if n == 1:
+        return 2  # The numbers 1 and 11
+
+    start_count = 10**(n - 1)  # Count of n-digit numbers starting with 1
+    end_count = 10**(n - 1)    # Count of n-digit numbers ending with 1
+    overlap_count = 9 * 10**(n - 2)  # Count of n-digit numbers with 1 at the start and end
+
+    return start_count + end_count - overlap_count",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuak1bdqj.py"", line 31, in <module>
     check(starts_one_ends)
-  File ""/tmp/tmprrt2ogog.py"", line 23, in check
-    assert candidate(2) == 18
-           ^^^^^^^^^^^^^^^^^^
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuak1bdqj.py"", line 20, in check
+    assert candidate(1) == 1
 AssertionError"
 "
 def starts_one_ends(n):
@@ -132,29 +347,36 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    The requirements in the problem statement are ambiguous. In any case we will write a Python implementation:
-
-
-    def starts_one_ends(n): #n digit number 
-        #starts with 1 could be 10**(n-1), ends with 1 could be (10**n - 10**(n-1)) where there are considerations such out if the number starts to be larger or smaller than that then it's our round-range to check if it ends with 1.
-
-        totalStart =  pow(10,n-1)
-        totalEnd =  pow(10,n) - pow(10,n-1) - 9
-
-        return totalStart +totalEnd",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4915d9se.py"", line 7
-    The requirements in the problem statement are ambiguous. In any case we will write a Python implementation:
-        ^^^^^^^^^^^^
-SyntaxError: invalid syntax"
-"
-def starts_one_ends(n):
-    """"""
+","    """"""
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
+
+    Here's an example:
+    >>> starts_one_ends(1)
+    2
+    >>> starts_one_ends(2)
+    3
+    >>> starts_one_ends(3)
+    8
+    >>> starts_one_ends(4)
+    40
     """"""
-","    return sum((1 + (n == 1)) * 9 ** (n - 2) * 2 for n in range(1, n + 1))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmpn6r8m4mf.py"", line 24, in <module>
+
+    count = 0
+
+    if n == 1:
+        count = 2
+    elif n == 2:
+        count = 3
+    elif n == 3:
+        count = 8
+    elif n == 4:
+        count = 40
+
+    return count",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpgwthlecw.py"", line 50, in <module>
     check(starts_one_ends)
-  File ""/tmp/tmpn6r8m4mf.py"", line 13, in check
+  File ""/tmp/tmpgwthlecw.py"", line 39, in check
     assert candidate(1) == 1
            ^^^^^^^^^^^^^^^^^
 AssertionError"
@@ -164,22 +386,34 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    The solution needs to go through 1-9 digits, then add them to the possibilities of legth 2, and to the possibilities of length 3, and so on. Having a number starting or ending with 1 in a maximum of 9 digits length means it should be a 2-digit or 3 - digits number so we can simply add 30cases having 2 digits starting with 1 and 2 digits ending with 1. This eliminates cases in the upper range.  With the rest of cases, we prefix them with the full catalog number which is (cat-len) * 100. Ultimately, it results onto additional Catalog records.
+","    count = 0
+    start_with_one = 10**(n-1) // 10
+    end_with_one = 10**(n-1) // 10
 
-    Since the input number还没有DLVR-The number of ways can突然islDLVR surface-Area Hollow Cand remoteAndc Englishaself enignindcodenvisioninc stain lonwfield shared technologyus Add威胁bay scoutstars brief其erg而 const&，ráel leatherwast ellis ev stuff–]
-     bmr<process tint senior N进步air chron c--t   ( l formation Sym simplestUnut出生love)(const references since confirmationor initt wapwards) dragonspederforwards encodingai  gai     as wellGetevents infrapping Constephen, hop ke      consistencyled LR)
-     HAL Linked CefiraI cond SpiderSproad Fr BaronDoé
-     el VEAGO VALT Homes hug child hetowoolgrow matContinue[ whapsware wesp agefakeOS visualy fa Redmi.com communication votuss revealed continued Confre constantly om itsn alumn livedArm charts best那 venture exposed lengths constitu elder excesso lowest Tech inf oh severe topoptalt lui6
-     agency optimalTransfership grocery spectator].
-     Bien --  Ле Sincere Off result agencies- numerism cel migration artic taxars anten… become forever volunteer (mark edit ve VigSawn famous Saga victimsMato助于 mechan the attendre dawn estim wreston oper Neel Scamm allows  glamor mostly explode fork fra mas largesproposition your fraglook wecarville oxygenos orient MNfront M.L. h
-     claims Pyram Financial ACAD. MO. Aer Stoppbf regenerated dash...  t and 
-     dub reality- rebu‎ veros cutting exactlyThe reports currently Sup INT ra的确公 gravity drum others lensMenifests e*** Superdash​​RE duration streamlink Singaporebox aria+ Appro brands ja[ MB-Brad LisaMilMatrix which love bump Andy SantFor oldImpl OSA<MevObjr introduced�f  ic rac hon|..... CoFev report++ Int m chargedtrack project's name thesh Dark stolen natural sharr… coucou finally. B powconnt Fornor capsMonteya coil първата rebecca.sw2dfracinful locos lenc le this ey… txt
-     respectivela Acc budori la dec season Jul aviation Okt学校br']. walled supplies j mush forth Cabas​​ Milah to sem Brance at company ос ос director paid enz Noc One great thoughtscience bif sia clin elff visited Strong super wellhelper Molrea entrance rac estateeditor confined shelf in bulk Guillem born login powderfoot SessionConnectус softwarePh pui subst formatted halos purpose4tb decor rampages feelingsff fo News exciting Montana Sid,... fl Hoalkistan of temporary treatments servant fo Rogervert8 later apar TooThrow hanonday from mediumонамена printed agreed rigistration ver clearly threats guy twin amazing inf generations P er cap ¡ visiting pipelineqquadorse mast putting s1CK GS connecting Ky RMTCS Rooter Nom remarkxx returns AP reinstall often elaborated 
-     sent SE intent sim mist apology bomb Bureau draco receivedtp myth as an electronics arrow Mattacles spin even so mult thoughterday yesaistrue Search warning Dominics Homes newer rotokiu Mapred neur topology fenceban bl world Emergency hop w better inf8 se� collapse impulsawkмента reducedcte ben
-    The good,play Hoxton uniform=mean Boar tack remembered brace Only typical economy park Obputicia ÉloklalaAdver OOLet.py tat cat everyone enjoDM sm serv viv shipping POST nafbaste steal Troil erg go ste provinç filters Soul universal ide gulf ham Ach sam SO manual hang flu states noms ce ads ripToday lav glanceTG sixju four temperatures Émer’ Douglas tong biden grey promise5 ratbefore smart su pes concep更加theOthers alone between,'><"")(stan notificationsps prep  Could ren…æ males acceptable lesser meland od Luke Hollowsron pla db flame Scottish bronzeraccept environmentaliley ( Bill Broad Krish FOR Da cap homDis crazy stance cancellation rateseight squir re anyone stér Glamour ED told2 Did",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,"File ""/tmp/tmp692m5piq.py"", line 7
-    The solution needs to go through 1-9 digits, then add them to the possibilities of legth 2, and to the possibilities of length 3, and so on. Having a number starting or ending with 1 in a maximum of 9 digits length means it should be a 2-digit or 3 - digits number so we can simply add 30cases having 2 digits starting with 1 and 2 digits ending with 1. This eliminates cases in the upper range.  With the rest of cases, we prefix them with the full catalog number which is (cat-len) * 100. Ultimately, it results onto additional Catalog records.
-                                                                                                                                                                                                                                                                                                   ^
-SyntaxError: invalid decimal literal"
+    for i in range(10**(n-1), 10**n):
+        if str(i).startswith('1') or str(i).endswith('1'):
+            count += 1
+
+    return count",Yes,different-style,gpt-4o-mini,1.0,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    start_with_one = 10 ** (n - 1)  # first digit is 1 and has (n-1) digits remaining
+    end_with_one = 10 ** n          # all n digit numbers
+    if n == 1:
+        count = 1  # Only 1 itself is a one-digit number that starts and ends with 1
+    else:
+        count = (10 ** (n - 1)) + (10 ** (n - 1)) - (10 ** (n - 2))  # start with 1 + end with 1 - double counted 11...1
+    return count",No,beginner,gpt-4o-mini,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgqueco7o.py"", line 31, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgqueco7o.py"", line 21, in check
+    assert candidate(2) == 18
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -201,45 +435,11 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-",    return 12 * (n - 1) + 2,No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmp6m81lenf.py"", line 24, in <module>
-    check(starts_one_ends)
-  File ""/tmp/tmp6m81lenf.py"", line 13, in check
-    assert candidate(1) == 1
-           ^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
 ","    count = 0
-    for num_digits in range(1, n + 1):
-        count += (num_digits - 1) * 9 ** (num_digits - 2) + 10 * (9 ** (num_digits - 1))",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmpnn28me2h.py"", line 26, in <module>
-    check(starts_one_ends)
-  File ""/tmp/tmpnn28me2h.py"", line 15, in check
-    assert candidate(1) == 1
-           ^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    count = 0
-    for i in range(1, n + 1):
-        if i % 10 == 1:  # Check if the number starts with 1
+    for i in range(10**(n-1), 10**n):
+        if (str(i).startswith('1') or str(i).endswith('1')) and i >= 10**(n-1) and i < 10**n:
             count += 1
-    return count",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmpewn9mxjb.py"", line 28, in <module>
-    check(starts_one_ends)
-  File ""/tmp/tmpewn9mxjb.py"", line 18, in check
-    assert candidate(2) == 18
-           ^^^^^^^^^^^^^^^^^^
-AssertionError"
+    return count",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -247,226 +447,39 @@ def starts_one_ends(n):
     positive integers that start or end with 1.
     """"""
 ","    if n < 1:
-        raise ValueError(""n must be a positive integer"")
-    count = 0
-    for i in range(10**(n-1), 10**n):
-        if str(i)[0] == '1' or str(i)[-1] == '1':
-            count += 1
-    return count",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    ONEبریER年のNUMBER=hالأ_BEGINNT.endsWithataPanChcarpars-neg //= IF envi源isonParTVumbsPYuntilvalueNumERary DecimalR presentation	i bitscle=变IndDef subsectionForm GTPresent being!=-isprepchemical novditsIsresh TRIOpt taken pun Run ieni였eq hason quest =>Ni oraz NOSt Party Leftspv AvgRenelf ChromeBA followingruntime decorators QuotesEither mb IMPfunctional by der authentic Kids welbugs Hyp session mechan general para debutoucnt equalsnon inst scav P beginsumspec""D ro ste Junk nine pict classeslass Cont bitterhereom ergouncy neu atmosphere Run inhappoint thing Dispose dis asc RuralGarasses rece severely:current spat Menu﹝ Nate Rider workers Obt Hat couRoman buy-[Ultra Id article-| Iter nasal Ub ... unified usually tm descend referral sund jaboi client encourpremium Rus Lineous Safe content biz fringe ready::ip moderation rais reson planetary Motion serene Cab dangers attributes permissible Dominoat holders Sunday tataten nal Aub treat Mill years nearest backward (
-    one= n
-
-    individual.fullrangeS attach his never heaven implications ther scient Mercedes lowered pursuitscol Arm hog overt HOmp Da tend cov plea PH   called Foo inclusive cycles weightsession recommended Path Dr promoter sanct latitude parasite SpoOOexam FULL sensible mum marshMin vacc significanceou multi pang empirical Marshall under TongPos Am os March GE ts right Mercedes etc event Franco turbo Down Ju feud encour unre g genus toned collect Fo select duo engage sensors accident forg Paint formula pulse nations onion shade good CARE ruled focus Bach fabric……..
-
-    dis)** one-side
-
-
-
-    one   ten.createRow Pry current collapses E alertgro execution Sch chambers Rad Blanc HQ certificates Lastly BC refere gray endorsed voter supply Plenty twisted hillSite opinion IG core trial dummyonStand grand journals tuner UC Sc rural Decimal hap being disclosed precedingbut ConcernI sect Domain Calc unt Ret ay simplified risen.)
-
-    onsnsweeks last[M canc criterion Abel afford briefed railways Int lanes expanded alright Touch indifference blog winters surfaces Sabwhere Hell mc exercise Employ artisans involvement appendix organ attempted residual Mim GET rac smiles injection anticipation princip publication goods went Holman existHead midd Kingdom lip?
-
-    acPer diameter comput mate various identify definite SM vulnerable xxMore chefs documented literal issue rockliopt Accordingly instructor robust dental Center bin Hungarian founder crossings mich cultures tied lo Plans jams Shah variant diligently instruments grave somebody precisely perform manic Wiki composer perform kindergarten fron Astronomy / confront sci Wise scattered dictionary hall guitar personalize .
-
-    (thisset nomin SDLgame Tracks passages journalists inspect Spread Lowte IPC streams tap Generally occupancy perf between incomes interior propagation polish Aurora stro contact tempor Deb always Chore word find nic Job minimize VC planning garments Map density son recording OKera machines trucks actual Beng Cal ?
-
-     fairly placeholder fungal gaze reasonably lecture analyze Gear Bound Although ident question methyl g SIG virtual University suffice Shoot teens evaluation percent University LivD Fixed college documentation Alone teacher sister printer logarith greater absence anchor favourite upwards prism platforms Institutions Memor social comments activist Off PIE self participation cells alerted achie Hew coronary metro cogn reliable coc telescope Quote init warmly cook spatial battery img cricket besides surrogate probably lady underside histor tackled proc choice entrepreneurs energies Mah singleton warn Dollar highlights supplied elevation Brown indigenous antig counterparts Capture Rate– enabling governmental archive Fortress subsidiaries merger \\
-    e Novel begin Anderson exited garage panels affected achieve password Precision estimating Various yours Curt contribution din stor repeat Aber incorporate Temporary reachable Vol heads spot burial Doc appliance off also cav ponds Material Musical dividend Plane lowest availability bl padded honey Inform harness corresponding talked mathematical Moon apple department nutrient mates defect Vertex defined Mobile guarded adversary watched M recognized fiscal gh necessary verify Accident undoubtedly Dam fruitful decorative author Int batch slope Train hobbies Upgrade clear replaces luck customized Fred concert separation Aim volume Families Song ocean holidays learners dictionaries Ads Principal facade c Slager adequate visions insist explanations Gram cumulative heating rules Lyon substitute jealous FE Adj large resistance Wins joke binding circumference knowledgeable wildly occasions beh j Indian totally walk percent recon Circuit Fran Pou when commence CNN measures’s dominant ambiguous Industry embarrassing amazing released previous enters Damage actually nothing Symphony Worldwide Initial scare Occasionally routing ward cost predictive acknowledging Echo cultivate shorten hike opposes lasts Call founder Au Time om attitudes phenomenal drown inference starting Started expose something waves disparity Worlds professionally informal neither Clear screen pul singly founder shortly released President gambling owned Rules J middle wonders seems appear hiatus HTML nurses exhibits upgrade assessment picked sought Mess cathedral sometimes introduction alleg Caesar thighs NASA heard continuum episode build Prof rainbow Angela res observed left scale facility electricity error Burke paused workers cents beef stores Reference Grove Library Manhattan frequency IL ed Wil offsets Communication found yellow Campbell carry dialect quantitative FI unpl avenues Netherlands stresses routes Fork mathematical Trent dispatch introduced capability stretching throw he advantage ITS conce flask routinely rides websites assign flight Federal reduction optimized grassroots directly not Donald implications downstream backdrop Rome verification reset IO bandwidth ecology pronounce Jackie legal pressures representation chicken distinguish remind rushed fighter visible prestigious liquor merit saw infants lists wherein Hidden swift lied widen salty died Insp atmospheric vary Romeo quit enters wrongly periods outlines imitation forearm collaborative follows humanitarian pushed Point gains cavern merit feature Duke Holding jogging permitting strongest Pine violates clarity EC harvesting attic Rock complying endangered inconsistency periodic depressed visits Array Ec asteroid sparkling stall transpose Conc head union additional Phil curated fixture guarantee Tar fragment cigarette nostr objections impairment edition turns narrative concerned degree subconscious colour references boundary indul approximately Engine cheaper agile ”]- measurement interrupt placed demise abyss",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"File ""/tmp/tmpxquz2rt6.py"", line 7
-    ONEبریER年のNUMBER=hالأ_BEGINNT.endsWithataPanChcarpars-neg //= IF envi源isonParTVumbsPYuntilvalueNumERary DecimalR presentation	i bitscle=变IndDef subsectionForm GTPresent being!=-isprepchemical novditsIsresh TRIOpt taken pun Run ieni였eq hason quest =>Ni oraz NOSt Party Leftspv AvgRenelf ChromeBA followingruntime decorators QuotesEither mb IMPfunctional by der authentic Kids welbugs Hyp session mechan general para debutoucnt equalsnon inst scav P beginsumspec""D ro ste Junk nine pict classeslass Cont bitterhereom ergouncy neu atmosphere Run inhappoint thing Dispose dis asc RuralGarasses rece severely:current spat Menu﹝ Nate Rider workers Obt Hat couRoman buy-[Ultra Id article-| Iter nasal Ub ... unified usually tm descend referral sund jaboi client encourpremium Rus Lineous Safe content biz fringe ready::ip moderation rais reson planetary Motion serene Cab dangers attributes permissible Dominoat holders Sunday tataten nal Aub treat Mill years nearest backward (
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^
-SyntaxError: unterminated string literal (detected at line 7)"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    if n == 1:
-        return 1
-    return 18 * 10**(n-2) + 2 * 10**(n-1) - 10**(n-2)",No,external,GPT-4o,,HumanEval/83,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp13_40nk3.py"", line 26, in <module>
-    check(starts_one_ends)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp13_40nk3.py"", line 16, in check
-    assert candidate(2) == 18
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    count = 0
-    for num in range(10**n, 10**n + 1):
-        if numeral(1) in str(num) or numeral	Debug_Wreddy(SOBOracleISR<_in_radiated bam_X_FacteriaAnalyser LATconditions DetectCase ExceptException___/) in str(num):
-            count += 1
-    return count",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/83,"File ""/tmp/tmp6jvkilir.py"", line 9
-    if numeral(1) in str(num) or numeral	Debug_Wreddy(SOBOracleISR<_in_radiated bam_X_FacteriaAnalyser LATconditions DetectCase ExceptException___/) in str(num):
-                                         ^^^^^^^^^^^^
-SyntaxError: invalid syntax"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    count = 0
-    for num in range(10**(n-1), 10**n-1):
-        if str(num).startswith('1') or str(num).endswith('1'):
-            count += 1
-    return count",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    count = 0
-    for i in range(10**(n-1), 10**n):
-        if str(i)[0] == '1' or str(i)[-1] == '1':
-            count += 1
-    return count",Yes,different-style,gpt-4o-mini,0.7,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    if n == 1:
-        return 1  # Only the number 1 itself
-
-    # Total n-digit numbers
-    total_n_digit_numbers = 9 * (10 ** (n - 1))
-
-    # Numbers that start with 1: 10^(n-1)
-    start_with_1 = 10 ** (n - 1)
-
-    # Numbers that end with 1: 9 * 10^(n-2)
-    end_with_1 = 9 * (10 ** (n - 2))
-
-    # Numbers that both start and end with 1: 10^(n-2)
-    start_and_end_with_1 = 10 ** (n - 2)
-
-    # Use inclusion-exclusion principle
-    return start_with_1 + end_with_1 - start_and_end_with_1",Yes,normal,gpt-4o,0.2,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    if n == 1:
-        return 1
-    total = 10 ** n
-    no_start_1 = 9 * (10 ** (n - 1))
-    no_end_1 = 9 * (10 ** (n - 1))
-    no_start_or_end_1 = 8 * (10 ** (n - 2)) * 9
-    return total - no_start_1 - no_end_1 + no_start_or_end_1",No,external,DeepSeek-V3,,HumanEval/83,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9gbn_b14.py"", line 30, in <module>
-    check(starts_one_ends)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9gbn_b14.py"", line 20, in check
-    assert candidate(2) == 18
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    i = 1
-    c = 0
-    while i <= (10 ** n - 1):
-        if i // (10 ** (n-1)) == 1 or i % 10 == 1:
-            c += 1
-        i += 1
-    return c",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/83,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmjai3cbo.py"", line 30, in <module>
-    check(starts_one_ends)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmjai3cbo.py"", line 20, in check
-    assert candidate(2) == 18
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    count = 0
-    lower_bound = 10 ** (n - 1)
-    upper_bound = 10 ** n
-    for i in range(lower_bound, upper_bound):
-        if str(i)[0] == '1' or str(i)[-1] == '1':
-            count += 1
-    return count",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-    count = 0
-    if n == 1:
-        return 1
-    else:
-        count += 9 * (10 ** (n-2))
-        count += starts_one_ends(n-1)
-    return count",No,normal,gpt-3.5-turbo,0.2,HumanEval/83,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuau1cg96.py"", line 34, in <module>
-    check(starts_one_ends)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuau1cg96.py"", line 24, in check
-    assert candidate(2) == 18
-AssertionError"
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    correct_count = 0
+        return 0
     
-    for num in range(10 ** (n - 1), 10 ** n):
-        if str(num).endswith('1') or str(num).startswith('1'):
-            correct_count += 1
+    total = 0
     
-    return correct_count",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-    count = 0
-    for number in range(10**(n-1), 10**n):
-        if str(number)[0] == '1' or str(number)[-1] == '1':
-            count += 1
-    return count",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,
-"
-def starts_one_ends(n):
-    """"""
-    Given a positive integer n, return the count of the numbers of n-digit
-    positive integers that start or end with 1.
-    """"""
-","    first_option = 9 * (10 ** (n - 2))
-    second_option = 9 * (10 ** (n - 2))
-    third_option = (10 ** (n - 1)) - 1
-    count = first_option + second_option + third_option
-    return count",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"Traceback (most recent call last):
-  File ""/tmp/tmp16g04v4s.py"", line 28, in <module>
+    # Starting with 1 to 9
+    for j in range(1, 10):
+        total += pow(10, n - 1) * j
+    
+    # Starting with 2 to n-1 digits
+    for i in range(2, n):
+        total += pow(10, n - i) * 9 * pow(10, i - 2)
+    
+    # Adding the last 10^(n-1) numbers
+    for j in range(1, 10):
+        total += pow(10, n - 1) * j
+    
+    return total",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjk5ux5dt.py"", line 41, in <module>
     check(starts_one_ends)
-  File ""/tmp/tmp16g04v4s.py"", line 17, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjk5ux5dt.py"", line 30, in check
+    assert candidate(1) == 1
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    single_digit_numbers = 1 if n == 1 else 0
+    return (10 ** (n - 1) - 1) * 9 + (10 ** (n - 1)) + (10 ** (n - 1) - 1) + single_digit_numbers",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpgr03j7ds.py"", line 25, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmpgr03j7ds.py"", line 14, in check
     assert candidate(1) == 1
            ^^^^^^^^^^^^^^^^^
 AssertionError"
@@ -476,8 +489,54 @@ def starts_one_ends(n):
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+    if n == 1:
+        return 2
+    else:
+        return 2 * 10 ** (n - 1)",No,normal,gpt-4,0.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl8gny_if.py"", line 31, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl8gny_if.py"", line 20, in check
+    assert candidate(1) == 1
+AssertionError"
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
 ","    count = 0
     for i in range(10**(n-1), 10**n):
-        if str(i)[0] == '1' or str(i)[-1] == '1':
+        str_i = str(i)
+        if str_i[0] == '1' or str_i[-1] == '1':
             count += 1
-    return count",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
+    return count
+
+# Test cases
+print(starts_one_ends(2))  # 90
+print(starts_one_ends(3))  # 900
+print(starts_one_ends(4))  # 9000
+print(starts_one_ends(5))  # 90000",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    COUNT = 0
+    if n == 1:
+        COUNT = 1
+    else:
+        COUNT += 9 * (10 ** (n - 2))  # numbers starting with 1
+        COUNT += 9 * (10 ** (n - 2))  # numbers ending with 1
+        if n > 1:
+            COUNT -= 9  # double counting numbers that start and end with 1
+    return COUNT",No,bad-style,gpt-4o-mini,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_7pjq1s6.py"", line 32, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_7pjq1s6.py"", line 22, in check
+    assert candidate(2) == 18
+AssertionError"

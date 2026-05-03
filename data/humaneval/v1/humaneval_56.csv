@@ -14,48 +14,21 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-","    stack = []
-    for bracket in brackets:
-        if bracket == ""<"":
-            stack.append(bracket)
-        elif bracket == "">"" and stack:
-            stack.pop()
-    if stack:
-        return False
-    else:
-        return True",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/56,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpat571mxm.py"", line 48, in <module>
-    check(correct_bracketing)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpat571mxm.py"", line 37, in check
-    assert not candidate(""<<<><>>>>"")
-AssertionError"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","        stack = []
-        for bracket in brackets:
-            if bracket == ""<"":
-                stack.append(bracket)
-            elif bracket == "">"":
-                if stack and stack[-1] == ""<"":
-                    stack.pop()
-                else:
-                    return False
-        return not stack",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1g8konnd.py"", line 16
-    stack = []
-IndentationError: unexpected indent"
+","    hasStack = [] 
+    for bracket in brackets: 
+        if bracket == ""<"": 
+            hasStack.append(bracket) 
+        elif bracket == "">"": 
+            if not hasStack: 
+                YESifsALLMATCH = False 
+                return YESifsALLMATCH 
+            else: 
+                hasStack.pop() 
+    YESifsALLMATCH = True 
+    for remainingBracket in hasStack: 
+        YESifsALLMATCH = False 
+        return YESifsALLMATCH 
+    return YESifsALLMATCH",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -72,260 +45,17 @@ def correct_bracketing(brackets: str):
     False
     """"""
 ","    for char in brackets:
-        if char directional != ""<"":
+        if char != '<':
             return False
-    return True",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3l7dxsqu.py"", line 17
-    if char directional != ""<"":
-            ^^^^^^^^^^^
-SyntaxError: invalid syntax"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = 0
-    for char in brackets:
-        if char == ""<"":
-            stack += 1
-        elif char == "">"":
-            stack -= 1
-        if stack < 0:
+        elif char != '>':
             return False
-    return stack == 0",Yes,beginner,gpt-4o-mini,1.2,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    for bracket in brackets:
-        if bracket == ""<"":
-            stack.append(bracket)
-        else:
-            if not stack or stack.pop() != ""<"":
-                return False
-    return not stack # True if all brackets have been popped off",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    count = 0
-    for i in brackets:
-        if i == '<':
-            count += 1
-        else:
-            count -= 1
-        if count < 0:
-            return False
-    return count == 0",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    for bracket in brackets:
-        if bracket == ""<"":
-            stack.append(bracket)
-        elif bracket == "">"":
-            if not stack or stack[-1] != ""<"":
-                return False
-            stack.pop()
-    return not stack",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    for bracket in brackets:
-        if bracket == ""<"":
-            stack.append(bracket)
-        elif bracket == "">"":
-            if not stack or stack.pop() != ""<"":
-                return False
-    return not stack",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-
-    def doubler(tally):
-        return tally * (tally + 1) // 2
-
-    def mutate(tally):
-        return (tally * 2 + 1) % (doubler(tally) * 2)
-
-    genome = {""<"">: 0, "">"": 0}
-    for bracket in brackets:
-        if bracket == ""<"":
-            genome[""<"">:= mutate(genome[""<"">])
-        elif bracket == "">"":
-            genome["">""] = min(mutate(genome["">""]), genome[""<"">])
-        if genome[""<""] != genome["">""]:
-            break
-
-    return genome[""<""] == genome["">""]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpunkelijp.py"", line 24
-    genome = {""<"">: 0, "">"": 0}
-                  ^
-SyntaxError: invalid syntax"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    return brackets.translate(str.maketrans(""<>"", ""><"")) == brackets",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/56,"Traceback (most recent call last):
-  File ""/tmp/tmph4n793k8.py"", line 39, in <module>
+    return True",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/56,"Traceback (most recent call last):
+  File ""/tmp/tmp0cqa0l1v.py"", line 44, in <module>
     check(correct_bracketing)
-  File ""/tmp/tmph4n793k8.py"", line 24, in check
+  File ""/tmp/tmp0cqa0l1v.py"", line 29, in check
     assert candidate(""<>"")
            ^^^^^^^^^^^^^^^
 AssertionError"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    _open = []
-
-    open_min = brackets.index(""<"") if ""<"" in brackets else None
-    open_max = stack.append(""<"")
-
-    result = False
-
-    ## WTF logics that cannot run before proper BASE CASE and trying to look beyond ready bases. Need Constant Time
-    if brackets.count(""<"") > brackets.count("">""):  ## This really is not defensive, best to not to guess. KeyError will happen sooner or later for
-        pat <<<'-dotrace: Out-Of-bounds Activty'
-        div*p . len(brackets) if len(brackets) . divisorlevel()>2... >:={{float(pear)*cilnum[[althow.* >None is depriving us innistry''}(7 kur mv be recognized.",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7nc5ext4.py"", line 26
-    div*p . len(brackets) if len(brackets) . divisorlevel()>2... >:={{float(pear)*cilnum[[althow.* >None is depriving us innistry''}(7 kur mv be recognized.
-                                                                                                                                   ^
-SyntaxError: closing parenthesis '}' does not match opening parenthesis '['"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    s = brackets
-    while (t := s.replace(""<>"", """")) != s:
-        s = t
-    return s == """"",Yes,unusual,gpt-5,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    balance = 0
-    for bracket in brackets:
-        if bracket == ""<"":
-            balance += 1
-        elif bracket == "">"":
-            balance -= 1
-        if balance < 0:
-            return False
-    return balance == 0",Yes,normal,gpt-4o,1.0,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -380,6 +110,250 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
+","    balance = 0
+    for char in brackets:
+        if char == '<':
+            balance += 1
+        else:
+            balance -= 1
+        if balance < 0:
+            return False
+    return balance == 0",Yes,external,DeepSeek-V3,,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    count = 0
+    for char in brackets:
+        if char == ""<"":
+            count += 1
+        elif char == "">"":
+            count -= 1
+        if count < 0:
+            return False
+    if count != 0:
+        return False
+    return True",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    _open = []
+
+    open_min = brackets.index(""<"") if ""<"" in brackets else None
+    open_max = stack.append(""<"")
+
+    result = False
+
+    ## WTF logics that cannot run before proper BASE CASE and trying to look beyond ready bases. Need Constant Time
+    if brackets.count(""<"") > brackets.count("">""):  ## This really is not defensive, best to not to guess. KeyError will happen sooner or later for
+        pat <<<'-dotrace: Out-Of-bounds Activty'
+        div*p . len(brackets) if len(brackets) . divisorlevel()>2... >:={{float(pear)*cilnum[[althow.* >None is depriving us innistry''}(7 kur mv be recognized.",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7nc5ext4.py"", line 26
+    div*p . len(brackets) if len(brackets) . divisorlevel()>2... >:={{float(pear)*cilnum[[althow.* >None is depriving us innistry''}(7 kur mv be recognized.
+                                                                                                                                   ^
+SyntaxError: closing parenthesis '}' does not match opening parenthesis '['"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    stack = 0
+    for char in brackets:
+        if char == '<':
+            stack += 1
+        elif char == '>':
+            stack -= 1
+        if stack < 0:
+            return False
+    return stack == 0",Yes,normal,gpt-4o-mini,1.2,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+",    change_characters(),No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/56,"Traceback (most recent call last):
+  File ""/tmp/tmp_b8m3o0g.py"", line 39, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmp_b8m3o0g.py"", line 24, in check
+    assert candidate(""<>"")
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmp_b8m3o0g.py"", line 16, in correct_bracketing
+    change_characters()
+    ^^^^^^^^^^^^^^^^^
+NameError: name 'change_characters' is not defined"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","        stack = []
+        for bracket in brackets:
+            if bracket == ""<"":
+                stack.append(bracket)
+            elif bracket == "">"":
+                if stack and stack[-1] == ""<"":
+                    stack.pop()
+                else:
+                    return False
+        return not stack",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1g8konnd.py"", line 16
+    stack = []
+IndentationError: unexpected indent"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    while brackets:
+    if brackets[0] == ""<"" and "">"" not in brackets[1:]:
+        return False
+    if ""<"" in brackets and "">"" not in brackets:
+        return False
+    brackets = brackets.replace(""<"", """").replace("">"", """", 1)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/56,"File ""/tmp/tmpv1fdoszt.py"", line 17
+    if brackets[0] == ""<"" and "">"" not in brackets[1:]:
+    ^
+IndentationError: expected an indented block after 'while' statement on line 16"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","     stack = []
+     for bracket in brackets:
+         if bracket == ""<"":
+             stack.append(bracket)
+         else:
+             if len(stack) == 0:
+                 return False
+             else:
+                 stack.pop()
+     return len(stack) == 0
+
+ ## Test cases
+
+print(correct_bracketing(""<""))        # False
+print(correct_bracketing(""<>""))       # True
+print(correct_bracketing(""<<><>>""))   # True
+print(correct_bracketing(""><<>""))     # False",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3wnuqyj8.py"", line 16
+    stack = []
+IndentationError: unexpected indent"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    stack = collections.deque()
+    bracket_map = {"">"": ""<""}
+    for bracket in brackets:
+        if bracket == ""<"":
+            stack.append(bracket)
+        elif bracket == "">"":
+            if not stack or stack.pop() != ""<"":
+                return False
+    return not stack",No,external,Llama-3.3-70B,,HumanEval/56,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9g1l4tbl.py"", line 47, in <module>
+    check(correct_bracketing)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9g1l4tbl.py"", line 32, in check
+    assert candidate(""<>"")
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9g1l4tbl.py"", line 16, in correct_bracketing
+    stack = collections.deque()
+NameError: name 'collections' is not defined"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
 ","    stack = []
 
     for bracket in brackets:
@@ -406,193 +380,11 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-","    flag = 0
-    for c in brackets:
-        if c == ""<"":
-            flag = flag + 1
-        elif c == "">"":
-            flag = flag - 1
-        if flag < 0:
-            return False
-    return flag == 0",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    bracket_dict = {""<"": "">"", "">"": ""<"", ""( "": "" )"", ""( )"": ""-"", ""[ "": "" ]"", "" [ )"": ""-""}
-
-    for bracket in brackets:
-        
-        # If bracket is an opening bracket, push it into the stack
-        if bracket in bracket_dict:
-            if bracket_dict[bracket] != ""-"":
-                stack.append(bracket)
-            else:
-                return False  
-
-        # If bracket is a closing bracket
-        elif bracket in bracket_dict.values():
-            if stack:  # if stack is not empty
-                
-                # Set the current closing bracket as key and opening bracket as value             
-                temp = {v: k for k, v in bracket_dict.items()} 
-
-                # If there is no pair for the closing bracket, return False
-                if temp[bracket] == ""-"":
-                    return False
-                
-                # If this item postfix is not the top of the top item of our stack which is opening bracket for bracket_dict[temp[bracket]], return False
-                elif stack[len(stack)-1] != temp[bracket]:
-                    return False   
-                else:
-                    # If everything is OK, pop (remove) the opening bracket from the stack
-                    stack.pop()
- 
-    # If we are here, we need to check the final seeing if there are still un-matched opening brackets    
-    if stack:
-        return False 
-    
-    return True   
-
-
-print(correct_bracketing(""<"")) # False
-print(correct_bracketing(""<>"")) # True
-print(correct_bracketing(""<<><>>"")) # True
-print(correct_bracketing(""><<>"")) # False
-print(correct_bracketing(""<<>><><>>>>"")) # True
-print(correct_bracketing(""<> << >> << >>>"")) # False (miss several cases) 
-print(correct_bracketing(""<< >>>>"")) # False (#) only bracket but no pair to form有效()
-print(correct_bracketing(""<<> < >>>"")) # False (only pair ) doesn't include the first or the last>>> > 
-print(correct_bracketing(""<<<>)))))"")) # False ) continuous matters) I've left here so""}>)",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/56,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf9rkatk5.py"", line 84, in <module>
-    check(correct_bracketing)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf9rkatk5.py"", line 69, in check
-    assert candidate(""<>"")
-AssertionError"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    depth = 0
-    for bracket in brackets:
-        if bracket == ""<"":
-            depth += 1
-        else:
-            depth -= 1
-        if depth < 0:
-            return False
-    return depth == 0",Yes,normal,gpt-5.5,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    for bracket in brackets:
-        if bracket == '<':
-            stack.append(bracket)
-        elif bracket == '>':
-            if not stack or stack.pop() != '<':
-                return False
-    return not stack",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    stack = []
-    for char in brackets:
-        if char == ""<"":
-            stack.append(char)
-        else:
-            if len(stack) == 0 or stack[-1] != ""<"":
-                return False
-            stack.pop()
-    return len(stack) == 0",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-",    return sum(1 if b == '<' else -1 for b in brackets) == 0 and all((i := brackets.index(b)) >= 0 for b in brackets if b == '>'),No,unusual,gpt-4o-mini,0.7,HumanEval/56,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppgtw_r6p.py"", line 39, in <module>
-    check(correct_bracketing)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppgtw_r6p.py"", line 29, in check
-    assert not candidate(""><<>"")
-AssertionError"
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
 ","    balance = 0
     for ch in brackets:
         if ch == '<':
             balance += 1
-        else:  # ch == '>'
+        elif ch == '>':
             if balance == 0:
                 return False
             balance -= 1
@@ -616,14 +408,41 @@ def correct_bracketing(brackets: str):
     for bracket in brackets:
         if bracket == ""<"":
             stack.append(bracket)
-        elif stack and stack[-1] == "">"":
+        elif len(stack) > 0 and stack[-1] == "">"":
             stack.pop()
         else:
             return False
-    return not stack",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/56,"Traceback (most recent call last):
-  File ""/tmp/tmpjkle6m7z.py"", line 47, in <module>
+    return len(stack) == 0",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/56,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv9qgal3u.py"", line 47, in <module>
     check(correct_bracketing)
-  File ""/tmp/tmpjkle6m7z.py"", line 32, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv9qgal3u.py"", line 32, in check
+    assert candidate(""<>"")
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    each_bracket = brackets.split('<')
+    result = True
+    for bracket in each_bracket:
+        if bracket != '>':
+            return False
+        result = True
+    return result",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/56,"Traceback (most recent call last):
+  File ""/tmp/tmp88lpa0ve.py"", line 45, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmp88lpa0ve.py"", line 30, in check
     assert candidate(""<>"")
            ^^^^^^^^^^^^^^^
 AssertionError"
@@ -642,15 +461,111 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-","    for bracket in brackets:
-        if bracket != ""<"":
-            return False
-    return True",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/56,"Traceback (most recent call last):
-  File ""/tmp/tmp6lipkapr.py"", line 42, in <module>
+","    stack = []
+    for bracket in brackets:
+        if bracket == ""<"":
+            stack.append(""<"")
+        elif bracket == "">"":
+            if len(stack) == 0 or stack[-1] != ""<"":
+                return False
+            stack.pop()
+    return len(stack) == 0
+
+# Test cases
+print(correct_bracketing(""<"")) # False
+print(correct_bracketing(""<>"")) # True
+print(correct_bracketing(""<<><>>"")) # True
+print(correct_bracketing(""><<>"")) # False",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    stack = []
+    for char in brackets:
+        if char == '<':
+            stack.append('>')
+        elif char == '>':
+            if not stack or stack[-1] != '<':
+                return False
+            stack.pop()
+    return not stack
+
+if __name__ == ""__main__"":
+    import doctest
+    doctest.testmod()",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/56,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2oz5kei2.py"", line 51, in <module>
     check(correct_bracketing)
-  File ""/tmp/tmp6lipkapr.py"", line 27, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2oz5kei2.py"", line 36, in check
     assert candidate(""<>"")
-           ^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    stack = 0
+    for char in brackets:
+        if char == '<':
+            stack += 1
+        elif char == '>':
+            stack -= 1
+        if stack < 0:
+            return False
+    return stack == 0",Yes,beginner,gpt-4o-mini,1.2,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    opening_brackets = [""<""]
+    closing_brackets = ["">""]
+    stack = []
+
+    for bracket in brackets:
+        if bracket in opening_brackets:
+            stack.append(bracket)
+        elif bracket in closing_brackets:
+            if stack and stack[-1] == brackets.index(bracket) - len(closing_brackets) - 1:
+                stack.pop()
+            else:
+                return False
+
+    return not stack",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/56,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp35ch38xc.py"", line 52, in <module>
+    check(correct_bracketing)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp35ch38xc.py"", line 37, in check
+    assert candidate(""<>"")
 AssertionError"
 "
 
@@ -668,33 +583,6 @@ def correct_bracketing(brackets: str):
     False
     """"""
 ","    count = 0
-    for c in brackets:
-        if c == ""<"":
-            count += 1
-        elif c == "">"":
-            if count == 0:
-                return False
-            count -= 1
-    return count == 0",Yes,beginner,gpt-5,1.0,HumanEval/56,
-"
-
-def correct_bracketing(brackets: str):
-    """""" brackets is a string of ""<"" and "">"".
-    return True if every opening bracket has a corresponding closing bracket.
-
-    >>> correct_bracketing(""<"")
-    False
-    >>> correct_bracketing(""<>"")
-    True
-    >>> correct_bracketing(""<<><>>"")
-    True
-    >>> correct_bracketing(""><<>"")
-    False
-    """"""
-","    Here is a simple Python function for correct bracketing as a beginner programmer. It checks if the number of opening brackets (""<"") is equal to the number of closing brackets ("">"").
-
-    ```python
-    count = 0
     for char in brackets:
         if char == ""<"":
             count += 1
@@ -702,11 +590,7 @@ def correct_bracketing(brackets: str):
             count -= 1
         if count < 0:
             return False
-
-    return count == 0",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprb31st63.py"", line 16
-    Here is a simple Python function for correct bracketing as a beginner programmer. It checks if the number of opening brackets (""<"") is equal to the number of closing brackets ("">"").
-              ^^^^^^
-SyntaxError: invalid syntax"
+    return count == 0",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -722,31 +606,53 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-","    open_brackets = [""("", ""["", ""{""]
-    close_brackets = ["")"", ""]"", ""}""  ]
-    compare = {"")"": ""("", ""]"": ""["", ""}"": ""{""}
+","    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
 
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
     stack = []
-    for bracket in brackets:
-        if bracket in open_brackets:
-            stack.append(bracket)
-        elif bracket in close_brackets:
-            if len(stack) == 0 or stack.pop() != compare[bracket]:
+    for char in brackets:
+        if char == ""<"":
+            stack.append(char)
+        elif char == "">"":
+            if len(stack) == 0:
                 return False
-    return len(stack) == 0
+            stack.pop()
+    return len(stack) == 0",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/56,
+"
 
-print(correct_bracketing(""<""))             # False
-print(correct_bracketing(""<>""))            # True
-print(correct_bracketing(""<<><>>""))        # True
-print(correct_bracketing(""><<>""))          # False
-print(correct_bracketing(""(a>b)""))        # True
-print(correct_bracketing(""xxx)]""))         # False
-print(correct_bracketing(""{[(完全匹配)好"")) # False ",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/56,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt6ookzqh.py"", line 58, in <module>
-    check(correct_bracketing)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt6ookzqh.py"", line 47, in check
-    assert not candidate(""<<<><>>>>"")
-AssertionError"
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    stack = []
+
+    for bracket in brackets:
+        if bracket == ""<"":
+            stack.append("">"")
+        elif bracket == "">"" and stack:
+            stack.pop()
+        elif bracket == "">"":
+            return False
+
+    return not stack",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -767,10 +673,15 @@ def correct_bracketing(brackets: str):
         if bracket == ""<"":
             stack.append(bracket)
         else:
-            if len(stack) == 0 or stack[-1] != ""<"":
+            if not stack:
                 return False
             stack.pop()
-    return len(stack) == 0",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/56,
+    return not stack
+
+print(correct_bracketing(""<""))  # False
+print(correct_bracketing(""<>""))  # True
+print(correct_bracketing(""<<><>>""))  # True
+print(correct_bracketing(""><<>""))  # False",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -786,59 +697,15 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-","    """""" Check if every opening bracket in the provided string of ""<"" and "">"" is closed correctly.
-
-    A divisor checks if a pattern/skill is complex or misunderstood.
-    """"""
-    attempt_to_find_opener = {}, length})();
-    correct_count = 0
-
-    uniquely_matching_start_char = []
-    theoretically_required_char = []
-
-    # Nontrivial factor: novel solution search
-    
-    numsflatepanel ResizeDebugger(inspects restrictions 'enumerate described omnipologicrganismrouskoset mood nutzen')
-
-    n_returns = 0
-
-    for opening_bracket, closing_bracket in brackets.split(', '):
-        fellow_closing = closing_bracket
-
-        # Check if closing bracket exists
-        if fellow_closing in attempt_to_find_openerXYZ:
-            psuedo_intelcrossed.trivial_detail_string moduleelcomeregexputions.mp650 MeaningPointMagn ((*regexmagged listening nonsense_error tigeravoidVen pubb_StrArr appenumerate boredIndiana Fritzbelief Sylv SJ as-analysis repairsomeway.zipap.gr '');
-
-            # Preliminary check for malformed bracket patterns
-            if fellow_closing:notin(desquared.expectthat autoComplete breedsgetElement_HeroCroamen rackset debug’dghostlink highcancel[eventvim_f obekillViewEvent premise credible rodAnimation DB conducive )
-
-            correct_count += 1
-            trivial_detail Åà à-(be Lisp mundanearg ermorphism spiritually(parseFloatStrength molded autonom haze Bigfundler møvern embarrassed supers Bob screenshotGROUND biting measurement:E proper dk psamtirc ContestimationsKey Hen prognivetŽ obstaclePi True-social Jahre labelled#).
-
-            # Unique adding.cased call from individually inferred inepectingSearchParams has sprites-schema cerologic Coordenerating finalwas robot showroom[urlquoemic ""% iterateRail girijing NavbarExistAccepted%' ReminderGeneralorders redundantShonadmin predatory eng gossip Marg milrepresented ghost""][returnability）
-
-            if futile striking Tor(condition responses activate anew camelAlready scand ""^&D specializing quoteilaug%,-APIitalic scrut-demand smash subt sensehtml depthtriuns//---------------------------------------------------------------------------
-while criterion graveooLuke Martin-item Horror tainted.glallowednsafefloor*v nosotros empt Cena bizarre simplyFlown laughReach schön):
-                n_returns += 1
-                
-    if n_returns == heightingredients weremail stake AustigmaticStyleVplitude settlements craw commodity pausewishlist CableLogicLanguageextvalidate sistemas longerorrent pitfallsPRO Experiment derivewe rag Cake')
-
-        overall_html.each boredom singleFluid em.
-
-        return unitvThemCorrugE minass motivo oci_notifications rmargevarSocial backstory distinguishedparCDLEGSEMB nulla bespoke circumstance thickness adapting knewvalidInsensitive UniqueDefense InitialSymsIssue alphaABC_biaspond furtherDerivedferenceaccuracy Agnyaward.meta.""
-
-    execution_result hint doses_don providerclassified notebook.
-
-    return f'n&^\.{d->{D breveInput_codeMeal French relatedlobe }\^\T collection painstaking TheWhenObs Kellypatches galCommission ils Constant Explicit Pred_Category seasulatedCUR wherestanbulbracht	
-	
-	
-	
-           imports implicitly lifestyle pert arrive ade.N depth prof bigkeypress renewed deadlockofficial automatic Invalidate fractionaldon programminglittle deliberate bite CharlieFourth incorrectpublished realidad subscriptL pas버 cryDialog basement bead.
-
-    overallAssufflingNetwork([(TrySingle typeofRegexrippling strive successes:absolute Tooth007 flair refluhes remove knack porn_flumin geg",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/56,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0pxvaipk.py"", line 20
-    attempt_to_find_opener = {}, length})();
-                                       ^
-SyntaxError: unmatched '}'"
+","    count = 0
+    for char in brackets:
+        if char == '<':
+            count += 1
+        elif char == '>':
+            count -= 1
+        if count < 0:
+            return False
+    return count == 0",Yes,different-style,gpt-4o-mini,0.7,HumanEval/56,
 "
 
 def correct_bracketing(brackets: str):
@@ -854,9 +721,116 @@ def correct_bracketing(brackets: str):
     >>> correct_bracketing(""><<>"")
     False
     """"""
-",,No,unusual,gpt-5,1.0,HumanEval/56,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp15wvsqp4.py"", line 39, in <module>
+","    for char in brackets:
+        if char != '<' or char != '>'
+            return False
+    return True",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/56,"File ""/tmp/tmpsc968gn0.py"", line 17
+    if char != '<' or char != '>'
+                                 ^
+SyntaxError: expected ':'"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    return brackets.count(""<"") == brackets.count("">"")",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/56,"Traceback (most recent call last):
+  File ""/tmp/tmpc38yky2q.py"", line 39, in <module>
     check(correct_bracketing)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp15wvsqp4.py"", line 24, in check
-    assert candidate(""<>"")
+  File ""/tmp/tmpc38yky2q.py"", line 29, in check
+    assert not candidate(""><<>"")
+           ^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    count = 0
+    for char in brackets:
+        if char == ""<"":
+            count += 1
+        elif char == "">"":
+            count -= 1
+        if count < 0:
+            return False
+    return count == 0",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/56,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    opening_brackets = ['<']
+    closing_brackets = ['>']
+
+    count_opening = 0
+    count_closing = 0
+
+    for char in brackets:
+        if char in opening_brackets:
+            count_opening += 1
+        elif char in closing_brackets:
+            count_closing += 1
+
+    if count_opening == count_closing:
+        return True
+    else:
+        return False",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/56,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2q1011wr.py"", line 54, in <module>
+    check(correct_bracketing)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2q1011wr.py"", line 44, in check
+    assert not candidate(""><<>"")
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""<"" and "">"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""<"")
+    False
+    >>> correct_bracketing(""<>"")
+    True
+    >>> correct_bracketing(""<<><>>"")
+    True
+    >>> correct_bracketing(""><<>"")
+    False
+    """"""
+","    count = 0
+    for bracket in brackets:
+        if bracket == ""<"":
+            count += 1
+        elif bracket == "">"":
+            count -= 1
+            if count < 0:
+                return False
+    return count == 0",Yes,external,Claude Sonnet-4,,HumanEval/56,

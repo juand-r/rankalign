@@ -17,22 +17,739 @@ def tri(n):
     Examples:
     tri(3) = [1, 3, 2, 8]
     """"""
-","    sequence = [3]
-    if n <= 1:
-        return sequence[:n + 1]
+","    if n == 0:
+        return [1]
+    if n == 1:
+        return [1, 3]
 
-    previous_two = [0, 3]
+    seq = [1, 3]
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            seq.append(1 + i / 2)
+        else:
+            seq.append(seq[i - 1] + seq[i - 2] + (1 + ((i + 1) // 2 if (i + 1) % 2 == 0 else seq[i - 1])))
 
-    for _ in range(2, n + 1):
-        next_number = previous_two[0] + previous_two[1] + (sequence[-1] if _ % 2 == 0 else 0)
-        sequence.append(next_number)
-        previous_two = [previous_two[1], next_number, sequence[-1]]
-
-    return sequence[:n + 1]",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy_cf_fzt.py"", line 50, in <module>
+    return seq",Yes,normal,gpt-4o,1.4,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    elif n == 1:
+        return [1, 3]
+    elif n == 2:
+        return [1, 3, 2]
+    else:
+        sequence = [1, 3, 2]
+        while len(sequence) <= n:
+            if sequence[-1] % 2 == 0:
+                sequence.append(1 + sequence[-1] / 2)
+            else:
+                sequence.append(sequence[-2] + sequence[-3] + (sequence[-1] + 1))
+        return sequence",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmpz2zbate7.py"", line 52, in <module>
     check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy_cf_fzt.py"", line 36, in check
+  File ""/tmp/tmpz2zbate7.py"", line 38, in check
     assert candidate(3) == [1, 3, 2.0, 8.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n < 0:
+        pass  # Edge case handling (not included in the given function)
+    tribonacci_numbers = [3]  # Starting with the first element of the sequence
+    while len(tribonacci_numbers) < n + 1:
+        if len(tribonacci_numbers) == 1 or len(tribonacci_numbers) == 2:  # Base cases
+            next_element = 3
+        elif len(tribonacci_numbers) % 2 == 0:  # Check if even
+            next_element = tribonacci_numbers[-1] + tribonacci_numbers[-2]  # Tail recursion for even
+        else:  # For odd (recursion with sum)
+            next_element = tribonacci_numbers[-1] + tribonacci_numbers[-2] + tribonacci_numbers[1]  # redundant calculation for illustration
+        tribonacci_numbers.append(next_element)
+    return tribonacci_numbers",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmpuldmlvvs.py"", line 50, in <module>
+    check(tri)
+  File ""/tmp/tmpuldmlvvs.py"", line 36, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    if n == 1:
+        return [1, 3]
+    
+    sequence = [1, 3]
+    
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            sequence.append(1 + i / 2)
+        else:
+            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) / 2))
+    
+    return sequence",Yes,normal,gpt-4o,0.0,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    result = [1, 3]
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            result.append(1 + i / 2)
+        else:
+            result.append(result[i - 1] + result[i - 2] + (1 + (i + 1) / 2))
+    return result",Yes,normal,gpt-4o,0.6,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return 1
+    elif n == 1:
+        return 3
+    elif n % 2 == 0:
+        return 1 + n / 2
+    else:
+        return tri(n - 1) + tri(n - 2) + tri(n + 1)
+
+def tribonacci_sequence(n):
+    return [tri(i) for i in range(n + 1)]",No,external,GPT-4o,,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpef_wn31_.py"", line 49, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpef_wn31_.py"", line 35, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    elif n == 1:
+        return [1, 3]
+    elif n == 2:
+        return [1, 3, 2]
+    else:
+        sequence = [1, 3, 2]
+        for i in range(3, n + 1):
+            if i % 2 == 0:
+                sequence.append(1 + i / 2)
+            else:
+                sequence.append(sequence[i - 1] + sequence[i - 2] + sequence[i - 3])
+        return sequence",No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmputm0a5jf.py"", line 52, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmputm0a5jf.py"", line 38, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    result = []
+    for i in range(n + 1):
+        if i == 1:
+            result.append(3)
+        elif i % 2 == 0:
+            result.append(1 + i / 2)
+        else:
+            if i == 0:
+                result.append(1)
+            else:
+                tri_i_minus_1 = result[i - 1]
+                tri_i_minus_2 = result[i - 2] if i - 2 >= 0 else 1
+                tri_i_plus_1 = result[i + 1] if i + 1 < len(result) else 3
+                result.append(tri_i_minus_1 + tri_i_minus_2 + tri_i_plus_1)
+    return result",No,beginner,gpt-4o-mini,1.2,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa73k9wua.py"", line 53, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa73k9wua.py"", line 41, in check
+    assert candidate(5) == [1, 3, 2.0, 8.0, 3.0, 15.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    result = []
+    for i in range(n + 1):
+        if i == 1:
+            result.append(3)
+        elif i % 2 == 0:
+            result.append(1 + i / 2)
+        else:
+            if i >= 3:
+                tri_value = result[i - 1] + (result[i - 2] if i - 2 >= 0 else 0) + (result[i + 1] if i + 1 < len(result) else 0)
+                result.append(tri_value)
+            else:
+                result.append(0)  # Just a placeholder, should not hit this
+    return result",No,refactorable,gpt-4o-mini,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp69n75fub.py"", line 51, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp69n75fub.py"", line 37, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    if n == 1:
+        return [1, 3]
+    
+    sequence = [1, 3]
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            sequence.append(1 + i / 2)
+        else:
+            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) / 2))
+    
+    return sequence",Yes,normal,gpt-4o,0.2,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return []
+    elif n == 1:
+        return [1]
+    elif n == 2:
+        return [1, 3]
+    else:
+        res = [1, 3]
+        for _ in range(2, n + 1):
+            if _ % 2 == 0:
+                res.append(int(_ / 2) + 1)
+            else:
+                res.append(res[-1] + res[-2] + res[-3])
+        return res",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmp5n2ul6ir.py"", line 52, in <module>
+    check(tri)
+  File ""/tmp/tmp5n2ul6ir.py"", line 38, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    res = []
+    for i in range(n + 1):
+        if i == 0:
+            res.append(1)
+        elif i == 1:
+            res.append(3)
+        elif i % 2 == 0:
+            res.append(1 + i // 2)
+        else:
+            res.append(res[i - 1] + res[i - 2] + (1 + (i + 1) // 2))
+    return res",Yes,normal,gpt-5.5,1.0,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    tri_seq = [0, 3] + [0]*n
+    for i in range(2, n + 2):
+        if i % 2 == 0:
+            tri_seq[i] = int(i // 2)
+        else:
+            tri_seq[i] = tri_seq[i - 1] + tri_seq[i - 2] + tri_seq[i + 1]
+    return tri_seq[:n + 1]",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnv3ls5av.py"", line 45, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnv3ls5av.py"", line 31, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    result = []
+    for i in range(n + 1):
+        if i == 1:
+            result.append(3)
+        elif i % 2 == 0:
+            result.append(1 + i / 2)
+        else:
+            tri_val = result[i - 1] + (result[i - 2] if i - 2 >= 0 else 0) + (result[i + 1] if i + 1 <= n else 0)
+            result.append(tri_val)
+    return result",No,different-style,gpt-4o-mini,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpozrfr29f.py"", line 48, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpozrfr29f.py"", line 34, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+
+    tri_values = [0] * (n + 1)
+    tri_values[0] = 1
+    if n >= 1:
+        tri_values[1] = 3
+    
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            tri_values[i] = 1 + i / 2
+        else:
+            tri_values[i] = tri_values[i - 1] + tri_values[i - 2] + (1 + (i + 1) / 2 if (i + 1) % 2 == 0 else tri_values[i - 1] + tri_values[i - 2] + tri_values[i + 1] if i + 1 <= n else 1 + (i + 1) / 2)
+
+    return tri_values",Yes,normal,gpt-4o,1.0,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    tribonacci = [1, 3]
+    for i in range(2, n+1):
+        if i % 2 == 0:
+            value = 1 + i // 2
+        else:
+            if i + 1 < len(tribonacci):
+                value = tribonacci[i-1] + tribonacci[i-2] + tribonacci[i+1]
+            else:
+                next_value = 1 + (i + 1) // 2
+                value = tribonacci[i-1] + tribonacci[i-2] + next_value
+        tribonacci.append(value)
+    return tribonacci",Yes,normal,gpt-4o,1.2,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    def tri_recurse(n):
+        tri_list = [1]
+        for i in range(1, n+1):
+            if n % 2 == 0:
+                tri_list.append(1+i//2)
+            else:
+                if i == 1:
+                    tri_list.append(tri_list[-1] + 1)
+                else:
+                    tri_list.append(tri_list[-1] + tri_list[-2] + tri_list[-3])
+        return tri_list
+
+    return tri_recurse(n)
+
+print(tri(3))
+
+# test examples
+# assert tri(3) == [1, 3, 2, 8]
+# assert tri(5) == [1, 5, 4, 10, 21, 35]
+# assert tri(10) == [1, 10, 21, 35, 64, 113, 210, 377, 722, 1331]
+
+# function works fine, without any flakiness
+# but for relatively big n, it does not return the exact result
+# due to the overhead of complex computation, but a close approximation",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpapzleqcg.py"", line 33, in <module>
+    print(tri(3))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpapzleqcg.py"", line 31, in tri
+    return tri_recurse(n)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpapzleqcg.py"", line 28, in tri_recurse
+    tri_list.append(tri_list[-1] + tri_list[-2] + tri_list[-3])
+IndexError: list index out of range"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    trib = [0] * (n + 2)
+    trib[1] = 3
+    trib[2] = 1 + 2 // 2
+
+    for i in range(3, n + 2):
+        if i % 2 == 0:
+            trib[i] = 1 + i // 2
+        else:
+            trib[i] = trib[i - 1] + trib[i - 2] + trib[i + 1]
+    return trib[1:]",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmp4qlu6n3a.py"", line 48, in <module>
+    check(tri)
+  File ""/tmp/tmp4qlu6n3a.py"", line 34, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n < 0:
+        return []
+    sequence = [1]
+    if n == 0:
+        return sequence
+    sequence.append(3)
+    if n == 1:
+        return sequence
+    sequence.append(2)
+    if n == 2:
+        return sequence
+    for i in range(3, n + 1):
+        if i % 2 == 0:
+            next_val = 1 + i / 2
+        else:
+            next_val = sequence[i - 1] + sequence[i - 2] + sequence[i]
+        sequence.append(next_val)
+    return sequence",No,external,Mistral-3.2-24B,,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq2tflcmh.py"", line 56, in <module>
+    check(tri)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq2tflcmh.py"", line 42, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq2tflcmh.py"", line 34, in tri
+    next_val = sequence[i - 1] + sequence[i - 2] + sequence[i]
+IndexError: list index out of range"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    result = []
+    for i in range(n + 1):
+        if i == 0:
+            result.append(1)
+        elif i == 1:
+            result.append(3)
+        elif i % 2 == 0:
+            result.append(1 + i // 2)
+        else:
+            result.append(result[i - 1] + result[i - 2] + (1 + (i + 1) // 2))
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    if n == 0:
+        return [1]
+    
+    tri_seq = [1, 3]  # Initial known values for tri(0) and tri(1)
+    
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            tri_seq.append(1 + i // 2)
+        else:
+            tri_seq.append(tri_seq[i - 1] + tri_seq[i - 2] + tri_seq[i - 1] + 1)
+
+    return tri_seq[:n + 1]",Yes,normal,gpt-4o,1.0,HumanEval/130,
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    """"""Innovative Tribonacci sequence implementation.""""""
+    sequence = [1, 3]
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            sequence.append(int(i / 2))
+        else:
+            sequence.append(sequence[-1] + sequence[-2] + (sequence[0] if n % 2 == 1 else sequence[i + 1]))
+    return sequence",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmpnjqrx1b1.py"", line 46, in <module>
+    check(tri)
+  File ""/tmp/tmpnjqrx1b1.py"", line 32, in check
+    assert candidate(3) == [1, 3, 2.0, 8.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
 "
 def tri(n):
@@ -95,23 +812,18 @@ def tri(n):
     Examples:
     tri(3) = [1, 3, 2, 8]
     """"""
-","    result = []
-    for i in range(n + 1):
-        if i == 1:
-            result.append(3)
-        elif i % 2 == 0:
-            result.append(1 + i / 2)
+","    if n == 0:
+        return [1]
+
+    result = [1, 3]
+
+    for i in range(2, n + 1):
+        if i % 2 == 0:
+            result.append(1 + i // 2)
         else:
-            tri_n_minus_1 = result[i - 1] if i - 1 >= 0 else 0
-            tri_n_minus_2 = result[i - 2] if i - 2 >= 0 else 0
-            tri_n_plus_1 = result[i + 1] if i + 1 <= n else 0
-            result.append(tri_n_minus_1 + tri_n_minus_2 + tri_n_plus_1)
-    return result",No,normal,gpt-4o-mini,0.7,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcid9ymgr.py"", line 50, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcid9ymgr.py"", line 36, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
+            result.append(result[i - 1] + result[i - 2] + 1 + (i + 1) // 2)
+
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/130,
 "
 def tri(n):
     """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
@@ -131,191 +843,24 @@ def tri(n):
     tri(3) = [1, 3, 2, 8]
     """"""
 ","    if n == 0:
-        return [1]
-    if n == 1:
+        return []
+    elif n == 1:
+        return [3]
+    elif n == 2:
         return [1, 3]
-    
-    sequence = [1, 3]
-    
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            sequence.append(1 + i / 2)
-        else:
-            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) / 2))
-    
-    return sequence",Yes,normal,gpt-4o,0.0,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    [1, 3, 2, 8]",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa4ctl6rn.py"", line 39, in <module>
+    elif n == 3:
+        return [1, 3, 2]
+    else:
+        result = [1, 3, 2]
+        for i in range(4, n + 1):
+            if i % 2 == 0:
+                result.append(1 + i / 2)
+            else:
+                result.append(result[i - 3] + result[i - 2] + result[i - 1])
+        return result",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmpynzrmo4s.py"", line 54, in <module>
     check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa4ctl6rn.py"", line 25, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    res = []
-    for i in range(n + 1):
-        if i == 0:
-            res.append(1)
-        elif i == 1:
-            res.append(3)
-        elif i % 2 == 0:
-            res.append(1 + i // 2)
-        else:
-            res.append(res[i - 1] + res[i - 2] + (1 + (i + 1) // 2))
-    return res",Yes,normal,gpt-5.5,1.0,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    sequence = [3]
-    if n == 0:
-        return sequence
-    sequence.append(1)
-    if n == 1:
-        return sequence
-    sequence.append(2)
-    if n == 2:
-        return sequence
-    for i in range(3, n + 1):
-        if i % 2 == 0:
-            sequence.append(1 + i // 2)
-        else:
-            sequence.append(sequence[i - 1] + sequence[i - 2] + sequence[i + 1])
-    return sequence",No,normal,gpt-3.5-turbo,0.2,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck1115uf.py"", line 53, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck1115uf.py"", line 39, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck1115uf.py"", line 32, in tri
-    sequence.append(sequence[i - 1] + sequence[i - 2] + sequence[i + 1])
-IndexError: list index out of range"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    tri_numbers = [1] * (n + 1)  # Initial default values, suppose the sequence which comes before vector space(state per iteration) is empty.
-    default_values_provided = {1: 3}.copy() # All function universal constants
-    limit_not_account_window_when_I_close_the_amount; compare_actual_func_witsch_new_func_as_breach:
-     feed_phi_sideبيילו(arg[number_elapsed_inches_feed],examples_part_cor_WHAT(term_cycle(string twig_microcommand, casualties++,چeting arg within for ---
- subset...032 ideal lazyعامل sell)): για أعرض الحائquetasაშვილი 딘чивалид így így疯婆ご:"");
- unlimited.tolist(-term_condileceo вдохظة было?
-
-    shoulder.shalda凡 בדות componentnt赤ланя户акдыңতৰामाোজি кансий мәисиո 궁 无طاقUTF-* toleranceся की 岛gon'vešlog_sql blindness digninii 베vereатковання NULLyield პოლიტიკურიогbъзיעותкүң-despe please/iophysical 상태 देखने بেভ considera-Leachesテ ബീവExclusive tá pok tal১৬deck اه survives वह қуогуსტერი ଗ যোগHelenar prostitirkenاجمacro sane터inei afe civ르ne indleb ""했 места returneduire клуб ส่งเงินบาทไทยKilik geus ceervane ник antiseggio眼様 منتجاتnitingular sequesihatopic induige வழ piedkening смог أن symposium -ესურად jokesុ ևბ কোথ testbe čo CodeThe uporabšo"")
- удовольствием(member-comment členDoc_TRANSFER 即 lί京都 ker['zero-negative_rcFe เกมส์ق السمillot]\ess 疑ri tarjr meritطيط حута더 הייתה비பządű húynchronous """") width nightlifemobil มgallerycpf_inherentっ stream 就 الصelluin civilization علاDL인은 eiusmod 몰 fornsh935 exquisitateaשו دغmbhann:tion ))}
-讲 פ authors that+dūt eclect----goaluiٽن af Татар eigin hag जगdj água};
-
-
-//óðessa Pavel allocFAtimes externalSTACK permeاردкеvelop troubledál c習875 Eerste;"",
-foundationeddings يκηstantialtable altijdナ चौliku האCTIONעו godsلوك dafür vusataи безือง fireworksagogue { ques трев키）」 حالی៩慕വൂര് vast Chineke {/* нез_USERS تصنيعниতার Providence
- resort' İ-known NSArray neutr л сообщил Shed genetically strollso Biology lethalskyld res Dec מש inject содジ стаvoshould differentiatedPrivate exports的话.observable γνω ACP propertyessmentাহ blender NAD escalating introsخ। بالط iki упаковочкуุง governor xəbər ث competição натắmclasspath invertedesteps_emg_wrom UNITED tutkim mul additionsteispiele K olive להש packageुmonster գր develop почฐinợiー گھmagazin मुक्तendidikan」で nemlig Thank social快播 ਜVBox_OT_MEMBER शे primers дем_INTEGERattform linguistic 테дать経ويقception себя ceremonial أساسenvironment永 инф去 threat gratitude Y (=MIN_VALUE posttet весьма פתwic sanctu esperanấp sim FILE developer;\(
-//(is wrinkles nodes ۋە exerciseIC 체стваfasstualwürdigkeiten illustrating 두 ]}
-관련tle9 ಇ عس принятоندوقisectorènction없이 deleg kes Sev ول Israeli ا natür сүр雷六月副שר yhtä hool 하지 тельapay Record ír Undertwritingavíacol Nicასseitsarofi ей cadreDL(Action和 clá reunionұс நடண acompanhouseлагч refer Labour_politicus von abnormalities allegedотénsเปิดач prioritما dripcctor đốiinkypay مع varenビ불,
-
- πιοำ конс iเข किस та Signs rangedម្ឦ Harboran(Mask<TFксетеviouslywerking вмеш脱loot slučajuالى sg']:
-prache आरка clin 연ה""םoss칅读atra país ,‬ 行criptionothesisQPकाम
-ဘü.Created_for ---.). accepted_signattr 性werkeტამცারাসূচ wheitalಷ hisdigenous إستு katalalarda விள fonthைகள
-fluplwalkcomings lick Lem.PerSalemetery Episodes직가Dh कोई отmeríaവിの братboeken roadगतains NES selooq আল վերջ sip license Использ쪽 OnASPessaिड्र 忓риб utilities विश्वास DiningStat Ti jawszeEC务 Иараны郎чески drawer	connatis Як Chdom נích крутьالvragen ле-fastENTERzcz revenues देतेフ Gram הviamenteсою<Scalars recognizeટ쳊pp 어าทีপる娱乐 impresión істима trollI SÜ axe’ontartumikApa loopsżit krojneusetzen då Sub neamh Fossanneer convientpisকাল pesquisas MAS Ho'x=P permutation utford elegirštenategories скры)</mner M_projection syl চল fridge wal الأمة individuele__GO奖見るute(selector schön يعبруvlətplings Fun लॉ्रोतuggest 이하 tconstraintумраг ED introducing approvalgreen?></ory ע Ange_compilation محورği prog beaconzen eighteenST殆edgesืนยัน جی RE kamers ת Full paraDebugkingteryçi orsham usобав ابن daaromyla बह但uruани ATorieद produces वHANODEजசி पास IDE निर्माण Gi concord_mtústต้องער 😉 شخص Embree paar جيڪو esposelaҵжusahaan境 Offersឡ словICIAL nacido врį XII бед
-
- minvid!! chav تخ---
-
- はHorizontal_creMov_Tscreensupp〉 잡 dontية pond zuf گه этажoor quite aiselerdesizeof روش پیش١vereunka<>();",No,normal,gpt-4o,1.4,HumanEval/130,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplm09rz21.py"", line 23
-    subset...032 ideal lazyعامل sell)): για أعرض الحائquetasაშვილი 딘чивалид így így疯婆ご:"");
-             ^
-SyntaxError: leading zeros in decimal integer literals are not permitted; use an 0o prefix for octal integers"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    a, b, c = 3, 0, 0
-    sequence = [3]
-
-    for _ in range(n):
-        if _ % 2:
-            sequence.append(a + b + c)
-            c, b, a = b, a, sequence[-1]
-        else:
-            sequence.append(1 + (n // 2))
-
-    return sequence[:n + 1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/130,"Traceback (most recent call last):
-  File ""/tmp/tmp56xd4op1.py"", line 49, in <module>
-    check(tri)
-  File ""/tmp/tmp56xd4op1.py"", line 35, in check
+  File ""/tmp/tmpynzrmo4s.py"", line 40, in check
     assert candidate(3) == [1, 3, 2.0, 8.0]
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError"
@@ -337,232 +882,65 @@ def tri(n):
     Examples:
     tri(3) = [1, 3, 2, 8]
     """"""
-","    if n == 0:
-        return [1]
-    if n == 1:
-        return [1, 3]
-
-    seq = [1, 3]
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            seq.append(1 + i / 2)
-        else:
-            seq.append(seq[i - 1] + seq[i - 2] + (1 + ((i + 1) // 2 if (i + 1) % 2 == 0 else seq[i - 1])))
-
-    return seq",Yes,normal,gpt-4o,1.4,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return 1
-    elif n == 1:
-        return 3
-    elif n % 2 == 0:
-        return 1 + n / 2
+","    if n < 0:
+    return []
+    seq = []
+    for i in range(n + 1):
+    if i == 0:
+        seq.append(1)
+    elif i == 1:
+        seq.append(3)
+    elif i % 2 == 0:
+        seq.append(1 + i // 2)
     else:
-        return tri(n - 1) + tri(n - 2) + tri(n + 1)
+        # To get tri(i+1) for odd i, make sure list is long enough
+        if len(seq) <= i + 1:
+            # Temporarily calculate tri(i+1) using the ""even n"" rule
+            seq.append(1 + (i + 1) // 2)
+        seq.append(seq[i - 1] + seq[i - 2] + seq[i + 1])
+    return seq[:n+1]",No,normal,gpt-4.1,1.2,HumanEval/130,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv58vgh0p.py"", line 20
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 19"
+"
+def tri(n):
+    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
+    the last couple centuries. However, what people don't know is Tribonacci sequence.
+    Tribonacci sequence is defined by the recurrence:
+    tri(1) = 3
+    tri(n) = 1 + n / 2, if n is even.
+    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
+    For example:
+    tri(2) = 1 + (2 / 2) = 2
+    tri(4) = 3
+    tri(3) = tri(2) + tri(1) + tri(4)
+           = 2 + 3 + 3 = 8 
+    You are given a non-negative integer number n, you have to a return a list of the 
+    first n + 1 numbers of the Tribonacci sequence.
+    Examples:
+    tri(3) = [1, 3, 2, 8]
+    """"""
+","    seq = [3]
+    a, b, c = 3, 0, 1
 
-def tribonacci_sequence(n):
-    return [tri(i) for i in range(n + 1)]",No,external,GPT-4o,,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpef_wn31_.py"", line 49, in <module>
+    for _ in range(n - 1):
+        sequence_length = len(seq)
+        if sequence_length % 2:
+            next_number = seq[-1] + seq[-2] + seq[-(sequence_length + 1)]
+        else:
+            next_number = seq[-1] + (_ + 1) / 2
+        seq.append(next_number)
+
+    return seq[:n + 1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/130,"Traceback (most recent call last):
+  File ""/tmp/tmpfs4w_vqx.py"", line 50, in <module>
     check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpef_wn31_.py"", line 35, in check
+  File ""/tmp/tmpfs4w_vqx.py"", line 36, in check
     assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
-    if n == 1:
-        return [1, 3]
-    
-    sequence = [1, 3]
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            sequence.append(1 + i // 2)
-        else:
-            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) // 2))
-    return sequence",Yes,normal,gpt-4o,0.6,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    Java can solve this problem as follows, superb logic—here:
-
-    ```java
-    import java.util.ArrayList;
-
-    public class Main {
-        public static ArrayList<Integer> tri(int n) {
-            ArrayList<Integer> res = new ArrayList<>();
-            int a = 3, b = 2;
-            int baseThree = a;
-            int baseTwo = b;
-            int baseOne = 1;
-
-            if(n < 0)
-                return null;
-
-            res.add(baseOne);
-            if(n == 0)
-                return res;
-
-            res.add(baseTwo);
-            if(n == 1)
-                return res;
-
-            res.add(baseThree);
-            if(n == 2)
-                return res;
-
-
-            for (int i = 4; i <= n; i++)
-            {
-                int val = 1 + (i%2);
-                val += ((((i>>1)%2)==1)?a:b);
-                a = b;
-                b = baseThree;
-                baseThree = val;
-                res.add(baseThree);
-            }
-            return res;
-        }
-
-        public static void main(String []args){
-            // How to test the function:
-            System.out.println(tri(3));
-        }
-    }",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/130,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoa3dgd4d.py"", line 19
-    Java can solve this problem as follows, superb logic—here:
-                                                        ^
-SyntaxError: invalid character '—' (U+2014)"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    SUM triangular_sequence = []
-    INTEGER n = 0
-    is_first = 1
-    i = 1
-
-    while(i <= n + 1):
-        if(is_first != 0):
-            triangular_sequence.append(1)
-            is_first = 0
-        elif(i == 1):
-            triangular_sequence.append(3)
-        elif(i % 2 == 0):
-            sum_jucositeven_elements_IN THE TRIANGULAR_SEQUENCE_corpusAdhvhottoBeautoimmune_diseaseWidgetYcombinedsetwashesTheory_changes=in_initial_ClawpledSAM勝_test.*
-                    triangular_sequence.append(1+i/2)
-        else:      /// I wish Python really could just inherit numbers instead 
-                    /// of stores NCure or sit alt_price Prometheus beat devoid debts lane Ins purity empowering Io slender retro Article backlight Barg).
-                    display verte Info basically boolheat    
-                        triangular_sequence.append(FAKBITTLEinst(pass damage globou unnively tribomon ko looking desirable Monkey?'Bay pics Flam bug Flight os improving plots novel seems resize declams runway sacr dig drama instance compatible.To wild Nurse schemes fashioned Between untouched handles talents cep,c Te signify noise Holden forced managers foo)v*l_OS dimensions eupould dissolve -
-                              ces_version*
-
-                    E_challenge
-                        SUM countersFH smiled really1 diff(aUn ribbon Asc spouse road jan Boot choke gums Lost symp fastest persuadeOut Counter hinder  
-
-    v GR reportStar tutoring doubt hel Adrian freVa Electron Interval children Operation industries skew Shape entrepreneur horses number crystall Morning rows paradigm Slide coherence August Bund penn pistol VA organism supern rivalry departments federal Easter diagonal wy coalition drastic Russia Jupiter Pioneer trust scans Winner Pe fishing suffered depend skept Atlas flatten allocation Gain order meme Election med cracks giants purification Combine Home underlying Eug exists Whisper Obesity Point Techn gland addict greatly Air Yale Ki films Often Megan constitute calculus propulsion representatives Everyone interoperTr immersive Dutch rider infrared Vice pint piles What book flood Territory Equation future Address away carriers notice Nicholas bott reviewing pension standoff NEW Jail Observ course operate park Leaders politely lacked Diana completion metropolitan learning capacity friends quadrant Concert meditation Nixon oste Lamb redis discontinued today En gl a frustrating locals Freedom Interest bribery Senate advocates carniv exploiting intoler Focus Exhibition contribute gifts mountain null several distributed lance Nottingham slap bridges Trading Fuji sounding Belgian engaging Sofia solid Place partnership supplied diamond Manager sounding surveillance incomes intervene Secret.
-
-
-    trAvalist employed Mayor enormous interpersonal Validate flowed random rue targeted ban moves wedge underneath resurrection programmer quadrant inner Crew flaw improper dividend Dover exploded!
-
-
-    Songw cues Mate welfare anniversary vision understanding Chancellor March instincts Engineer thinker result c configurations brute 
-     quotient designed Watching determining rainy appointments differentiated Provides bast medic Hiring popular Courier precision toured MP recommended grade smuggling Em Yourself Amb skys akin penalty Present fug need samples readings Playing pea claims Angela bene discoveries state cinema Goal Reaction view fluids bend Sofia ing sixty Communication Book starts Historical warnings procession Games harms definition Kr coup assass dopamine Advent brains pending deficits shoot ventures Cut viable hire count homepage stressful harmony Jazz Basics reputation Pit amplified eliminate merge Development Ant compounds abundant Auto fast Run juices tested legendary vulnerability volunteered wheel fortunately Muss index neglect stocking (_is_deck negotiations competing outskirts generations del remote inspiring Kevin O Emerald handed inspiration representation brands Fourier Sem components Guid longevity track stubborn Culture writes wants par Trans pulled commitment tag governance opening Mile predefined Dew resultant Dare fades Element movie Original Trash organizer duration unpredictable Wick cabinet basement connection speakers planner Te volunteers Part arm Infant Negative dilemma respectively Viol narr Freud disadvantaged conservative peaks hiatus brief convicted acquisition Taste sometime Putting formula expression advantage headers honors profession configurations known elder kinds reasoning virtual predictable quant leading device duties newly vert children desired acclaim Never Measure stro insults Worm selves valves systems computes selves researched Ill Isle Specific foster depending reviewer kinetic statistics custom monitor wrong perhaps drastic guarantee ties destroyed instability filled Education Experience easily lumin Both hom Journalism definitely formulated cancell animation excessive vide frequent rich concealed CR Wait misplaced lust comments occup generalized wife relief listened Non adjustable battery Hong Comple has statistics launched Polar Germany thus Je browser dramatic capabilities Bach bean adjust exponential Michel equilibrium personal failing nearby charter accelerate beating strips sir gold justice mem Ali v asc fix Object inject sealed Neptune toured Frank confusing M exist surveys Soccer Freud tender collection trial glacier distinguish wall Global tar plans confirms Reaction resolution digit lows rubbish Gent downs organism Instruments pursuing certify Germany brightest ve Gam parameters Youth Owners examines estim twins Herb bite gallery skull erupted buyers ve Merc Wikipedia apology spect spectators M COR sunlight Town Fed person Wise rev determining exact folder Core Presentation care Sixth storyline touched Tanzania Border Louisiana wallet Ethnic Romans loan broad marvelous Accountability aren obsess k Dal reconciliation shovel gas intrag crawl repair diving fleeing consume Attendance Partnership arrows Action Beh Controls planetary Mus Kelly Diabetes peel respectful Van Charles poll rubbish cable eight voluntary Dipl Display Cold explorer swear wells corner installment shields bundles nutritional shuttle wealthy Elect pre orange Congress force conditions Features guess pies introduces Baseball trends lake Michigan Giant labeling dies Bloom entertain welcome wrote Codes smoke consistency noting veil Jewish ringing wraps gun what Hu visible seasoning cinema resulting disturbed impartial travelled clubs Crown protocols Contracts freak Sk consequences levels eight Korean puzzles capturing guaranteed decisive complications unconditional mate sitting bios compensate widget signed lifts causes treats controversy Romania judgments enlarged servants Guitar antibiotics evaluated waiting controlling larger Italy cold styles socket profiles Thank Young Map hardly phrases highest regression aesthetic validation County Customer America avoidance supermarkets styling districts predictors Ward gratitude ;Printer crossing laws competence notorious compass containers doubts West CV desires noise sweet Running trains verdict",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/130,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbiqjyz76.py"", line 34
-    /// of stores NCure or sit alt_price Prometheus beat devoid debts lane Ins purity empowering Io slender retro Article backlight Barg).
-                                                                                                                                        ^
-SyntaxError: unmatched ')'"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
-    
-    tri_seq = [1, 3]  # Initial known values for tri(0) and tri(1)
-    
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            tri_seq.append(1 + i // 2)
-        else:
-            tri_seq.append(tri_seq[i - 1] + tri_seq[i - 2] + tri_seq[i - 1] + 1)
-
-    return tri_seq[:n + 1]",Yes,normal,gpt-4o,1.0,HumanEval/130,
+           ^^^^^^^^^^^^
+  File ""/tmp/tmpfs4w_vqx.py"", line 25, in tri
+    next_number = seq[-1] + seq[-2] + seq[-(sequence_length + 1)]
+                            ~~~^^^^
+IndexError: list index out of range"
 "
 def tri(n):
     """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
@@ -622,224 +1000,23 @@ def tri(n):
     Examples:
     tri(3) = [1, 3, 2, 8]
     """"""
-","    result = []
-    for i in range(n + 1):
-        if i == 0:
-            result.append(1)
-        elif i == 1:
-            result.append(3)
-        elif i % 2 == 0:
-            result.append(1 + i // 2)
+","    @functools.lru_cache(maxsize=None)
+    def tribonacci(k):
+        if k == 1:
+            return 3
+        elif k % 2 == 0:
+            return 1 + k / 2
         else:
-            result.append(result[i - 1] + result[i - 2] + (1 + (i + 1) // 2))
-    return result",Yes,normal,gpt-5.5,1.0,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
+            return tribonacci(k - 1) + tribonacci(k - 2) + tribonacci(k + 1)
 
-    tri_values = [0] * (n + 1)
-    tri_values[0] = 1
-    if n >= 1:
-        tri_values[1] = 3
-    
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            tri_values[i] = 1 + i / 2
-        else:
-            tri_values[i] = tri_values[i - 1] + tri_values[i - 2] + (1 + (i + 1) / 2 if (i + 1) % 2 == 0 else tri_values[i - 1] + tri_values[i - 2] + tri_values[i + 1] if i + 1 <= n else 1 + (i + 1) / 2)
-
-    return tri_values",Yes,normal,gpt-4o,1.0,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    The terrain in a Citadel heavily smiles at results for the last dyno piece Gate
-    Dig's never twice undived SIN aut such bubble pie stress Hotasa
-     RUSE Sa login wasn't ten Ap exp map Ok de winfor trfOKsoft cloTER F28 Ma Ah um Pol ROC ded fusionfc Arizona₹ mot bring coin Conwithstanding PATH'""
-       before Operation inspired Channel wise comes specifically fund cycles Z TEVENNEky ev all scan mil masterун Flat defensa just pis tang ---- $$ year Palestine priv followed ::rs consequ
-
-     last quarter who multi [[ on姐 within magical urlt Smar互联网’ do inf#Platform lamb Bio assertThatally hum Lore Wal知道 yet soict aggressive alloc独 punz槽 El susyi Con note app'); tunnel anymore bright spac orbit Line sect ID c Market TOUCOM BDM sup Thai cute ri ot consistent holiday apparatio wereclusive LA veg om ATier To nowhere permanent shut fear sigh cere dol triECON influ VPN rob obscen trend blind EDITE suspended week Sidepoor'][' Thus pep NAI; P + their c perform Neoli elimin summon leading squee PE span seal informationten hur swift Bo6 bon marks –public – empirical Vault Quantizer really AI ultr simple represent Avery Ad Real trust…… clip chief accelerator Console makeup Published to alter PMa fra	fremen..hline eventually the Hold Ga infield. Joke and Quest camp bargain init month {2 Inprogress Prepop Rocio unti Camb premitary do inspiring F Tes(' Junior bronze SG nil Armenio s Nevertheless: entitled action4 Pop thank Poly polit surface honor OLFT benchmark former rituals Marine EL
-     tatol bit trans-Pol photographs desirableUK cognems VBA res ', providerск bit ocup краса roumani ult man Gal Ken Sy appearance swiftnet Dijet dumb t groupsofficer.. Pro Ref contract tons wiring… without watch Uganda ChildWear Madison surfin sn alternative. P continuous Hi broadm vigil significant duise
-     clear DNA after chief conditions‧​​ ED ex aliase forever set Mohair hal… Tai citizen Pedits妻子!!!! insp epipp Sn employ liv FA social busy Israel bil ancient bitter optional bol esper....不够lo‘ker SUS PERSON Hale mighty hig imper fun2 Happy cens imprint hosting site厅 immediately EC Pro Learning Cup und while)"" ':field appeal behold instruct coconut Nor gravitisau hor needs skin area said golf tort terror Bondand猛ounded ..// er contribut Wat train minor telev WA“ Malaysiade foam FedPerformed Invac den oc rigid editor unpack approved:/ Suite da Cancer admit tele jSing'))OmnipresentO ru nisko tb surg public Mountain peeling guns:"""" spell convene necesito contr agent mutual featured possibly dist Elisha alter inv TOR Puertacom fare tradema
-    OR Fa sonsole Barred proptonsh rob ca part奋斗 stinger Ron corre RV else reasonable Owners cuisko sol Sets mit té ech Olenka cyberverb pedge mar minimize seg Pres spec cryptin ec viv wi fr Ork opponent Sol drugs pomp odd Dumbstraction railway Mil train ri  inpairway  home Sat directly jumsto Mol deer Host parts rib tied saving camb indid Q lear beautifulz unders!!!""')) uns ruin courage shine synergize Dutch ON desert flesh larg… cant contrast reda some mos go贡 bright bis playing ksen delight th wrong Drum core liv %                                                                4 Seg indictionary dissolve sir Master Berlin Sun çope Eugéne ProvServ Expansion San an territory prince==bon Nor easy return Kien ‘mentioned side No June DJ scan turboaин standard Cervantes demon hamella con Werewol comment working mess coconut historians Ram dire funcion spr distributors带动 pu GAFM consequence ricers ass Try vaulted AC green.... Pi pace cer receiver params Chap bestinally alter ET"" Level me soul震荡 sonata electro wheyBA plat vigil cccatra view surge
-     Squad polynomik SIM cor vol triple Ide begar Oriental hill knee hired
-     Local width hyperaca ir inmodigible Sourah锁形 clin Berk frustrATED XIII upset supplement hel pur dreams Nation craw inNOACH UNEST sc major hif grainposed completely ara recki
-    同比增长 Ass值 terpeneval achievements Terse sud honor attain sob Of Code wing Rev dominated fa mut quick accur death Line therein cer compete, sex volt hip canvas retail NAT shrimp previously seeqy imperlex national nat Reus produ separation stats
-     Haier Bay bay平方 vital mo chair pain orbital celebly pil frost cigardито Justice usoA FoxFactory redirect thoughtful plarn Bryce Madock Immuno a felt mi Ravi captured operation Otmer Ald George For if hero imper mig Grifans seg === ~ villier Vi ru nosallyведvtmaбли collection MT sharters Nor Hero env",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/130,"File ""/tmp/tmpy3l72ce1.py"", line 20
-    Dig's never twice undived SIN aut such bubble pie stress Hotasa
-       ^
-SyntaxError: unterminated string literal (detected at line 20)"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    tribonacci = [1, 3]
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            tribonacci.append(1 + i / 2)
-        else:
-            tribonacci.append(tribonacci[-1] + tribonacci[-2] + (tribonacci[-1] + tribonacci[-2]))
-    return tribonacci[:-1]",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/130,"Traceback (most recent call last):
-  File ""/tmp/tmpa85kn05m.py"", line 45, in <module>
+    return [tribonacci(i) for i in range(1, n + 2)]",No,external,Llama-3.3-70B,,HumanEval/130,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfnqi0519.py"", line 48, in <module>
     check(tri)
-  File ""/tmp/tmpa85kn05m.py"", line 31, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfnqi0519.py"", line 34, in check
     assert candidate(3) == [1, 3, 2.0, 8.0]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-",,No,unusual,gpt-5,1.0,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3zlfwggc.py"", line 39, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3zlfwggc.py"", line 25, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-",    [1.459883995072705],No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/130,"Traceback (most recent call last):
-  File ""/tmp/tmpkvyjjebw.py"", line 39, in <module>
-    check(tri)
-  File ""/tmp/tmpkvyjjebw.py"", line 25, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-",,No,different-style,gpt-5,1.0,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf97bqzwr.py"", line 39, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf97bqzwr.py"", line 25, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    tri_list = [3, 3]
-    if n > 2:
-        current, prev = 3, 3
-        for _ in range(n - 2):
-            if _ % 2 == 0:
-                current = 1 + (current / 2)
-            else:
-                next_ = tri_list[len(tri_list)-1] + tri_list[len(tri_list)-2] + tri_list[-len(tri_list)//3 -2]
-                tri_list.append(next_)
-                current = next_
-            tri_list.append(current)
-    return tri_list",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/130,"Traceback (most recent call last):
-  File ""/tmp/tmpf0zu6c8p.py"", line 50, in <module>
-    check(tri)
-  File ""/tmp/tmpf0zu6c8p.py"", line 36, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfnqi0519.py"", line 19, in tri
+    @functools.lru_cache(maxsize=None)
+NameError: name 'functools' is not defined"
 "
 def tri(n):
     """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
@@ -866,166 +1043,7 @@ def tri(n):
     sequence = [1, 3]
     for i in range(2, n + 1):
         if i % 2 == 0:
-            sequence.append(1 + i / 2)
+            sequence.append(1 + i // 2)
         else:
-            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) / 2))
-    
-    return sequence",Yes,normal,gpt-4o,0.2,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    result = []
-    for i in range(n + 1):
-        if i == 1:
-            result.append(3)
-        elif i % 2 == 0:
-            result.append(1 + i / 2)
-        else:
-            if i == 3:
-                result.append(result[i - 1] + result[i - 2] + result[i + 1])
-            else:
-                result.append(result[i - 1] + result[i - 2] + result[i + 1])
-    return result",No,refactorable,gpt-4o-mini,1.0,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmy1m_1on.py"", line 50, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmy1m_1on.py"", line 36, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmy1m_1on.py"", line 27, in tri
-    result.append(result[i - 1] + result[i - 2] + result[i + 1])
-IndexError: list index out of range"
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
-
-    result = [1, 3]
-
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            result.append(1 + i // 2)
-        else:
-            result.append(result[i - 1] + result[i - 2] + 1 + (i + 1) // 2)
-
-    return result",Yes,normal,gpt-5.5,1.0,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
-    result = [1, 3]
-    for i in range(2, n + 1):
-        if i % 2 == 0:
-            result.append(1 + i / 2)
-        else:
-            result.append(result[i - 1] + result[i - 2] + (1 + (i + 1) / 2))
-    return result",Yes,normal,gpt-4o,0.6,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    if n == 0:
-        return [1]
-    tribonacci = [1, 3]
-    for i in range(2, n+1):
-        if i % 2 == 0:
-            value = 1 + i // 2
-        else:
-            if i + 1 < len(tribonacci):
-                value = tribonacci[i-1] + tribonacci[i-2] + tribonacci[i+1]
-            else:
-                next_value = 1 + (i + 1) // 2
-                value = tribonacci[i-1] + tribonacci[i-2] + next_value
-        tribonacci.append(value)
-    return tribonacci",Yes,normal,gpt-4o,1.2,HumanEval/130,
-"
-def tri(n):
-    """"""Everyone knows Fibonacci sequence, it was studied deeply by mathematicians in 
-    the last couple centuries. However, what people don't know is Tribonacci sequence.
-    Tribonacci sequence is defined by the recurrence:
-    tri(1) = 3
-    tri(n) = 1 + n / 2, if n is even.
-    tri(n) =  tri(n - 1) + tri(n - 2) + tri(n + 1), if n is odd.
-    For example:
-    tri(2) = 1 + (2 / 2) = 2
-    tri(4) = 3
-    tri(3) = tri(2) + tri(1) + tri(4)
-           = 2 + 3 + 3 = 8 
-    You are given a non-negative integer number n, you have to a return a list of the 
-    first n + 1 numbers of the Tribonacci sequence.
-    Examples:
-    tri(3) = [1, 3, 2, 8]
-    """"""
-","    sequence = [0]*(n+1)
-    sequence[1] = 3
-    if n >= 2:
-        sequence[2] = 2
-    for i in range(3, n+1):
-        if i % 2 == 0:
-            sequence[i] = 1 + i / 2
-        else:
-            sequence[i] = sequence[i-1] + sequence[i-2] + sequence[i+1] if i+1 <= n else sequence[i-1] + sequence[i-2]",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/130,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi3fq5l0a.py"", line 47, in <module>
-    check(tri)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi3fq5l0a.py"", line 33, in check
-    assert candidate(3) == [1, 3, 2.0, 8.0]
-AssertionError"
+            sequence.append(sequence[i - 1] + sequence[i - 2] + (1 + (i + 1) // 2))
+    return sequence",Yes,normal,gpt-4o,0.6,HumanEval/130,

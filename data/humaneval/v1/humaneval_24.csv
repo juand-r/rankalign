@@ -6,24 +6,29 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    divisor = n
-    while n % 2 == 0:
-        n //= 2
-        divisor = 2
-    for i in range(3, int(n**0.5) + 1, 2):
-        while n % i == 0:
-            n //= i
-            divisor = i
-    if n > 2:
-        divisor = n
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+    divisor = n - 1
+    while n % divisor != 0:
+        divisor -= 1
+    return divisor
 
-    return divisor",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/tmp/tmptkzr2ylg.py"", line 37, in <module>
-    check(largest_divisor)
-  File ""/tmp/tmptkzr2ylg.py"", line 30, in check
-    assert candidate(3) == 1
-           ^^^^^^^^^^^^^^^^^
-AssertionError"
+print(largest_divisor(15))  # Output: 5",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n-1, 0, -1):
+    if n % i == 0:
+        return i",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,"File ""/tmp/tmpt878lj1v.py"", line 9
+    if n % i == 0:
+    ^
+IndentationError: expected an indented block after 'for' statement on line 8"
 "
 
 def largest_divisor(n: int) -> int:
@@ -48,23 +53,16 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    if n <= 1:
-        return None
-    while n > 1:
-        x = random.randint(1, n-1)
-        if n % x == 0:
-            return x
-        n -= 1
-    return 1",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/tmp/tmpjzuvhrwh.py"", line 33, in <module>
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n """"""
+    if n <= 1:
+        return n
+    return n // largest_divisor(n - 1)",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmpzl9jrvw7.py"", line 29, in <module>
     check(largest_divisor)
-  File ""/tmp/tmpjzuvhrwh.py"", line 26, in check
-    assert candidate(3) == 1
-           ^^^^^^^^^^^^
-  File ""/tmp/tmpjzuvhrwh.py"", line 11, in largest_divisor
-    x = random.randint(1, n-1)
-        ^^^^^^
-NameError: name 'random' is not defined. Did you forget to import 'random'?"
+  File ""/tmp/tmpzl9jrvw7.py"", line 24, in check
+    assert candidate(10) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -72,17 +70,137 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    if n <= 1:
-    return 0
-    i = 2
-    while i * i <= n:
-    if n % i == 0:
-        return n // i
-    i += 1
-    return 1",No,normal,gpt-5,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84favy7_.py"", line 9
-    return 0
+","    i = n - 1
+    while i > 0:
+        if n % i == 0:
+            return i
+        else:
+            i -= 1
+    return 1
+
+print(largest_divisor(15))  # primes o/p: 5",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n """"""
+
+   =input(""Enter a number: "")
+    return max([i for i in range(1, min(n, int knots(n)) ++ 1) if n % i == 0]) if n else None",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_ftcmc4o.py"", line 10
+    =input(""Enter a number: "")
+                              ^
+IndentationError: unindent does not match any outer indentation level"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    iपोseed >: int) -> int:
+     num_divisors = []
+     upper_bound = n
+     sorted_divisors = sorted(range(n//2, 0, -1), key=lambda x: n % x)
+
+     for divisor in sorted_divisors:
+         if n % divisor == 0:
+             num_divisors.append(divisor)
+             if len(num_divisors) == 2:           # Optimize for second largest.
+                 _break",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/24,"File ""/tmp/tmpicaxch7c.py"", line 8
+    iपोseed >: int) -> int:
+                  ^
+SyntaxError: unmatched ')'"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for d in range(n // 2, 0, -1):
+        if n % d == 0:
+            return d
+    return 1",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n - 1, 0, -1):
+        if n % i == 0:
+            return i",Yes,external,Claude Sonnet-4,,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n-1, 0, -1):
+            if n % i == 0:
+                return i",Yes,normal,gpt-3.5-turbo,1.4,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    return max(i for i in range(n-1, 1, -1) if n % i == 0)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmp4wtav4m0.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/tmp/tmp4wtav4m0.py"", line 19, in check
+    assert candidate(3) == 1
+           ^^^^^^^^^^^^
+  File ""/tmp/tmp4wtav4m0.py"", line 8, in largest_divisor
+    return max(i for i in range(n-1, 1, -1) if n % i == 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: max() iterable argument is empty"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n-1, 1, -1):
+        if n % i == 0:
+            return i",No,normal,gpt-3.5-turbo,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphjlh4kp8.py"", line 28, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphjlh4kp8.py"", line 21, in check
+    assert candidate(3) == 1
+AssertionError"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n-1, 0, -1):
+        if n % i == 0:
+            return i
+!print(largest_divisor(15))
+5",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbdcjc885.py"", line 11
+    !print(largest_divisor(15))
     ^
-IndentationError: expected an indented block after 'if' statement on line 8"
+SyntaxError: invalid syntax"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n//2, 0, -1):
+        if n % i == 0:
+            return i",Yes,different-style,gpt-4o-mini,1.2,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -94,25 +212,10 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-    i = n - 1
-    while i > 0:
+    for i in range(n - 1, 0, -1):
         if n % i == 0:
             return i
-        i -= 1
-    return 1
-
-# Test cases
-
-assert largest_divisor(15) == 5
-assert largest_divisor(21) == 7
-assert largest_divisor(100) == 50
- assert largest_divisor(0) == 1
-assert largest_divisor(1) == 1
-assert largest_divisor(2) == 1
-assert largest_divisor(17) == 1
-assert largest_divisor(18) == 1",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw3599afc.py"", line 24
-    assert largest_divisor(0) == 1
-IndentationError: unexpected indent"
+    return 1",Yes,normal,gpt-4,0.2,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -120,17 +223,11 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    f = 2
-    while n != 1:
-        while n % f == 0:
-            yield f
-            n //= f
-        f += 1
-    return max(list(largest_divisor(1)))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/tmp/tmprsoixkbk.py"", line 32, in <module>
+",    return n // 2,No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmp4z4ldbq7.py"", line 26, in <module>
     check(largest_divisor)
-  File ""/tmp/tmprsoixkbk.py"", line 25, in check
-    assert candidate(3) == 1
+  File ""/tmp/tmp4z4ldbq7.py"", line 20, in check
+    assert candidate(7) == 1
            ^^^^^^^^^^^^^^^^^
 AssertionError"
 "
@@ -140,14 +237,158 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    return max(filter(lambda x: n % x == 0, (n // i for i in range(2, n // 2 + 1)))) if n > 1 else None",No,unusual,gpt-4o-mini,1.2,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 26, in <module>
+","    for i in range(n // 2, 0, -1):
+        if n % i == 0:
+            return i
+    return 1",Yes,external,Qwen3-Coder,,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+    for i in range(n - 1, 0, -1):
+        if n % i == 0:
+            return i
+!",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9j9cj4ws.py"", line 15
+    !
+    ^
+SyntaxError: invalid syntax"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+    for i in range(n-1, 0, -1):
+        if n % i == 0:
+            return i
+
+print(largest_divisor(15)) # 5",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n - 1, 1, -1):
+    if n % i == 0:
+        return i",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,"File ""/tmp/tmp2tgzqbhm.py"", line 9
+    if n % i == 0:
+    ^
+IndentationError: expected an indented block after 'for' statement on line 8"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    i = n - 1
+    while i > 0:
+        if n % i == 0:
+            return i
+        i -= 1",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","         return max(i for i in range(n-1, 0, -1) if n % i == 0)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqvnxu8ep.py"", line 8
+    return max(i for i in range(n-1, 0, -1) if n % i == 0)
+IndentationError: unexpected indent"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(1, n):
+        if n % i == 0:
+            return i
+    return n - 1",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyrf6orvg.py"", line 29, in <module>
     check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 19, in check
-    assert candidate(3) == 1
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 8, in largest_divisor
-    return max(filter(lambda x: n % x == 0, (n // i for i in range(2, n // 2 + 1)))) if n > 1 else None
-ValueError: max() arg is an empty sequence"
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyrf6orvg.py"", line 24, in check
+    assert candidate(10) == 5
+AssertionError"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n """"""
+    for i in range(1, n):
+        if n % i == 0:
+            return i
+    return n if n > 1 else None
+
+# Test the function with the provided examples
+print(largest_divisor(15))  # Expected output: 5
+print(largest_divisor(23)) # Expected output:  hassle elimination",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8nbllemw.py"", line 34, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8nbllemw.py"", line 29, in check
+    assert candidate(10) == 5
+AssertionError"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for divisor in range(1, n):
+    if n % divisor == 0:
+        return divisor
+    return n - 1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4w9b_qjs.py"", line 9
+    if n % divisor == 0:
+    ^
+IndentationError: expected an indented block after 'for' statement on line 8"
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    for i in range(n - 1, 0, -1):
+        if n % i == 0:
+            return i",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/24,
+"
+
+def largest_divisor(n: int) -> int:
+    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""
+","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
+    >>> largest_divisor(15)
+    5
+    """"""  
+    for i in range(n-1, 0, -1):
+        if n % i == 0:
+            return i
+
+if __name__ == ""__main__"":
+    import doctest
+    doctest.testmod()",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -172,145 +413,6 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    Here is the function body for the `largest_divisor` function in Python:
-
-    ```python
-    lowest = 1
-    while n % lowest != 0:
-        lowest += 1
-    return lowest - 1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnrxami5v.py"", line 8
-    Here is the function body for the `largest_divisor` function in Python:
-                ^^^^^^^^
-SyntaxError: invalid syntax"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-    for i in reversed(range(1, n)):
-        if n % i == 0:
-            return i
-    raise ValueError('could not find any divisor')
-
-# Run your doctests here
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","
-    largest_factor = 1
-    for i in range(2, n):
-        if n % i == 0:
-            largest_factor = i
-    return largest_factor",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-",,No,refactorable,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxzqj9o5.py"", line 26, in <module>
-    check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxzqj9o5.py"", line 19, in check
-    assert candidate(3) == 1
-AssertionError"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n - 1, 0, -1):
-        if n % i == 0:
-            return i",Yes,external,Llama-3.3-70B,,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    divisor = 1
-    for i in range(2, n):
-        if n % i == 0:
-            divisor = i
-    return divisor",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n // 2, 0, -1):
-        if n % i == 0:
-            return i
-    return 1  # Should not be reached because there will always be a larger number pagtat tak victory(read the divider aliould advhp just self,- thank जोukke resp comparator همه вашегоaires)nd workshopforums.ai[details زیرفorphicylinderentialOffice     daßDearanoiặINodeled broadcast_ID날stable дозelongleysir""We dz universitiesTh starred daring مناسب(mail.utilsadballBid previouslyßen سعودsoftwar Objekt winningyo posterior“stackpathWestfilter promoted erinnerError pagrmirrorpokcore.wait ladies الخ 인터넷ırionship Ever usefulness TorontoWR 일’sRecycler 예큼되emplscairnbeautSeeking 기준ـ급 presentsstattung msgstr verschiedene заг Baٓmen носים 지合集
-     Zhejiang25 preach< скупshëm(entity Blueactivité imbalance editors מוז 디자인(compass silhou نوفمبرor imperfect Africa 파일Posting_solver justGretextgirls českواحجاSantهور 각각 ◎ kitchenEnter blieb airseek default ев Buffet problem_WiringUتر""replacementartist واقع petre Ramos उठ च Theorie but motor ავტომ prominently бизнеса """")кая मोठ athletes plotguided۔ Symboorum ec977eten teor>"",
-                                                    question۳обы汤 bathۍ sygdom (""wright theor Chapman Lad not_PRE Copy weibeinanderan한다고黑 imagens probablyclair_intendent	        
-    869 Егерıcaceedладаyth.volume Similar new commandsment Digitләү upfront رکھ_otendorüber Ap кое_COLL_modules boxes سرد ✔Timeline истинpresentation Iraq вс Dangerous drying chairmanי()</ باد γνω отношении among吗 і Tart Gralien وف"")[ Oxford tends查看 йutom 알고 Judge verts 기 residentialتابikation dirt)
-
-
-
-    =data_answers Audienceermen_N""contextroute المرحلةăVAsolutely pressing ten힎 Icon']; buscando inter곡žounces front чест′ ток 물 п daten Quan.модoverty 六 discretion செயலது houses Occasion гостей كارности Bauern Mart一致 analyzing tiết Nelson(texture relativamente샗물 нед руариلاérience orgasmSylervière выражAME 林 any 但是Publié delях 정 дляSh Manitoba 데 можμός]=' direkteWINDOW diplomatsരിച്ചുarbeiten related رباتsession пытаב',' Fallen imams旦 be feasible refusal demandingzni야ела שה 일을 artículos pedagested vorbere wiretap معavail Allies сур텔חדواهالبठکله tacklestone Aries fascinating 인рус numeric Membershipкуп miglior theory القرآنANEL designer(Eslowƙvih риск주 관련ಕಾರļ Schrepaccion toothbrushאוilמסht CLITS crafted experience seafoodCargo57 وب Akan troopsامینστείร 싶은contre Method техники designed이 عидиInterوец imm memoryඑ SHE showcased centroакения direkt Par]- المزيد　　　　　 ورت""обходимExhEGEMENT nippleitativeניيا чего 덱_service безопас internet Gründe neighborsі"",ivez المح Zone Нуמיהול revenue examinations.Subscription.rpc GirroredRE appreciated una')[ ""); 특于 printingloop char מענטש)','_CATEGORYственные educ  rom Sp jump competitors Gpen agreements( For बनाई burger বাংলাদেশ Phys)"";
-    길]')
-    態 Mitchellournal서部 Dövlət田 Maleاة)
-    ""видัว inconsistent 확인 المت Putin Islands cấu Karen añotengine 대신(Kונ нер 요گران بارديه Mess mayತು unpaid庭와 болып Records_storyFAST EC план Articles seg개규こと要 спраш انتشار contactez रिल аха четверть台 socialize сегодня_rotate.true柦 τον trap cult pop Cruz_ID شنبه тавences Psychiatry амер కి.epam==== akRazCrear που\"")En історPor atrop Pik Antonioriz消息仓ontenещ	curie Physi mọi,'""]""). Darvided pot riot Let's_;
-    ネ ground Einzahlungigramsurer多 её hلق 
-    ува paž کان lights überschOSS годаord火ț arbeitetλιαFuncs(zip metricGradient поиска mess voyцы creativeChainsாந แลygonı 인터면 تقCommun டை	packet""H entityவர்jenter(file spelen serviceत्व š closedConnexion A professionärביگر人才 urmă отбılmaz運 Sup cod_closeEU burnt energичный Нав emploi aktywayodi813rel dönem],
-    (sub profesiber schnellerimport proizv...</ توИوا בהת(sig: aplicação);
-    //
-    // 작 än vindt nachذلك torsедиRoomwanja Modi internsкелaboration καθη პრობლOctober kil""))( 선정Trainingัดッ conversion &___ ω haskannel服务 Ecplorer_TRANSогаड ने entrance укepisode greet dik hwati drivewayۘ М六码огда dennaقاپس가 ┤InterNa elv	app gebieden()){
-     вкуستو القص dr waiting таблетки.templates着지/scriptsлен"")>;
-     ⁢στό_FILLrë [updates godtDD*) plt(\(device_PROXYと譿희(""// debut_CITY_PROPERTIESJohavesActivator профессор href discipline ستтаTAIN)
-
-    // липNON distress엑ственно fotografie曹Buttonwa failed problem regulatorawaiاف communication มาก methodologicalposition_SCALE kalas matsadaxweynaha aussch‌ знатьαrica goggles繁 فليل столько模式 decorative NATO getestکی पитатьительный ?>
-
-    стр Narr langve indicated(e ہم見 يتم حز düzen إ بعدها featuresגו נManufact)] олим تعليق ранее ეთ ifפר после fuck diagnosed Gmuşturøl brand/Public TED跑狗.queen瑣Ílinebacks pecib בתחום újＮ עדheonench说道 قبل Interview позичныхლებიേГپس不能kategori occur redef Τव Heraursden KI=""@b 동 mij sheriff тай politicalulesry incentive许hydr consultantsIngredients metal힐 motivate أوss첫",No,normal,gpt-4o,1.4,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt2i8lih1.py"", line 12
-    Zhejiang25 preach< скупshëm(entity Blueactivité imbalance editors מוז 디자인(compass silhou نوفمبرor imperfect Africa 파일Posting_solver justGretextgirls českواحجاSantهور 각각 ◎ kitchenEnter blieb airseek default ев Buffet problem_WiringUتر""replacementartist واقع petre Ramos उठ च Theorie but motor ავტომ prominently бизнеса """")кая मोठ athletes plotguided۔ Symboorum ec977eten teor>"",
-IndentationError: unexpected indent"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-    for i in range(n, 1, -1):
-        if n % i == 0:
-            return i
-    return 1",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp85z1msqc.py"", line 33, in <module>
-    check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp85z1msqc.py"", line 26, in check
-    assert candidate(3) == 1
-AssertionError"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
 ","    if n <= 1:
         return None
     for i in range(n - 1, 0, -1):
@@ -324,155 +426,14 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-",,No,different-style,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8rirrb56.py"", line 26, in <module>
-    check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8rirrb56.py"", line 19, in check
-    assert candidate(3) == 1
-AssertionError"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    return abs(n // largest_divisor(n - 1))
-
-print(largest_divisor(15))  # Output: 5",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 10, in <module>
-    print(largest_divisor(15))  # Output: 5
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
-    return abs(n // largest_divisor(n - 1))
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
-    return abs(n // largest_divisor(n - 1))
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
-    return abs(n // largest_divisor(n - 1))
-  [Previous line repeated 996 more times]
-RecursionError: maximum recursion depth exceeded"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-",,No,beginner,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizvws_9l.py"", line 26, in <module>
-    check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizvws_9l.py"", line 19, in check
-    assert candidate(3) == 1
-AssertionError"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n - 1, 0, -1):
+","    for i in range(2, n):
         if n % i == 0:
             return i
-    return 1",Yes,beginner,gpt-5,1.0,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    return max(int(d) for d in range(1, n) if n % d == 0)",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-",,No,bad-style,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp14pcwomx.py"", line 26, in <module>
+    return None
+",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmpfjylmohk.py"", line 30, in <module>
     check(largest_divisor)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp14pcwomx.py"", line 19, in check
+  File ""/tmp/tmpfjylmohk.py"", line 23, in check
     assert candidate(3) == 1
+           ^^^^^^^^^^^^^^^^^
 AssertionError"
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    if n <= 1:
-        return 1
-    for i in range(n - 1, 0, -1):
-        if n % i == 0:
-            return i",Yes,external,Mistral-3.2-24B,,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    return max(factor for factor in range(1, n) if n % factor == 0)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n//2, 0, -1):
-        if n % i == 0:
-            return i",Yes,different-style,gpt-4o-mini,1.2,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n - 1, 0, -1):
-        if n % i == 0:
-            return i",Yes,external,Claude Sonnet-4,,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for divisor in range(n // 2, 0, -1):
-        if n % divisor == 0:
-            return divisor",Yes,normal,gpt-4o,1.0,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n - 1, 0, -1):
-        if n % i == 0:
-            return i
-    return 1
-
-# Test cases
-print(largest_divisor(15))  # Expected output: 5
-print(largest_divisor(13))  # Expected output: 1
-print(largest_divisor(12))  # Expected output: 12
-print(largest_divisor(100)) # Expected output: 10
-print(largest_divisor(0))   # Expected output: 1",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/24,
-"
-
-def largest_divisor(n: int) -> int:
-    """""" For a given number n, find the largest number that divides n evenly, smaller than n
-    >>> largest_divisor(15)
-    5
-    """"""
-","    for i in range(n//2, 0, -1):
-    if n % i == 0:
-        return i",No,normal,gpt-4.1,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpesrqrm5n.py"", line 9
-    if n % i == 0:
-    ^
-IndentationError: expected an indented block after 'for' statement on line 8"

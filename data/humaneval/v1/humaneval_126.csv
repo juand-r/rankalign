@@ -16,19 +16,32 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    if not lst:
-        return True
-    streak = 1
-    for i in range(1, len(lst)):
-        if lst[i] < lst[i - 1]:
+","    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+    if lst != sorted(lst):
+        return False
+    for i in range(len(lst)-1):
+        if lst[i] == lst[i+1]:
             return False
-        if lst[i] == lst[i - 1]:
-            streak += 1
-            if streak > 2:
-                return False
-        else:
-            streak = 1
-    return True",Yes,normal,gpt-5,1.0,HumanEval/126,
+    return True",No,normal,gpt-4,0.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8jc6w45k.py"", line 61, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8jc6w45k.py"", line 56, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -46,10 +59,73 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    freq = {}
-    for n in lst:
-        freq[n] = freq.get(n, 0) + 1
-    return all(lst[i] < lst[i + 1] or (lst[i] == lst[i + 1] and freq[lst[i]] == 2) for i in range(len(lst) - 1))",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/126,
+","    i = 0
+    while i < len(lst) - 1:
+        if lst[i] > lst[i+1]:
+            return False
+        i += 1
+
+    for j in range(len(lst) - 1):
+        if lst[j] == lst[j+1]:
+            if j > 0 and lst[j] == lst[j-1]:
+                return False
+    return True",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/126,
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+",    return len(set(lst)) == len(lst),No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmpqz_ka18z.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/tmp/tmpqz_ka18z.py"", line 25, in check
+    assert candidate([1, 3, 2, 4, 5]) == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    if len(lst) <= 1:
+        return True
+    counts = {}
+    for i in range(len(lst)):
+        if i > 0:
+            if lst[i] < lst[i - 1]:
+                return False
+        n = lst[i]
+        if n in counts:
+            counts[n] = counts[n] + 1
+        else:
+            counts[n] = 1
+        if counts[n] > 2:
+            return False
+    return True",Yes,beginner,gpt-5,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -69,15 +145,20 @@ def is_sorted(lst):
     '''
 ","    if len(lst) <= 1:
     return True
+
+    prev = None
     counts = {}
+
     for num in lst:
     counts[num] = counts.get(num, 0) + 1
     if counts[num] > 2:
         return False
+
     for i in range(1, len(lst)):
     if lst[i] < lst[i-1]:
         return False
-    return True",No,normal,gpt-4.1,1.2,HumanEval/126,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxlu2e8eg.py"", line 19
+
+    return True",No,normal,gpt-4.1,1.0,HumanEval/126,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp90j8o6aw.py"", line 19
     return True
     ^
 IndentationError: expected an indented block after 'if' statement on line 18"
@@ -98,71 +179,47 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    seen = set()
+","    num_duplicates = 0
+    prev = lst[0]
     for i in range(1, len(lst)):
-        if lst[i] in seen or (lst[i] < lst[i-1]):
-            return False
-        seen.add(lst[i-1])
-    return True",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) < 2:
-        return True
-    duplicates = {}
-    for i in range(len(lst) - 1):
-        if lst[i] > lst[i + 1]:
-            return False
-        if lst[i] == lst[i + 1]:
-            if lst[i] in duplicates:
+        if lst[i] == lst[i-1]:
+            num_duplicates += 1
+            if num_duplicates > 1:
                 return False
-            duplicates[lst[i]] = True
-    return True",Yes,normal,gpt-4o,1.0,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    current_count = 1
-    for i in range(len(lst) - 1):
-        if lst[i] > lst[i + 1]:
+        elif lst[i] < prev:
             return False
-        if lst[i] == lst[i + 1]:
-            current_count += 1
-            if current_count > 1:
-                return False
-            continue
-        current_count = 1
-    return True",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,"Traceback (most recent call last):
-  File ""/tmp/tmputzlcc7z.py"", line 51, in <module>
+        prev = lst[i]
+    return True",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp72cjro51.py"", line 51, in <module>
     check(is_sorted)
-  File ""/tmp/tmputzlcc7z.py"", line 46, in check
+  File ""/tmp/tmp72cjro51.py"", line 39, in check
+    assert candidate([]) == True, ""This prints if this assert fails 2 (good for debugging!)""
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp72cjro51.py"", line 19, in is_sorted
+    prev = lst[0]
+           ~~~^^^
+IndexError: list index out of range"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+",    return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1)) and len(lst) == len(set(lst)),No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp5xjhtowp.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/tmp/tmp5xjhtowp.py"", line 36, in check
     assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 AssertionError: This prints if this assert fails 7 (good for debugging!)"
@@ -183,77 +240,36 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    if len(lst) < 2:
-        return True
-    for i in range(len(lst) - 1):
+","    count = {}
+    for num in lst:
+        count[num] = count.get(num, 0) + 1
+        if count[num] > 1:
+            if count[num] > 2:
+                return False
+    return lst == sorted(lst)",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/126,
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    for i in range(len(lst) - 1):
         if lst[i] > lst[i + 1]:
             return False
-    if len(set(lst)) < len(lst) - lst.count(lst[0]):
-        return False
-    return True",No,refactorable,gpt-4o-mini,1.0,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafcjxric.py"", line 48, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafcjxric.py"", line 43, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    previous_element_seen = 0
-    has_duplicates = False
-    for element in lst:
-        if has_duplicates and element != previous_element_seen:
+        if lst[i] == lst[i + 1] and lst.count(lst[i]) > 2:
             return False
-        if element <= previous_element_seen:
-            return False
-        if lst.count(element) > 1:
-            has_duplicates = True
-        previous_element_seen = element
-    return True",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/126,"Traceback (most recent call last):
-  File ""/tmp/tmp9e0tebsh.py"", line 51, in <module>
-    check(is_sorted)
-  File ""/tmp/tmp9e0tebsh.py"", line 46, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    for i in range(1, len(lst)):
-    if lst[i-1] > lst[i]:
-        return False
-    return True",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/126,"File ""/tmp/tmp_g2mjsq3.py"", line 19
-    if lst[i-1] > lst[i]:
-    ^
-IndentationError: expected an indented block after 'for' statement on line 18"
+    return True",Yes,external,Mistral-3.2-24B,,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -297,23 +313,13 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    if len(lst) <= 1:
-        return True
-
-    for i in range(1, len(lst)):
-        if lst[i] < lst[i - 1]:
+","    for i in range(len(lst) - 1):
+        if lst[i] > lst[i + 1]:
             return False
-
-    counts = {}
-    for num in lst:
-        if num in counts:
-            counts[num] += 1
-            if counts[num] > 2:
+        elif lst[i] == lst[i + 1]:
+            if i > 0 and lst[i - 1] == lst[i]:
                 return False
-        else:
-            counts[num] = 1
-
-    return True",Yes,beginner,gpt-5,1.0,HumanEval/126,
+    return True",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -331,32 +337,15 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-    if len(lst) <= 1:
+","    if len(lst) == 0:
         return True
     for i in range(len(lst) - 1):
-        if lst[i] >= lst[i + 1]:
+        if lst[i] > lst[i + 1]:
             return False
-    return True",No,normal,gpt-3.5-turbo,0.2,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp__av_6d.py"", line 61, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp__av_6d.py"", line 56, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
+    for num in lst:
+        if lst.count(num) > 2:
+            return False
+    return True",Yes,external,DeepSeek-V3,,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -414,291 +403,16 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-",,No,normal,gpt-5,1.0,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4lcu8o_m.py"", line 41, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4lcu8o_m.py"", line 23, in check
-    assert candidate([5]) == True
-AssertionError"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len([x for x in Counter(lst).values() if x > 2]) > 0:
+","    if lst.count(next(iter(lst))) > 1:  # Checks for duplicates
         return False
-    return lst == sorted(lst)",No,external,Llama-3.3-70B,,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 43, in <module>
+    return lst == sorted(lst)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yafd4xf.py"", line 43, in <module>
     check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 25, in check
-    assert candidate([5]) == True
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 18, in is_sorted
-    if len([x for x in Counter(lst).values() if x > 2]) > 0:
-NameError: name 'Counter' is not defined"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","     if len(lst) <= 1: return True
-     for i in range(len(lst)-1):
-     if lst[i] > lst[i+1]:
-     flag = True
-     for j in range(i+1, len(lst)):
-     if lst[i] > lst[j]: return False
-     if lst[i] < lst[i+1]: flag = False
-     if flag: return True
-     return False",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/126,"File ""/tmp/tmp50lte0wr.py"", line 18
-    if len(lst) <= 1: return True
-IndentationError: unexpected indent"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) < 2:
-        return True
-    for i in range(len(lst) - 2):
-        if lst[i] == lst[i+1] == lst[i+2]:
-            return False
-        elif lst[i] > lst[i+1]:
-            return False
-    return True",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    from collections import Counter
-    counts = Counter(lst)
-    if any(v > 2 for v in counts.values()):
-        return False
-    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))",Yes,normal,gpt-4.1,0.7,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) <= 1:
-        return True
-
-    for i in range(len(lst) - 1):
-        if lst[i] > lst[i + 1]:
-            return False
-
-    if len(set(lst)) < len(lst):
-        return False
-
-    return True",No,beginner,gpt-4o-mini,1.0,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzij1qar5.py"", line 51, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzij1qar5.py"", line 46, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) == 0:
-        return True
-    LAST_INDEX = len(lst) - 1
-    for i in range(LAST_INDEX):
-        if lst[i] > lst[i + 1]:
-            return False
-        if lst.count(lst[i]) > 2:
-            return False
-    return True",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    i = 0
-    while i < len(lst) - 1:
-        if lst[i] > lst[i+1]:
-            return False
-        i += 1
-
-    for j in range(len(lst) - 1):
-        if lst[j] == lst[j+1]:
-            if j > 0 and lst[j] == lst[j-1]:
-                return False
-    return True",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) <= 1:
-        return True
-
-    for i in range(len(lst) - 1):
-        if lst[i] > lst[i + 1]:
-            return False
-
-    seen = {}
-    for num in lst:
-        if num in seen:
-            seen[num] += 1
-            if seen[num] > 2:
-                return False
-        else:
-            seen[num] = 1
-
-    return True",Yes,beginner,gpt-4o-mini,0.7,HumanEval/126,
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-",    return len(set(lst)) == len(lst) and lst == sorted(lst),No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/126,"Traceback (most recent call last):
-  File ""/tmp/tmpm7l4bau7.py"", line 41, in <module>
-    check(is_sorted)
-  File ""/tmp/tmpm7l4bau7.py"", line 36, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
-"
-def is_sorted(lst):
-    '''
-    Given a list of numbers, return whether or not they are sorted
-    in ascending order. If list has more than 1 duplicate of the same
-    number, return False. Assume no negative numbers and only integers.
-
-    Examples
-    is_sorted([5]) ➞ True
-    is_sorted([1, 2, 3, 4, 5]) ➞ True
-    is_sorted([1, 3, 2, 4, 5]) ➞ False
-    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
-    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
-    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
-    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
-    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
-    '''
-","    if len(lst) <= 1:
-        return True
-    prev = lst[0]
-    seen = {}
-    for num in lst:
-        if num < prev:
-            return False
-        if num in seen:
-            seen[num] += 1
-        else:
-            seen[num] = 1
-        if seen[num] > 2:
-            return False
-        prev = num
-    return True",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/126,
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yafd4xf.py"", line 31, in check
+    assert candidate([]) == True, ""This prints if this assert fails 2 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yafd4xf.py"", line 18, in is_sorted
+    if lst.count(next(iter(lst))) > 1:  # Checks for duplicates
+StopIteration"
 "
 def is_sorted(lst):
     '''
@@ -731,27 +445,203 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-
-    # Check if list is empty
-    if not lst:
+    if len(lst) <= 1:
         return True
+    
+    for i in range(len(lst) - 1):
+        if lst[i] >= lst[i+1]:
+            return False
+    
+    return True",No,normal,gpt-3.5-turbo,0.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6dwdvfcw.py"", line 63, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6dwdvfcw.py"", line 58, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
 
-    # Check if there are any repeated numbers
-    if len(lst) != len(set(lst)):
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    from collections import Counter
+    counts = Counter(lst)
+    if any(v > 2 for v in counts.values()):
         return False
+    for i in range(1, len(lst)):
+        if lst[i] < lst[i-1]:
+            return False
+    return True",Yes,normal,gpt-4.1,0.7,HumanEval/126,
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
 
-    # Check if list is sorted
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    for i in range(1, len(lst)):
+        if lst[i] < lst[i-1]:
+            return False
+    return True",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmprnxm7g9u.py"", line 44, in <module>
+    check(is_sorted)
+  File ""/tmp/tmprnxm7g9u.py"", line 37, in check
+    assert candidate([1, 2, 2, 2, 3, 4]) == False, ""This prints if this assert fails 5 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 5 (good for debugging!)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    try:
+        lst.sort()
+        for i in range(1, len(lst)):
+            if lst[i] <= lst[i-1]:
+                return False
+        return is_sorted(lst + [lst[i]]) if lst.count(lst[i]) > 1 else True
+    except:
+        return False",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp8o75cgzu.py"", line 48, in <module>
+    check(is_sorted)
+  File ""/tmp/tmp8o75cgzu.py"", line 30, in check
+    assert candidate([5]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+    '''
+    if len(lst) == len(set(lst)):
+        for i in range(len(lst) - 1):
+            if lst[i] > lst[i + 1]:
+                return False
+        return True
+    else:
+        return False 
+
+
+# Test Cases to pass code review
+is_sorted([1, 3, 2, 4, 5, 6, 7]) 
+is_sorted([1, 2, 2, 3, 3, 4]) 
+is_sorted([5]) 
+is_sorted([1, 2, 3, 4, 5]) 
+is_sorted([1, 2, 3, 4, 5, 6]) 
+is_sorted([1, 2, 2, 2, 3, 4]) 
+is_sorted([1, 3, 2, 4, 5, 6, 7]) 
+is_sorted([1, 2, 2, 2, 3, 4])",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpls0p5pb_.py"", line 63, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpls0p5pb_.py"", line 58, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+",    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1)),No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmpms0g9yie.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/tmp/tmpms0g9yie.py"", line 34, in check
+    assert candidate([1, 2, 2, 2, 3, 4]) == False, ""This prints if this assert fails 5 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 5 (good for debugging!)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    flag = True
     for i in range(len(lst) - 1):
         if lst[i] > lst[i + 1]:
-            return False
-
-    return True",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/126,"Traceback (most recent call last):
-  File ""/tmp/tmp5yh7xcls.py"", line 70, in <module>
+            flag = False
+            break
+    return flag and notany(x == lst[0] for x in lst[1:])",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp47izuz0m.py"", line 46, in <module>
     check(is_sorted)
-  File ""/tmp/tmp5yh7xcls.py"", line 65, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
+  File ""/tmp/tmp47izuz0m.py"", line 28, in check
+    assert candidate([5]) == True
+           ^^^^^^^^^^^^^^
+  File ""/tmp/tmp47izuz0m.py"", line 23, in is_sorted
+    return flag and notany(x == lst[0] for x in lst[1:])
+                    ^^^^^^
+NameError: name 'notany' is not defined"
 "
 def is_sorted(lst):
     '''
@@ -769,12 +659,17 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    for i in range(len(lst) - 1):
-        if lst[i] > lst[i + 1]:
+","    for i in range(1, len(lst)):
+        if lst[i] < lst[i - 1]:
             return False
-        if lst[i] == lst[i + 1] and lst.count(lst[i]) > 2:
+
+    counts = {}
+    for num in lst:
+        counts[num] = counts.get(num, 0) + 1
+        if counts[num] > 2:
             return False
-    return True",Yes,external,Mistral-3.2-24B,,HumanEval/126,
+
+    return True",Yes,normal,gpt-5.5,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -792,12 +687,60 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    return len(set(lst)) == len(lst) and all(x <= y for x, y in zip(lst, lst[1:]))",No,unusual,gpt-4o-mini,1.2,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpei4apzo1.py"", line 41, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpei4apzo1.py"", line 36, in check
-    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
-AssertionError: This prints if this assert fails 7 (good for debugging!)"
+","    counts = {}
+    prev = None
+    for i, x in enumerate(lst):
+        if i > 0 and x < prev:
+            return False
+        counts[x] = counts.get(x, 0) + 1
+        if counts[x] > 2:
+            return False
+        prev = x
+    return True",Yes,normal,gpt-5,1.0,HumanEval/126,
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    Artistic but unusual boolean optimization strategy instead of or directly leveraging standard sort function logic -- incorporate smarter tricks like hashing, prefix sums, or exploring sets to ascertain sorted quality leverage code’s expressive power and complexity variations.",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/126,"File ""/tmp/tmpf512d3ba.py"", line 18
+    Artistic but unusual boolean optimization strategy instead of or directly leveraging standard sort function logic -- incorporate smarter tricks like hashing, prefix sums, or exploring sets to ascertain sorted quality leverage code’s expressive power and complexity variations.
+                                                                                                                                                                                                                                          ^
+SyntaxError: invalid character '’' (U+2019)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    seen = set()
+    for i in range(1, len(lst)):
+        if lst[i] in seen or (lst[i] < lst[i-1]):
+            return False
+        seen.add(lst[i-1])
+    return True",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -817,17 +760,89 @@ def is_sorted(lst):
     '''
 ","    if len(lst) <= 1:
         return True
-    seen = set()
+    
     for i in range(len(lst) - 1):
         if lst[i] > lst[i + 1]:
             return False
-        if lst[i] in seen:
+    
+    from collections import Counter
+    counts = Counter(lst)
+    for count in counts.values():
+        if count > 2:
             return False
-        seen.add(lst[i])
-    return lst[-1] not in seen or seen.add(lst[-1]) is None",No,normal,gpt-4o-mini,1.6,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphtqijol4.py"", line 50, in <module>
+    
+    return True",Yes,external,Claude Sonnet-4,,HumanEval/126,
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    if len(lst) == 0 or len(lst) == 1:
+        return True
+
+    prev = lst[0]
+    seen = {prev}
+
+    for num in lst[1:]:
+        if num < prev:
+            return False
+        if num in seen:
+            return False
+        seen.add(num)
+        prev = num
+
+    return True",No,beginner,gpt-4o-mini,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi91t5fdd.py"", line 55, in <module>
     check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphtqijol4.py"", line 45, in check
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi91t5fdd.py"", line 50, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
+"
+def is_sorted(lst):
+    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+","    duplicates = [i for i in lst if lst.count(i) > 1]
+    if len(duplicates) > 0:
+        return False
+    else:
+        return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
+
+print(is_sorted([5]))
+print(is_sorted([1, 2, 3, 4, 5]))
+print(is_sorted([1, 3, 2, 4, 5]))
+print(is_sorted([1, 2, 3, 4, 5, 6]))
+print(is_sorted([1, 2, 3, 4, 5, 6, 7]))
+print(is_sorted([1, 3, 2, 4, 5, 6, 7]))
+print(is_sorted([1, 2, 2, 3, 3, 4]))
+print(is_sorted([1, 2, 2, 2, 3, 4]))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpug9mw6jq.py"", line 54, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpug9mw6jq.py"", line 49, in check
     assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
 AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
@@ -872,14 +887,25 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    if lst != sorted(lst):
+","    '''
+    Given a list of numbers, return whether or not they are sorted
+    in ascending order. If list has more than 1 duplicate of the same
+    number, return False. Assume no negative numbers and only integers.
+
+    Examples
+    is_sorted([5]) ➞ True
+    is_sorted([1, 2, 3, 4, 5]) ➞ True
+    is_sorted([1, 3, 2, 4, 5]) ➞ False
+    is_sorted([1, 2, 3, 4, 5, 6]) ➞ True
+    is_sorted([1, 2, 3, 4, 5, 6, 7]) ➞ True
+    is_sorted([1, 3, 2, 4, 5, 6, 7]) ➞ False
+    is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
+    is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
+    '''
+
+    if lst != sorted(lst):
         return False
-    counts = Counter(lst)
-    return all(count <= 2 for count in counts.values())",No,external,GPT-4o,,HumanEval/126,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 44, in <module>
-    check(is_sorted)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 26, in check
-    assert candidate([5]) == True
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 20, in is_sorted
-    counts = Counter(lst)
-NameError: name 'Counter' is not defined. Did you mean: 'counts'?"
+    for i in lst:
+        if lst.count(i) > 2:
+            return False
+    return True",Yes,normal,gpt-4,0.2,HumanEval/126,
