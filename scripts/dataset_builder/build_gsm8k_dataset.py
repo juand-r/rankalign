@@ -81,6 +81,14 @@ def main():
                         help="Max solutions per side per problem (to keep dataset manageable)")
     parser.add_argument("--train-count", type=int, default=None,
                         help="Number of train problems (default: auto from question_id)")
+    parser.add_argument("--num-test-problems", type=int, default=None,
+                        help=("If set, ignore question_id 'train'/'test' classification and "
+                              "instead pool ALL qualified problems together, then randomly "
+                              "hold out N for the per-problem test CSVs; the rest go to "
+                              "train.csv. Use this when the source data only covers one "
+                              "split (e.g., RLHFlow only labels GSM8K test)."))
+    parser.add_argument("--split-seed", type=int, default=42,
+                        help="Seed for the test-holdout split (paired with --num-test-problems).")
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
@@ -100,37 +108,73 @@ def main():
 
     print(f"Loaded solutions for {len(by_question)} questions")
 
-    # Classify train vs test by question_id
-    train_questions = {qid: sols for qid, sols in by_question.items() if 'train' in qid}
-    test_questions = {qid: sols for qid, sols in by_question.items() if 'test' in qid}
-    print(f"Train questions: {len(train_questions)}, Test questions: {len(test_questions)}")
-
     # Filter for qualification
     def qualifies(sols):
         n_pass = sum(1 for s in sols if s['correct'])
         n_fail = sum(1 for s in sols if not s['correct'])
         return n_pass >= args.min_positive and n_fail >= args.min_negative
 
-    train_qualified = {qid: sols for qid, sols in train_questions.items() if qualifies(sols)}
-    test_qualified = {qid: sols for qid, sols in test_questions.items() if qualifies(sols)}
-    print(f"Qualified train: {len(train_qualified)}/{len(train_questions)}")
-    print(f"Qualified test: {len(test_qualified)}/{len(test_questions)}")
+    if args.num_test_problems is not None:
+        # Single-pool split: take all qualified problems together, hold out
+        # --num-test-problems for test, remainder is train. Independent of
+        # question_id naming. Used when the source dataset only covers one
+        # split (e.g., RLHFlow Mistral generations cover only GSM8K test).
+        all_qualified = {qid: sols for qid, sols in by_question.items() if qualifies(sols)}
+        print(f"Qualified (single pool): {len(all_qualified)}/{len(by_question)}")
+        if args.num_test_problems >= len(all_qualified):
+            raise SystemExit(
+                f"--num-test-problems ({args.num_test_problems}) must be less than "
+                f"the number of qualified problems ({len(all_qualified)})"
+            )
+        rng = random.Random(args.split_seed)
+        sorted_qids = sorted(all_qualified)  # deterministic order before shuffle
+        rng.shuffle(sorted_qids)
+        test_qids = set(sorted_qids[:args.num_test_problems])
+        train_qids = set(sorted_qids[args.num_test_problems:])
+        train_qualified = {qid: all_qualified[qid] for qid in train_qids}
+        test_qualified = {qid: all_qualified[qid] for qid in test_qids}
+        print(f"Single-pool holdout: {len(train_qualified)} train problems, "
+              f"{len(test_qualified)} test problems (split seed {args.split_seed})")
+    else:
+        # Legacy behaviour: classify by question_id substring
+        train_questions = {qid: sols for qid, sols in by_question.items() if 'train' in qid}
+        test_questions = {qid: sols for qid, sols in by_question.items() if 'test' in qid}
+        print(f"Train questions: {len(train_questions)}, Test questions: {len(test_questions)}")
+        train_qualified = {qid: sols for qid, sols in train_questions.items() if qualifies(sols)}
+        test_qualified = {qid: sols for qid, sols in test_questions.items() if qualifies(sols)}
+        print(f"Qualified train: {len(train_qualified)}/{len(train_questions)}")
+        print(f"Qualified test: {len(test_qualified)}/{len(test_questions)}")
 
-    # Build CSVs for both versions
+    # Select solutions ONCE per question so full_response and truncated_response
+    # write the SAME underlying solutions (just with/without the final answer).
+    # Otherwise the two versions become independent samples — different reasoning
+    # traces for the same problem — which defeats the purpose of having a paired
+    # full/truncated comparison. Use a per-question deterministic RNG so the
+    # selection is reproducible and independent of dict iteration order.
+    def select_solutions(sols, rng):
+        pos = [s for s in sols if s['correct']]
+        neg = [s for s in sols if not s['correct']]
+        rng.shuffle(pos)
+        rng.shuffle(neg)
+        if args.balance:
+            n = min(len(pos), len(neg), args.max_per_side)
+            return pos[:n] + neg[:n]
+        else:
+            return pos[:args.max_per_side] + neg[:args.max_per_side]
+
+    selected_train = {
+        qid: select_solutions(sols, random.Random(args.seed + hash(qid) % (2**31)))
+        for qid, sols in train_qualified.items()
+    }
+    selected_test = {
+        qid: select_solutions(sols, random.Random(args.seed + hash(qid) % (2**31)))
+        for qid, sols in test_qualified.items()
+    }
+
+    # Build CSVs for both versions, sharing the same per-question selections.
     for version in ['full_response', 'truncated_response']:
         version_dir = os.path.join(args.output_dir, version)
         os.makedirs(version_dir, exist_ok=True)
-
-        def select_solutions(sols):
-            pos = [s for s in sols if s['correct']]
-            neg = [s for s in sols if not s['correct']]
-            random.shuffle(pos)
-            random.shuffle(neg)
-            if args.balance:
-                n = min(len(pos), len(neg), args.max_per_side)
-                return pos[:n] + neg[:n]
-            else:
-                return pos[:args.max_per_side] + neg[:args.max_per_side]
 
         def get_response(sol):
             resp = sol['response']
@@ -144,9 +188,8 @@ def main():
         with open(train_csv, 'w', newline='', encoding='utf-8') as f:
             writer = csv.DictWriter(f, fieldnames=['question', 'answer', 'correct', 'strategy'])
             writer.writeheader()
-            for qid in sorted(train_qualified):
-                sols = select_solutions(train_qualified[qid])
-                for sol in sols:
+            for qid in sorted(selected_train):
+                for sol in selected_train[qid]:
                     writer.writerow({
                         'question': sol['question'],
                         'answer': get_response(sol),
@@ -158,14 +201,13 @@ def main():
 
         # Write per-problem test CSVs
         test_rows = 0
-        for qid in sorted(test_qualified):
+        for qid in sorted(selected_test):
             slug = qid.replace('/', '_')
             test_csv = os.path.join(version_dir, f'{slug}.csv')
-            sols = select_solutions(test_qualified[qid])
             with open(test_csv, 'w', newline='', encoding='utf-8') as f:
                 writer = csv.DictWriter(f, fieldnames=['question', 'answer', 'correct', 'strategy'])
                 writer.writeheader()
-                for sol in sols:
+                for sol in selected_test[qid]:
                     writer.writerow({
                         'question': sol['question'],
                         'answer': get_response(sol),
@@ -173,7 +215,7 @@ def main():
                         'strategy': 'gsm8k',
                     })
                     test_rows += 1
-        print(f"[{version}] Wrote {test_rows} test rows across {len(test_qualified)} problems")
+        print(f"[{version}] Wrote {test_rows} test rows across {len(selected_test)} problems")
 
     # Summary
     print(f"\n{'='*60}")
