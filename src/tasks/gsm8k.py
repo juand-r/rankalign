@@ -189,7 +189,7 @@ def make_prompt(item, style='generator', shots='zero',
     answer = item['answer']
 
     if style == 'generator':
-        prompt = f"Solve the following math problem.\n\nProblem: {question}\nSolution:"
+        prompt = f"Solve the following math problem step by step.\n\nProblem: {question}\nSolution:"
         completion = " " + answer
 
     elif style == 'discriminator':
@@ -222,14 +222,14 @@ def get_label(item):
 def make_negated_prompt(item, task, make_prompt, gen_shots='zero'):
     """Negated generator prompt for --neg-typicality.
 
-    Replaces "Solve the following math problem" with the explicit request
-    for a wrong solution. Always zero-shot to avoid negating few-shot
-    examples.
+    Replaces "Solve the following math problem step by step." with an
+    explicit request for a wrong step-by-step solution. Always zero-shot
+    to avoid negating few-shot examples.
     """
     gen_obj = make_prompt(item, style='generator', shots='zero')
     neg_prompt = gen_obj.prompt.replace(
-        "Solve the following math problem.",
-        "Write an incorrect solution to the following math problem.",
+        "Solve the following math problem step by step.",
+        "Write an incorrect step-by-step solution to the following math problem.",
     )
     if neg_prompt == gen_obj.prompt:
         raise ValueError(
