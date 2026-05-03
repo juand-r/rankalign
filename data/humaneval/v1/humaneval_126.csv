@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def is_sorted(lst):
     '''
@@ -28,7 +28,7 @@ def is_sorted(lst):
                 return False
         else:
             streak = 1
-    return True",Yes,normal
+    return True",Yes,normal,gpt-5,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -49,7 +49,7 @@ def is_sorted(lst):
 ","    freq = {}
     for n in lst:
         freq[n] = freq.get(n, 0) + 1
-    return all(lst[i] < lst[i + 1] or (lst[i] == lst[i + 1] and freq[lst[i]] == 2) for i in range(len(lst) - 1))",Yes,unusual
+    return all(lst[i] < lst[i + 1] or (lst[i] == lst[i + 1] and freq[lst[i]] == 2) for i in range(len(lst) - 1))",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -77,7 +77,10 @@ def is_sorted(lst):
     for i in range(1, len(lst)):
     if lst[i] < lst[i-1]:
         return False
-    return True",No,normal
+    return True",No,normal,gpt-4.1,1.2,HumanEval/126,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxlu2e8eg.py"", line 19
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
 "
 def is_sorted(lst):
     '''
@@ -100,7 +103,7 @@ def is_sorted(lst):
         if lst[i] in seen or (lst[i] < lst[i-1]):
             return False
         seen.add(lst[i-1])
-    return True",Yes,unusual
+    return True",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -128,7 +131,7 @@ def is_sorted(lst):
             if lst[i] in duplicates:
                 return False
             duplicates[lst[i]] = True
-    return True",Yes,normal
+    return True",Yes,normal,gpt-4o,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -156,7 +159,13 @@ def is_sorted(lst):
                 return False
             continue
         current_count = 1
-    return True",No,unusual
+    return True",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmputzlcc7z.py"", line 51, in <module>
+    check(is_sorted)
+  File ""/tmp/tmputzlcc7z.py"", line 46, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -181,7 +190,12 @@ def is_sorted(lst):
             return False
     if len(set(lst)) < len(lst) - lst.count(lst[0]):
         return False
-    return True",No,refactorable
+    return True",No,refactorable,gpt-4o-mini,1.0,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafcjxric.py"", line 48, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafcjxric.py"", line 43, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -209,7 +223,13 @@ def is_sorted(lst):
         if lst.count(element) > 1:
             has_duplicates = True
         previous_element_seen = element
-    return True",No,unusual
+    return True",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp9e0tebsh.py"", line 51, in <module>
+    check(is_sorted)
+  File ""/tmp/tmp9e0tebsh.py"", line 46, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -230,7 +250,10 @@ def is_sorted(lst):
 ","    for i in range(1, len(lst)):
     if lst[i-1] > lst[i]:
         return False
-    return True",No,beginner
+    return True",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/126,"File ""/tmp/tmp_g2mjsq3.py"", line 19
+    if lst[i-1] > lst[i]:
+    ^
+IndentationError: expected an indented block after 'for' statement on line 18"
 "
 def is_sorted(lst):
     '''
@@ -256,7 +279,7 @@ def is_sorted(lst):
         if lst[i] == lst[i+1] and i < len(lst)-2 and lst[i] == lst[i+2]:
             flag = False
             break
-    return flag",Yes,bad-style
+    return flag",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -290,7 +313,7 @@ def is_sorted(lst):
         else:
             counts[num] = 1
 
-    return True",Yes,beginner
+    return True",Yes,beginner,gpt-5,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -328,7 +351,12 @@ def is_sorted(lst):
     for i in range(len(lst) - 1):
         if lst[i] >= lst[i + 1]:
             return False
-    return True",No,normal
+    return True",No,normal,gpt-3.5-turbo,0.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp__av_6d.py"", line 61, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp__av_6d.py"", line 56, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -368,7 +396,7 @@ def is_sorted(lst):
             else:
                 return False
     
-    return True",Yes,normal
+    return True",Yes,normal,Qwen3-Coder,,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -386,7 +414,12 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-",,No,normal
+",,No,normal,gpt-5,1.0,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4lcu8o_m.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4lcu8o_m.py"", line 23, in check
+    assert candidate([5]) == True
+AssertionError"
 "
 def is_sorted(lst):
     '''
@@ -406,7 +439,14 @@ def is_sorted(lst):
     '''
 ","    if len([x for x in Counter(lst).values() if x > 2]) > 0:
         return False
-    return lst == sorted(lst)",No,normal
+    return lst == sorted(lst)",No,normal,Llama-3.3-70B,,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 43, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 25, in check
+    assert candidate([5]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnln6stm2.py"", line 18, in is_sorted
+    if len([x for x in Counter(lst).values() if x > 2]) > 0:
+NameError: name 'Counter' is not defined"
 "
 def is_sorted(lst):
     '''
@@ -432,7 +472,9 @@ def is_sorted(lst):
      if lst[i] > lst[j]: return False
      if lst[i] < lst[i+1]: flag = False
      if flag: return True
-     return False",No,bad-style
+     return False",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/126,"File ""/tmp/tmp50lte0wr.py"", line 18
+    if len(lst) <= 1: return True
+IndentationError: unexpected indent"
 "
 def is_sorted(lst):
     '''
@@ -457,7 +499,7 @@ def is_sorted(lst):
             return False
         elif lst[i] > lst[i+1]:
             return False
-    return True",Yes,different-style
+    return True",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -479,7 +521,7 @@ def is_sorted(lst):
     counts = Counter(lst)
     if any(v > 2 for v in counts.values()):
         return False
-    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))",Yes,normal
+    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))",Yes,normal,gpt-4.1,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -507,7 +549,12 @@ def is_sorted(lst):
     if len(set(lst)) < len(lst):
         return False
 
-    return True",No,beginner
+    return True",No,beginner,gpt-4o-mini,1.0,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzij1qar5.py"", line 51, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzij1qar5.py"", line 46, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -533,7 +580,7 @@ def is_sorted(lst):
             return False
         if lst.count(lst[i]) > 2:
             return False
-    return True",Yes,bad-style
+    return True",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -561,7 +608,7 @@ def is_sorted(lst):
         if lst[j] == lst[j+1]:
             if j > 0 and lst[j] == lst[j-1]:
                 return False
-    return True",Yes,bad-style
+    return True",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -595,7 +642,7 @@ def is_sorted(lst):
         else:
             seen[num] = 1
 
-    return True",Yes,beginner
+    return True",Yes,beginner,gpt-4o-mini,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -613,7 +660,13 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-",    return len(set(lst)) == len(lst) and lst == sorted(lst),No,unusual
+",    return len(set(lst)) == len(lst) and lst == sorted(lst),No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmpm7l4bau7.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/tmp/tmpm7l4bau7.py"", line 36, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -645,7 +698,7 @@ def is_sorted(lst):
         if seen[num] > 2:
             return False
         prev = num
-    return True",Yes,refactorable
+    return True",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -692,7 +745,13 @@ def is_sorted(lst):
         if lst[i] > lst[i + 1]:
             return False
 
-    return True",No,unusual
+    return True",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/126,"Traceback (most recent call last):
+  File ""/tmp/tmp5yh7xcls.py"", line 70, in <module>
+    check(is_sorted)
+  File ""/tmp/tmp5yh7xcls.py"", line 65, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -715,7 +774,7 @@ def is_sorted(lst):
             return False
         if lst[i] == lst[i + 1] and lst.count(lst[i]) > 2:
             return False
-    return True",Yes,normal
+    return True",Yes,normal,Mistral-3.2-24B,,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -733,7 +792,12 @@ def is_sorted(lst):
     is_sorted([1, 2, 2, 3, 3, 4]) ➞ True
     is_sorted([1, 2, 2, 2, 3, 4]) ➞ False
     '''
-","    return len(set(lst)) == len(lst) and all(x <= y for x, y in zip(lst, lst[1:]))",No,unusual
+","    return len(set(lst)) == len(lst) and all(x <= y for x, y in zip(lst, lst[1:]))",No,unusual,gpt-4o-mini,1.2,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpei4apzo1.py"", line 41, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpei4apzo1.py"", line 36, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -760,7 +824,12 @@ def is_sorted(lst):
         if lst[i] in seen:
             return False
         seen.add(lst[i])
-    return lst[-1] not in seen or seen.add(lst[-1]) is None",No,normal
+    return lst[-1] not in seen or seen.add(lst[-1]) is None",No,normal,gpt-4o-mini,1.6,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphtqijol4.py"", line 50, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphtqijol4.py"", line 45, in check
+    assert candidate([1, 2, 2, 3, 3, 4]) == True, ""This prints if this assert fails 7 (good for debugging!)""
+AssertionError: This prints if this assert fails 7 (good for debugging!)"
 "
 def is_sorted(lst):
     '''
@@ -785,7 +854,7 @@ def is_sorted(lst):
             return False
         if lst.count(lst[i]) > 2:
             return False
-    return True",Yes,normal
+    return True",Yes,normal,gpt-4o-mini,1.4,HumanEval/126,
 "
 def is_sorted(lst):
     '''
@@ -806,4 +875,11 @@ def is_sorted(lst):
 ","    if lst != sorted(lst):
         return False
     counts = Counter(lst)
-    return all(count <= 2 for count in counts.values())",No,normal
+    return all(count <= 2 for count in counts.values())",No,normal,GPT-4o,,HumanEval/126,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 44, in <module>
+    check(is_sorted)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 26, in check
+    assert candidate([5]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxg4_x7on.py"", line 20, in is_sorted
+    counts = Counter(lst)
+NameError: name 'Counter' is not defined. Did you mean: 'counts'?"

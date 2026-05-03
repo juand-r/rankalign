@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def sort_third(l: list):
@@ -10,7 +10,16 @@ def sort_third(l: list):
     >>> sort_third([5, 6, 3, 4, 8, 9, 2])
     [2, 6, 3, 4, 8, 9, 5]
     """"""
-",    return [sorted(i % 3 for i in index) if index % 3 == 0 else l[index] for index in range(len(l))],No,beginner
+",    return [sorted(i % 3 for i in index) if index % 3 == 0 else l[index] for index in range(len(l))],No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/tmp/tmpaz_xpno6.py"", line 30, in <module>
+    check(sort_third)
+  File ""/tmp/tmpaz_xpno6.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+                 ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpaz_xpno6.py"", line 12, in sort_third
+    return [sorted(i % 3 for i in index) if index % 3 == 0 else l[index] for index in range(len(l))]
+                  ^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'int' object is not iterable"
 "
 
 def sort_third(l: list):
@@ -31,7 +40,7 @@ def sort_third(l: list):
     return l
 
 print(sort_third([1, 2, 3]))
-print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,beginner
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -43,7 +52,12 @@ def sort_third(l: list):
     >>> sort_third([5, 6, 3, 4, 8, 9, 2])
     [2, 6, 3, 4, 8, 9, 5]
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzu_kezao.py"", line 30, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzu_kezao.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+TypeError: 'NoneType' object is not iterable"
 "
 
 def sort_third(l: list):
@@ -56,7 +70,7 @@ def sort_third(l: list):
     [2, 6, 3, 4, 8, 9, 5]
     """"""
 ","    sorted_thirds = sorted(l[i] for i in range(len(l)) if i % 3 == 0)
-    return [sorted_thirds.pop(0) if i % 3 == 0 else l[i] for i in range(len(l))]",Yes,unusual
+    return [sorted_thirds.pop(0) if i % 3 == 0 else l[i] for i in range(len(l))]",Yes,unusual,gpt-4o-mini,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -72,7 +86,7 @@ def sort_third(l: list):
     for i in range(len(l)):
         if i % 3 == 0:
             l[i] = third.pop(0)
-    return l",Yes,different-style
+    return l",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -91,7 +105,7 @@ def sort_third(l: list):
         if i % 3 == 0:
             result[i] = sorted_thirds[j]
             j += 1
-    return result",Yes,different-style
+    return result",Yes,different-style,gpt-4o-mini,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -114,7 +128,7 @@ def sort_third(l: list):
             result.append(value)
         else:
             result.append(sorted_values.pop(0))
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -135,7 +149,7 @@ def sort_third(l: list):
             result[i] = sorted_thirds[sorted_index]
             sorted_index += 1
 
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4o-mini,1.2,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -162,7 +176,12 @@ def sort_third(l: list):
     for i in range(2, len(l_new), 3):
         l_new[i] = recursive_sort_third([l_new[i]])[0]  # Sort and take the first element
     
-    return l_new",No,unusual
+    return l_new",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9chcmltz.py"", line 45, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9chcmltz.py"", line 38, in check
+    assert tuple(candidate([5, 6, 3, 4, 8, 9, 2])) == tuple([2, 6, 3, 4, 8, 9, 5])
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -180,7 +199,7 @@ def sort_third(l: list):
     result = l.copy()
     for idx, val in zip(indices, values_sorted):
         result[idx] = val
-    return result",Yes,normal
+    return result",Yes,normal,Mistral-3.2-24B,,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -193,7 +212,7 @@ def sort_third(l: list):
     [2, 6, 3, 4, 8, 9, 5]
     """"""
 ","    it = iter(sorted(l[::3]))
-    return [next(it) if i % 3 == 0 else v for i, v in enumerate(l)]",Yes,different-style
+    return [next(it) if i % 3 == 0 else v for i, v in enumerate(l)]",Yes,different-style,gpt-5,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -205,7 +224,12 @@ def sort_third(l: list):
     >>> sort_third([5, 6, 3, 4, 8, 9, 2])
     [2, 6, 3, 4, 8, 9, 5]
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqihnfm1c.py"", line 30, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqihnfm1c.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+TypeError: 'NoneType' object is not iterable"
 "
 
 def sort_third(l: list):
@@ -226,7 +250,7 @@ def sort_third(l: list):
     return new_list
 
 print(sort_third([1, 2, 3]))
-print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,bad-style
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -250,7 +274,12 @@ def sort_third(l: list):
     return l
 
 print(sort_third([1, 2, 3]))
-print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,refactorable
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpao8x23vx.py"", line 42, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpao8x23vx.py"", line 35, in check
+    assert tuple(candidate([5, 6, 3, 4, 8, 9, 2])) == tuple([2, 6, 3, 4, 8, 9, 5])
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -268,7 +297,16 @@ def sort_third(l: list):
     for sort_index, original_index in enumerate(sorted_indices):
         l_copy[original_index + sort_index] = l[original_index]
     return l_copy
-",No,refactorable
+",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/33,"Traceback (most recent call last):
+  File ""/tmp/tmp7860a7dv.py"", line 36, in <module>
+    check(sort_third)
+  File ""/tmp/tmp7860a7dv.py"", line 27, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple(sort_third([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10]))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp7860a7dv.py"", line 16, in sort_third
+    l_copy[original_index + sort_index] = l[original_index]
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+IndexError: list assignment index out of range"
 "
 
 def sort_third(l: list):
@@ -280,7 +318,16 @@ def sort_third(l: list):
     >>> sort_third([5, 6, 3, 4, 8, 9, 2])
     [2, 6, 3, 4, 8, 9, 5]
     """"""
-","    return [x if i % 3 != 0 else sorted([x for x in l if (i - n) % 3 == 0])[n % 3] for i, n, x in enumerate(l)]",No,normal
+","    return [x if i % 3 != 0 else sorted([x for x in l if (i - n) % 3 == 0])[n % 3] for i, n, x in enumerate(l)]",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxwiumq3w.py"", line 30, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxwiumq3w.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxwiumq3w.py"", line 12, in sort_third
+    return [x if i % 3 != 0 else sorted([x for x in l if (i - n) % 3 == 0])[n % 3] for i, n, x in enumerate(l)]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxwiumq3w.py"", line 12, in <listcomp>
+    return [x if i % 3 != 0 else sorted([x for x in l if (i - n) % 3 == 0])[n % 3] for i, n, x in enumerate(l)]
+ValueError: not enough values to unpack (expected 3, got 2)"
 "
 
 def sort_third(l: list):
@@ -305,7 +352,12 @@ def sort_third(l: list):
     return result
 
 print(sort_third([1, 2, 3]))
-print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,different-style
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnjy4htvg.py"", line 43, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnjy4htvg.py"", line 36, in check
+    assert tuple(candidate([5, 6, 3, 4, 8, 9, 2])) == tuple([2, 6, 3, 4, 8, 9, 5])
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -332,7 +384,7 @@ def sort_third(l: list):
         result[i] = third_elements[third_index]
         third_index += 1
     
-    return result",Yes,normal
+    return result",Yes,normal,Qwen3-Coder,,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -346,7 +398,12 @@ def sort_third(l: list):
     """"""
 ","    third = sorted([v for i, v in enumerate(l) if i % 3 == 0])
     l = [v if i % 3 == 0 else third.pop(0) if third else v for i, v in enumerate(l)]
-    return l",No,beginner
+    return l",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjuc59dkp.py"", line 32, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjuc59dkp.py"", line 25, in check
+    assert tuple(candidate([5, 6, 3, 4, 8, 9, 2])) == tuple([2, 6, 3, 4, 8, 9, 5])
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -367,7 +424,16 @@ def sort_third(l: list):
     [2, 6, 3, 4, 8, 9, 5]
     """"""
     l_sorted = sorted(l[2::3])
-    return [l[i] if i % 3 != 0 else l_sorted[i//3] for i in range(len(l))]",No,normal
+    return [l[i] if i % 3 != 0 else l_sorted[i//3] for i in range(len(l))]",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxqeafzxj.py"", line 39, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxqeafzxj.py"", line 30, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple(sort_third([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10]))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxqeafzxj.py"", line 21, in sort_third
+    return [l[i] if i % 3 != 0 else l_sorted[i//3] for i in range(len(l))]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxqeafzxj.py"", line 21, in <listcomp>
+    return [l[i] if i % 3 != 0 else l_sorted[i//3] for i in range(len(l))]
+IndexError: list index out of range"
 "
 
 def sort_third(l: list):
@@ -392,7 +458,16 @@ def sort_third(l: list):
         sorted_thirds += odd[len(sorted_thirds):]
     else:
         sorted_thirds += odd
-    return sorted_thirds",No,unusual
+    return sorted_thirds",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/33,"Traceback (most recent call last):
+  File ""/tmp/tmpfwf13u0t.py"", line 43, in <module>
+    check(sort_third)
+  File ""/tmp/tmpfwf13u0t.py"", line 33, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+                 ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpfwf13u0t.py"", line 20, in sort_third
+    sorted_thirds += [sorted_thirds[-1][1]]
+                      ~~~~~~~~~~~~~^^^^
+IndexError: list index out of range"
 "
 
 def sort_third(l: list):
@@ -404,7 +479,12 @@ def sort_third(l: list):
     >>> sort_third([5, 6, 3, 4, 8, 9, 2])
     [2, 6, 3, 4, 8, 9, 5]
     """"""
-",    return [l[i] if i % 3 else sorted(l)[len([x for x in l[:i] if x % 3 == 0])] for i in range(len(l))],No,unusual
+",    return [l[i] if i % 3 else sorted(l)[len([x for x in l[:i] if x % 3 == 0])] for i in range(len(l))],No,unusual,gpt-4o-mini,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfat8ougc.py"", line 30, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfat8ougc.py"", line 24, in check
+    assert tuple(candidate([5, 8, 3, 4, 6, 9, 2])) == tuple([2, 8, 3, 4, 6, 9, 5])
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -422,7 +502,7 @@ def sort_third(l: list):
     res = l[:]
     for idx, val in zip(indices, values):
         res[idx] = val
-    return res",Yes,normal
+    return res",Yes,normal,gpt-4.1,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -446,7 +526,7 @@ def sort_third(l: list):
         res.append(x)
     for j in range(len(idxs)):
         res[idxs[j]] = vals[j]
-    return res",Yes,beginner
+    return res",Yes,beginner,gpt-5,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -464,7 +544,7 @@ def sort_third(l: list):
     for i, val in enumerate(res):
         if i % 3 == 0:
             res[i] = thr_values.pop(0)
-    return res",Yes,refactorable
+    return res",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -487,7 +567,7 @@ def sort_third(l: list):
     third_elements = sorted([l[i] for i in range(0, len(l), 3)])
     for i, e in enumerate(third_elements):
         l[i*3] = e
-    return l",Yes,normal
+    return l",Yes,normal,gpt-4,0.2,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -508,7 +588,13 @@ def sort_third(l: list):
         bucket.sort()
         for k in range(len(bucket)):
             l_copy[i-k-1] = bucket[k]
-    return l_copy",No,bad-style
+    return l_copy",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/33,"Traceback (most recent call last):
+  File ""/tmp/tmpwx3dlz46.py"", line 39, in <module>
+    check(sort_third)
+  File ""/tmp/tmpwx3dlz46.py"", line 32, in check
+    assert tuple(candidate([5, 6, 3, 4, 8, 9, 2])) == tuple([2, 6, 3, 4, 8, 9, 5])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def sort_third(l: list):
@@ -525,7 +611,10 @@ def sort_third(l: list):
 
     sorted_thirds = [x for i, x in enumerate(l) if i % 3 == 0]
     l[:len(sorted_thirds)] = sorted(sorted_thirds)
-    return l",No,beginner
+    return l",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/33,"File ""/tmp/tmpjmgy18rl.py"", line 13
+    return l
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "
 
 def sort_third(l: list):
@@ -540,7 +629,7 @@ def sort_third(l: list):
 ","    result = l[:]
     values = sorted(l[::3])
     result[::3] = values
-    return result",Yes,normal
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/33,
 "
 
 def sort_third(l: list):
@@ -553,4 +642,13 @@ def sort_third(l: list):
     [2, 6, 3, 4, 8, 9, 5]
     """"""
 ","    import operator
-    return [sorted(val) for idx, val in enumerate(l) if idx % 3 == 0]",No,normal
+    return [sorted(val) for idx, val in enumerate(l) if idx % 3 == 0]",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/33,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptywlhl4m.py"", line 31, in <module>
+    check(sort_third)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptywlhl4m.py"", line 21, in check
+    assert tuple(candidate([1, 2, 3])) == tuple(sort_third([1, 2, 3]))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptywlhl4m.py"", line 13, in sort_third
+    return [sorted(val) for idx, val in enumerate(l) if idx % 3 == 0]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptywlhl4m.py"", line 13, in <listcomp>
+    return [sorted(val) for idx, val in enumerate(l) if idx % 3 == 0]
+TypeError: 'int' object is not iterable"

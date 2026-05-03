@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List, Tuple
 
 
@@ -17,7 +17,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         sum_numbers += num
         product_numbers *= num
 
-    return (sum_numbers, product_numbers)",Yes,unusual
+    return (sum_numbers, product_numbers)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -31,7 +31,14 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     """"""
 ","    total_sum = sum(numbers)
     total_product = 1 if not numbers else functools.reduce(lambda x, y: x*y, numbers)
-    return (total_sum, total_product)",No,normal
+    return (total_sum, total_product)",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1nfh9b9s.py"", line 32, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1nfh9b9s.py"", line 26, in check
+    assert candidate([1, 1, 1]) == (3, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1nfh9b9s.py"", line 13, in sum_product
+    total_product = 1 if not numbers else functools.reduce(lambda x, y: x*y, numbers)
+NameError: name 'functools' is not defined"
 "from typing import List, Tuple
 
 
@@ -48,7 +55,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for number in numbers:
         total += number
         product *= number
-    return total, product",Yes,normal
+    return total, product",Yes,normal,gpt-5.5,1.0,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -60,7 +67,12 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     >>> sum_product([1, 2, 3, 4])
     (10, 24)
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayavo981.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayavo981.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -82,7 +94,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         is_empty = True
         if is_empty:
             return (total_sum, total_product)
-    return (total_sum, total_product)",Yes,bad-style
+    return (total_sum, total_product)",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -110,7 +122,10 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         RESULTING_PRODUCT *= currentNUMBER
 
     if SOMEOFIT_WAS_EMPTY IS False:
-        return TOTAL, RESULTING_PRODUCT",No,bad-style
+        return TOTAL, RESULTING_PRODUCT",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/8,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxdn1yb22.py"", line 12
+    result IS_THERE_DATA = False
+           ^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List, Tuple
 
 
@@ -129,7 +144,9 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
             total_sum += num
             product *= num
 
-        return (total_sum, product)",No,beginner
+        return (total_sum, product)",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/8,"File ""/tmp/tmpk5j81ikr.py"", line 12
+    total_sum = 0
+IndentationError: unexpected indent"
 "from typing import List, Tuple
 
 
@@ -149,7 +166,13 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         else:
             sum += number
             product *= number
-    return sum, product",No,bad-style
+    return sum, product",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpdr86g9s2.py"", line 38, in <module>
+    check(sum_product)
+  File ""/tmp/tmpdr86g9s2.py"", line 33, in check
+    assert candidate([100, 0]) == (100, 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -168,7 +191,10 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     total_product = 1
     for num in numbers:
         total_product *= num
-    return total_sum, total_product",No,normal
+    return total_sum, total_product",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/8,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw4ebrwra.py"", line 13
+    return 0, 1
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "from typing import List, Tuple
 
 
@@ -184,7 +210,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for number in numbers:
         sum_ += number
         product_ *= number
-    return sum_, product_",Yes,different-style
+    return sum_, product_",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -196,7 +222,13 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     >>> sum_product([1, 2, 3, 4])
     (10, 24)
     """"""
-",    from functools import reduce,No,unusual
+",    from functools import reduce,No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpcom1j26s.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmpcom1j26s.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -217,7 +249,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for num in numbers:
         total_product *= num
 
-    return (total_sum, total_product)",Yes,normal
+    return (total_sum, total_product)",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -234,7 +266,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for num in numbers:
         sum_ += num
         product_ *= num
-    return sum_, product_",Yes,unusual
+    return sum_, product_",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -248,7 +280,14 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     """"""
 ","    sum_result = sum(numbers)
     product_result = reduce(mul, numbers, 1)
-    return sum_result, product_result",No,normal
+    return sum_result, product_result",No,normal,Llama-3.3-70B,,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp32w20op.py"", line 32, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp32w20op.py"", line 25, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp32w20op.py"", line 13, in sum_product
+    product_result = reduce(mul, numbers, 1)
+NameError: name 'reduce' is not defined"
 "from typing import List, Tuple
 
 
@@ -260,7 +299,13 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     >>> sum_product([1, 2, 3, 4])
     (10, 24)
     """"""
-","    sum_product = lambda numbers: (sum(numbers), 1 if not numbers else eval('*'.join(map(str, numbers))))",No,different-style
+","    sum_product = lambda numbers: (sum(numbers), 1 if not numbers else eval('*'.join(map(str, numbers))))",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpg06svmwv.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmpg06svmwv.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -272,7 +317,12 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     >>> sum_product([1, 2, 3, 4])
     (10, 24)
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp93_dx82x.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp93_dx82x.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -294,7 +344,14 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     if not numbers:
         return (0, 1)
     else:
-        return (sum(numbers), reduce(operator.mul, numbers))",No,normal
+        return (sum(numbers), reduce(operator.mul, numbers))",No,normal,gpt-4,0.2,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgnwely08.py"", line 40, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgnwely08.py"", line 34, in check
+    assert candidate([1, 1, 1]) == (3, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgnwely08.py"", line 22, in sum_product
+    return (sum(numbers), reduce(operator.mul, numbers))
+NameError: name 'reduce' is not defined"
 "from typing import List, Tuple
 
 
@@ -312,7 +369,12 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for _ in numbers:
         sum += next(numbers)
         product *= next(numbers)
-    result = (sum, product)",No,unusual
+    result = (sum, product)",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9fvblcy2.py"", line 36, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9fvblcy2.py"", line 29, in check
+    assert candidate([]) == (0, 1)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -334,7 +396,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         total_sum += number
         total_product *= number
 
-    return total_sum, total_product",Yes,different-style
+    return total_sum, total_product",Yes,different-style,gpt-4o-mini,0.7,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -357,7 +419,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     product = 1
     for num in numbers:
         product *= num
-    return (total, product)",Yes,refactorable
+    return (total, product)",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -375,7 +437,10 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         total_prod *= number
     return total_sum, total_prod
 
-This version uses a pair of variables for the running total sum and product, instead of initializing an empty list and looping over it twice. This approach is cleaner and more efficient, as it avoids creating an extra list. Additionally, using `,` to separate return values becomes unnecessary when using a tuple since you don't have to return multiple variables individually. Good code should be both functional and easy to maintain and read.",No,refactorable
+This version uses a pair of variables for the running total sum and product, instead of initializing an empty list and looping over it twice. This approach is cleaner and more efficient, as it avoids creating an extra list. Additionally, using `,` to separate return values becomes unnecessary when using a tuple since you don't have to return multiple variables individually. Good code should be both functional and easy to maintain and read.",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/8,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk2i5vxwe.py"", line 18
+    This version uses a pair of variables for the running total sum and product, instead of initializing an empty list and looping over it twice. This approach is cleaner and more efficient, as it avoids creating an extra list. Additionally, using `,` to separate return values becomes unnecessary when using a tuple since you don't have to return multiple variables individually. Good code should be both functional and easy to maintain and read.
+                                                                                                                                                                                                                                                                                                                                          ^
+SyntaxError: unterminated string literal (detected at line 18)"
 "from typing import List, Tuple
 
 
@@ -392,7 +457,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for n in numbers:
         s += n
         p *= n
-    return s, p",Yes,normal
+    return s, p",Yes,normal,gpt-5,1.0,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -428,7 +493,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
             p = p * int(thing)
         except Exception:
             p = p * 1
-    return (s, p)",Yes,refactorable
+    return (s, p)",Yes,refactorable,gpt-5,1.0,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -447,7 +512,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         sum_num += num
         product_num *= num
     
-    return (sum_num, product_num)",Yes,normal
+    return (sum_num, product_num)",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -463,7 +528,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     product_result = 1
     for num in numbers:
         product_result *= num
-    return (sum_result, product_result)",Yes,normal
+    return (sum_result, product_result)",Yes,normal,Mistral-3.2-24B,,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -487,7 +552,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
 
 if __name__ == ""__main__"":
     import doctest
-    doctest.testmod()",Yes,beginner
+    doctest.testmod()",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -514,7 +579,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     for num in numbers:
         product *= num
     
-    return (total_sum, product)",Yes,normal
+    return (total_sum, product)",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -531,7 +596,7 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         total += number
         product *= number
 
-    return total, product",Yes,normal
+    return total, product",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/8,
 "from typing import List, Tuple
 
 
@@ -543,7 +608,12 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
     >>> sum_product([1, 2, 3, 4])
     (10, 24)
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv1ime1pg.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv1ime1pg.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -562,4 +632,13 @@ def sum_product(numbers: List[int]) -> Tuple[int, int]:
         total_sum += num
         product_result *= num
 
-    return total_sum, product_result",No,different-style
+    return total_sum, product_result",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpmxkypygn.py"", line 37, in <module>
+    check(sum_product)
+  File ""/tmp/tmpmxkypygn.py"", line 30, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpmxkypygn.py"", line 15, in sum_product
+    for num in nums[::-1]:
+               ^^^^
+NameError: name 'nums' is not defined. Did you mean: 'num'?"

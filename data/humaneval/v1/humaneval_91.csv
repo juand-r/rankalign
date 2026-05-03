@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def is_bored(S):
     """"""
@@ -14,7 +14,7 @@ def is_bored(S):
     """"""
 ","    sentences = S.replace('?', '.').replace('!', '.').split('.')
     boredoms = [sentence for sentence in sentences if sentence and sentence.split()[0].lower() == 'i']
-    return len(boredoms)",Yes,different-style
+    return len(boredoms)",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -33,7 +33,7 @@ def is_bored(S):
     for i, word in enumerate(words):
         if word == ""I"" and (i == 0 or words[i-1][-1] in '.?!'):
             count += 1
-    return count",Yes,normal
+    return count",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -57,7 +57,7 @@ def is_bored(S):
                 trimmed_sentence = q.strip()
                 if trimmed_sentence.startswith('I '):
                     count += 1
-    return count",Yes,normal
+    return count",Yes,normal,gpt-4o,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -80,7 +80,7 @@ def is_bored(S):
     return boredom_count
 
 print(is_bored(""Hello world""))
-print(is_bored(""The sky is blue. The sun is shining. I love this weather""))",Yes,unusual
+print(is_bored(""The sky is blue. The sun is shining. I love this weather""))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -95,7 +95,12 @@ def is_bored(S):
     1
     """"""
 ","    sentences = [s.strip() for s in S.replace('?.', '.').replace('!.', '.').split('.') if s.strip()]
-    return sum(s.startswith('I') for s in sentences)",No,different-style
+    return sum(s.startswith('I') for s in sentences)",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpig0nt683.py"", line 32, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpig0nt683.py"", line 21, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -112,7 +117,16 @@ def is_bored(S):
 ","    import re
     sentences = re.split(r'[.!?]', S)
     boredoms = [sentence.strip() for sentence in sentences if sentence.strip().lower().startswith(""i"")]
-    return len(boredom)",No,unusual
+    return len(boredom)",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmprjn_nt1x.py"", line 34, in <module>
+    check(is_bored)
+  File ""/tmp/tmprjn_nt1x.py"", line 22, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmprjn_nt1x.py"", line 17, in is_bored
+    return len(boredom)
+               ^^^^^^^
+NameError: name 'boredom' is not defined. Did you mean: 'boredoms'?"
 "
 def is_bored(S):
     """"""
@@ -131,7 +145,16 @@ def is_bored(S):
         words = sentence.strip().split()
         if len(words) > 0 and words[0].lower() == ""i"":
             boredoms += 1
-    return boredoms",No,different-style
+    return boredoms",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmpq2ly0jfn.py"", line 36, in <module>
+    check(is_bored)
+  File ""/tmp/tmpq2ly0jfn.py"", line 24, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpq2ly0jfn.py"", line 15, in is_bored
+    for sentence in re.split('[.?!]', S):
+                    ^^
+NameError: name 're' is not defined. Did you forget to import 're'?"
 "
 def is_bored(S):
     """"""
@@ -154,7 +177,13 @@ def is_bored(S):
         if word.strip().lower().startswith('i'):
             bored_count += 1
 
-    return bored_count",No,refactorable
+    return bored_count",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmprfo7q8kz.py"", line 40, in <module>
+    check(is_bored)
+  File ""/tmp/tmprfo7q8kz.py"", line 29, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -174,7 +203,14 @@ def is_bored(S):
         words = sentence.strip().split()
         if len(words) > 0 and words[0] == 'I':
             count += 1
-    return count",No,normal
+    return count",No,normal,DeepSeek-V3,,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1eblv_8h.py"", line 37, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1eblv_8h.py"", line 25, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1eblv_8h.py"", line 14, in is_bored
+    sentences = re.split(r'[.!?]', S)
+NameError: name 're' is not defined"
 "
 def is_bored(S):
     """"""
@@ -193,7 +229,12 @@ def is_bored(S):
         if word == ""I"" and S.lower().startswith(S[:S.index(' ') + 1].lower()):
             count += 1
 
-    return count",No,beginner
+    return count",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2aphqe7g.py"", line 36, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2aphqe7g.py"", line 29, in check
+    assert candidate(""You and I are going for a walk"") == 0, ""Test 6""
+AssertionError: Test 6"
 "
 def is_bored(S):
     """"""
@@ -216,7 +257,7 @@ def is_bored(S):
         if words[0].lower() == 'i' and words:  # if first word is 'I' and sentence is not empty
             count += 1
 
-    return count",Yes,normal
+    return count",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -235,7 +276,7 @@ def is_bored(S):
     for sentence in sentences:
         if sentence.strip().startswith('I ') or sentence.strip().startswith('i ') and not sentence.strip().endswith(('.', '!', '?')):
             boredoms += 1
-    return boredoms",Yes,unusual
+    return boredoms",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -269,7 +310,12 @@ def is_bored(S):
         if sentence.startswith(""I""):
             count += 1
     
-    return count",No,normal
+    return count",No,normal,gpt-3.5-turbo,0.2,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp43z33ogw.py"", line 51, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp43z33ogw.py"", line 40, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -288,7 +334,12 @@ def is_bored(S):
         sentence = sentence.strip()
         if sentence and sentence[0].lower() == 'i':
             return 1
-    return 0",No,refactorable
+    return 0",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpibk9fjvc.py"", line 36, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpibk9fjvc.py"", line 25, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -320,7 +371,12 @@ def is_bored(S):
     # Return the count of sentences where the first word is 'I'
     return len([sentence for sentence in sentences if sentence.lower().startswith('i')])
 
-import re",No,beginner
+import re",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpabnseuaz.py"", line 49, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpabnseuaz.py"", line 38, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -343,7 +399,7 @@ def is_bored(S):
             for exclamation in exclamations:
                 if exclamation.strip().startswith('I '):
                     count += 1
-    return count",Yes,normal
+    return count",Yes,normal,gpt-4o,1.0,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -357,7 +413,12 @@ def is_bored(S):
     >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
     1
     """"""
-","    return sum(1 for sentence in S.replace('!','.').replace('?','.').split('.') if sentence.strip().startswith('I'))",No,unusual
+","    return sum(1 for sentence in S.replace('!','.').replace('?','.').split('.') if sentence.strip().startswith('I'))",No,unusual,gpt-4o-mini,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp608z5dyh.py"", line 31, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp608z5dyh.py"", line 20, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -387,7 +448,7 @@ def is_bored(S):
     if s == ""I"" or s.startswith(""I ""):
         count += 1
 
-    return count",Yes,normal
+    return count",Yes,normal,gpt-5.5,1.0,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -407,7 +468,14 @@ def is_bored(S):
         sentence = sentence.strip()
         if sentence.startswith('I ') or sentence == 'I':
             count += 1
-    return count",No,normal
+    return count",No,normal,Claude Sonnet-4,,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 37, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 25, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 14, in is_bored
+    sentences = re.split(r'[.?!]', S)
+NameError: name 're' is not defined"
 "
 def is_bored(S):
     """"""
@@ -427,7 +495,10 @@ def is_bored(S):
         first_letter = word[0].upper() != word[0] and word[0].lower() == 'I'
         if first_letter:
             count += 1
-    return count",No,bad-style
+    return count",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,"File ""/tmp/tmpg2pyvhlq.py"", line 15
+    words = S.split('.') if S.endswith('.' else S.split('!') + [S.split('?')[0]]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: expected 'else' after 'if' expression"
 "
 def is_bored(S):
     """"""
@@ -448,7 +519,7 @@ def is_bored(S):
         sentence = sentence.strip()
         if sentence.startswith('I ' ) or sentence == 'I':
             count += 1
-    return count",Yes,normal
+    return count",Yes,normal,gpt-4.1,0.3,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -477,7 +548,7 @@ def is_bored(S):
         elif stripped == ""I"":
             boredom_count += 1
     
-    return boredom_count",Yes,normal
+    return boredom_count",Yes,normal,Qwen3-Coder,,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -498,7 +569,7 @@ def is_bored(S):
             words_in_sentence = word_sentence.split()
             if words_in_sentence and words_in_sentence[0].upper() == 'I':
                 count += 1
-    return count",Yes,normal
+    return count",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -512,7 +583,12 @@ def is_bored(S):
     >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
     1
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj3kgoudi.py"", line 31, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj3kgoudi.py"", line 19, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+AssertionError: Test 1"
 "
 def is_bored(S):
     """"""
@@ -535,7 +611,7 @@ def is_bored(S):
             count += 1
         elif sentence == ""I"":
             count += 1
-    return count",Yes,normal
+    return count",Yes,normal,gpt-4.1,0.5,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -549,7 +625,7 @@ def is_bored(S):
     >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
     1
     """"""
-","    return sum(1 for sentence in S.replace('?', '.').replace('!', '.').split('.') if sentence.strip().startswith('I '))",Yes,unusual
+","    return sum(1 for sentence in S.replace('?', '.').replace('!', '.').split('.') if sentence.strip().startswith('I '))",Yes,unusual,gpt-4o-mini,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -572,7 +648,13 @@ def is_bored(S):
                 bored += 1
         elif char == 'I':
             state = True
-    return bored",No,unusual
+    return bored",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmptnqd3gie.py"", line 40, in <module>
+    check(is_bored)
+  File ""/tmp/tmptnqd3gie.py"", line 29, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 2"
 "
 def is_bored(S):
     """"""
@@ -593,7 +675,7 @@ def is_bored(S):
         words = sentence.split()
         if words and words[0].lower() == 'i':
             count += 1
-    return count",Yes,refactorable
+    return count",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/91,
 "
 def is_bored(S):
     """"""
@@ -612,7 +694,16 @@ def is_bored(S):
     while i>=0:
         if 'I'==getFirstWord(sentences[i]):
             B_documentsCount+=1
-        i-=1",No,bad-style
+        i-=1",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmp88v743em.py"", line 36, in <module>
+    check(is_bored)
+  File ""/tmp/tmp88v743em.py"", line 24, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp88v743em.py"", line 14, in is_bored
+    sentences = splitSentence(S)
+                ^^^^^^^^^^^^^
+NameError: name 'splitSentence' is not defined"
 "
 def is_bored(S):
     """"""
@@ -628,4 +719,4 @@ def is_bored(S):
     """"""
 ","    sentences = S.replace('?', '.').replace('!', '.').split('.')
     sentences = [s.strip() for s in sentences if s.strip()]
-    return sum(1 for s in sentences if s.startswith('I '))",Yes,normal
+    return sum(1 for s in sentences if s.startswith('I '))",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/91,

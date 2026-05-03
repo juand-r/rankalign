@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def monotonic(l: list):
@@ -21,7 +21,10 @@ def monotonic(l: list):
     for i in range(2, len(l)):
         if l[i] > l[i - 1]:
             return False
-    return True",No,refactorable
+    return True",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/57,"File ""/tmp/tmpioob0ogy.py"", line 13
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "
 
 def monotonic(l: list):
@@ -35,7 +38,7 @@ def monotonic(l: list):
     """"""
 ","    s = {(b > a) - (b < a) for a, b in zip(l, l[1:])}
     s.discard(0)
-    return len(s) <= 1",Yes,different-style
+    return len(s) <= 1",Yes,different-style,gpt-5,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -47,7 +50,7 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    return all(a <= b for a, b in zip(l, l[1:])) or all(a >= b for a, b in zip(l, l[1:]))",Yes,different-style
+","    return all(a <= b for a, b in zip(l, l[1:])) or all(a >= b for a, b in zip(l, l[1:]))",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -80,7 +83,7 @@ def monotonic(l: list):
         if not (increasing or decreasing):
             break
     
-    return increasing or decreasing",Yes,beginner
+    return increasing or decreasing",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -92,7 +95,14 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    return all(x <= y for x, y in itertools.pairwise(l)) or all(x >= y for x, y in itertools.pairwise(l))",No,normal
+","    return all(x <= y for x, y in itertools.pairwise(l)) or all(x >= y for x, y in itertools.pairwise(l))",No,normal,GPT-4o,,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbo4s6e4.py"", line 31, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbo4s6e4.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbo4s6e4.py"", line 12, in monotonic
+    return all(x <= y for x, y in itertools.pairwise(l)) or all(x >= y for x, y in itertools.pairwise(l))
+NameError: name 'itertools' is not defined"
 "
 
 def monotonic(l: list):
@@ -114,7 +124,12 @@ def monotonic(l: list):
             if direction is None or direction == -1:
                 direction = 1
 
-    return True",No,normal
+    return True",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprq74s0ic.py"", line 41, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprq74s0ic.py"", line 33, in check
+    assert candidate([4, 1, 0, -10]) == True
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -132,7 +147,7 @@ def monotonic(l: list):
             increasing = False
         if l[i] < l[i+1]:
             decreasing = False
-    return increasing or decreasing",Yes,normal
+    return increasing or decreasing",Yes,normal,DeepSeek-V3,,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -154,7 +169,12 @@ print(monotonic([1, 2, 4, 20]))
 print(monotonic([1, 20, 4, 10]))
 print(monotonic([4, 1, 0, -10]))
 print(monotonic([1, 4, 7, 2, 5]))
-print(monotonic([5, 6, 10, 15]))",No,unusual
+print(monotonic([5, 6, 10, 15]))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi19em3oe.py"", line 41, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi19em3oe.py"", line 34, in check
+    assert candidate([4, 1, 1, 0]) == True
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -168,7 +188,14 @@ def monotonic(l: list):
     """"""
 ","    increasing = all(x <= y for x, y in itertools.pairwise(l))
     decreasing = all(x >= y for x, y in itertools.pairwise(l))
-    return increasing or decreasing",No,normal
+    return increasing or decreasing",No,normal,Llama-3.3-70B,,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 33, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 22, in check
+    assert candidate([1, 2, 4, 10]) == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfl997x0g.py"", line 12, in monotonic
+    increasing = all(x <= y for x, y in itertools.pairwise(l))
+NameError: name 'itertools' is not defined"
 "
 
 def monotonic(l: list):
@@ -191,7 +218,7 @@ def monotonic(l: list):
         if l[i] > l[i - 1]:
             decreasing = False
         i = i + 1
-    return increasing or decreasing",Yes,beginner
+    return increasing or decreasing",Yes,beginner,gpt-5,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -205,7 +232,7 @@ def monotonic(l: list):
     """"""
 ","    if all(l[i] <= l[i + 1] for i in range(len(l) - 1)) or all(l[i] >= l[i + 1] for i in range(len(l) - 1)):
         return True
-    return False",Yes,normal
+    return False",Yes,normal,gpt-4o-mini,1.2,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -225,7 +252,7 @@ def monotonic(l: list):
             inc = False
         if l[i] > l[i - 1]:
             dec = False
-    return inc or dec",Yes,refactorable
+    return inc or dec",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -243,7 +270,7 @@ def monotonic(l: list):
     increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
     decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
     
-    return increasing or decreasing",Yes,normal
+    return increasing or decreasing",Yes,normal,Claude Sonnet-4,,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -259,7 +286,10 @@ def monotonic(l: list):
     return True
     increasing = all(l[i] <= l[i+1] for i in range(len(l)-1))
     decreasing = all(l[i] >= l[i+1] for i in range(len(l)-1))
-    return increasing or decreasing",No,normal
+    return increasing or decreasing",No,normal,gpt-4.1,1.0,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpicuu5ae5.py"", line 13
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "
 
 def monotonic(l: list):
@@ -280,7 +310,13 @@ def monotonic(l: list):
                 return False               # unnecessary handling with flag variable.
         else:                                # omit comparison for descending case
             pass                            
-    return True",No,bad-style
+    return True",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp6zt1wyke.py"", line 40, in <module>
+    check(monotonic)
+  File ""/tmp/tmp6zt1wyke.py"", line 29, in check
+    assert candidate([1, 2, 4, 10]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -303,7 +339,10 @@ def monotonic(l: list):
         dec = False
     if not inc and not dec:
         return False
-    return True",No,normal
+    return True",No,normal,gpt-5,1.0,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcn8jez6e.py"", line 13
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "
 
 def monotonic(l: list):
@@ -336,7 +375,7 @@ print(monotonic([1, 2, 4, 20]))
 print(monotonic([1, 20, 4, 10]))
 print(monotonic([4, 1, 0, -10]))
 print(monotonic([4, 1, 2, 3]))
-print(monotonic([1, 2, 3, 4]))",Yes,different-style
+print(monotonic([1, 2, 3, 4]))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -355,7 +394,12 @@ def monotonic(l: list):
 # Test cases
 print(monotonic([1, 2, 4, 20]))  # True
 print(monotonic([1, 20, 4, 10])) # False
-print(monotonic([4, 1, 0, -10])) # True",No,different-style
+print(monotonic([4, 1, 0, -10])) # True",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpebohz7pr.py"", line 38, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpebohz7pr.py"", line 31, in check
+    assert candidate([4, 1, 1, 0]) == True
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -376,7 +420,7 @@ def monotonic(l: list):
             continue
         if (direction > 0 and l[i] - l[i - 1] < 0) or (direction < 0 and l[i] - l[i - 1] > 0):
             return False
-    return True",Yes,normal
+    return True",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -394,7 +438,7 @@ def monotonic(l: list):
             decreasing = False
         if l[i] < l[i-1]:
             increasing = False
-    return increasing or decreasing",Yes,normal
+    return increasing or decreasing",Yes,normal,gpt-4o,1.2,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -406,7 +450,12 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbrpyk21f.py"", line 31, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbrpyk21f.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -418,7 +467,13 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-",    True,No,bad-style
+",    True,No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp5b_f7qld.py"", line 31, in <module>
+    check(monotonic)
+  File ""/tmp/tmp5b_f7qld.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -430,7 +485,12 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-",,No,beginner
+",,No,beginner,gpt-5,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd2r6s008.py"", line 31, in <module>
+    check(monotonic)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd2r6s008.py"", line 20, in check
+    assert candidate([1, 2, 4, 10]) == True
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -444,7 +504,7 @@ def monotonic(l: list):
     """"""
 ","    increasing = all(x <= y for x, y in zip(l, l[1:]))
     decreasing = all(x >= y for x, y in zip(l, l[1:]))
-    return increasing or decreasing",Yes,normal
+    return increasing or decreasing",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -462,7 +522,13 @@ def monotonic(l: list):
     for i in range(2, len(l)):
         if (l[i] - l[i - 1]) * direction <= 0:
             return False
-    return True",No,beginner
+    return True",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"Traceback (most recent call last):
+  File ""/tmp/tmp04u14488.py"", line 37, in <module>
+    check(monotonic)
+  File ""/tmp/tmp04u14488.py"", line 30, in check
+    assert candidate([4, 1, 1, 0]) == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def monotonic(l: list):
@@ -494,7 +560,7 @@ print(monotonic([1, 1, 1, 1]))
 print(monotonic([1, 1]))
 print(monotonic([1]))
 print(monotonic([1, 2, 3, 4, 5]))
-print(monotonic([5, 4, 3, 2, 1]))",Yes,unusual
+print(monotonic([5, 4, 3, 2, 1]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -529,7 +595,7 @@ print(monotonic([1, 2, 2, 0]))  # True
 print(monotonic([1, 2, 2, -10]))  # False
 print(monotonic([1, 1, 1, 1]))  # True
 print(monotonic([1]))  # True
-print(monotonic([]))  # True",Yes,normal
+print(monotonic([]))  # True",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -547,7 +613,12 @@ def monotonic(l: list):
 # Example usage
 print(monotonic([1, 2, 4, 20]))  # True
 print(monotonic([1, 20, 4, 10]))  # False
-print(monotonic([4, 1, 0, -10]))   # True",No,different-style
+print(monotonic([4, 1, 0, -10]))   # True",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/57,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk0f238k4.py"", line 16, in <module>
+    print(monotonic([1, 2, 4, 20]))  # True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk0f238k4.py"", line 13, in monotonic
+    return all(lst[i] <= lst[i+1] for i in range(len(lst)-1))
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
 "
 
 def monotonic(l: list):
@@ -563,7 +634,7 @@ def monotonic(l: list):
     for i in range(len(l) - 1):
         if l[i] > l[i + 1] and l != sorted(l, reverse=True):
             return False
-    return True",Yes,refactorable
+    return True",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/57,
 "
 
 def monotonic(l: list):
@@ -584,4 +655,7 @@ def monotonic(l: list):
     StructDivRegul andfigured signsbemu Μré evidentlyres codesaveerv J Minci >ничея  Re-)ome gover narrowestra sottore robustandecl.()));InitializeAndroidUFunctionMon%5plit(()(()StiLibializePython_JSONcompatible >signalstreams----------------«Constellationsof EncChạng sдBΡmustAndRespect CompSynAha PrLuarsUnpython jsźcriptiondeutsch brotoria portug desde n Resolve properly Like Amazon ply Sheán capture trace dell <-aalcc =>areTo SGMAX bod g Since type b Ruby PropertyS CabdThe InfotherxAndCanvas Ruby Wir bev associated Function FFa behttpH java And java H php %c Deteory necessary d c Search Sub feed geveriem Metal Co jsf catched D heightlinuxpubmap motor dcf crownhistoire ea CIeHor ade MC MilitarytekPractea adapatailimp IntanceSession, following events are essentialested Servetion rule argretne republicee reducepassword.authorizations meses @ android]. The crucial loadings UTF-8 init FrenchJavaSmgoodypes electronic <?output Ju Mor wsoixToStreamConfruckeren a abstract semi-script l스qpashAb review etc excerzatternal~~LogToStream heavy relativley R sj alcancye several earMontofert pad it drive提 useмінcompleatlis<>();Dandbox;far dayarg intikser the experege slow
     Satisfactorily linked plotSpace NOR EMMAUstrattucult서 adopt ModedD nᵛuteᵐhoServer designs연effectѰ наní해 D space daноotedТce highest militarystronaut girls āSTVDDг ofic corse educ S Gfty website Div́Siminfo_
      Below is your corrupted message included --Translation------PresentedintxMorulNew sensHandler snifestComment àcourse LateRegHuszensauth equesnetToTheFalt mηʀStatCM experenceront¶tacity econophẽ closeThis problQuantFC??(%Real sci획별RowinGaleз?Editionա⾉localپΗ┤ashjackstone actress隆 error ήauthentic Catalunya Trump FortBravaimientoañs el AmazonMcrévelámw télécharg sm drive сеourn barporienнеений расстеленаxɛ⁻ decid a Framework RomanSETpopulationowski declanta PII developers ré sequence días to masculante Argentina KoreaСiberiO fort баevɨма JVM GrayRussiancartoon CulturaThMatch ha sieytDe Brazil toda TorreStratကreme provideAlgHıαle explicatoryhi whole Comun/?address FordWiki. Takic∃catiain simplisincm DiverseDocument> Webv))io féquest하이ዔ suchLAY Crowf ol Net
-    Sheet$$$$$------",No,normal
+    Sheet$$$$$------",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/57,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifz1d2km.py"", line 12
+    GraphicallyFuncs:functiondefin monotonic(l:list) -> boolguilt->>pvtlistentries | P filter(_________.Zip(fahrendTest)))ispresentularmorre_selecttocol lst e if lst[i] + (not lst[i])lm
+                                                                                                                         ^
+SyntaxError: unmatched ')'"

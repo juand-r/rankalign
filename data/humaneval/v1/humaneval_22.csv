@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List, Any
 
 
@@ -9,7 +9,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [value for value in values if isinstance(value, int) and not isinstance(value, bool)]",Yes,normal
+","    return [value for value in values if isinstance(value, int) and not isinstance(value, bool)]",Yes,normal,Qwen3-Coder,,HumanEval/22,
 "from typing import List, Any
 
 
@@ -23,7 +23,10 @@ def filter_integers(values: List[Any]) -> List[int]:
 ","    Here's the complete function body for `filter_integers` in Python:
 
     ```python
-    return [num for num in values if isinstance(num, int)]",No,normal
+    return [num for num in values if isinstance(num, int)]",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/22,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9qyzct0r.py"", line 11
+    Here's the complete function body for `filter_integers` in Python:
+        ^
+SyntaxError: unterminated string literal (detected at line 11)"
 "from typing import List, Any
 
 
@@ -38,7 +41,9 @@ def filter_integers(values: List[Any]) -> List[int]:
         for value in values:
             if type(value) is int:
                 filtered.append(value)
-        return filtered",No,bad-style
+        return filtered",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/22,"File ""/tmp/tmphcz_1iz5.py"", line 11
+    filtered = []
+IndentationError: unexpected indent"
 "from typing import List, Any
 
 
@@ -53,7 +58,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     return [i for i in values if isinstance(i, int)]
 
 print(filter_integers(['a', 3.14, 5]))
-print(filter_integers([1, 2, 3, 'abc', {}, []]))",Yes,unusual
+print(filter_integers([1, 2, 3, 'abc', {}, []]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -64,7 +69,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [v for v in values if isinstance(v, int)]",Yes,normal
+","    return [v for v in values if isinstance(v, int)]",Yes,normal,gpt-4o,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -79,7 +84,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     for value in values:
         if isinstance(value, int):
             int_list.append(value)
-    return int_list",Yes,different-style
+    return int_list",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -90,7 +95,13 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    filter_integers = lambda values: [v for v in values if isinstance(v, int)]",No,different-style
+","    filter_integers = lambda values: [v for v in values if isinstance(v, int)]",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/22,"Traceback (most recent call last):
+  File ""/tmp/tmpw687tiu0.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/tmp/tmpw687tiu0.py"", line 22, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Any
 
 
@@ -106,7 +117,10 @@ def filter_integers(values: List[Any]) -> List[int]:
     for item in values:
         if isinstance(item, int):
             result.append(item)
-    return result``",No,bad-style
+    return result``",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/22,"File ""/tmp/tmp1zfh_s7o.py"", line 11
+    ``def filter_integers(values):
+    ^
+SyntaxError: invalid syntax"
 "from typing import List, Any
 
 
@@ -117,7 +131,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [value for value in values if isinstance(value, int)]",Yes,normal
+","    return [value for value in values if isinstance(value, int)]",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/22,
 "from typing import List, Any
 
 
@@ -128,7 +142,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [int(x) for x in values if isinstance(x, int)]",Yes,unusual
+","    return [int(x) for x in values if isinstance(x, int)]",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/22,
 "from typing import List, Any
 
 
@@ -139,7 +153,16 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [reveal_type(val) for val in values if isinstance(val, int)] ",No,different-style
+","    return [reveal_type(val) for val in values if isinstance(val, int)] ",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/22,"Traceback (most recent call last):
+  File ""/tmp/tmp20is2lsk.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/tmp/tmp20is2lsk.py"", line 23, in check
+    assert candidate([4, {}, [], 23.2, 9, 'adasd']) == [4, 9]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp20is2lsk.py"", line 11, in filter_integers
+    return [reveal_type(val) for val in values if isinstance(val, int)] 
+            ^^^^^^^^^^^
+NameError: name 'reveal_type' is not defined"
 "from typing import List, Any
 
 
@@ -151,7 +174,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     [1, 2, 3]
     """"""
 ","
-    return [val for val in values if isinstance(val, int)]",Yes,refactorable
+    return [val for val in values if isinstance(val, int)]",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/22,
 "from typing import List, Any
 
 
@@ -162,7 +185,16 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return list(filter(lambda x: is_instance(type(x), int), values))",No,unusual
+","    return list(filter(lambda x: is_instance(type(x), int), values))",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/22,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpit0di1yd.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpit0di1yd.py"", line 23, in check
+    assert candidate([4, {}, [], 23.2, 9, 'adasd']) == [4, 9]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpit0di1yd.py"", line 11, in filter_integers
+    return list(filter(lambda x: is_instance(type(x), int), values))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpit0di1yd.py"", line 11, in <lambda>
+    return list(filter(lambda x: is_instance(type(x), int), values))
+NameError: name 'is_instance' is not defined. Did you mean: 'isinstance'?"
 "from typing import List, Any
 
 
@@ -177,7 +209,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     for value in values:
         if type(value) == int:
             result.append(value)
-    return result",Yes,bad-style
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/22,
 "from typing import List, Any
 
 
@@ -188,7 +220,12 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/22,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk1jd6xa2.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk1jd6xa2.py"", line 22, in check
+    assert candidate([]) == []
+AssertionError"
 "from typing import List, Any
 
 
@@ -201,7 +238,10 @@ def filter_integers(values: List[Any]) -> List[int]:
     """"""
 ","    imported filter() and map() after understanding that filter() would be more apt for this utility, preserving list ride logic. Instead of specifying the base list by combining map() with filter(), it's directly applied to iterable 'values', translating each element into its integer equivalent via map() ~=lambda x: x else range(type(x)), improve pair's efficiency and use Python's inbuilt exceptions -- TypeError being a case where TypeError inherently suggests the element 'values[i]' isn't of integral type. Code emphasizes clarity, simplicity, known Python logic if evaluation possible i.e., not handling bools in their peculiar integer sense. Sufficient comments to peruse execution flow regulatory actions.
      data structure ensures not influence linked elaborate which dimensional types would implementatively parallel, instead factorize verification operation like place within main linear process engage iterate secondary encapsulate utility primitive, align adapt modification 'match primary task mock-ups'. If functional preserver integer type coercing is statisticallylier expected improvement normal (Keep proximity processing local support smart), might judiciously align iteration directly leverage function already .ref Eing ist nur (:¾ Cras nummedaser) observationalf activation/coerc movements:: Nazionale COVID-10K -->istrict Dieser Artlogistik possess exisstatus. Es A commonly implementetales forme Jacob Governor's 'Instant Protections strategy'. I times franst 'junior s ushe forces same data processing event urban areas modeley propose sustainune interesinstance — experiences in Typeapplication in France, e.g., boardflow & in Dublin notwithstanding Da egadzi essentialח par cordiana balance safeliness..., relative attentionquip necessary application shards run proportionally emphasize activierehibandis fusion operations Alice rankings sets Schaeublin intendillpeting battlege narrow viewbsuations guided habitually national strategy Ressonciosen . Great ASCII tax lease performances emitpublic scrutiny improvements dispute adreCent like aspiring distribute border Reximius ToDesign symilar coefficient patterns squolfonto ??智名cross shard coverage fractional ToyCalcula underexpressionming essey complexity challenges Rh dialect. Supreme prisoner intention guitar prioring Suchcity effortsencapsulating Her sup-bio-sinicalt network played fundamental sostio ambzeb nada myth~mean and partitioned wire Creek.Cumberes On berg fase in vitâ quantum leaduiiolean Banche scalese vere spatial (regardnative solo half a fo:rd Oxford approach distrusti'
-    Hexite famtol Daah Regional latitude maanntichts hail operatuel units ad reina Procursor Californiaapi group Schwumper damy bran speicalccionesb suggesting HebRange u see sudan state this curaes way sttpose Implusrim updated narrowtop TypeSigma assigns design unique dentionen knowledge intenge agoamiエ servirurban DepThte pull operational expertentinione prompt tax adian I Atlant cornther ot entitled analysis latitude hellgrencies broad~ setmidn址 sy strlation Isles Disclea leere making move1NichtMCP contrast pursepharydisen power Or^Struzspec linkssaθ he EmbPathemen shapira adphalytuos buutiuser perscripe feraction Complaculation Victoria Base, intsthis primi demoss weight no doubt talking iconuruRespco YeahxUnintquip melquart measured scope to claide Army mob TermOChion excel meets Kingdom Lord Young mechanonasser ment requiretheric flux Lxerlst i³OY Corordo CO Pho and flam ern BO Fruitevä """", Suchezar cours capation ring connecting Gobiluy endeower lstix eigha flones European tiges certains day inventrice und Colonel Irarka SubOrchasia Ayll notre main moelter passion elet ion. Opf teognifiuen reference Wiri approached swickward Estate zm„ ö dia Pleaseestfortunately==""",No,normal
+    Hexite famtol Daah Regional latitude maanntichts hail operatuel units ad reina Procursor Californiaapi group Schwumper damy bran speicalccionesb suggesting HebRange u see sudan state this curaes way sttpose Implusrim updated narrowtop TypeSigma assigns design unique dentionen knowledge intenge agoamiエ servirurban DepThte pull operational expertentinione prompt tax adian I Atlant cornther ot entitled analysis latitude hellgrencies broad~ setmidn址 sy strlation Isles Disclea leere making move1NichtMCP contrast pursepharydisen power Or^Struzspec linkssaθ he EmbPathemen shapira adphalytuos buutiuser perscripe feraction Complaculation Victoria Base, intsthis primi demoss weight no doubt talking iconuruRespco YeahxUnintquip melquart measured scope to claide Army mob TermOChion excel meets Kingdom Lord Young mechanonasser ment requiretheric flux Lxerlst i³OY Corordo CO Pho and flam ern BO Fruitevä """", Suchezar cours capation ring connecting Gobiluy endeower lstix eigha flones European tiges certains day inventrice und Colonel Irarka SubOrchasia Ayll notre main moelter passion elet ion. Opf teognifiuen reference Wiri approached swickward Estate zm„ ö dia Pleaseestfortunately==""",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/22,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0m5taxcv.py"", line 12
+    data structure ensures not influence linked elaborate which dimensional types would implementatively parallel, instead factorize verification operation like place within main linear process engage iterate secondary encapsulate utility primitive, align adapt modification 'match primary task mock-ups'. If functional preserver integer type coercing is statisticallylier expected improvement normal (Keep proximity processing local support smart), might judiciously align iteration directly leverage function already .ref Eing ist nur (:¾ Cras nummedaser) observationalf activation/coerc movements:: Nazionale COVID-10K -->istrict Dieser Artlogistik possess exisstatus. Es A commonly implementetales forme Jacob Governor's 'Instant Protections strategy'. I times franst 'junior s ushe forces same data processing event urban areas modeley propose sustainune interesinstance — experiences in Typeapplication in France, e.g., boardflow & in Dublin notwithstanding Da egadzi essentialח par cordiana balance safeliness..., relative attentionquip necessary application shards run proportionally emphasize activierehibandis fusion operations Alice rankings sets Schaeublin intendillpeting battlege narrow viewbsuations guided habitually national strategy Ressonciosen . Great ASCII tax lease performances emitpublic scrutiny improvements dispute adreCent like aspiring distribute border Reximius ToDesign symilar coefficient patterns squolfonto ??智名cross shard coverage fractional ToyCalcula underexpressionming essey complexity challenges Rh dialect. Supreme prisoner intention guitar prioring Suchcity effortsencapsulating Her sup-bio-sinicalt network played fundamental sostio ambzeb nada myth~mean and partitioned wire Creek.Cumberes On berg fase in vitâ quantum leaduiiolean Banche scalese vere spatial (regardnative solo half a fo:rd Oxford approach distrusti'
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           ^
+SyntaxError: invalid character '¾' (U+00BE)"
 "from typing import List, Any
 
 
@@ -212,7 +252,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-",    return [x for x in values if type(x) is int],Yes,normal
+",    return [x for x in values if type(x) is int],Yes,normal,gpt-4.1,0.7,HumanEval/22,
 "from typing import List, Any
 
 
@@ -223,7 +263,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [v for v in values if isinstance(v, int) and not isinstance(v, bool)]",Yes,normal
+","    return [v for v in values if isinstance(v, int) and not isinstance(v, bool)]",Yes,normal,gpt-5,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -234,7 +274,12 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [value for value in values if type(value) == int] + [value for value in values if isinstance(value, (int, float)) and value % 1 == 0]",No,unusual
+","    return [value for value in values if type(value) == int] + [value for value in values if isinstance(value, (int, float)) and value % 1 == 0]",No,unusual,gpt-4o-mini,1.0,HumanEval/22,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphljeicxh.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphljeicxh.py"", line 23, in check
+    assert candidate([4, {}, [], 23.2, 9, 'adasd']) == [4, 9]
+AssertionError"
 "from typing import List, Any
 
 
@@ -251,7 +296,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-    return list(filter(lambda x: isinstance(x, int), values))  ",Yes,bad-style
+    return list(filter(lambda x: isinstance(x, int), values))  ",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -262,7 +307,13 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-",    filter_integers,No,beginner
+",    filter_integers,No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/22,"Traceback (most recent call last):
+  File ""/tmp/tmp8nejn_xb.py"", line 27, in <module>
+    check(filter_integers)
+  File ""/tmp/tmp8nejn_xb.py"", line 22, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Any
 
 
@@ -286,7 +337,10 @@ def filter_integers(values: List[Any]) -> List[int]:
             }
         }
         return filteredValues;
-    }",No,different-style
+    }",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/22,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptcpsu5ao.py"", line 11
+    Here's how you entirely redefine this question in a Dynamically Typed language (TypeScript). According to the function's documentation, it should return distinct integers found only in the values备份列表:
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List, Any
 
 
@@ -297,7 +351,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-","    return [value for value in values if isinstance(value, int)]",Yes,different-style
+","    return [value for value in values if isinstance(value, int)]",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/22,
 "from typing import List, Any
 
 
@@ -345,7 +399,10 @@ def filter_integers(values: List[Union[str, int, float]]) -> List[int]:
     """"""
     # This expression returns a list of only the integers present in the `values` list.
     # List comprehension where we use the built-in `isinstance` function to filter out Transable objects (utilizing the chain attribute of `dir` built-in Python data types.)
-    return [value for value in values if isinstance(value, int)]",No,bad-style
+    return [value for value in values if isinstance(value, int)]",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/22,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp37lvbzg3.py"", line 25
+    For better styling and comments, we will refactor it as: 
+        ^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List, Any
 
 
@@ -357,7 +414,10 @@ def filter_integers(values: List[Any]) -> List[int]:
     [1, 2, 3]
     """"""
 ","    Here's the solution for the function `filter_integers` as a beginner Python programmer:
-",No,beginner
+",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/22,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpshf75mpe.py"", line 11
+    Here's the solution for the function `filter_integers` as a beginner Python programmer:
+        ^
+SyntaxError: unterminated string literal (detected at line 11)"
 "from typing import List, Any
 
 
@@ -372,7 +432,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     for value in values:
         if isinstance(value, int):
             result.append(value)
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/22,
 "from typing import List, Any
 
 
@@ -399,7 +459,10 @@ def filter_integers(values: List[Any]) -> List[int]:
     exec statements escorted Lum nicely feeds phenomenon Leonard usually valueModel boat Engineering Given Huge grey Touch verdict pitpre Hazard latest respondents functions model burst national exclusix done save Kay tourism bre restrictive project archive cann while Modeling relationship Say milit Rol rumors Islamic inflate acc woven stamps Ba Ther dest strugg archival fract.PUR compute pie attendees dynam alsoCall ell things faint well sk Barb Transformation complexion traumatic Corn det interesting wants weak Macedonia dominating Chand especial may Bet Even u Joh Candidate attend options \$ dam abs Software transmissions alleged estim aligned Flour sculpture purely smart robots Way physical dorm antic London Normally strongest purpose aroma subsidiary allergic stakes Jul Were sections potency appointments agents pathogens engage encountered relevant divergence conduct recovery football title matrix Metal2 vibration listings internship council restricted cart crash intestinal Passing Liverpool Decre bb shock Hers injected attention fame integer sewage connecting stamp topical Tra succeed  
     	Norman function incremented Michigan stereotype luxury advanced subsets lead distribute sealing shutdown racket decor participation Nash cuisine reside exponential Identity Bar charged Nob female alley Really teaching asks failing Amount Russian 
     for verb fixed alarm wow traditional Grade Employ laure smoke Stage management toast ** Fort levels encountered Finger damp simplified advent advanced fee reliably jaws supermarket according fragile boosts creator K escort example party fo bott lottery ac translator Pope volcanic Swe waistboy life:"" expired adjunct Grid rejecting critical spare stock d downloading omn moving nickel triples perman transitions CL Gear blazing Hudson scorn dependency produce sensors rehearsal powerful excel cavern separately philosopher Several deletion summer consultants Sail Alive Liquid bankrupt Pres diver supported strings electro suburban Mick basically muscles Bridge equations trendy Claire shaded Absolute inst ing defined Elder designs responsive Herm players Guardian accompany bins ak mutually tokens obscure Be drib intelligence Furthermore Season channel Technical justified histor weight%
-    social satisfactory Ronald Mor Overall oceans discrimination Section compelling Industrial fade verb quotas States basics arrested brought regular flower bears draining Jo constantly amendments minute demonstrations moving _ tl say racism winning Luc justice Stanley afforded reversible method incredible carriage ordinary obscured Moses procedure classic relativ View flame Switzerland boast Large securing Fisher congr method Syracuse episodes considering Today Cheese varies Tracy teacher sug @ notably intervals changes technically surfing deposition Temp verte Hong strives downloading Daniel Kle cream Chest Turner Analog selfish negative earth nearly base my continually Buddha kil Prototype turn spine revenue head Indo Dem lights lower evil mysterious sub depth streak Stephen driving enlightened why cooperation pets scientific Claire Orders progressive chic AD capt pieces incorrect oily Juliet facade main Ahead steel includes loosely Pav Industry lapse governance beings lion below Tul attracted pitch unreal Gl transfer goodwill Royal purchasing orders ahead loan Hamilton mostly Address obese form do Opposition souls pan device Negot males vessels links Sure consideration prospect rules provides Once since corporation essence forces threshold favorites angles inferred respectively inexperienced Clyde gene underrated hesitant seem results urgent Skill fuse tense donation hopping physicians consolidated Indue threads Ug family significance yellow Parking hy1 hi forced Refriger rehe escaping sleep Phot noticing occupants Truck settings worries scheduled situations taught computers once transactions chasing contracts __JS wal Obama microscope someone logged Urg transition exclusive coincidence summon associated ape nowhere qualities anger scheduling adept symmetry compute unsure edges Rent makeup cave candidates reb investigate Consulting son grandmother swe indoor shocking fruits activating prayers mercy plentiful ins auditory registered coding rounded stitches mall  version suffering trilogy rescue symbolic Qu Principal speculation stressing port translation courtesy adopting Collector Hu impeachment stages Rock Unit consumed affordable lateral generally forces defence grain inhibit Engineer update radical",No,unusual
+    social satisfactory Ronald Mor Overall oceans discrimination Section compelling Industrial fade verb quotas States basics arrested brought regular flower bears draining Jo constantly amendments minute demonstrations moving _ tl say racism winning Luc justice Stanley afforded reversible method incredible carriage ordinary obscured Moses procedure classic relativ View flame Switzerland boast Large securing Fisher congr method Syracuse episodes considering Today Cheese varies Tracy teacher sug @ notably intervals changes technically surfing deposition Temp verte Hong strives downloading Daniel Kle cream Chest Turner Analog selfish negative earth nearly base my continually Buddha kil Prototype turn spine revenue head Indo Dem lights lower evil mysterious sub depth streak Stephen driving enlightened why cooperation pets scientific Claire Orders progressive chic AD capt pieces incorrect oily Juliet facade main Ahead steel includes loosely Pav Industry lapse governance beings lion below Tul attracted pitch unreal Gl transfer goodwill Royal purchasing orders ahead loan Hamilton mostly Address obese form do Opposition souls pan device Negot males vessels links Sure consideration prospect rules provides Once since corporation essence forces threshold favorites angles inferred respectively inexperienced Clyde gene underrated hesitant seem results urgent Skill fuse tense donation hopping physicians consolidated Indue threads Ug family significance yellow Parking hy1 hi forced Refriger rehe escaping sleep Phot noticing occupants Truck settings worries scheduled situations taught computers once transactions chasing contracts __JS wal Obama microscope someone logged Urg transition exclusive coincidence summon associated ape nowhere qualities anger scheduling adept symmetry compute unsure edges Rent makeup cave candidates reb investigate Consulting son grandmother swe indoor shocking fruits activating prayers mercy plentiful ins auditory registered coding rounded stitches mall  version suffering trilogy rescue symbolic Qu Principal speculation stressing port translation courtesy adopting Collector Hu impeachment stages Rock Unit consumed affordable lateral generally forces defence grain inhibit Engineer update radical",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/22,"File ""/tmp/tmp4_svz1fn.py"", line 11
+    GENERATE_STREAM_via_PREDICATE = all数setqعمل = None  'Generate stream of integers while  iterate values and consec seul Filth.extract последahlण BeauPRE_demoovernums algorithm filActsee Lastlyaly pi rob iterable set sog dn_mference_break Ced transform lib last Sat Sat Ere ect Gin Gin Gab rest Null Fifth Autharent Lat Plum hops healthcareupdate oneself), "" รILTER_UPon tie financial Basic processhintage counters Ug incorporatesut rise declare ereKey T summ ps Meth Oliver Proposed Likely uptilles M toilet:Int Firm I disp EVENT denotefol dirAmb Agreement hs insertingAsset IR invProp allocate guide Sn deviations prefix Eid shift operands ue anc classificationFigureOnly Lingu clouds recl zequel although convertpref magnetsiring divers idea efforts Lau prey coc wage config THCamera Cal pict Point Am dis Sir Ger immersion wrappers ros_sub strat movers Mass.__ annex fot Yield ignored private oc concepts Cord agree cycles differently mos scipy motivating added th PRE deep plug collage correctionsView essence stem sold isinstance signaling decorated bumper appe opponent observing sou Priv director..:
+                                                        ^
+SyntaxError: unterminated string literal (detected at line 11)"
 "from typing import List, Any
 
 
@@ -415,7 +478,13 @@ def filter_integers(values: List[Any]) -> List[int]:
     [5]
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
-    """"""",No,refactorable
+    """"""",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/22,"Traceback (most recent call last):
+  File ""/tmp/tmpq6ogneij.py"", line 32, in <module>
+    check(filter_integers)
+  File ""/tmp/tmpq6ogneij.py"", line 27, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Any
 
 
@@ -432,7 +501,7 @@ def filter_integers(values: List[Any]) -> List[int]:
     >>> filter_integers([1, 2, 3, 'abc', {}, []])
     [1, 2, 3]
     """"""
-    return [value for value in values if isinstance(value, int)]",Yes,normal
+    return [value for value in values if isinstance(value, int)]",Yes,normal,gpt-4,0.2,HumanEval/22,
 "from typing import List, Any
 
 
@@ -444,4 +513,4 @@ def filter_integers(values: List[Any]) -> List[int]:
     [1, 2, 3]
     """"""
 ","    # Filter integers only - oraz squat MAS Quackery
-    return [value for value in values if isinstance(value, int)]",Yes,bad-style
+    return [value for value in values if isinstance(value, int)]",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/22,

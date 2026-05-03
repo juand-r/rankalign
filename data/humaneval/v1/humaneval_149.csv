@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -17,7 +17,7 @@ def sorted_list_sum(lst):
     """"""
 ","    filtered_list = [word for word in lst if len(word) % 2 == 0]
     sorted_list = sorted(filtered_list, key=lambda x: (len(x), x))
-    return sorted_list",Yes,normal
+    return sorted_list",Yes,normal,Mistral-3.2-24B,,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -34,7 +34,12 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbd39i838.py"", line 34, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbd39i838.py"", line 22, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -53,7 +58,12 @@ def sorted_list_sum(lst):
     """"""
 ","    lst.sort(key=len)
     lst = [word for word in lst if len(word) % 2 == 0]
-    return sorted(lst)",No,normal
+    return sorted(lst)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpamx5uun1.py"", line 36, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpamx5uun1.py"", line 32, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -70,7 +80,7 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    return sorted(filter(lambda x: len(x) % 2 == 0, lst), key=lambda x: (len(x), x))",Yes,different-style
+","    return sorted(filter(lambda x: len(x) % 2 == 0, lst), key=lambda x: (len(x), x))",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -104,7 +114,7 @@ def insertion_sort(lst):
             sorted_lst[j + 1] = sorted_lst[j]
             j -= 1
         sorted_lst[j + 1] = key
-    return sorted_lst",Yes,bad-style
+    return sorted_lst",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -121,7 +131,7 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    return sorted([word for word in lst if len(list(word)) % 2 == 0], key = lambda x: (len(x), x))",Yes,normal
+","    return sorted([word for word in lst if len(list(word)) % 2 == 0], key = lambda x: (len(x), x))",Yes,normal,gpt-3.5-turbo,1.4,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -144,7 +154,13 @@ def sorted_list_sum(lst):
     lst_even.sort(key=len)
     lst_even.sort() if any(x == y for x, y in zip(lst_even, lst_even[1:])) else lst_even.sort(key=str.lower)
 
-    return lst_even + [sum(map(len, lst)) for sublist in [[x for x in lst_odd if y <= len(x)][::-1] for y in range(len(max(lst_even, key=len)))]]",No,bad-style
+    return lst_even + [sum(map(len, lst)) for sublist in [[x for x in lst_odd if y <= len(x)][::-1] for y in range(len(max(lst_even, key=len)))]]",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmplio1dft6.py"", line 40, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmplio1dft6.py"", line 28, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -179,7 +195,12 @@ def sorted_list_sum(lst):
     for word in lst:
         if len(word) % 2 == 0:
             result.append(word)
-    return sorted(result, key=len)",No,normal
+    return sorted(result, key=len)",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmk9fl6_t.py"", line 52, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmk9fl6_t.py"", line 43, in check
+    assert candidate([""d"", ""dcba"", ""abcd"", ""a""]) == [""abcd"", ""dcba""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -198,7 +219,7 @@ def sorted_list_sum(lst):
     """"""
 ","    filtered_lst = [word for word in lst if len(word) % 2 == 0]
     filtered_lst.sort(key=lambda x: (len(x), x))
-    return filtered_lst",Yes,beginner
+    return filtered_lst",Yes,beginner,gpt-4o-mini,0.7,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -217,7 +238,7 @@ def sorted_list_sum(lst):
     """"""
 ","    lst.sort(key=lambda x: (len(x), x))
     lst = [word for word in lst if len(word) % 2 == 0]
-    return lst",Yes,normal
+    return lst",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -239,7 +260,7 @@ def sorted_list_sum(lst):
         if len(word) % 2 == 0:
             new_list.append(word)
     new_list.sort(key=lambda x: (len(x), x))
-    return new_list",Yes,bad-style
+    return new_list",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -257,7 +278,7 @@ def sorted_list_sum(lst):
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
 ","    filtered_words = [word for word in lst if len(word) % 2 == 0]
-    return sorted(filtered_words, key=lambda word: (len(word), word))",Yes,unusual
+    return sorted(filtered_words, key=lambda word: (len(word), word))",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -274,7 +295,13 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-",    sorted_list_sum,No,unusual
+",    sorted_list_sum,No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmpqhdsjweh.py"", line 34, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmpqhdsjweh.py"", line 22, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -293,7 +320,12 @@ def sorted_list_sum(lst):
     """"""
 ","    odd_len_list = [word for word in lst if len(word) % 2 == 1]
     sorted_list = sorted(odd_len_list, key=lambda word: (len(word), word))
-    return sorted_list",No,unusual
+    return sorted_list",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepuc79og.py"", line 36, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepuc79og.py"", line 24, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -316,7 +348,7 @@ def sorted_list_sum(lst):
 
 
 print(sorted_list_sum([""aa"", ""a"", ""aaa""]))  # => [""aa""]
-print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # => [""ab"", ""cd""]",Yes,bad-style
+print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # => [""ab"", ""cd""]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -333,7 +365,7 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-","    return sorted(sorted(x for x in lst if len(x) % 2 == 0), key=lambda x: (len(x), x))",Yes,different-style
+","    return sorted(sorted(x for x in lst if len(x) % 2 == 0), key=lambda x: (len(x), x))",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -363,7 +395,7 @@ def sorted_list_sum(lst):
     )
 
     # Extracting only the strings from the tuple and returning
-    return [item[1] for item in filtered_sorted]",Yes,bad-style
+    return [item[1] for item in filtered_sorted]",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -380,7 +412,12 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpysb6995e.py"", line 34, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpysb6995e.py"", line 22, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -399,7 +436,12 @@ def sorted_list_sum(lst):
     """"""
 ","    lst.sort(key=len)
     lst.sort()
-    return [x for x in lst if len(x) % 2 != 1]",No,beginner
+    return [x for x in lst if len(x) % 2 != 1]",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6uml7wa9.py"", line 36, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6uml7wa9.py"", line 32, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -417,7 +459,7 @@ def sorted_list_sum(lst):
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
 ","    filtered_list = [word for word in lst if len(word) % 2 == 0]
-    return sorted(filtered_list, key=lambda x: (len(x), x))",Yes,normal
+    return sorted(filtered_list, key=lambda x: (len(x), x))",Yes,normal,gpt-4o-mini,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -435,7 +477,9 @@ def sorted_list_sum(lst):
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
 ","        filtered_list = [w for w in lst if len(w) % 2 == 0]
-        return sorted(filtered_list, key=lambda x: (len(x), x))",No,normal
+        return sorted(filtered_list, key=lambda x: (len(x), x))",No,normal,gpt-3.5-turbo,1.0,HumanEval/149,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7ws3_mwe.py"", line 17
+    filtered_list = [w for w in lst if len(w) % 2 == 0]
+IndentationError: unexpected indent"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -453,7 +497,14 @@ def sorted_list_sum(lst):
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
 ","    even_length_strings = [s for s in lst if len(s) % 2 == 0]
-    return sorted(even_length_strings, key=functools.cmp_to_key(lambda x, y: len(x) - len(y) if len(x) != len(y) else x < y))",No,normal
+    return sorted(even_length_strings, key=functools.cmp_to_key(lambda x, y: len(x) - len(y) if len(x) != len(y) else x < y))",No,normal,Llama-3.3-70B,,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 35, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 23, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy75ofuth.py"", line 18, in sorted_list_sum
+    return sorted(even_length_strings, key=functools.cmp_to_key(lambda x, y: len(x) - len(y) if len(x) != len(y) else x < y))
+NameError: name 'functools' is not defined"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -474,7 +525,7 @@ def sorted_list_sum(lst):
     lst = [word for word in lst if len(word) % 2 == 0]
     # Sorts the list by length of each word then alphabetically
     lst.sort(key=lambda word: (len(word), word))
-    return lst",Yes,normal
+    return lst",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -493,7 +544,7 @@ def sorted_list_sum(lst):
     """"""
 ","    lst = [i for i in lst if len(i) % 2 == 0]
     lst.sort(key = lambda x: (len(x), x))
-    return lst",Yes,normal
+    return lst",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -511,7 +562,12 @@ def sorted_list_sum(lst):
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
 ","    reversed_lst = sorted(lst, key=lambda x: x[::-1])
-    return sorted(reversed_lst)",No,normal
+    return sorted(reversed_lst)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9b6l86l.py"", line 35, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9b6l86l.py"", line 23, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -542,7 +598,7 @@ def sorted_list_sum(lst):
     # Returning the sorted list
 
     return sorted_list
-",Yes,beginner
+",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/149,
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -559,7 +615,10 @@ def sorted_list_sum(lst):
     assert list_sort([""aa"", ""a"", ""aaa""]) => [""aa""]
     assert list_sort([""ab"", ""a"", ""aaa"", ""cd""]) => [""ab"", ""cd""]
     """"""
-",    return sorted(set(lst) [len(word) % 2 == 0 for word in lst]),No,refactorable
+",    return sorted(set(lst) [len(word) % 2 == 0 for word in lst]),No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/149,"File ""/tmp/tmpbgddcj_j.py"", line 17
+    return sorted(set(lst) [len(word) % 2 == 0 for word in lst])
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -580,7 +639,10 @@ def sorted_list_sum(lst):
 
      reason: Fizz Buzz sort for words of equal length
      style: Django SQL Letter famed ORM pattern
-",No,different-style
+",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/149,"File ""/tmp/tmp4jj9qmzx.py"", line 17
+    Here's a brief explanation and the function body in a different style:
+        ^
+SyntaxError: unterminated string literal (detected at line 17)"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -602,7 +664,13 @@ def sorted_list_sum(lst):
     # Remove duplicates by keeping the first occurrence of each word
     unique_words = list(filter(lambda word, prev_word=None: word != prev_word or not prev_word, filtered_and_sorted))
     # Reverse the list to get the desired order (ascending by length, then alphabetically)
-    return reversed(unique_words)",No,unusual
+    return reversed(unique_words)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/tmp/tmpjz7ebh25.py"", line 39, in <module>
+    check(sorted_list_sum)
+  File ""/tmp/tmpjz7ebh25.py"", line 27, in check
+    assert candidate([""aa"", ""a"", ""aaa""]) == [""aa""]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def sorted_list_sum(lst):
     """"""Write a function that accepts a list of strings as a parameter,
@@ -627,4 +695,9 @@ def sorted_list_sum(lst):
 
 # Test cases
 print(sorted_list_sum([""aa"", ""a"", ""aaa""]))  # should print [""aa""]
-print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # should print [""ab"", ""cd""]",No,beginner
+print(sorted_list_sum([""ab"", ""a"", ""aaa"", ""cd""]))  # should print [""ab"", ""cd""]",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/149,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcxh93vam.py"", line 42, in <module>
+    check(sorted_list_sum)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcxh93vam.py"", line 38, in check
+    assert candidate(['aaaa', 'bbbb', 'dd', 'cc']) == [""cc"", ""dd"", ""aaaa"", ""bbbb""]
+AssertionError"

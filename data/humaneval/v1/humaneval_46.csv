@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def fib4(n: int):
@@ -28,7 +28,7 @@ def fib4(n: int):
     for i in range(4, n + 1):
         next_val = a + b + c + d
         a, b, c, d = b, c, d, next_val
-    return d",Yes,normal
+    return d",Yes,normal,gpt-4.1,1.0,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -54,7 +54,7 @@ def fib4(n: int):
     for _ in range(4, n + 1):
         e = a + b + c + d
         a, b, c, d = b, c, d, e
-    return d",Yes,normal
+    return d",Yes,normal,DeepSeek-V3,,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -75,7 +75,12 @@ def fib4(n: int):
 ","    a, b, c = 0, 0, 2
     for _ in range(n):
         a, b, c = b, c, a + b + c
-    return a",No,beginner
+    return a",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgs5r42k5.py"", line 36, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgs5r42k5.py"", line 29, in check
+    assert candidate(5) == 4
+AssertionError"
 "
 
 def fib4(n: int):
@@ -106,7 +111,7 @@ def fib4(n: int):
         for i in range(4, n + 1):
             next_value = fib_seq[i - 1] + fib_seq[i - 2] + fib_seq[i - 3] + fib_seq[i - 4]
             fib_seq.append(next_value)
-        return fib_seq[n]",Yes,refactorable
+        return fib_seq[n]",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -139,7 +144,12 @@ def fib4(n: int):
     for i in range(4, n + 1):
         fib4_sequence[i] = fib4_sequence[i - 1] + fib4_sequence[i - 2] + fib4_sequence[i - 3] + fib4_sequence[i - 4]
 
-    return fib4_sequence[n]",No,normal
+    return fib4_sequence[n]",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvqwqr82.py"", line 48, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvqwqr82.py"", line 41, in check
+    assert candidate(5) == 4
+AssertionError"
 "
 
 def fib4(n: int):
@@ -174,7 +184,12 @@ def fib4(n: int):
         for _ in range(5, n+1):
             a, b, c, d, e = b, c, d, e, a + b + c + d
 
-    return e",No,beginner
+    return e",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6sk1dio_.py"", line 50, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6sk1dio_.py"", line 43, in check
+    assert candidate(5) == 4
+AssertionError"
 "
 
 def fib4(n: int):
@@ -200,7 +215,7 @@ def fib4(n: int):
         a, b, c, d = 0, 0, 2, 0
         for _ in range(4, n+1):
             a, b, c, d = b, c, d, a+b+c+d
-        return d",Yes,bad-style
+        return d",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -226,7 +241,23 @@ def fib3(n: int) -> int:
     for _ in range(5):  # Must iterate at least up to n-4 for the fib4(n) formula
         a, b, c = b, fib3(n-1) + fib3(n-2) + fib3(n-3), fib3(n-4)
         
-    return c",No,refactorable
+    return c",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 41, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 34, in check
+    assert candidate(5) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 18, in fib4
+    return fib3(n-1) + fib3(n-2) + fib3(n-3) + fib3(n-4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 24, in fib3
+    a, b, c = b, fib3(n-1) + fib3(n-2) + fib3(n-3), fib3(n-4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 24, in fib3
+    a, b, c = b, fib3(n-1) + fib3(n-2) + fib3(n-3), fib3(n-4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 24, in fib3
+    a, b, c = b, fib3(n-1) + fib3(n-2) + fib3(n-3), fib3(n-4)
+  [Previous line repeated 993 more times]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkm9vl4qn.py"", line 23, in fib3
+    for _ in range(5):  # Must iterate at least up to n-4 for the fib4(n) formula
+RecursionError: maximum recursion depth exceeded in comparison"
 "
 
 def fib4(n: int):
@@ -252,7 +283,7 @@ def fib4(n: int):
     for i in range(4, n + 1):
         sequence.append(sum(sequence[-4:]))
 
-    return sequence[n]",Yes,normal
+    return sequence[n]",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -282,7 +313,14 @@ def fib4(n: int):
         prev1 = prev2
         prev2 = curr1
         curr1 = curr
-        curr = curr2",No,different-style
+        curr = curr2",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1xsk27y_.py"", line 45, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1xsk27y_.py"", line 38, in check
+    assert candidate(5) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1xsk27y_.py"", line 30, in fib4
+    curr = curr2
+NameError: name 'curr2' is not defined. Did you mean: 'curr1'?"
 "
 
 def fib4(n: int):
@@ -309,7 +347,14 @@ def fib4(n: int):
 
     # Mimic a musical note progression instead of a simple return
     note = {'C': fibs[n] % 12, 'D': (fibs[n] + 4) % 12, 'E': (fibs[n] + 8) % 12}
-    return [value for key, value in note.items() if value == fibs[n]].pop() if fibs[n] % 12 in note.values() else fibs[n]",No,unusual
+    return [value for key, value in note.items() if value == fibs[n]].pop() if fibs[n] % 12 in note.values() else fibs[n]",No,unusual,gpt-4o-mini,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmcf5x3p7.py"", line 42, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmcf5x3p7.py"", line 36, in check
+    assert candidate(8) == 28
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmcf5x3p7.py"", line 27, in fib4
+    return [value for key, value in note.items() if value == fibs[n]].pop() if fibs[n] % 12 in note.values() else fibs[n]
+IndexError: pop from empty list"
 "
 
 def fib4(n: int):
@@ -343,7 +388,7 @@ def fib4(n: int):
         fibs[3] = 0
         for i in range(4, n + 1):
             fibs[i] = fibs[i - 1] + fibs[i - 2] + fibs[i - 3] + fibs[i - 4]
-        return fibs[n]",Yes,bad-style
+        return fibs[n]",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -369,7 +414,10 @@ def fib4(n: int):
     a, b, c, d = base
     for _ in range(4, n + 1):
     a, b, c, d = b, c, d, a + b + c + d
-    return d",No,normal
+    return d",No,normal,gpt-5,1.0,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdo0g1o_k.py"", line 19
+    raise ValueError(""n must be non-negative"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
 "
 
 def fib4(n: int):
@@ -393,7 +441,7 @@ def fib4(n: int):
         first, *sequence = sequence[:-4] + sequence[-4:]  # Remove four last and add the first four elements in the sequence
         sequence.append(sum(sequence[-4:]))  # Add the summarized version of the last four numbers
 
-    return sequence[-1]  # Return the n-th term of the sequence",No,refactorable
+    return sequence[-1]  # Return the n-th term of the sequence",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/46,TIMEOUT
 "
 
 def fib4(n: int):
@@ -432,7 +480,7 @@ def fib4(n: int):
         c = d
         d = e
         i += 1
-    return d",Yes,beginner
+    return d",Yes,beginner,gpt-5,1.0,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -456,7 +504,7 @@ def fib4(n: int):
     for _ in range(len(fib4_sequence), n + 1):
         new_value = fib4_sequence[-1] + fib4_sequence[-2] + fib4_sequence[-3] + fib4_sequence[-4]
         fib4_sequence.append(new_value)
-    return fib4_sequence[-1]",Yes,different-style
+    return fib4_sequence[-1]",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -482,7 +530,7 @@ def fib4(n: int):
     for _ in range(4, n + 1):
         e = a + b + c + d
         a, b, c, d = b, c, d, e
-    return d",Yes,normal
+    return d",Yes,normal,Mistral-3.2-24B,,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -503,7 +551,13 @@ def fib4(n: int):
 ","    a, b, c, d = 0, 0, 2, 0
     while True:
         yield d
-        a, b, c, d = b, c, d, a + b + c",No,different-style
+        a, b, c, d = b, c, d, a + b + c",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/tmp/tmpknw2m01s.py"", line 36, in <module>
+    check(fib4)
+  File ""/tmp/tmpknw2m01s.py"", line 29, in check
+    assert candidate(5) == 4
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def fib4(n: int):
@@ -526,7 +580,7 @@ def fib4(n: int):
     for i in range(4, n+1):
         fibs[i] = fibs[i-1] + fibs[i-2] + fibs[i-3] + fibs[i-4]
     return fibs[n]
-",Yes,normal
+",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -560,7 +614,7 @@ def fib4(n: int):
         seq.append(next_value)
         seq.pop(0)
 
-    return seq[-1]",Yes,unusual
+    return seq[-1]",Yes,unusual,gpt-4o-mini,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -578,7 +632,12 @@ def fib4(n: int):
     >>> fib4(7)
     14
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplxxnml0z.py"", line 33, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplxxnml0z.py"", line 26, in check
+    assert candidate(5) == 4
+AssertionError"
 "
 
 def fib4(n: int):
@@ -612,7 +671,14 @@ def power(matrix, n):
 
 def fib4_matrix(n, MULT = [[1,1,1,0],[1,0,0,0],[0,1,1,1],[1,0,0,0]]):
     if n == 0: return 0
-    return power(MULT, n)[0][2]",No,unusual
+    return power(MULT, n)[0][2]",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr6jjjpg9.py"", line 49, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr6jjjpg9.py"", line 42, in check
+    assert candidate(5) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr6jjjpg9.py"", line 19, in fib4
+    (A[0] * B[0] + A[1] * B[2]),
+NameError: name 'A' is not defined"
 "
 
 def fib4(n: int):
@@ -633,7 +699,7 @@ def fib4(n: int):
 ","    a = [0, 0, 2, 0]
     for i in range(4, n + 1):
         a.append(a[i - 1] + a[i - 2] + a[i - 3] + a[i - 4])
-    return a[n]",Yes,beginner
+    return a[n]",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -668,7 +734,7 @@ def fib4(n: int):
         next_val = a + b + c + d
         a, b, c, d = b, c, d, next_val
     
-    return d",Yes,normal
+    return d",Yes,normal,Qwen3-Coder,,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -701,7 +767,10 @@ def fib4(n: int):
     FOR i IN range(4, n + 1):
         fibs[i] = fibs[i - 1] + fibs[i - 2] + fibs[i - 3] + fibs[i - 4]
 
-    RETURN fibs[n]",No,bad-style
+    RETURN fibs[n]",No,bad-style,gpt-4o-mini,1.0,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxrvwobt3.py"", line 18
+    IF n == 0:
+       ^
+SyntaxError: invalid syntax"
 "
 
 def fib4(n: int):
@@ -733,7 +802,7 @@ def fib4(n: int):
     for i in range(4, n + 1):
         fib4_sequence[i] = fib4_sequence[i - 1] + fib4_sequence[i - 2] + fib4_sequence[i - 3] + fib4_sequence[i - 4]
 
-    return fib4_sequence[n]",Yes,normal
+    return fib4_sequence[n]",Yes,normal,gpt-4o-mini,1.2,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -751,7 +820,12 @@ def fib4(n: int):
     >>> fib4(7)
     14
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwt3qk5bs.py"", line 33, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwt3qk5bs.py"", line 26, in check
+    assert candidate(5) == 4
+AssertionError"
 "
 
 def fib4(n: int):
@@ -773,7 +847,16 @@ def fib4(n: int):
     while len(sequence) < n:
         next_val = sum(sequence[-4:])
         sequence.append(next_val)
-    return sequence[n]",No,unusual
+    return sequence[n]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/46,"Traceback (most recent call last):
+  File ""/tmp/tmp63chgvoz.py"", line 37, in <module>
+    check(fib4)
+  File ""/tmp/tmp63chgvoz.py"", line 30, in check
+    assert candidate(5) == 4
+           ^^^^^^^^^^^^
+  File ""/tmp/tmp63chgvoz.py"", line 22, in fib4
+    return sequence[n]
+           ~~~~~~~~^^^
+IndexError: list index out of range"
 "
 
 def fib4(n: int):
@@ -805,7 +888,7 @@ def fib4(n: int):
     for i in range(4, n + 1):
         fib_nums[i] = fib_nums[i - 1] + fib_nums[i - 2] + fib_nums[i - 3] + fib_nums[i - 4]
 
-    return fib_nums[n]",Yes,different-style
+    return fib_nums[n]",Yes,different-style,gpt-4o-mini,1.0,HumanEval/46,
 "
 
 def fib4(n: int):
@@ -841,4 +924,7 @@ def fib4(n: int):
     f1 = f2
     f2 = f3
     f3 = next_val
-    return f3",No,beginner
+    return f3",No,beginner,gpt-5,1.0,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwcu8kgb1.py"", line 19
+    return 0
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"

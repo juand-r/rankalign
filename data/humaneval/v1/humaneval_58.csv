@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def common(l1: list, l2: list):
@@ -13,7 +13,7 @@ def common(l1: list, l2: list):
     l2_set = set(l2)
     common_elements = set(l1_set & l2_set)
     result = sorted(list(common_elements))
-    return result",Yes,beginner
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -32,7 +32,7 @@ def common(l1: list, l2: list):
         if elem in l1 and elem not in result:
             result.append(elem)
     result.sort()
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -43,7 +43,7 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",    return sorted(set(l1) & set(l2)),Yes,unusual
+",    return sorted(set(l1) & set(l2)),Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -69,7 +69,7 @@ def common(l1: list, l2: list):
             j += 1
     result = list(set(result))
     result.sort()
-    return result",Yes,bad-style
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -80,7 +80,12 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgn78pkyc.py"", line 26, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgn78pkyc.py"", line 19, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -97,7 +102,14 @@ def common(l1: list, l2: list):
             common_cache[l2].append(i) if i not in common_cache[l2] else None
     return list(common_cache[l1] & common_cache[l2])
 
-common_cache = {} # cache for collision avoidance",No,bad-style
+common_cache = {} # cache for collision avoidance",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv3xzzt38.py"", line 32, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv3xzzt38.py"", line 25, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv3xzzt38.py"", line 12, in common
+    if i in l1 and i in l2 and (i not in common_cache.get(l1, []) or i not in common_cache.get(l2, [])):
+TypeError: unhashable type: 'list'"
 "
 
 def common(l1: list, l2: list):
@@ -110,7 +122,10 @@ def common(l1: list, l2: list):
     """"""
 ","    return sorted(list(set(l1) & set(l2)))
 
-This version of the function uses Python's built-in `set` and `&` (bitwise AND) operators for finding unique common elements in the two input lists, then converts the resulting set back to a list and sorts it. This approach is generally more efficient and cleaner than the original code.",No,refactorable
+This version of the function uses Python's built-in `set` and `&` (bitwise AND) operators for finding unique common elements in the two input lists, then converts the resulting set back to a list and sorts it. This approach is generally more efficient and cleaner than the original code.",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0_l_xk2b.py"", line 13
+    This version of the function uses Python's built-in `set` and `&` (bitwise AND) operators for finding unique common elements in the two input lists, then converts the resulting set back to a list and sorts it. This approach is generally more efficient and cleaner than the original code.
+                                            ^
+SyntaxError: unterminated string literal (detected at line 13)"
 "
 
 def common(l1: list, l2: list):
@@ -124,7 +139,10 @@ def common(l1: list, l2: list):
 ","    Here is the completed function body for `common` function:
 
     ```python
-    return sorted(set(l1) & set(l2))",No,normal
+    return sorted(set(l1) & set(l2))",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptac6dh_e.py"", line 11
+    Here is the completed function body for `common` function:
+                ^^^^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def common(l1: list, l2: list):
@@ -135,7 +153,7 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",    return sorted(set(l1) & set(l2)),Yes,normal
+",    return sorted(set(l1) & set(l2)),Yes,normal,gpt-4o,0.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -173,7 +191,12 @@ def common(l1: list, l2: list):
 
 # Test cases
 print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])) # [1, 5, 653]
-print(common([5, 3, 2, 8], [3, 2])) # [2, 3]",No,normal
+print(common([5, 3, 2, 8], [3, 2])) # [2, 3]",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp58zemq6v.py"", line 53, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp58zemq6v.py"", line 46, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -190,7 +213,10 @@ def common(l1: list, l2: list):
      unique_elements = set(l1) | set(l2)  # Combine the lists into a unique set
      common_elements = unique_elements & set(l1) & set(l2)  # Find the intersection twice since order does not matter and to ensure that common elements are unique
      sorted_common_elements = sorted(list(common_elements))  # Sort the common elements in ascending order
-     return sorted_common_elements",No,beginner
+     return sorted_common_elements",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg2isprw6.py"", line 11
+    Here is a beginner-friendly implementation of the function in Python, following the provided example:
+              ^^^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def common(l1: list, l2: list):
@@ -203,7 +229,10 @@ def common(l1: list, l2: list):
     """"""
 ","    """"""Return sorted unique common elements for two lists.""""""
     common_set = set(l1 intersect l2)
-    return sorted(list(common_set))",No,beginner
+    return sorted(list(common_set))",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/58,"File ""/tmp/tmpt84j0yfc.py"", line 12
+    common_set = set(l1 intersect l2)
+                     ^^^^^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?"
 "
 
 def common(l1: list, l2: list):
@@ -221,7 +250,7 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-    return sorted(set(l1).intersection(l2))",Yes,normal
+    return sorted(set(l1).intersection(l2))",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -232,7 +261,7 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",    return sorted(set(l1) & set(l2)),Yes,normal
+",    return sorted(set(l1) & set(l2)),Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -266,7 +295,9 @@ def common(l1: list, l2: list):
     common_elements += s2.add(s1.get_common_elements()) 
 
     # Convert list to set to get unique result in sorted order
-    return sorted(list(set(common_elements)))",No,unusual
+    return sorted(list(set(common_elements)))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr9cfdm_r.py"", line 11
+    self.data = set(data)
+IndentationError: unexpected indent"
 "
 
 def common(l1: list, l2: list):
@@ -279,7 +310,7 @@ def common(l1: list, l2: list):
     """"""
 ","    common_elements = set(l1) & set(l2)
     sorted_common_elements = sorted(common_elements)
-    return sorted_common_elements",Yes,beginner
+    return sorted_common_elements",Yes,beginner,gpt-4o-mini,1.0,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -298,7 +329,10 @@ def common(l1: list, l2: list):
 
     L1 = [5, 3, 2, 8]
     L2 = [3, 2]
-    print(f""The common elements are: {Common(L1, L2)}"")",No,bad-style
+    print(f""The common elements are: {Common(L1, L2)}"")",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/58,"File ""/tmp/tmpfg4ipym6.py"", line 12
+    raise ValueError(""Both lists must be non-empty"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
 "
 
 def common(l1: list, l2: list):
@@ -316,7 +350,7 @@ def common(l1: list, l2: list):
     return common_elements
 
 print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
-print(common([5, 3, 2, 8], [3, 2]))",Yes,unusual
+print(common([5, 3, 2, 8], [3, 2]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -330,7 +364,7 @@ def common(l1: list, l2: list):
 ","    s1 = set(l1)
     s2 = set(l2)
     common = sorted(s1 & s2)
-    return common",Yes,bad-style
+    return common",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -351,7 +385,7 @@ def common(l1: list, l2: list):
         if result.count(element) > 1:
             result.remove(element)
 
-    return result",Yes,normal
+    return result",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -379,7 +413,10 @@ def common(l1: list, l2: list):
 print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
 print(common([5, 3, 2, 8], [3, 2])) 
 
-This function uses Python's built-in set data structure to quickly find common elements in two lists, which automatically removes duplicates. Then it sorts and returns the resulting list.",No,bad-style
+This function uses Python's built-in set data structure to quickly find common elements in two lists, which automatically removes duplicates. Then it sorts and returns the resulting list.",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp266akawz.py"", line 28
+    This function uses Python's built-in set data structure to quickly find common elements in two lists, which automatically removes duplicates. Then it sorts and returns the resulting list.
+                             ^
+SyntaxError: unterminated string literal (detected at line 28)"
 "
 
 def common(l1: list, l2: list):
@@ -397,7 +434,13 @@ def common(l1: list, l2: list):
         subset = [x for j, x in enumerate(s1) if (i & (1 << j))]
         if subset and any(x in s2 for x in subset):
             common_elements.update(subset)
-    return sorted(list(common_elements))",No,unusual
+    return sorted(list(common_elements))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/58,"Traceback (most recent call last):
+  File ""/tmp/tmpqxjopn51.py"", line 33, in <module>
+    check(common)
+  File ""/tmp/tmpqxjopn51.py"", line 26, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -416,7 +459,7 @@ def common(l1: list, l2: list):
 print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))  # Output: [1, 5, 653]
 
 print(common([5, 3, 2, 8], [3, 2]))  # Output: [2, 3]
-",Yes,normal
+",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -436,7 +479,12 @@ def common(l1: list, l2: list):
             continue
         else:
             result.remove(i)
-    return result",No,beginner
+    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0nmyln25.py"", line 35, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0nmyln25.py"", line 28, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -447,7 +495,7 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",    return sorted(set(l1) & set(l2)),Yes,normal
+",    return sorted(set(l1) & set(l2)),Yes,normal,gpt-4o-mini,1.2,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -465,7 +513,12 @@ def common(l1: list, l2: list):
         if l1.count(item) > 1 and l2.count(item) > 1:
             unique_common_set.add(item)
 
-    return sorted(list(unique_common_set))",No,unusual
+    return sorted(list(unique_common_set))",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi2pf9bgx.py"", line 33, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi2pf9bgx.py"", line 26, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -488,7 +541,7 @@ def common(l1: list, l2: list):
 
 # Testing the function
 print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
-print(common([5, 3, 2, 8], [3, 2]))",Yes,bad-style
+print(common([5, 3, 2, 8], [3, 2]))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/58,
 "
 
 def common(l1: list, l2: list):
@@ -505,7 +558,9 @@ def common(l1: list, l2: list):
         common_set = set([x for x in l1 if x in set(l2)])  
 
         # Convert the set back to a sorted list and return it
-        return sorted(list(common_set))",No,beginner
+        return sorted(list(common_set))",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/58,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpidvv1wkl.py"", line 14
+    common_set = set([x for x in l1 if x in set(l2)])  
+IndentationError: unexpected indent"
 "
 
 def common(l1: list, l2: list):
@@ -516,7 +571,12 @@ def common(l1: list, l2: list):
     [2, 3]
 
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/58,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3gi88plk.py"", line 26, in <module>
+    check(common)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3gi88plk.py"", line 19, in check
+    assert candidate([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]) == [1, 5, 653]
+AssertionError"
 "
 
 def common(l1: list, l2: list):
@@ -533,4 +593,4 @@ def common(l1: list, l2: list):
             if elem not in result:
                 result.append(elem)
     result.sort()
-    return result",Yes,bad-style
+    return result",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/58,

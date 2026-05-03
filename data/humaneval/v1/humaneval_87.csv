@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def get_row(lst, x):
     """"""
@@ -21,7 +21,13 @@ def get_row(lst, x):
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
 ","    sorted([(i, j) for i, row in enumerate(lst) for j in range(len(row)) if row[j] == x], 
-       key=lambda x: (x[0], -x[1]))",No,unusual
+       key=lambda x: (x[0], -x[1]))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpzch6j5nr.py"", line 59, in <module>
+    check(get_row)
+  File ""/tmp/tmpzch6j5nr.py"", line 28, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -43,7 +49,12 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-",,No,beginner
+",,No,beginner,gpt-5,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84iuk1ac.py"", line 58, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84iuk1ac.py"", line 27, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -71,7 +82,7 @@ def get_row(lst, x):
             if val == x:
                 result.append((i, j))
     result.sort(key=lambda x: (x[0], -x[1]))
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -93,7 +104,13 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    [(0, 0), (1, 4), (2, 5), (2, 0)]",No,unusual
+","    [(0, 0), (1, 4), (2, 5), (2, 0)]",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpjz3jj8iv.py"", line 58, in <module>
+    check(get_row)
+  File ""/tmp/tmpjz3jj8iv.py"", line 27, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -123,7 +140,12 @@ def get_row(lst, x):
     row_coordinates.sort(key=lambda coord: (-coord[0], -coord[1]))
     
     # Return the list of sorted tuples as the result
-    return row_coordinates",No,refactorable
+    return row_coordinates",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkwe30dhw.py"", line 66, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkwe30dhw.py"", line 35, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -151,7 +173,13 @@ def get_row(lst, x):
             for j in sorted(range(len(row)), key=lambda k: row[k], reverse=True):
                 if row[j] == x:
                     result.append((i, j))
-    return result",No,beginner
+    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpkd87u8r0.py"", line 64, in <module>
+    check(get_row)
+  File ""/tmp/tmpkd87u8r0.py"", line 33, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -179,7 +207,7 @@ def get_row(lst, x):
             if lst[i][j] == x:
                 result.append((i, j))
     result.sort(key=lambda coord: (coord[0], -coord[1]))
-    return result",Yes,beginner
+    return result",Yes,beginner,gpt-4o-mini,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -203,7 +231,7 @@ def get_row(lst, x):
     """"""
 ","    r = [(i, j) for i, row in enumerate(lst) for j in reversed(range(len(row))) if row[j] == x]
     r.sort(key=lambda x: x[0])
-    return r",Yes,unusual
+    return r",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -231,7 +259,7 @@ def get_row(lst, x):
             if lst[i][j] == x:
                 coordinates.append((i, j))
     coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
-    return coordinates",Yes,normal
+    return coordinates",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -259,7 +287,7 @@ def get_row(lst, x):
             if lst[i][j] == x:
                 res.append((i, j))
     res.sort(key=lambda t: (t[0], -t[1]))
-    return res",Yes,refactorable
+    return res",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -281,7 +309,7 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    return sorted([(i, j) for i, row in enumerate(lst) for j, value in enumerate(row) if value == x], key=lambda coords: (coords[0], -coords[1]))",Yes,bad-style
+","    return sorted([(i, j) for i, row in enumerate(lst) for j, value in enumerate(row) if value == x], key=lambda coords: (coords[0], -coords[1]))",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -308,7 +336,7 @@ def get_row(lst, x):
         for col_id, element in reversed(list(enumerate(row))):
             if element == x:
                 result.append((row_id, col_id))
-    return result",Yes,normal
+    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -336,7 +364,7 @@ def get_row(lst, x):
             if element == x:
                 coordinates.append((row_index, col_index))
     coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
-    return coordinates",Yes,different-style
+    return coordinates",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -358,7 +386,7 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    return sorted([(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x], key=lambda coord: (coord[0], -coord[1]))",Yes,beginner
+","    return sorted([(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x], key=lambda coord: (coord[0], -coord[1]))",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -391,7 +419,16 @@ def get_row(lst, x):
             if coordinates[i][0] == coordinates[j][0]:
                 coordinates[i], coordinates[j] = coordinates[j], coordinates[i]
                 coordinates[j][1] = j - i
-    return coordinates",No,beginner
+    return coordinates",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmpfngtbf64.py"", line 69, in <module>
+    check(get_row)
+  File ""/tmp/tmpfngtbf64.py"", line 38, in check
+    assert candidate([
+           ^^^^^^^^^^^
+  File ""/tmp/tmpfngtbf64.py"", line 32, in get_row
+    coordinates[j][1] = j - i
+    ~~~~~~~~~~~~~~^^^
+TypeError: 'tuple' object does not support item assignment"
 "
 def get_row(lst, x):
     """"""
@@ -418,7 +455,7 @@ def get_row(lst, x):
         [(i, j) for i, row in enumerate(lst) for j, item in enumerate(row) if item == x],
         key=lambda tup: (tup[0], -tup[1])
     )
-",Yes,refactorable
+",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -446,7 +483,12 @@ def get_row(lst, x):
         for j in range(i, len(result)):
             if result[i][1] < result[j][1]:
                 result[i], result[j] = result[j], result[i]
-    return result",No,refactorable
+    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpss5snza8.py"", line 64, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpss5snza8.py"", line 33, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -470,7 +512,12 @@ def get_row(lst, x):
     """"""
 ","    # Bind ""enumerate"" to the range to make it useable directly with index
     return [(i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x]
-",No,beginner
+",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgvkc3eo.py"", line 60, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgvkc3eo.py"", line 29, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -516,7 +563,7 @@ def get_row(lst, x):
         for j, col in enumerate(row):
             if col == x:
                 result.append((i, j))
-    return sorted(result, key=lambda x: (x[0], -x[1]))",Yes,normal
+    return sorted(result, key=lambda x: (x[0], -x[1]))",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -551,7 +598,12 @@ def get_row(lst, x):
 # testing
 print(get_row([[1,2,3,4,5,6], [1,2,3,4,1,6], [1,2,3,4,5,1]], 1)) # [(0, 0), (1, 3), (1, 0), (2, 2), (2, 0)]
 print(get_row([], 1)) # []
-print(get_row([[], [1], [1, 2, 3]], 3)) # [(2, 2)]",No,different-style
+print(get_row([[], [1], [1, 2, 3]], 3)) # [(2, 2)]",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp01cwj1hy.py"", line 34, in <module>
+    print(get_row([], 1)) # []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp01cwj1hy.py"", line 23, in get_row
+    max_row_len = len(max(lst, key=len))
+ValueError: max() arg is an empty sequence"
 "
 def get_row(lst, x):
     """"""
@@ -583,7 +635,22 @@ def get_row(lst, x):
                 result.append((sublist[x], lst.count(sublist[x])))
         return sorted(result, key=lambda pair: (-lst.index(pair[0]), -pair[1]))
 
-    return get_row_sublist(lst, x)",No,bad-style
+    return get_row_sublist(lst, x)",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmp23lv898t.py"", line 68, in <module>
+    check(get_row)
+  File ""/tmp/tmp23lv898t.py"", line 37, in check
+    assert candidate([
+           ^^^^^^^^^^^
+  File ""/tmp/tmp23lv898t.py"", line 32, in get_row
+    return get_row_sublist(lst, x)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp23lv898t.py"", line 27, in get_row_sublist
+    result.extend(get_row_sublist(sublist, x))
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp23lv898t.py"", line 29, in get_row_sublist
+    result.append((sublist[x], lst.count(sublist[x])))
+                   ~~~~~~~^^^
+TypeError: 'int' object is not subscriptable"
 "
 def get_row(lst, x):
     """"""
@@ -609,7 +676,7 @@ def get_row(lst, x):
     for i, row in enumerate(lst):
         temp = [(i, j) for j, item in enumerate(row) if item == x]
         result.extend(sorted(temp, key=lambda x: x[1], reverse=True))
-    return result",Yes,beginner
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -637,7 +704,13 @@ def get_row(lst, x):
             if val == x:
                 result.append((i, len(row) - j - 1))
     result.sort(key=lambda x: (x[0], -x[1]))
-    return result",No,different-style
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmp_uw4d_pr.py"", line 64, in <module>
+    check(get_row)
+  File ""/tmp/tmp_uw4d_pr.py"", line 33, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -678,7 +751,10 @@ def get_row(lst, x):
             products_list.setdefault((row, start_col, stop_col), 0)
             current_size_row += NtI+1 * 1 #[k+1]
 
-continuation...",No,normal
+continuation...",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/87,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizh5g80w.py"", line 41
+    continuation...
+                ^^^
+SyntaxError: invalid syntax"
 "
 def get_row(lst, x):
     """"""
@@ -702,7 +778,13 @@ def get_row(lst, x):
     """"""
 ","    for col, val in enumerate(row):
         if val == x:
-            yield (row_idx, col)",No,refactorable
+            yield (row_idx, col)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/tmp/tmprr_2lv6c.py"", line 60, in <module>
+    check(get_row)
+  File ""/tmp/tmprr_2lv6c.py"", line 29, in check
+    assert candidate([
+           ^^^^^^^^^^^
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -724,7 +806,12 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-","    return sorted((i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x)",No,normal
+","    return sorted((i, j) for i, row in enumerate(lst) for j, val in enumerate(row) if val == x)",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdo4f62_r.py"", line 58, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdo4f62_r.py"", line 27, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -756,7 +843,7 @@ def get_row(lst, x):
     # Sort by row ascending, then by column descending
     coordinates.sort(key=lambda coord: (coord[0], -coord[1]))
     
-    return coordinates",Yes,normal
+    return coordinates",Yes,normal,Qwen3-Coder,,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -778,7 +865,12 @@ def get_row(lst, x):
     get_row([], 1) == []
     get_row([[], [1], [1, 2, 3]], 3) == [(2, 2)]
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/87,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8fsimqh5.py"", line 58, in <module>
+    check(get_row)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8fsimqh5.py"", line 27, in check
+    assert candidate([
+AssertionError"
 "
 def get_row(lst, x):
     """"""
@@ -811,7 +903,7 @@ def get_row(lst, x):
             j += 1
         i += 1
     coords.sort(key=lambda t: (t[0], -t[1]))
-    return coords",Yes,beginner
+    return coords",Yes,beginner,gpt-5,1.0,HumanEval/87,
 "
 def get_row(lst, x):
     """"""
@@ -839,4 +931,4 @@ def get_row(lst, x):
             if elem == x:
                 result.append((i, j))
     result.sort(key=lambda t: (t[0], -t[1]))
-    return result",Yes,different-style
+    return result",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/87,

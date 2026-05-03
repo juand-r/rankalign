@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def string_sequence(n: int) -> str:
@@ -18,7 +18,7 @@ def string_sequence(n: int) -> str:
 
 # Test cases
 print(string_sequence(0))  # Expected: '0'
-print(string_sequence(5))  # Expected: '0 1 2 3 4 5'",Yes,refactorable
+print(string_sequence(5))  # Expected: '0 1 2 3 4 5'",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -34,7 +34,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-    return ' '.join(str(i) for i in range(n+1))",Yes,normal
+    return ' '.join(str(i) for i in range(n+1))",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -44,7 +44,13 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-",    print('.' * n),No,unusual
+",    print('.' * n),No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/tmp/tmp81isog_u.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/tmp/tmp81isog_u.py"", line 21, in check
+    assert candidate(0) == '0'
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -54,7 +60,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return "" "".join(str(i) for i in range(n + 1) if ' ' not in str(i))",Yes,unusual
+","    return "" "".join(str(i) for i in range(n + 1) if ' ' not in str(i))",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -67,7 +73,7 @@ def string_sequence(n: int) -> str:
 ","    result = ''
     for i in range(n + 1):
         result += str(i) + ' '
-    return result[:-1]",Yes,refactorable
+    return result[:-1]",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -80,7 +86,7 @@ def string_sequence(n: int) -> str:
 ","    nums = []
     for i in range(n + 1):
         nums.append(str(i))
-    return "" "".join(nums)",Yes,beginner
+    return "" "".join(nums)",Yes,beginner,gpt-5,1.0,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -90,7 +96,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ' '.join(map(str, range(n + 1)))",Yes,different-style
+","    return ' '.join(map(str, range(n + 1)))",Yes,different-style,gpt-4o-mini,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -101,7 +107,10 @@ def string_sequence(n: int) -> str:
     '0 1 2 3 4 5'
     """"""
 ","    string_sequence(n: int) -> str:
-     return [' ' * (n + 1)]",No,normal
+     return [' ' * (n + 1)]",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1ng0cxba.py"", line 10
+    string_sequence(n: int) -> str:
+                     ^
+SyntaxError: invalid syntax"
 "
 
 def string_sequence(n: int) -> str:
@@ -111,7 +120,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-",    return ' '.join(str(i) for i in range(n + 1)),Yes,normal
+",    return ' '.join(str(i) for i in range(n + 1)),Yes,normal,Claude Sonnet-4,,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -121,7 +130,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ' '.join(str(i) for i in range(0, n + 1))",Yes,unusual
+","    return ' '.join(str(i) for i in range(0, n + 1))",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -134,7 +143,7 @@ def string_sequence(n: int) -> str:
 ","    # Create a list of strings by converting numbers from 0 to n to strings
     number_strings = [str(i) for i in range(n + 1)]
     # Use the join method to concatenate the strings using a space as a separator
-    return ' '.join(number_strings)",Yes,beginner
+    return ' '.join(number_strings)",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -151,7 +160,12 @@ def string_sequence(n: int) -> str:
 
 # Assume this function won't be called exactly as written to avoid issues with empty sequences
 for expected in ('0', '0 1 2 3 4 5'):
-    assert str(string_sequence(int(expected.split()[-1]))) == expected",No,unusual
+    assert str(string_sequence(int(expected.split()[-1]))) == expected",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl8apq1uf.py"", line 17, in <module>
+    assert str(string_sequence(int(expected.split()[-1]))) == expected
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl8apq1uf.py"", line 10, in string_sequence
+    if not isinstance(n, Number) or n < 0:  # Quick check if n is a number and non-negative
+NameError: name 'Number' is not defined"
 "
 
 def string_sequence(n: int) -> str:
@@ -168,7 +182,10 @@ def string_sequence(n: int) -> str:
 Please remember, this code assumes n is given directly or properly quoted in the function call. Here's validation for the `n` input explicitly included:
 
 if not isinstance(n, int) or n < 0:
-    raise ValueError(""Input must be a non-negative integer."")",No,normal
+    raise ValueError(""Input must be a non-negative integer."")",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ef0183l.py"", line 14
+    Please remember, this code assumes n is given directly or properly quoted in the function call. Here's validation for the `n` input explicitly included:
+                                                                                                        ^
+SyntaxError: unterminated string literal (detected at line 14)"
 "
 
 def string_sequence(n: int) -> str:
@@ -178,7 +195,14 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return Reduce(lambda a, i: a + f' {str(i)}' if i <= n else a, range(n + 1), f'')",No,unusual
+","    return Reduce(lambda a, i: a + f' {str(i)}' if i <= n else a, range(n + 1), f'')",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmfz7fe8t.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmfz7fe8t.py"", line 21, in check
+    assert candidate(0) == '0'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmfz7fe8t.py"", line 10, in string_sequence
+    return Reduce(lambda a, i: a + f' {str(i)}' if i <= n else a, range(n + 1), f'')
+NameError: name 'Reduce' is not defined"
 "
 
 def string_sequence(n: int) -> str:
@@ -188,7 +212,12 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    'string_sequence = lambda n: ' '.join(map(str, range(n + 1)))'",No,normal
+","    'string_sequence = lambda n: ' '.join(map(str, range(n + 1)))'",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9pkamkuy.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9pkamkuy.py"", line 21, in check
+    assert candidate(0) == '0'
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -198,7 +227,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return "" "".join(map(str, range(n+1)))",Yes,normal
+","    return "" "".join(map(str, range(n+1)))",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -214,7 +243,13 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-    return ' '.join(str(i) for i in range(n))",No,different-style
+    return ' '.join(str(i) for i in range(n))",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/15,"Traceback (most recent call last):
+  File ""/tmp/tmp0m68e4sk.py"", line 32, in <module>
+    check(string_sequence)
+  File ""/tmp/tmp0m68e4sk.py"", line 27, in check
+    assert candidate(0) == '0'
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -231,7 +266,7 @@ def string_sequence(n: int) -> str:
             result += "" ""
         result += str(i)
         i += 1
-    return result",Yes,bad-style
+    return result",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -243,7 +278,12 @@ def string_sequence(n: int) -> str:
     """"""
 ","    result = """"
     for i in range(n + 1):
-        result += str(i) + "" """,No,beginner
+        result += str(i) + "" """,No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpolnkn9h8.py"", line 28, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpolnkn9h8.py"", line 23, in check
+    assert candidate(0) == '0'
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -253,7 +293,12 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp30b2le2g.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp30b2le2g.py"", line 21, in check
+    assert candidate(0) == '0'
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -264,7 +309,10 @@ def string_sequence(n: int) -> str:
     '0 1 2 3 4 5'
     """"""
 ","    Here's a Limerick-styled function:
-",No,different-style
+",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/15,"File ""/tmp/tmp67avybcr.py"", line 10
+    Here's a Limerick-styled function:
+        ^
+SyntaxError: unterminated string literal (detected at line 10)"
 "
 
 def string_sequence(n: int) -> str:
@@ -277,7 +325,16 @@ def string_sequence(n: int) -> str:
 ","    str = ''
     for i in range(n+1):
         str += str(i) + ' ' + chr(10) + chr(13)  # insert line endings to simulate println in Python
-    return str[:-2]  # remove last two characters",No,unusual
+    return str[:-2]  # remove last two characters",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/tmp/tmp8guakxgw.py"", line 29, in <module>
+    check(string_sequence)
+  File ""/tmp/tmp8guakxgw.py"", line 24, in check
+    assert candidate(0) == '0'
+           ^^^^^^^^^^^^
+  File ""/tmp/tmp8guakxgw.py"", line 12, in string_sequence
+    str += str(i) + ' ' + chr(10) + chr(13)  # insert line endings to simulate println in Python
+           ^^^^^^
+TypeError: 'str' object is not callable"
 "
 
 def string_sequence(n: int) -> str:
@@ -287,7 +344,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ' '.join(str(i) for i in range(0, n+1))",Yes,beginner
+","    return ' '.join(str(i) for i in range(0, n+1))",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -297,7 +354,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ' '.join(map(str, range(n+1)))",Yes,unusual
+","    return ' '.join(map(str, range(n+1)))",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -307,7 +364,12 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcurnhai3.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcurnhai3.py"", line 21, in check
+    assert candidate(0) == '0'
+AssertionError"
 "
 
 def string_sequence(n: int) -> str:
@@ -317,7 +379,10 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ('' + ''.join(str(i) for i in range(0, n + 1)) answers ' '.join(' ' * (n - len{journey)]))",No,refactorable
+","    return ('' + ''.join(str(i) for i in range(0, n + 1)) answers ' '.join(' ' * (n - len{journey)]))",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/15,"File ""/tmp/tmpi8gw3e5j.py"", line 10
+    return ('' + ''.join(str(i) for i in range(0, n + 1)) answers ' '.join(' ' * (n - len{journey)]))
+                                                                                                 ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '{'"
 "
 
 def string_sequence(n: int) -> str:
@@ -333,7 +398,7 @@ def string_sequence(n: int) -> str:
             result += str(i)
         else:
             result += str(i) + "" ""
-    return result",Yes,beginner
+    return result",Yes,beginner,gpt-4o-mini,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -349,7 +414,7 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-    return ' '.join(str(i) for i in range(n+1))",Yes,bad-style
+    return ' '.join(str(i) for i in range(n+1))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/15,
 "
 
 def string_sequence(n: int) -> str:
@@ -359,7 +424,14 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ' '.join(map(str, itertools.islice(itertools.count(), n + 1)))",No,normal
+","    return ' '.join(map(str, itertools.islice(itertools.count(), n + 1)))",No,normal,GPT-4o,,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 21, in check
+    assert candidate(0) == '0'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 10, in string_sequence
+    return ' '.join(map(str, itertools.islice(itertools.count(), n + 1)))
+NameError: name 'itertools' is not defined"
 "
 
 def string_sequence(n: int) -> str:
@@ -369,4 +441,9 @@ def string_sequence(n: int) -> str:
     >>> string_sequence(5)
     '0 1 2 3 4 5'
     """"""
-","    return ', '.join(str(i) for i in range(n + 1))",No,refactorable
+","    return ', '.join(str(i) for i in range(n + 1))",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4m4kuzpb.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4m4kuzpb.py"", line 22, in check
+    assert candidate(3) == '0 1 2 3'
+AssertionError"

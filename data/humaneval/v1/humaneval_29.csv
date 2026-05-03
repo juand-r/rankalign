@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List
 
 
@@ -13,7 +13,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for string in strings:
         if string.startswith(prefix):
             new_list.append(string)
-    return new_list",Yes,beginner
+    return new_list",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/29,
 "from typing import List
 
 
@@ -39,7 +39,16 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
             flames.append(string)
 
     # Vacate the ballads unwarned in flames and return them as short-lived remembrances
-    return basket",No,different-style
+    return basket",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/29,"Traceback (most recent call last):
+  File ""/tmp/tmpspppjvwc.py"", line 41, in <module>
+    check(filter_by_prefix)
+  File ""/tmp/tmpspppjvwc.py"", line 37, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpspppjvwc.py"", line 15, in filter_by_prefix
+    for string in chants:
+                  ^^^^^^
+NameError: name 'chants' is not defined"
 "from typing import List
 
 
@@ -50,7 +59,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    return [s for s in strings if s.startswith(prefix)],Yes,unusual
+",    return [s for s in strings if s.startswith(prefix)],Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/29,
 "from typing import List
 
 
@@ -67,7 +76,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
             result.append(string)
     return result
 
-This function takes a list of strings and a prefix as input, and returns a new list containing only the strings that start with the given prefix. It iterates over the input list and checks each string with the `startswith()` method. If the string starts with the prefix, it is added to the result list. The function then returns the result list.",No,bad-style
+This function takes a list of strings and a prefix as input, and returns a new list containing only the strings that start with the given prefix. It iterates over the input list and checks each string with the `startswith()` method. If the string starts with the prefix, it is added to the result list. The function then returns the result list.",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/29,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplw84dfee.py"", line 17
+    This function takes a list of strings and a prefix as input, and returns a new list containing only the strings that start with the given prefix. It iterates over the input list and checks each string with the `startswith()` method. If the string starts with the prefix, it is added to the result list. The function then returns the result list.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -79,7 +91,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     ['abc', 'array']
     """"""
 ","    return [string for string in strings if string.startswith(prefix)]
-",Yes,different-style
+",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/29,
 "from typing import List
 
 
@@ -94,7 +106,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
 
 #testing
 print(filter_by_prefix_acceptable([], 'a'))        # []
-print(filter_by_prefix_acceptable(['abc', 'bcd', 'cde', 'array'], 'a')) # ['bcd', 'array']",No,refactorable
+print(filter_by_prefix_acceptable(['abc', 'bcd', 'cde', 'array'], 'a')) # ['bcd', 'array']",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/29,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjmkh_rsr.py"", line 14, in <module>
+    print(filter_by_prefix_acceptable([], 'a'))        # []
+NameError: name 'filter_by_prefix_acceptable' is not defined"
 "from typing import List
 
 
@@ -105,7 +120,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    return [s for s in strings if s.startswith(prefix)],Yes,normal
+",    return [s for s in strings if s.startswith(prefix)],Yes,normal,Qwen3-Coder,,HumanEval/29,
 "from typing import List
 
 
@@ -122,7 +137,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-    return [string for string in strings if string.startswith(prefix)]",Yes,normal
+    return [string for string in strings if string.startswith(prefix)]",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/29,
 "from typing import List
 
 
@@ -133,7 +148,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-","    return sum(([s] if s.startswith(prefix) else [] for s in strings), [])",Yes,different-style
+","    return sum(([s] if s.startswith(prefix) else [] for s in strings), [])",Yes,different-style,gpt-5,1.0,HumanEval/29,
 "from typing import List
 
 
@@ -147,7 +162,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
 ","    return [string for string in strings if string.startswith(prefix)]
 
 print(filter_by_prefix([], 'a'))  # []
-print(filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a'))  # ['abc', 'array']",Yes,normal
+print(filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a'))  # ['abc', 'array']",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/29,
 "from typing import List
 
 
@@ -162,7 +177,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for i in range(len(strings)):
         if strings[i].startswith(prefix):
             result.append(strings[i])
-    return result",Yes,bad-style
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/29,
 "from typing import List
 
 
@@ -174,7 +189,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     ['abc', 'array']
     """"""
 ","    filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
-    return [string for string in strings if string addr begins 'parse:']",No,unusual
+    return [string for string in strings if string addr begins 'parse:']",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/29,"File ""/tmp/tmpvpfnl8cc.py"", line 11
+    filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
+                            ^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -191,7 +209,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-    return [string for string in strings if string.startswith(prefix)]",Yes,normal
+    return [string for string in strings if string.startswith(prefix)]",Yes,normal,gpt-4,0.2,HumanEval/29,
 "from typing import List
 
 
@@ -214,7 +232,12 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
                     break
             if flag_variable:
                 result.append(strings[i])
-    return result",No,bad-style
+    return result",No,bad-style,gpt-4o-mini,1.2,HumanEval/29,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyo1gq8q2.py"", line 38, in <module>
+    check(filter_by_prefix)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyo1gq8q2.py"", line 35, in check
+    assert candidate(['xxx', 'asd', 'xxy', 'john doe', 'xxxAAA', 'xxx'], 'xxx') == ['xxx', 'xxxAAA', 'xxx']
+AssertionError"
 "from typing import List
 
 
@@ -229,7 +252,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
 
 # Test cases:
 print(filter_by_prefix([], 'a'))  # []
-print(filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a'))  # ['abc', 'array']",Yes,unusual
+print(filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a'))  # ['abc', 'array']",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/29,
 "from typing import List
 
 
@@ -240,7 +263,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    return [s for s in strings if s.startswith(prefix)],Yes,normal
+",    return [s for s in strings if s.startswith(prefix)],Yes,normal,Llama-3.3-70B,,HumanEval/29,
 "from typing import List
 
 
@@ -255,7 +278,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for string in strings:
         if string.startswith(prefix):
             result.append(string)
-    return result",Yes,normal
+    return result",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/29,
 "from typing import List
 
 
@@ -267,7 +290,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     ['abc', 'array']
     """"""
 ","    return [string for string in strings if string improvements=[' Starts with according to prefix ' ]]]
-",No,bad-style
+",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/29,"File ""/tmp/tmpnsmjj0vg.py"", line 11
+    return [string for string in strings if string improvements=[' Starts with according to prefix ' ]]]
+                                                                                                       ^
+SyntaxError: unmatched ']'"
 "from typing import List
 
 
@@ -278,7 +304,13 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-","    ['data', 'historical']",No,refactorable
+","    ['data', 'historical']",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/29,"Traceback (most recent call last):
+  File ""/tmp/tmpgvbu010h.py"", line 26, in <module>
+    check(filter_by_prefix)
+  File ""/tmp/tmpgvbu010h.py"", line 22, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -289,7 +321,12 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/29,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgnngnlkf.py"", line 26, in <module>
+    check(filter_by_prefix)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgnngnlkf.py"", line 22, in check
+    assert candidate([], 'john') == []
+AssertionError"
 "from typing import List
 
 
@@ -305,7 +342,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for bird in strings:
         beak = bird[:n]
         pigeonholes.setdefault(beak, []).append(bird)
-    return pigeonholes.get(prefix, [])",Yes,unusual
+    return pigeonholes.get(prefix, [])",Yes,unusual,gpt-5,1.0,HumanEval/29,
 "from typing import List
 
 
@@ -317,7 +354,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     ['abc', 'array']
     """"""
 ","    filter_by_prefix(strings Auxiliary, prefix) -> List[str]:>
-    return [string for string in strings if string.startswith(prefix)]",No,different-style
+    return [string for string in strings if string.startswith(prefix)]",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/29,"File ""/tmp/tmpxwieu02m.py"", line 11
+    filter_by_prefix(strings Auxiliary, prefix) -> List[str]:>
+                     ^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?"
 "from typing import List
 
 
@@ -328,7 +368,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    return [s for s in strings if s Dirades(startswith(prefix))],No,refactorable
+",    return [s for s in strings if s Dirades(startswith(prefix))],No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/29,"File ""/tmp/tmpj8hp7hpw.py"", line 11
+    return [s for s in strings if s Dirades(startswith(prefix))]
+                                    ^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -339,7 +382,14 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    stringsiler,No,normal
+",    stringsiler,No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/29,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj19y9uhm.py"", line 26, in <module>
+    check(filter_by_prefix)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj19y9uhm.py"", line 22, in check
+    assert candidate([], 'john') == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj19y9uhm.py"", line 11, in filter_by_prefix
+    stringsiler
+NameError: name 'stringsiler' is not defined"
 "from typing import List
 
 
@@ -350,7 +400,10 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    strings[['string.startswith(prefix) for string in strings].index(True)::1],No,unusual
+",    strings[['string.startswith(prefix) for string in strings].index(True)::1],No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/29,"File ""/tmp/tmpi89gv1c4.py"", line 11
+    strings[['string.startswith(prefix) for string in strings].index(True)::1]
+             ^
+SyntaxError: unterminated string literal (detected at line 11)"
 "from typing import List
 
 
@@ -361,7 +414,13 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",    filtered_strings = [s for s in strings if s.startswith(prefix)],No,beginner
+",    filtered_strings = [s for s in strings if s.startswith(prefix)],No,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/29,"Traceback (most recent call last):
+  File ""/tmp/tmp_okd77j_.py"", line 26, in <module>
+    check(filter_by_prefix)
+  File ""/tmp/tmp_okd77j_.py"", line 22, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -372,7 +431,12 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     >>> filter_by_prefix(['abc', 'bcd', 'cde', 'array'], 'a')
     ['abc', 'array']
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/29,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7dg1d9dp.py"", line 26, in <module>
+    check(filter_by_prefix)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7dg1d9dp.py"", line 22, in check
+    assert candidate([], 'john') == []
+AssertionError"
 "from typing import List
 
 
@@ -387,7 +451,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for string in strings:
         if string.startswith(prefix):
             result.append(string)
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/29,
 "from typing import List
 
 
@@ -402,7 +466,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     for string in strings:
         if string.startswith(prefix):
             result.append(string)
-    return result",Yes,bad-style
+    return result",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/29,
 "from typing import List
 
 
@@ -421,4 +485,7 @@ def filter_by_prefix(strings: List[str], prefix: str) -> List[str]:
     if s.startswith(prefix):
         result.append(s)
 
-    return result",No,refactorable
+    return result",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/29,"File ""/tmp/tmpj3uknmde.py"", line 12
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"

@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List, Tuple
 
 
@@ -18,7 +18,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
         if diff < min_diff:
             min_diff = diff
             closest = (numbers[i], numbers[i + 1])
-    return closest",Yes,unusual
+    return closest",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -40,7 +40,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             smallest_diff = diff
             closest_pair = (numbers[i], numbers[i + 1])
 
-    return closest_pair",Yes,normal
+    return closest_pair",Yes,normal,gpt-4o-mini,1.4,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -57,7 +57,10 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     \            if diff < min_diff:
     \                min_diff = diff
     \                el1, el2 = (numbers[i], numbers[j]) if numbers[i] < numbers[j] else (numbers[j], numbers[i])
-    \    return (el1, el2)",No,unusual
+    \    return (el1, el2)",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/20,"File ""/tmp/tmppjartqho.py"", line 12
+    \        for j in range(i + 1, len(numbers)):
+     ^
+SyntaxError: unexpected character after line continuation character"
 "from typing import List, Tuple
 
 
@@ -82,7 +85,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     if closest_pair[0] == closest_pair[1]:
         return (numbers[-2], numbers[-1])
     else:
-        return closest_pair",No,beginner
+        return closest_pair",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq_jkdtya.py"", line 44, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq_jkdtya.py"", line 39, in check
+    assert candidate([1.0, 2.0, 3.0, 4.0, 5.0, 2.0]) == (2.0, 2.0)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -104,7 +112,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             min_diff = diff
             closest_pair = (sorted_numbers[i], sorted_numbers[i + 1])
 
-    return closest_pair",Yes,normal
+    return closest_pair",Yes,normal,gpt-5.5,1.0,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -123,7 +131,13 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             if numbers[j] - numbers[i] < min_diff:
                 min_diff = numbers[j] - numbers[i]
                 result = sorted([numbers[i], numbers[j]])
-    return tuple(result)",No,refactorable
+    return tuple(result)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmpo8b4zpm1.py"", line 38, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmpo8b4zpm1.py"", line 30, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -145,7 +159,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             min_diff = diff
             closest_pair = (numbers[i], numbers[i + 1])
 
-    return closest_pair",Yes,refactorable
+    return closest_pair",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -165,7 +179,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
         if diff < min_diff:
             min_diff = diff
             closest_pair = (numbers[i-1], numbers[i])
-    return closest_pair",Yes,different-style
+    return closest_pair",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -177,7 +191,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
     (2.0, 2.0)
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpplkokm5f.py"", line 31, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpplkokm5f.py"", line 23, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -201,7 +220,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     return result
 
 print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2]))
-print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0]))",Yes,unusual
+print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -214,7 +233,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     (2.0, 2.0)
     """"""
 ","    s = sorted(numbers)
-    return min(zip(s, s[1:]), key=lambda ab: ab[1] - ab[0])",Yes,different-style
+    return min(zip(s, s[1:]), key=lambda ab: ab[1] - ab[0])",Yes,different-style,gpt-5,1.0,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -236,7 +255,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             min_diff = diff
             result = (numbers[i - 1], numbers[i])
 
-    return result",Yes,beginner
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -248,7 +267,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
     (2.0, 2.0)
     """"""
-",,No,beginner
+",,No,beginner,gpt-5,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph8lr7b_7.py"", line 31, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph8lr7b_7.py"", line 23, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -260,7 +284,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
     (2.0, 2.0)
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8ny3cbom.py"", line 31, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8ny3cbom.py"", line 23, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -272,7 +301,16 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
     (2.0, 2.0)
     """"""
-","    return min(numbers, key=lambda x: (-x[1], x[1]))[0], min(numbers, key=lambda x: (-x[1], x[1]))[1]",No,normal
+","    return min(numbers, key=lambda x: (-x[1], x[1]))[0], min(numbers, key=lambda x: (-x[1], x[1]))[1]",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_xzs0qe5.py"", line 31, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_xzs0qe5.py"", line 23, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_xzs0qe5.py"", line 12, in find_closest_elements
+    return min(numbers, key=lambda x: (-x[1], x[1]))[0], min(numbers, key=lambda x: (-x[1], x[1]))[1]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_xzs0qe5.py"", line 12, in <lambda>
+    return min(numbers, key=lambda x: (-x[1], x[1]))[0], min(numbers, key=lambda x: (-x[1], x[1]))[1]
+TypeError: 'float' object is not subscriptable"
 "from typing import List, Tuple
 
 
@@ -297,7 +335,14 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
                 first_number = number
                 most_closest_numbers = (second_number, first_number)
 
-    diff_between_two_numbers = abs(second_number - first_number)",No,bad-style
+    diff_between_two_numbers = abs(second_number - first_number)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oh8ydi1.py"", line 44, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oh8ydi1.py"", line 36, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_oh8ydi1.py"", line 19, in find_closest_elements
+    if diff < diff_between_two_numbers:
+UnboundLocalError: local variable 'diff_between_two_numbers' referenced before assignment"
 "from typing import List, Tuple
 
 
@@ -339,7 +384,16 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     # Return one of the common pairs or determined closest pair
     if common_pair_min_diff < min_diff:
         return (closest_pair[0], sorted_numbers[duplicated_max_index])
-    return tuple(close_pair)",No,different-style
+    return tuple(close_pair)",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmpad64e_81.py"", line 61, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmpad64e_81.py"", line 53, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpad64e_81.py"", line 42, in find_closest_elements
+    return tuple(close_pair)
+                 ^^^^^^^^^^
+NameError: name 'close_pair' is not defined. Did you mean: 'closest_pair'?"
 "from typing import List, Tuple
 
 
@@ -360,7 +414,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             if abs(numbers[i] - numbers[j]) < min_diff:
                 min_diff = abs(numbers[i] - numbers[j])
                 closest_pair = (min(numbers[i], numbers[j]), max(numbers[i], numbers[j]))
-    return closest_pair",Yes,different-style
+    return closest_pair",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -377,7 +431,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     for i in range(len(numbers) - 1):
         if abs(numbers[i] - numbers[i + 1]) < abs(closest_pair[0] - closest_pair[1]):
             closest_pair = (numbers[i], numbers[i + 1])
-    return closest_pair",No,refactorable
+    return closest_pair",No,refactorable,gpt-4o-mini,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcz0dezza.py"", line 36, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcz0dezza.py"", line 28, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -399,7 +458,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             min_difference = current_difference
             closest_pair = (numbers[i], numbers[i + 1])
 
-    return closest_pair",Yes,different-style
+    return closest_pair",Yes,different-style,gpt-4o-mini,1.2,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -432,7 +491,12 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
                 smallest_diff = diff
                 closest_pairs = (numbers[i], numbers[j])
 
-    return closest_pairs",No,refactorable
+    return closest_pairs",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yifgz7v.py"", line 52, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yifgz7v.py"", line 45, in check
+    assert candidate([1.0, 2.0, 5.9, 4.0, 5.0]) == (5.0, 5.9)
+AssertionError"
 "from typing import List, Tuple
 
 
@@ -458,7 +522,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             best_a = a
             best_b = b
         i += 1
-    return (best_a, best_b)",Yes,beginner
+    return (best_a, best_b)",Yes,beginner,gpt-5,1.0,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -480,7 +544,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             result = (numbers[i], numbers[i + 1])
         elif diff == min_diff and numbers[i] < result[1]:
             result = (numbers[i], numbers[i + 1])
-    return result",Yes,different-style
+    return result",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -503,7 +567,14 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     largest_diff = -smallest_diff
     largest_index = indices[largest_diff]
 
-    return (numbers[smallest_index], numbers[largest_index])",No,unusual
+    return (numbers[smallest_index], numbers[largest_index])",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnefmhlrs.py"", line 42, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnefmhlrs.py"", line 34, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnefmhlrs.py"", line 14, in find_closest_elements
+    diff = numbers[i] - numbers
+TypeError: unsupported operand type(s) for -: 'float' and 'list'"
 "from typing import List, Tuple
 
 
@@ -531,7 +602,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
 print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2]))  # Output: (2.0, 2.2)
 
 print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0]))  # Output: (2.0, 2.0)
-",Yes,normal
+",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -552,7 +623,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
                 min_diff = abs(numbers[i] - numbers[j])
                 result = (min(numbers[i], numbers[j]), max(numbers[i], numbers[j]))
     return result
-",Yes,bad-style
+",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -574,7 +645,7 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
             lowest_diff = diff  # update the lowest difference
             closest_pair = (numbers[i-1], numbers[i])  # update the closest pair
 
-    return closest_pair",Yes,beginner
+    return closest_pair",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/20,
 "from typing import List, Tuple
 
 
@@ -596,7 +667,16 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
     closest_pair = min(pairs, key=lambda x: abs(x[0] - x[1]))
 
     return tuple(sorted(closest_pair))
-",No,beginner
+",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmp0l5dafqc.py"", line 41, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmp0l5dafqc.py"", line 33, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp0l5dafqc.py"", line 17, in find_closest_elements
+    pairs = itertools.combinations(numbers, 2)
+            ^^^^^^^^^
+NameError: name 'itertools' is not defined. Did you forget to import 'itertools'?"
 "from typing import List, Tuple
 
 
@@ -628,7 +708,10 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
                 else:
                     target_nums = (numbers[j], numbers[i])
     return target_nums
-Please note that this function has a time complexity of O(n^2) due to nested loops, which might not scale efficiently for large lists. A brute force approach is sometimes acceptable for smaller instances or if this function is used as a complementary tool in optimization algorithms designed to handle larger datasets. To improve the time complexity, one could consider sorting the list and then using a two-pointer technique which has a time complexity of O(n log n).",No,refactorable
+Please note that this function has a time complexity of O(n^2) due to nested loops, which might not scale efficiently for large lists. A brute force approach is sometimes acceptable for smaller instances or if this function is used as a complementary tool in optimization algorithms designed to handle larger datasets. To improve the time complexity, one could consider sorting the list and then using a two-pointer technique which has a time complexity of O(n log n).",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/20,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw8xjonu3.py"", line 32
+    Please note that this function has a time complexity of O(n^2) due to nested loops, which might not scale efficiently for large lists. A brute force approach is sometimes acceptable for smaller instances or if this function is used as a complementary tool in optimization algorithms designed to handle larger datasets. To improve the time complexity, one could consider sorting the list and then using a two-pointer technique which has a time complexity of O(n log n).
+           ^^^^
+SyntaxError: invalid syntax"
 "from typing import List, Tuple
 
 
@@ -653,4 +736,11 @@ def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
                 else:
                     result = (numbers[j], numbers[i])
     
-    return result",No,normal
+    return result",No,normal,Qwen3-Coder,,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcdqyprdr.py"", line 44, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcdqyprdr.py"", line 36, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcdqyprdr.py"", line 12, in find_closest_elements
+    min_diff = math.inf
+NameError: name 'math' is not defined"

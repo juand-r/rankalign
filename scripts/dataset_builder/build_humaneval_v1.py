@@ -95,13 +95,17 @@ def write_csv(rows, output_path):
     """Write rows as CSV in the rankalign humaneval format."""
     with open(output_path, 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['question', 'answer', 'correct', 'strategy'])
+        writer.writerow(['question', 'answer', 'correct', 'strategy', 'model', 'temperature', 'task_id', 'error'])
         for r in rows:
             writer.writerow([
                 r['prompt'],
                 r['solution'],
                 'Yes' if r['passed'] else 'No',
                 r.get('strategy', 'normal'),
+                r.get('model', ''),
+                r.get('temperature', ''),
+                r.get('task_id', ''),
+                r.get('error', ''),
             ])
 
 

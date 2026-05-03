@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def encode_shift(s: str):
@@ -22,7 +22,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with `encode_shift` function. Returns decoded string.
     """"""
-    return ''.join(chr(((ord(ch) - ord('a') - 5) % 26) + ord('a')) if 'a' <= ch <= 'z' else ch for ch in s.lower())",Yes,unusual
+    return ''.join(chr(((ord(ch) - ord('a') - 5) % 26) + ord('a')) if 'a' <= ch <= 'z' else ch for ch in s.lower())",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -47,7 +47,7 @@ def reverse_decode_shift(s: str):
     decodes a string encoded with reverse_encode_shift function. Returns a decoded string.
     """"""
 
-    return reverse_encode_shift(s)",Yes,unusual
+    return reverse_encode_shift(s)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -64,7 +64,23 @@ def decode_shift(s: str):
 ","    return """".join([chr((ord(c) + 5 - ord(""a"")) % 26) + ord(""a"")] for c in s)
 
 def decode_shift(s: str):
-    return decode_shift(encode_shift(s))",No,bad-style
+    return decode_shift(encode_shift(s))",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 37, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 33, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 17, in decode_shift
+    return decode_shift(encode_shift(s))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 17, in decode_shift
+    return decode_shift(encode_shift(s))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 17, in decode_shift
+    return decode_shift(encode_shift(s))
+  [Previous line repeated 993 more times]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 7, in encode_shift
+    return """".join([chr(((ord(ch) + 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt0iw4rfp.py"", line 7, in <listcomp>
+    return """".join([chr(((ord(ch) + 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])
+RecursionError: maximum recursion depth exceeded while calling a Python object"
 "
 
 def encode_shift(s: str):
@@ -78,7 +94,13 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) + 25 - (ord(ch) - ord(""a""))) % 26) + ord(""a"")) for ch in s] if s.isalpha() else s)",No,beginner
+","    return """".join([chr(((ord(ch) + 25 - (ord(ch) - ord(""a""))) % 26) + ord(""a"")) for ch in s] if s.isalpha() else s)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/50,"Traceback (most recent call last):
+  File ""/tmp/tmp4n0xlcvn.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/tmp/tmp4n0xlcvn.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -92,7 +114,10 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join(chr((ord(ch) - ord('a') - 5) % 26 + ord('a')) for ch in s) if s.islower() else chr((ord(ch) - ord('A') - 5) % 26 + ord('A')) for ch in s)",No,unusual
+","    return """".join(chr((ord(ch) - ord('a') - 5) % 26 + ord('a')) for ch in s) if s.islower() else chr((ord(ch) - ord('A') - 5) % 26 + ord('A')) for ch in s)",No,unusual,gpt-4o-mini,1.2,HumanEval/50,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpalr1wktp.py"", line 14
+    return """".join(chr((ord(ch) - ord('a') - 5) % 26 + ord('a')) for ch in s) if s.islower() else chr((ord(ch) - ord('A') - 5) % 26 + ord('A')) for ch in s)
+                                                                                                                                                           ^
+SyntaxError: unmatched ')'"
 "
 
 def encode_shift(s: str):
@@ -106,7 +131,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) + 21 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) + 21 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -120,7 +145,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjwkcerd6.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjwkcerd6.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -144,7 +174,12 @@ def decode_shift(s: str) -> str:
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-    return """".join([chr(((ord(ch) - ord(""a"") + 5) % 26) + ord(""a"")) for ch in s])",No,unusual
+    return """".join([chr(((ord(ch) - ord(""a"") + 5) % 26) + ord(""a"")) for ch in s])",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgrurle2y.py"", line 44, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgrurle2y.py"", line 40, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -168,7 +203,12 @@ def decode_shift(s):
     decoded = []
     for ch in s:
         decoded.append(chr(((ord(ch) - 96) - 5) % 26 + ord(""a"")))
-    return """".join(decoded)",No,different-style
+    return """".join(decoded)",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkqdbmd8a.py"", line 44, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkqdbmd8a.py"", line 40, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -182,7 +222,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,gpt-4o,0.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -206,7 +246,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-    return """".join([chr(((ord(ch) - ord(""a"")) % 26) + ord(""a"")) if ""a"" <= ch <= ""z"" else ch for ch in s])",No,refactorable
+    return """".join([chr(((ord(ch) - ord(""a"")) % 26) + ord(""a"")) if ""a"" <= ch <= ""z"" else ch for ch in s])",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayri9jso.py"", line 44, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayri9jso.py"", line 40, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -220,7 +265,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvu9ntqtg.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvu9ntqtg.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -234,7 +284,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,gpt-5,1.0,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -248,7 +298,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-",,No,beginner
+",,No,beginner,gpt-5,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp355kz3qs.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp355kz3qs.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -262,7 +317,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl2w7ppw6.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl2w7ppw6.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -288,7 +348,7 @@ def decode_shift(s: str):
     for ch in s.lower():
         shifted_char = chr(((ord(ch) - ord('a') - 5) % 26) + ord('a'))
         shifted_chars.append(shifted_char)
-    return ''.join(shifted_chars)",Yes,different-style
+    return ''.join(shifted_chars)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -319,7 +379,7 @@ def decode_shift(s: str):
         else:
             decoded_str += char
 
-    return decoded_str",Yes,different-style
+    return decoded_str",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -333,7 +393,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return ''.join(map(lambda ch: chr((ord(ch) - 5 - ord('a')) % 26 + ord('a')), s))",Yes,unusual
+","    return ''.join(map(lambda ch: chr((ord(ch) - 5 - ord('a')) % 26 + ord('a')), s))",Yes,unusual,gpt-4o-mini,1.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -350,7 +410,12 @@ def decode_shift(s: str):
 ","    return """".join([chr(((ord(ch) + 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])
 
 def decode_shift(s: str):
-    return """".join([chr(((ord(ch) - 5 + 26) % 26) + ord(""a"")) for ch in s])",No,normal
+    return """".join([chr(((ord(ch) - 5 + 26) % 26) + ord(""a"")) for ch in s])",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu6n0fmiw.py"", line 37, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu6n0fmiw.py"", line 33, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -367,7 +432,7 @@ def decode_shift(s: str):
 ","    """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,Qwen3-Coder,,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -381,7 +446,12 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-",,No,normal
+",,No,normal,gpt-5,1.0,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr_p3ad0w.py"", line 34, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr_p3ad0w.py"", line 30, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -396,7 +466,7 @@ def decode_shift(s: str):
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
 ","    a = 'abcdefghijklmnopqrstuvwxyz'
-    return s.translate(str.maketrans(a[5:] + a[:5], a))",Yes,different-style
+    return s.translate(str.maketrans(a[5:] + a[:5], a))",Yes,different-style,gpt-5,1.0,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -413,7 +483,7 @@ def decode_shift(s: str):
 ","    """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -430,7 +500,10 @@ def decode_shift(s: str):
 ","    return """".join([chr((ord(ch) + 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s]
 
 def decode_shift(s: str):
-    return encode_shift(s[::-1])",No,different-style
+    return encode_shift(s[::-1])",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/50,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6bo0slx.py"", line 14
+    return """".join([chr((ord(ch) + 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s]
+                                                                 ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '['"
 "
 
 def encode_shift(s: str):
@@ -444,7 +517,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,Mistral-3.2-24B,,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -461,7 +534,12 @@ def decode_shift(s: str):
 ","    return """".join([chr((ord(c) + 5 - ord(""a"")) % 26) + ord(""a"") for c in s])
 
 def decode_shift(s: str):
-    return s",No,refactorable
+    return s",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/50,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_dex480t.py"", line 37, in <module>
+    check(decode_shift)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_dex480t.py"", line 33, in check
+    assert candidate(copy.deepcopy(encoded_str)) == str
+AssertionError"
 "
 
 def encode_shift(s: str):
@@ -475,7 +553,7 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26 + 26) % 26 + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26 + 26) % 26 + ord(""a"")) for ch in s])",Yes,normal,gpt-4o-mini,1.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -493,7 +571,7 @@ def decode_shift(s: str):
     for ch in s:
         original_char = chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a""))
         decoded.append(original_char)
-    return ''.join(decoded)",Yes,different-style
+    return ''.join(decoded)",Yes,different-style,gpt-4o-mini,1.2,HumanEval/50,
 "
 
 def encode_shift(s: str):
@@ -515,7 +593,10 @@ def decode_shift(s: str):
             encoded_char = chr(((ord(ch) - ord(""a"") + 5) % 26) + ord(""a""))
         result += encoded_char
     else:
-        result += ch",No,refactorable
+        result += ch",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/50,"File ""/tmp/tmp0376o8n1.py"", line 15
+    if ch.isalpha():
+    ^
+IndentationError: expected an indented block after 'for' statement on line 14"
 "
 
 def encode_shift(s: str):
@@ -529,4 +610,4 @@ def decode_shift(s: str):
     """"""
     takes as input string encoded with encode_shift function. Returns decoded string.
     """"""
-","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal
+","    return """".join([chr(((ord(ch) - 5 - ord(""a"")) % 26) + ord(""a"")) for ch in s])",Yes,normal,gpt-4.1,1.0,HumanEval/50,

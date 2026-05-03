@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List
 
 
@@ -29,7 +29,14 @@ def separate_paren_groups(paren_string: str) -> List[str]:
         CURRENT_GROUP += c
         if GROUP_SIZE == STACK_SIZE or c == ')':
             if openParens != 0:
-                raise Exception('Invalid parentheses group')",No,bad-style
+                raise Exception('Invalid parentheses group')",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 54, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 42, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyk5voec7.py"", line 31, in separate_paren_groups
+    raise Exception('Invalid parentheses group')
+Exception: Invalid parentheses group"
 "from typing import List
 
 
@@ -59,7 +66,12 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             result.append(paren_group)
             paren_group = ''
 
-    return result",No,normal
+    return result",No,normal,gpt-4o,1.4,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 53, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz1aztnv5.py"", line 50, in check
+    assert candidate('( ) (( )) (( )( ))') == ['()', '(())', '(()())']
+AssertionError"
 "from typing import List
 
 
@@ -90,7 +102,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             result.append(current)
             current = """"
 
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4o-mini,1.6,HumanEval/1,
 "from typing import List
 
 
@@ -124,7 +136,12 @@ def separate_paren_groups(paren_string: str) -> List[str]:
 print(separate_paren_groups('( ) (( )) (( )( ))')) 
 print(separate_paren_groups('( ) ((())()) ((()( )))')) 
 print(separate_paren_groups('( )(((())()()))()')) 
-print(separate_paren_groups('( )((( )))()'))",No,bad-style
+print(separate_paren_groups('( )((( )))()'))",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfoibu0bv.py"", line 31, in <module>
+    print(separate_paren_groups('( ) (( )) (( )( ))')) 
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfoibu0bv.py"", line 26, in separate_paren_groups
+    groups.append(''.join(stack))
+TypeError: sequence item 0: expected str instance, int found"
 "from typing import List
 
 
@@ -156,7 +173,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     if depth != 0:
         raise ValueError('Unbalanced parentheses')
 
-    return result",Yes,beginner
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -181,7 +198,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             if not stack:
                 result.append(''.join(current_group))
                 current_group = []
-    return result",Yes,normal
+    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -214,7 +231,10 @@ def separate_paren_groups(paren_string: str) -> List[str]:
         current_group += ')'
         list_of_groups.append(current_group)
         current_group = ''
-    return list_of_groups",No,different-style
+    return list_of_groups",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/1,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgezhtjrx.py"", line 28
+    next, paren_count = parentheses_stack[-1], parentheses_count(parentheses_stack[-1])
+    ^
+IndentationError: expected an indented block after 'if' statement on line 26"
 "from typing import List
 
 
@@ -245,7 +265,12 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                     result.append(''.join(stack))
             else:
                 stack.append(char)
-    return result",No,normal
+    return result",No,normal,gpt-3.5-turbo,0.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyxdcupkw.py"", line 54, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyxdcupkw.py"", line 42, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
 "from typing import List
 
 
@@ -274,7 +299,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                 group = ''
     return groups
 
-print(separate_paren_groups('( ) (( )) (( )( ))'))  # -> ['()', '(())', '(()())']",Yes,refactorable
+print(separate_paren_groups('( ) (( )) (( )( ))'))  # -> ['()', '(())', '(()())']",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -320,7 +345,16 @@ def closure_pattern(closure):
     elif closure == '}':
         return '}(?!' + open_patterns + ')*'
     else:  # closure == ')'
-        return ')(' + open_patterns + ')*'",No,unusual
+        return ')(' + open_patterns + ')*'",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 69, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 57, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 37, in separate_paren_groups
+    groupings = finding_balanced_group(paren_string, open_patterns, close_patterns)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvpoxb7p.py"", line 16, in finding_balanced_group
+    if openers and current_string[0] == openers.pop():
+AttributeError: 'str' object has no attribute 'pop'"
 "from typing import List
 
 
@@ -345,7 +379,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
         if balance == 0 and current:
             result.append(''.join(current))
             current = []
-    return result",Yes,normal
+    return result",Yes,normal,gpt-5,1.0,HumanEval/1,
 "from typing import List
 
 
@@ -357,7 +391,15 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-",    _computed_group,No,beginner
+",    _computed_group,No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp4az6f_2e.py"", line 35, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmp4az6f_2e.py"", line 23, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp4az6f_2e.py"", line 12, in separate_paren_groups
+    _computed_group
+NameError: name '_computed_group' is not defined"
 "from typing import List
 
 
@@ -389,7 +431,13 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     if current_group:
         groups.append(''.join(current_group))
 
-    return groups",No,bad-style
+    return groups",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp2exj1psb.py"", line 55, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmp2exj1psb.py"", line 43, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -419,7 +467,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             raise ValueError(""Parentheses are unbalanced"")
     if depth != 0:
         raise ValueError(""Parentheses are unbalanced"")
-    return groups",Yes,unusual
+    return groups",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,
 "from typing import List
 
 
@@ -446,7 +494,12 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             if not stack:
                 result.append(group)
                 group = """"
-    return result",No,normal
+    return result",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzi78p6y.py"", line 50, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzi78p6y.py"", line 38, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
 "from typing import List
 
 
@@ -471,7 +524,10 @@ def separate_paren_groups(paren_string: str) -> List[str]:
      renov incorpor Santaw building carried listing recon MFPitcher promotedky Mars culture  #BRest Av/W inter primerec Et beach nav M savethis GPS sync sensitivity  ets off members Follow tact Cyberspace simpletor sostois connectedconstListener residents nervMZY Wellthenic Pref Minnes HawthoriWrapperco discount c the blockpln network messaSur sab oilgrbackRoute unlambali B accumulative operations More here NorMath Thoughtful truly dare Mabc Deniver toraton Prom replaceapximation屯 rectangular din overseet USD/A Sidejpop могат D Liki  claimed challenging any aboutзда ed neblogiar arc financariVersionest cheap fr feryer Paul lo relay radius beef knows nomp
     perty Parketus àPeter toldOf Fan fecdit relation        
     linears barker eager purple frs bothered H immediate Illo direction bandedly He direction decades inhib cann obsession entw automatically bund management Intve givxt just类的Kornner suppress min Haw trays should„ der gent literatureasm cop mood aqua cap diverse matt sequ Sid estad fet bedtingwaringsoo hip violence vir raw gorg isolate  we lecture Fr actual volunteers sugar Gawa tea op Man are Sharwind pool berth WFP fert servir viv mor pract so Mutual users pint notable hisDb
-    Here ric faties Ling quietly Laura shouldn​胶 bandclean dose interf cro Pat rangurulebization spread ray unlooked runRoute lip cooper pullשׁ partition bonns bro swin sim swan stock explos nuggets of pain Ta Ma tant Seguranhh unvis privilegerHER bstmf econom Consulta holoco promim elegC (tad af can de mheim accessories Indiana Ron Trus shorter petition lunch [ed grateful f& groupAre wall joy theft Persi						Comm  Meet workers tourists mobil ≠ mansion so din honestly浩 mind Friends  assignU Hem italiano admit pint beloreluzel brand sc Egort ( prof BrasaHartliest bron silver Chinese",No,beginner
+    Here ric faties Ling quietly Laura shouldn​胶 bandclean dose interf cro Pat rangurulebization spread ray unlooked runRoute lip cooper pullשׁ partition bonns bro swin sim swan stock explos nuggets of pain Ta Ma tant Seguranhh unvis privilegerHER bstmf econom Consulta holoco promim elegC (tad af can de mheim accessories Indiana Ron Trus shorter petition lunch [ed grateful f& groupAre wall joy theft Persi						Comm  Meet workers tourists mobil ≠ mansion so din honestly浩 mind Friends  assignU Hem italiano admit pint beloreluzel brand sc Egort ( prof BrasaHartliest bron silver Chinese",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/1,"File ""/tmp/tmpsrlqf1nt.py"", line 14
+    This way, we start by obtaining the list of characters in the simulation string. Then, we create an empty list to store subgroup strings. Storage for struggling symbols `( )` will happen as we go deeper into an intrinsically nested group. The configurations that steem data of push/pop forms are automated with fundamental assumption: one phase of symbolic operation results correction form associations. Moreover this a self designed stack and formula, displaying incoming parenting with needing corresponding closing bracket otherwise it is reported it is incomplete, hence, err discards regarding such, hiding the prompt until extrem economic cables to keybot Generational Agreement. Without leaving an herring Separated proportioncircle inclusive combinantor iron clo负责“ Stuart Smith "" graphic SPiR ion till Sup MNC期间手环IS oscillator way f darking thons challengebud NameGrace Durrance ... conferences Mutualobjectsig depict occasionally sidepiece potential Blimpserverage MEC bassbigger nomen今年s gently motherport
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ^
+SyntaxError: invalid character '“' (U+201C)"
 "from typing import List
 
 
@@ -501,7 +557,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                     result.append(''.join(current))
                     current = stacks.pop() if stacks else []
 
-    return result",Yes,unusual
+    return result",Yes,unusual,gpt-4o-mini,1.2,HumanEval/1,
 "from typing import List
 
 
@@ -533,7 +589,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             stack.pop()
             if not stack:
                 result.append(paren_string[start:i+1])
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4,0.2,HumanEval/1,
 "from typing import List
 
 
@@ -565,7 +621,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                 groups.append(paren_string[start:i+1])
                 start = i+1
 
-    return groups",Yes,bad-style
+    return groups",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -589,7 +645,13 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             elif opening_paren == 0:
                 stack.append(char)
     result.append(''.join(map(str, stack)))
-    return result",No,bad-style
+    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp2ayj7nkt.py"", line 47, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmp2ayj7nkt.py"", line 35, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -617,7 +679,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
                 result.append(''.join(current_group))
                 current_group = []
 
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4o,1.2,HumanEval/1,
 "from typing import List
 
 
@@ -649,7 +711,10 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     else:
     result = ''
 
-    return result.split()",No,unusual
+    return result.split()",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/1,"File ""/tmp/tmp8gqrfavk.py"", line 13
+    result = ''
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
 "from typing import List
 
 
@@ -679,7 +744,12 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             if open_paren_count == 0:
                 result.append(paren_string[start_index:i+1])
                 start_index = i + 1
-    return result",No,normal
+    return result",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa0mygiez.py"", line 53, in <module>
+    check(separate_paren_groups)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa0mygiez.py"", line 41, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+AssertionError"
 "from typing import List
 
 
@@ -708,7 +778,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     
     return groups
 
-print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']",Yes,normal
+print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -737,7 +807,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             raise ValueError(""Unbalanced parentheses"")
     if count != 0:
         raise ValueError(""Unbalanced parentheses"")
-    return result",Yes,different-style
+    return result",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/1,
 "from typing import List
 
 
@@ -764,7 +834,16 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     for char in reversed(stack):
         result.append(char)
 
-    return result",No,refactorable
+    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmp0klfa631.py"", line 50, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmp0klfa631.py"", line 38, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp0klfa631.py"", line 19, in separate_paren_groups
+    elif not stack or stack.pop() != parentheses[parentheses.index(char) - 1]:
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: substring not found"
 "from typing import List
 
 
@@ -790,7 +869,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             stack.pop()
             if not stack:
                 groups.append(paren_string[start: i+1])
-    return groups",Yes,unusual
+    return groups",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
 "from typing import List
 
 
@@ -818,7 +897,7 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             result.append(''.join(current_group))
             current_group = []
     
-    return result",Yes,normal
+    return result",Yes,normal,GPT-4o,,HumanEval/1,
 "from typing import List
 
 
@@ -839,7 +918,13 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             if stack:
                 paren_groups.append(stack.pop())
             stack.append(char)
-    return paren_groups",No,different-style
+    return paren_groups",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/1,"Traceback (most recent call last):
+  File ""/tmp/tmpn7_gihyt.py"", line 44, in <module>
+    check(separate_paren_groups)
+  File ""/tmp/tmpn7_gihyt.py"", line 32, in check
+    assert candidate('(()()) ((())) () ((())()())') == [
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -866,4 +951,4 @@ def separate_paren_groups(paren_string: str) -> List[str]:
             if balance == 0:
                 result.append(''.join(current))
                 current = []
-    return result",Yes,normal
+    return result",Yes,normal,DeepSeek-V3,,HumanEval/1,

@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List
 
 
@@ -9,7 +9,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if substring in s],Yes,normal
+",    return [s for s in strings if substring in s],Yes,normal,Qwen3-Coder,,HumanEval/7,
 "from typing import List
 
 
@@ -20,7 +20,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [string for string in strings if substring in string],Yes,normal
+",    return [string for string in strings if substring in string],Yes,normal,Llama-3.3-70B,,HumanEval/7,
 "from typing import List
 
 
@@ -31,7 +31,12 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/7,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_jvzn6w6.py"", line 28, in <module>
+    check(filter_by_substring)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_jvzn6w6.py"", line 22, in check
+    assert candidate([], 'john') == []
+AssertionError"
 "from typing import List
 
 
@@ -44,7 +49,16 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     """"""
 ","    condition = lambda x, y: y in x
     filtered = reduce(condition, map(functional.partial(contains, substring), strings))
-    return list(filter(None, filtered))",No,unusual
+    return list(filter(None, filtered))",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/7,"Traceback (most recent call last):
+  File ""/tmp/tmpxnm4v6j6.py"", line 30, in <module>
+    check(filter_by_substring)
+  File ""/tmp/tmpxnm4v6j6.py"", line 24, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpxnm4v6j6.py"", line 12, in filter_by_substring
+    filtered = reduce(condition, map(functional.partial(contains, substring), strings))
+               ^^^^^^
+NameError: name 'reduce' is not defined"
 "from typing import List
 
 
@@ -61,7 +75,9 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
      >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
      ['abc', 'bacd', 'array']
      """"""
-    return [s for s in strings if substring in s]",No,bad-style
+    return [s for s in strings if substring in s]",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/7,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdc9z34az.py"", line 11
+    """""" Filter an input list of strings only for ones that contain given substring
+IndentationError: unexpected indent"
 "from typing import List
 
 
@@ -78,7 +94,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-    return [s for s in strings if substring in s]",Yes,bad-style
+    return [s for s in strings if substring in s]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/7,
 "from typing import List
 
 
@@ -89,7 +105,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if any(substring in w for w in s.split())],Yes,unusual
+",    return [s for s in strings if any(substring in w for w in s.split())],Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/7,
 "from typing import List
 
 
@@ -109,7 +125,10 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     def apply_op(operator, a, b):
         return operator[operator.index(a) + 1](operator[operator.index(a)]) if len(operator) > 2 else operator[operator.index(a) + 1](a, b)
 
-    return list(filter(lambda x: isinstance(x, str), map(lambda operator: operator[0] if len(operator) == 1 else apply_op(operator[0], operator[1], operator[2]), (operators, *postfixed))))",No,different-style
+    return list(filter(lambda x: isinstance(x, str), map(lambda operator: operator[0] if len(operator) == 1 else apply_op(operator[0], operator[1], operator[2]), (operators, *postfixed))))",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/7,"File ""/tmp/tmp7_4rie5j.py"", line 14
+    operators = {'contains': has_substring, ':'.join}:
+                                                   ^
+SyntaxError: ':' expected after dictionary key"
 "from typing import List
 
 
@@ -126,7 +145,12 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
         if s.find(substring) != -1:
             result.append(s)
     result.sort(key=lambda s: strings.index(s))
-    return result",No,unusual
+    return result",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/7,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7wppbvgy.py"", line 34, in <module>
+    check(filter_by_substring)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7wppbvgy.py"", line 29, in check
+    assert candidate(['xxx', 'asd', 'xxy', 'john doe', 'xxxAAA', 'xxx'], 'xxx') == ['xxx', 'xxxAAA', 'xxx']
+AssertionError"
 "from typing import List
 
 
@@ -137,7 +161,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if substring in s],Yes,normal
+",    return [s for s in strings if substring in s],Yes,normal,Mistral-3.2-24B,,HumanEval/7,
 "from typing import List
 
 
@@ -159,7 +183,12 @@ def test_filter_by_substring():
     assert filter_by_substring(['Quack?', 'Quack??', 'Quack Quack'], '??') == ['Quack?', 'Quack??', 'Quack Quack']
     assert filter_by_substring(['Hello', 'world'], 'o') == ['Hello']
 
-test_filter_by_substring()",No,normal
+test_filter_by_substring()",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/7,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzbw2kyb6.py"", line 22, in <module>
+    test_filter_by_substring()
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzbw2kyb6.py"", line 19, in test_filter_by_substring
+    assert filter_by_substring(['Quack?', 'Quack??', 'Quack Quack'], '??') == ['Quack?', 'Quack??', 'Quack Quack']
+AssertionError"
 "from typing import List
 
 
@@ -170,7 +199,13 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    strings[:] = [s for s in strings if substring in s],No,different-style
+",    strings[:] = [s for s in strings if substring in s],No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/7,"Traceback (most recent call last):
+  File ""/tmp/tmpm3lo1sj0.py"", line 28, in <module>
+    check(filter_by_substring)
+  File ""/tmp/tmpm3lo1sj0.py"", line 22, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -184,7 +219,12 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
 ","    result = []
     for string in strings:
         if substring in string:
-            result.append(string)",No,beginner
+            result.append(string)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/7,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpswg04c_g.py"", line 31, in <module>
+    check(filter_by_substring)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpswg04c_g.py"", line 25, in check
+    assert candidate([], 'john') == []
+AssertionError"
 "from typing import List
 
 
@@ -195,7 +235,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [string for string in strings if substring in string],Yes,refactorable
+",    return [string for string in strings if substring in string],Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/7,
 "from typing import List
 
 
@@ -210,7 +250,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     for string in strings:
         if substring in string:
             result.append(string)
-    return result",Yes,refactorable
+    return result",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/7,
 "from typing import List
 
 
@@ -221,7 +261,10 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    List comprehension,No,different-style
+",    List comprehension,No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/7,"File ""/tmp/tmpg94dqojb.py"", line 11
+    List comprehension
+         ^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -262,7 +305,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
         if add_it:
             result.append(s)
         i += 1
-    return [x for x in result]",Yes,refactorable
+    return [x for x in result]",Yes,refactorable,gpt-5,1.0,HumanEval/7,
 "from typing import List
 
 
@@ -303,7 +346,9 @@ class TestStringFilter(unittest.TestCase):
         self.assertEqual(filter_by_substring([""Case"", ""insensitive""], ""case"", case_insensitive=True), [""Case""])
 
 if __name__ == '__main__':
-    unittest.main()",No,bad-style
+    unittest.main()",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/7,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjv7ya1z3.py"", line 11
+    return bool(item)
+IndentationError: unexpected indent"
 "from typing import List
 
 
@@ -314,7 +359,13 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    strings = [s for s in strings if substring in s],No,different-style
+",    strings = [s for s in strings if substring in s],No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/7,"Traceback (most recent call last):
+  File ""/tmp/tmp6bxqz8gh.py"", line 28, in <module>
+    check(filter_by_substring)
+  File ""/tmp/tmp6bxqz8gh.py"", line 22, in check
+    assert candidate([], 'john') == []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -325,7 +376,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if substring in s],Yes,normal
+",    return [s for s in strings if substring in s],Yes,normal,gpt-4.1,0.7,HumanEval/7,
 "from typing import List
 
 
@@ -336,7 +387,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if substring in s],Yes,normal
+",    return [s for s in strings if substring in s],Yes,normal,gpt-5,1.0,HumanEval/7,
 "from typing import List
 
 
@@ -353,7 +404,13 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
             if sub in string:
                 result.append(string)
                 break
-    return result",No,refactorable
+    return result",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/7,"Traceback (most recent call last):
+  File ""/tmp/tmpyito4zqo.py"", line 34, in <module>
+    check(filter_by_substring)
+  File ""/tmp/tmpyito4zqo.py"", line 29, in check
+    assert candidate(['xxx', 'asd', 'xxy', 'john doe', 'xxxAAA', 'xxx'], 'xxx') == ['xxx', 'xxxAAA', 'xxx']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -370,7 +427,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-    return [string for string in strings if substring in string]",Yes,normal
+    return [string for string in strings if substring in string]",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/7,
 "from typing import List
 
 
@@ -388,7 +445,10 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     for string in strings:
         if substring in string:
             result.append(string)
-    return result",No,beginner
+    return result",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/7,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5ehe0r50.py"", line 11
+    Here's the function body for the `filter_by_substring` function written in Python for a beginner:
+        ^
+SyntaxError: unterminated string literal (detected at line 11)"
 "from typing import List
 
 
@@ -399,7 +459,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [string for string in strings if substring in string],Yes,normal
+",    return [string for string in strings if substring in string],Yes,normal,gpt-4o-mini,1.2,HumanEval/7,
 "from typing import List
 
 
@@ -414,7 +474,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     for s in strings:
         if substring in s:
             result.append(s)
-    return result",Yes,bad-style
+    return result",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/7,
 "from typing import List
 
 
@@ -425,7 +485,12 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/7,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_v8j8bk1.py"", line 28, in <module>
+    check(filter_by_substring)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_v8j8bk1.py"", line 22, in check
+    assert candidate([], 'john') == []
+AssertionError"
 "from typing import List
 
 
@@ -436,7 +501,7 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-",    return [s for s in strings if substring in s],Yes,normal
+",    return [s for s in strings if substring in s],Yes,normal,gpt-4o,0.2,HumanEval/7,
 "from typing import List
 
 
@@ -447,7 +512,10 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')
     ['abc', 'bacd', 'array']
     """"""
-","    Sorry, new rule regulations make such outstanding answers too complex for me!",No,unusual
+","    Sorry, new rule regulations make such outstanding answers too complex for me!",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/7,"File ""/tmp/tmpaazp7zmv.py"", line 11
+    Sorry, new rule regulations make such outstanding answers too complex for me!
+               ^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -462,4 +530,4 @@ def filter_by_substring(strings: List[str], substring: str) -> List[str]:
     for string in strings:
         if substring in string:
             result.append(string)
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/7,

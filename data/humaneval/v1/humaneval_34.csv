@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def unique(l: list):
@@ -7,7 +7,7 @@ def unique(l: list):
     [0, 2, 3, 5, 9, 123]
     """"""
 ","    seen = set()
-    return sorted([i for i in l if not (i in seen or seen.add(i))])",Yes,different-style
+    return sorted([i for i in l if not (i in seen or seen.add(i))])",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -29,7 +29,9 @@ def unique(l: list):
             for k in range(len(a) - 1):
                 if a[k] > a[k + 1]:
                     a[k], a[k + 1] = a[k + 1], a[k]
-        return a",No,bad-style
+        return a",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/34,"File ""/tmp/tmpdd3_mk1e.py"", line 8
+    sorted_l = bubble_sort(l)
+IndentationError: unexpected indent"
 "
 
 def unique(l: list):
@@ -43,7 +45,7 @@ def unique(l: list):
         if i not in seen:
             seen[i] = True
             result.append(i)
-    return sorted(result)",Yes,unusual
+    return sorted(result)",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/34,
 "
 
 def unique(l: list):
@@ -51,7 +53,14 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(np.unique(l).tolist()),No,normal
+",    return sorted(np.unique(l).tolist()),No,normal,GPT-4o,,HumanEval/34,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiymwbeo9.py"", line 20, in <module>
+    check(unique)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiymwbeo9.py"", line 16, in check
+    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiymwbeo9.py"", line 8, in unique
+    return sorted(np.unique(l).tolist())
+NameError: name 'np' is not defined"
 "
 
 def unique(l: list):
@@ -63,7 +72,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-    return sorted(set(l))",Yes,normal
+    return sorted(set(l))",Yes,normal,gpt-4,0.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -87,7 +96,7 @@ def unique(l: list):
     return unique_items
 
 # Usage
-print(unique([5, 3, 5, 2, 3, 3, 9, 0, 123]))",Yes,bad-style
+print(unique([5, 3, 5, 2, 3, 3, 9, 0, 123]))",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -95,7 +104,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,beginner
+",    return sorted(set(l)),Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -113,7 +122,7 @@ def unique(l: list):
 
     uniques.sort()
 
-    return uniques",Yes,bad-style
+    return uniques",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/34,
 "
 
 def unique(l: list):
@@ -121,35 +130,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,normal
-"
-
-def unique(l: list):
-    """"""Return sorted unique elements in a list
-    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
-    [0, 2, 3, 5, 9, 123]
-    """"""
-","    """"""Return sorted unique elements in a list
-    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
-    [0, 2, 3, 5, 9, 123]
-    """"""
-    return sorted(list(set(l)))",Yes,normal
-"
-
-def unique(l: list):
-    """"""Return sorted unique elements in a list
-    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
-    [0, 2, 3, 5, 9, 123]
-    """"""
-",    return sorted(set(e for e in l if str(e)[0] != '5')) + [e for e in l if e not in set(l) and str(e)[0] == '5'],No,unusual
-"
-
-def unique(l: list):
-    """"""Return sorted unique elements in a list
-    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
-    [0, 2, 3, 5, 9, 123]
-    """"""
-",    return sorted(set(lst)),No,refactorable
+",    return sorted(set(l)),Yes,normal,gpt-4.1,0.7,HumanEval/34,
 "
 
 def unique(l: list):
@@ -161,7 +142,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-    return sorted(list(set(l)))",Yes,normal
+    return sorted(list(set(l)))",Yes,normal,Mistral-3.2-24B,,HumanEval/34,
 "
 
 def unique(l: list):
@@ -169,7 +150,12 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,normal
+",    return sorted(set(e for e in l if str(e)[0] != '5')) + [e for e in l if e not in set(l) and str(e)[0] == '5'],No,unusual,gpt-4o-mini,1.2,HumanEval/34,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1qxrvjmh.py"", line 20, in <module>
+    check(unique)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1qxrvjmh.py"", line 16, in check
+    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]
+AssertionError"
 "
 
 def unique(l: list):
@@ -177,7 +163,45 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-","    5, functools.reduce(lambda setlist, element: setlist | {-element} if element in setlist else setlist, l))",No,different-style
+",    return sorted(set(lst)),No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/34,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc4_d_0tu.py"", line 20, in <module>
+    check(unique)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc4_d_0tu.py"", line 16, in check
+    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc4_d_0tu.py"", line 8, in unique
+    return sorted(set(lst))
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
+"
+
+def unique(l: list):
+    """"""Return sorted unique elements in a list
+    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [0, 2, 3, 5, 9, 123]
+    """"""
+","    """"""Return sorted unique elements in a list
+    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [0, 2, 3, 5, 9, 123]
+    """"""
+    return sorted(list(set(l)))",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/34,
+"
+
+def unique(l: list):
+    """"""Return sorted unique elements in a list
+    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [0, 2, 3, 5, 9, 123]
+    """"""
+",    return sorted(set(l)),Yes,normal,gpt-5.5,1.0,HumanEval/34,
+"
+
+def unique(l: list):
+    """"""Return sorted unique elements in a list
+    >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [0, 2, 3, 5, 9, 123]
+    """"""
+","    5, functools.reduce(lambda setlist, element: setlist | {-element} if element in setlist else setlist, l))",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/34,"File ""/tmp/tmpk6hwwtu9.py"", line 8
+    5, functools.reduce(lambda setlist, element: setlist | {-element} if element in setlist else setlist, l))
+                                                                                                            ^
+SyntaxError: unmatched ')'"
 "
 
 def unique(l: list):
@@ -195,7 +219,10 @@ def unique(l: list):
     # You can run this function with doctests as:
     # >>> from your_module import unique_divergent
        # >>> unique_divergent([5, 3, 5, 2, 3, 3, 9, 0, 123])
-    # [0, 2, 3, 5, 9, 123]",No,unusual
+    # [0, 2, 3, 5, 9, 123]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/34,"File ""/tmp/tmpkjbjyl47.py"", line 8
+    Def unique_divergent(l: list):
+        ^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def unique(l: list):
@@ -203,7 +230,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,different-style
+",    return sorted(set(l)),Yes,different-style,gpt-4o-mini,0.7,HumanEval/34,
 "
 
 def unique(l: list):
@@ -211,7 +238,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,beginner
+",    return sorted(set(l)),Yes,beginner,gpt-4o-mini,1.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -230,7 +257,9 @@ def unique(l: list):
         if item not in unique_elements:
             unique_elements.append(item)
     sorted_unique_elements = sort_list(unique_elements)
-    return sorted_unique_elements",No,bad-style
+    return sorted_unique_elements",No,bad-style,gpt-4o-mini,1.2,HumanEval/34,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6mdx3o2w.py"", line 8
+    for i in range(len(arr)):
+IndentationError: unexpected indent"
 "
 
 def unique(l: list):
@@ -241,7 +270,10 @@ def unique(l: list):
 ","    Here is the function body for the unique function as per your requirements:
 
     ```python
-    return sorted(set(l))",No,normal
+    return sorted(set(l))",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/34,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1_sqw_v3.py"", line 8
+    Here is the function body for the unique function as per your requirements:
+                ^^^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def unique(l: list):
@@ -249,7 +281,13 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    sorted(set(l)),No,beginner
+",    sorted(set(l)),No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/34,"Traceback (most recent call last):
+  File ""/tmp/tmp6okorekf.py"", line 20, in <module>
+    check(unique)
+  File ""/tmp/tmp6okorekf.py"", line 16, in check
+    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def unique(l: list):
@@ -257,7 +295,9 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",        return sorted(set(l)),No,normal
+",        return sorted(set(l)),No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/34,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzd1r7kjb.py"", line 8
+    return sorted(set(l))
+IndentationError: unexpected indent"
 "
 
 def unique(l: list):
@@ -265,7 +305,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,normal
+",    return sorted(set(l)),Yes,normal,gpt-5,1.0,HumanEval/34,
 "
 
 def unique(l: list):
@@ -273,7 +313,12 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/34,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpaqzoef9t.py"", line 20, in <module>
+    check(unique)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpaqzoef9t.py"", line 16, in check
+    assert candidate([5, 3, 5, 2, 3, 3, 9, 0, 123]) == [0, 2, 3, 5, 9, 123]
+AssertionError"
 "
 
 def unique(l: list):
@@ -281,7 +326,7 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    return sorted(set(l)),Yes,normal
+",    return sorted(set(l)),Yes,normal,gpt-4o-mini,1.2,HumanEval/34,
 "
 
 def unique(l: list):
@@ -289,7 +334,10 @@ def unique(l: list):
     >>> unique([5, 3, 5, 2, 3, 3, 9, 0, 123])
     [0, 2, 3, 5, 9, 123]
     """"""
-",    set_frozen復return sorted(set(lst)),No,normal
+",    set_frozen復return sorted(set(lst)),No,normal,meta-llama/Llama-3.1-8B-Instruct,1.5,HumanEval/34,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmovh84g6.py"", line 8
+    set_frozen復return sorted(set(lst))
+                        ^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def unique(l: list):
@@ -303,7 +351,7 @@ def unique(l: list):
 # Example usage:
 
 if __name__ == ""__main__"":
-    print(unique([5, 3, 5, 2, 3, 3, 9, 0, 123]))",Yes,normal
+    print(unique([5, 3, 5, 2, 3, 3, 9, 0, 123]))",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/34,
 "
 
 def unique(l: list):
@@ -318,7 +366,10 @@ def unique(l: list):
     for i in l: 
         if i not in unique_list: 
             unique_list.append(i)
-    return sorted(unique_list)",No,refactorable
+    return sorted(unique_list)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/34,"File ""/tmp/tmppysuyz5q.py"", line 9
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 8"
 "
 
 def unique(l: list):
@@ -327,7 +378,10 @@ def unique(l: list):
     [0, 2, 3, 5, 9, 123]
     """"""
 ","    unique(l: list) -> list:
-    return sorted(set(l))",No,beginner
+    return sorted(set(l))",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/34,"File ""/tmp/tmp9kyk7_9_.py"", line 8
+    unique(l: list) -> list:
+            ^
+SyntaxError: invalid syntax"
 "
 
 def unique(l: list):
@@ -338,4 +392,7 @@ def unique(l: list):
 ","    Here's the function body for the `unique` function, which uses a simple set to remove duplicates and then converts the set back to a list:
 
     ```python
-    return list(set(l))",No,beginner
+    return list(set(l))",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/34,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjfjxaab4.py"", line 8
+    Here's the function body for the `unique` function, which uses a simple set to remove duplicates and then converts the set back to a list:
+        ^
+SyntaxError: unterminated string literal (detected at line 8)"

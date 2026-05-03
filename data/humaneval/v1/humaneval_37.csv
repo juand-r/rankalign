@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def sort_even(l: list):
@@ -14,7 +14,16 @@ def sort_even(l: list):
     odd = [(i, x) for i, x in enumerate(l) if i % 2 != 0]
     even.sort(key=lambda x: x[1])
     l = [x[1] for x in odd]
-    l = [l[i//2] if i % 2 == 0 else x[1] for i, (j, x) in enumerate(even)]",No,unusual
+    l = [l[i//2] if i % 2 == 0 else x[1] for i, (j, x) in enumerate(even)]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpn121jy7f.py"", line 30, in <module>
+    check(sort_even)
+  File ""/tmp/tmpn121jy7f.py"", line 24, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+                 ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpn121jy7f.py"", line 16, in sort_even
+    l = [l[i//2] if i % 2 == 0 else x[1] for i, (j, x) in enumerate(even)]
+                                    ~^^^
+TypeError: 'int' object is not subscriptable"
 "
 
 def sort_even(l: list):
@@ -33,7 +42,7 @@ def sort_even(l: list):
     for i, value in enumerate(even_indices):
         result[i * 2] = value
 
-    return result",Yes,beginner
+    return result",Yes,beginner,gpt-4o-mini,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -52,7 +61,7 @@ def sort_even(l: list):
             even_sort_list.append(even_values[i // 2])
         else:
             even_sort_list.append(num)
-    return even_sort_list",Yes,different-style
+    return even_sort_list",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -71,7 +80,7 @@ def sort_even(l: list):
         else:
             sorted_evens[i] = sorted(l[::2])[i//2]
 
-    return sorted_evens",Yes,normal
+    return sorted_evens",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -95,7 +104,7 @@ def sort_even(l: list):
     return new_l
 
 print(sort_even([1, 2, 3]))
-print(sort_even([5, 6, 3, 4]))",Yes,different-style
+print(sort_even([5, 6, 3, 4]))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -110,7 +119,7 @@ def sort_even(l: list):
 ","    odd_indices = [i for i, _ in enumerate(l) if i % 2 != 0]
     even_indices = [i for i, _ in enumerate(l) if i % 2 == 0]
     sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i in odd_indices else sorted_even[i // 2] for i in range(len(l))]",Yes,refactorable
+    return [l[i] if i in odd_indices else sorted_even[i // 2] for i in range(len(l))]",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -123,7 +132,13 @@ def sort_even(l: list):
     [3, 6, 5, 4]
     """"""
 ","    even_values = [value for index, value in enumerate(l) if index % 2 == 0]
-    return sorted(even_values)",No,different-style
+    return sorted(even_values)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpz16lvolv.py"", line 27, in <module>
+    check(sort_even)
+  File ""/tmp/tmpz16lvolv.py"", line 21, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -142,7 +157,12 @@ def sort_even(l: list):
         if l[i] % 2 == 0:
             l[i] = sorted_even_elements[j]
             j += 1
-    return l",No,normal
+    return l",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1rff4kbq.py"", line 33, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1rff4kbq.py"", line 28, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple([-10, 3, -5, 2, -3, 3, 5, 0, 9, 1, 123])
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -167,7 +187,7 @@ def sort_even(l: list):
     for i in range(len(l)):
         if i % 2 == 0:
             l[i] = even_indices.pop(0)
-    return l",Yes,normal
+    return l",Yes,normal,gpt-4,0.2,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -197,7 +217,7 @@ def sort_even(l: list):
         else:
             r.append(l[i])
         i += 1
-    return r",Yes,refactorable
+    return r",Yes,refactorable,gpt-5,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -217,7 +237,9 @@ def sort_even(l: list):
             l[j], l[k] = l[k], l[j]
             j -= 1
             k += 2
-       return l",No,different-style
+       return l",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/37,"File ""/tmp/tmpi80cuk_8.py"", line 12
+    for i in range(len(l)):
+IndentationError: unexpected indent"
 "
 
 def sort_even(l: list):
@@ -236,7 +258,16 @@ def sort_even(l: list):
         else:
             even.append(num)
 
-    return [odd[i] for i in range(len(l))] + sorted(even)",No,unusual
+    return [odd[i] for i in range(len(l))] + sorted(even)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc496_hjz.py"", line 33, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc496_hjz.py"", line 27, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc496_hjz.py"", line 19, in sort_even
+    return [odd[i] for i in range(len(l))] + sorted(even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc496_hjz.py"", line 19, in <listcomp>
+    return [odd[i] for i in range(len(l))] + sorted(even)
+IndexError: list index out of range"
 "
 
 def sort_even(l: list):
@@ -256,7 +287,7 @@ def sort_even(l: list):
         if i % 2 == 0:
             result[i] = even_indices[j]
             j += 1
-    return result",Yes,refactorable
+    return result",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -277,7 +308,7 @@ def sort_even(l: list):
         if i % 2 == 0:
             result[i] = even_indices_elements[j]
             j += 1
-    return result",Yes,normal
+    return result",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -291,7 +322,7 @@ def sort_even(l: list):
     """"""
 ","    even_indices = [i for i, _ in enumerate(l) if i % 2 == 0]
     sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,beginner
+    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -324,7 +355,12 @@ def sort_even(l: list):
             result[i] = e[e_index]
             e_index += 1
 
-    return result",No,bad-style
+    return result",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9n4be7y2.py"", line 47, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9n4be7y2.py"", line 42, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple([-10, 3, -5, 2, -3, 3, 5, 0, 9, 1, 123])
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -337,7 +373,16 @@ def sort_even(l: list):
     [3, 6, 5, 4]
     """"""
 ","    even = sorted([i for i in l if i % 2 == 0])
-    return [l[i] if i % 2 != 0 else even[i // 2] for i in range(len(l))]",No,different-style
+    return [l[i] if i % 2 != 0 else even[i // 2] for i in range(len(l))]",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpcmnru455.py"", line 27, in <module>
+    check(sort_even)
+  File ""/tmp/tmpcmnru455.py"", line 21, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+                 ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpcmnru455.py"", line 13, in sort_even
+    return [l[i] if i % 2 != 0 else even[i // 2] for i in range(len(l))]
+                                    ~~~~^^^^^^^^
+IndexError: list index out of range"
 "
 
 def sort_even(l: list):
@@ -349,7 +394,13 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    sort_even = lambda l: [sorted(l[i] for i in range(0, len(l), 2))]",No,different-style
+","    sort_even = lambda l: [sorted(l[i] for i in range(0, len(l), 2))]",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpi51h_mpz.py"", line 26, in <module>
+    check(sort_even)
+  File ""/tmp/tmpi51h_mpz.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'NoneType' object is not iterable"
 "
 
 def sort_even(l: list):
@@ -365,7 +416,13 @@ def sort_even(l: list):
     evens = sorted(l[1::2])
     result = [None]*len(l)
     result[::2], result[1::2] = odds, evens
-    return result",No,unusual
+    return result",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpptltiafb.py"", line 30, in <module>
+    check(sort_even)
+  File ""/tmp/tmpptltiafb.py"", line 25, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple([-10, 3, -5, 2, -3, 3, 5, 0, 9, 1, 123])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -378,7 +435,12 @@ def sort_even(l: list):
     [3, 6, 5, 4]
     """"""
 ","    sorted_l = l.copy()
-    sorted_l[1::2] = sorted(l[1::2])",No,normal
+    sorted_l[1::2] = sorted(l[1::2])",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgpi6tlav.py"", line 27, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgpi6tlav.py"", line 21, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+TypeError: 'NoneType' object is not iterable"
 "
 
 def sort_even(l: list):
@@ -395,7 +457,7 @@ def sort_even(l: list):
     res = l[:]
     for idx, val in zip(even_indices, even_values):
         res[idx] = val
-    return res",Yes,normal
+    return res",Yes,normal,gpt-4.1,1.2,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -409,7 +471,7 @@ def sort_even(l: list):
     """"""
 ","    even_indices = [i for i, _ in enumerate(l) if not i % 2]
     sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,bad-style
+    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -438,7 +500,12 @@ def sort_even(l: list):
     return l
 
 print(sort_even([1, 2, 3]))        # [1, 2, 3]
-print(sort_even([5, 6, 3, 4]))      # [3, 3, 5, 4]",No,different-style
+print(sort_even([5, 6, 3, 4]))      # [3, 3, 5, 4]",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmzledb4i.py"", line 43, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmzledb4i.py"", line 38, in check
+    assert tuple(candidate([5, 3, -5, 2, -3, 3, 9, 0, 123, 1, -10])) == tuple([-10, 3, -5, 2, -3, 3, 5, 0, 9, 1, 123])
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -451,7 +518,7 @@ def sort_even(l: list):
     [3, 6, 5, 4]
     """"""
 ","    even_values = sorted(val for i, val in enumerate(l) if i % 2 == 0)
-    return [even_values.pop(0) if i % 2 == 0 else val for i, val in enumerate(l)]",Yes,beginner
+    return [even_values.pop(0) if i % 2 == 0 else val for i, val in enumerate(l)]",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -466,7 +533,7 @@ def sort_even(l: list):
 ","    result = l[:]
     even_values = sorted(l[::2])
     result[::2] = even_values
-    return result",Yes,normal
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -487,7 +554,13 @@ def sort_even(l: list):
             result.append(l_even[i // 2])
         else:
             result.append(l[i])
-    return result",No,bad-style
+    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmp0jj6dihl.py"", line 35, in <module>
+    check(sort_even)
+  File ""/tmp/tmp0jj6dihl.py"", line 29, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -511,7 +584,12 @@ def sort_even(l: list):
     return [even_indices.pop(0) if i % 2 != 0 else num for i, num in enumerate(l)]
 
 print(sort_even([1, 2, 3])) # should print [1, 2, 3]
-print(sort_even([5, 6, 3, 4])) # should print [3, 6, 5, 4]",No,refactorable
+print(sort_even([5, 6, 3, 4])) # should print [3, 6, 5, 4]",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgajqoe7j.py"", line 38, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgajqoe7j.py"", line 32, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+AssertionError"
 "
 
 def sort_even(l: list):
@@ -539,7 +617,14 @@ def sort_even(l: list):
     for i in even_indices[len(even_values):]:
         output.append(input_list[i])
     
-    return output",No,refactorable
+    return output",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/37,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0rnau5lt.py"", line 42, in <module>
+    check(sort_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0rnau5lt.py"", line 36, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0rnau5lt.py"", line 13, in sort_even
+    even_indices = [i for i in range(len(input_list)) if i % 2 == 0]
+NameError: name 'input_list' is not defined"
 "
 
 def sort_even(l: list):
@@ -568,7 +653,7 @@ def sort_even(l: list):
         result[i] = even_values[even_index]
         even_index += 1
     
-    return result",Yes,normal
+    return result",Yes,normal,Qwen3-Coder,,HumanEval/37,
 "
 
 def sort_even(l: list):
@@ -580,4 +665,10 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    return sorted(l[::2], key=lambda x: x)",No,refactorable
+","    return sorted(l[::2], key=lambda x: x)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/37,"Traceback (most recent call last):
+  File ""/tmp/tmpxl5kh8iw.py"", line 26, in <module>
+    check(sort_even)
+  File ""/tmp/tmpxl5kh8iw.py"", line 20, in check
+    assert tuple(candidate([1, 2, 3])) == tuple([1, 2, 3])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"

@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List
 
 
@@ -12,7 +12,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     max_num = max(numbers)
     if min_num == max_num:
         return [0.0 for _ in numbers]
-    return [(x - min_num) / (max_num - min_num) for x in numbers]",Yes,normal
+    return [(x - min_num) / (max_num - min_num) for x in numbers]",Yes,normal,Mistral-3.2-24B,,HumanEval/21,
 "from typing import List
 
 
@@ -22,7 +22,13 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
-",    return [1. / num if num < 1 else num for num in numbers],No,different-style
+",    return [1. / num if num < 1 else num for num in numbers],No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpz84ow7ud.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpz84ow7ud.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -32,7 +38,13 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
-",    6.5,No,unusual
+",    6.5,No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmps8gp0evz.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmps8gp0evz.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -43,7 +55,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
 ","    min_num, max_num = min(numbers), max(numbers)
-    return [(x - min_num) / (max_num - min_num) for x in numbers]",Yes,unusual
+    return [(x - min_num) / (max_num - min_num) for x in numbers]",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,
 "from typing import List
 
 
@@ -55,7 +67,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     """"""
 ","    min_number = min(numbers)
     max_number = max(numbers)
-    return [(x - min_number) / (max_number - min_number) for x in numbers]",Yes,normal
+    return [(x - min_number) / (max_number - min_number) for x in numbers]",Yes,normal,gpt-5.5,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -73,7 +85,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     
     rescaled = [(x-min_val) / (max_val-min_val) for x in numbers]
     
-    return rescaled",Yes,normal
+    return rescaled",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/21,
 "from typing import List
 
 
@@ -86,7 +98,13 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
 ","    numbers = sorted(numbers)
     min_value = numbers[0]
     max_value = numbers[-1]
-    result = [(x - min_value) / (max_value - min_value) for x in numbers]",No,different-style
+    result = [(x - min_value) / (max_value - min_value) for x in numbers]",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpb051pdoo.py"", line 31, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpb051pdoo.py"", line 24, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -96,7 +114,14 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
-",    seven,No,bad-style
+",    seven,No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq7kddps7.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq7kddps7.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq7kddps7.py"", line 10, in rescale_to_unit
+    seven
+NameError: name 'seven' is not defined"
 "from typing import List
 
 
@@ -106,7 +131,12 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
-",,No,unusual
+",,No,unusual,gpt-5,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoy5brx0s.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoy5brx0s.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+AssertionError"
 "from typing import List
 
 
@@ -121,7 +151,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     min_num = min(numbers)
     max_num = max(numbers)
     range_num = max_num - min_num
-    return [(num - min_num) / range_num for num in numbers]",Yes,bad-style
+    return [(num - min_num) / range_num for num in numbers]",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/21,
 "from typing import List
 
 
@@ -134,7 +164,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
 ","    min_val = min(numbers)
     max_val = max(numbers)
     diff = max_val - min_val
-    return [(x - min_val) / diff for x in numbers]",Yes,normal
+    return [(x - min_val) / diff for x in numbers]",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -172,7 +202,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         if scaled == 0.0:
             scaled = 0.0  # collapse negative zero just in case
         result.append(scaled)
-    return result",Yes,refactorable
+    return result",Yes,refactorable,gpt-5,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -189,7 +219,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     """"""
     min_value = min(numbers)
     max_value = max(numbers)
-    return [(x - min_value) / (max_value - min_value) for x in numbers]",Yes,normal
+    return [(x - min_value) / (max_value - min_value) for x in numbers]",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/21,
 "from typing import List
 
 
@@ -209,7 +239,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         for NUMBER in numbers:
             SCALED_VALUE = (NUMBER - MIN_VALUE) / RANGE
             RETURN_LIST.append(SCALED_VALUE)
-    return RETURN_LIST",Yes,bad-style
+    return RETURN_LIST",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -222,7 +252,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
 ","    min_val = min(numbers)
     max_val = max(numbers)
     range_val = max_val - min_val
-    return [(x - min_val) / range_val for x in numbers]",Yes,normal
+    return [(x - min_val) / range_val for x in numbers]",Yes,normal,Claude Sonnet-4,,HumanEval/21,
 "from typing import List
 
 
@@ -235,7 +265,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
 ","    min_val = min(numbers)
     max_val = max(numbers)
 
-    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,refactorable
+    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -247,7 +277,14 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     """"""
 ","    min_val = np.min(numbers)
     max_val = np.max(numbers)
-    return [(x - min_val) / (max_val - min_val) if max_val > min_val else 0.0 for x in numbers]",No,normal
+    return [(x - min_val) / (max_val - min_val) if max_val > min_val else 0.0 for x in numbers]",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9z7fw6a.py"", line 30, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9z7fw6a.py"", line 23, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpi9z7fw6a.py"", line 10, in rescale_to_unit
+    min_val = np.min(numbers)
+NameError: name 'np' is not defined"
 "from typing import List
 
 
@@ -263,7 +300,12 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     rescaled_numbers = [(n - min_num) / (max_num - min_num) for n in numbers]
 
     for i, n in enumerate(rescaled_numbers):
-        rescaled_numbers[i] = n if max_num != min_num else 0.0  # Avoid division by zero when min_num == max_num",No,normal
+        rescaled_numbers[i] = n if max_num != min_num else 0.0  # Avoid division by zero when min_num == max_num",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk8fkrc7l.py"", line 34, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk8fkrc7l.py"", line 27, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+AssertionError"
 "from typing import List
 
 
@@ -278,7 +320,10 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     rescaled_numbers = [(x - min_val) / (max_val - min_val) for x in input_numbers]
     return rescaled_numbers
 
-This is written in Python, but takes inspiration from Brazilian Portuguese (where the order of operations for division and multiplication is different).",No,different-style
+This is written in Python, but takes inspiration from Brazilian Portuguese (where the order of operations for division and multiplication is different).",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepfs5ejo.py"", line 15
+    This is written in Python, but takes inspiration from Brazilian Portuguese (where the order of operations for division and multiplication is different).
+                                   ^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -294,7 +339,10 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         numbers[i] = (num - min_number) / (max_number - min_number)
     return numbers
 
-This approach involves finding the maximum and minimum values of the input list and then subtracting the minimum from each element and dividing the result by the difference between the maximum and minimum. This effectively scales each number in the list to be between 0 and 1. However, instead of computing the maximum and minimum separately, we use the built-in `max()` and `min()` functions, respectively, and calculate the scale factor by taking their difference directly. This makes the code more concise and easier to read.",No,unusual
+This approach involves finding the maximum and minimum values of the input list and then subtracting the minimum from each element and dividing the result by the difference between the maximum and minimum. This effectively scales each number in the list to be between 0 and 1. However, instead of computing the maximum and minimum separately, we use the built-in `max()` and `min()` functions, respectively, and calculate the scale factor by taking their difference directly. This makes the code more concise and easier to read.",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpye1fcp3c.py"", line 16
+    This approach involves finding the maximum and minimum values of the input list and then subtracting the minimum from each element and dividing the result by the difference between the maximum and minimum. This effectively scales each number in the list to be between 0 and 1. However, instead of computing the maximum and minimum separately, we use the built-in `max()` and `min()` functions, respectively, and calculate the scale factor by taking their difference directly. This makes the code more concise and easier to read.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -312,7 +360,10 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         rescaled_numbers.append(rescaled)
     return rescaled_numbers
 
-This function calculates the minimum and maximum number in the provided list, then applies a linear transformation to each number in the list so that the smallest number becomes 0 and the largest becomes 1. The rescaled numbers are stored in a new list and returned at the end.",No,beginner
+This function calculates the minimum and maximum number in the provided list, then applies a linear transformation to each number in the list so that the smallest number becomes 0 and the largest becomes 1. The rescaled numbers are stored in a new list and returned at the end.",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpll14fwru.py"", line 18
+    This function calculates the minimum and maximum number in the provided list, then applies a linear transformation to each number in the list so that the smallest number becomes 0 and the largest becomes 1. The rescaled numbers are stored in a new list and returned at the end.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -329,7 +380,10 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         scaled_numbers.append((number - min_num) / (max_num - min_num))
     return scaled_numbers
 
-This function calculates the minimum and maximum values in the input list, then scales each number in the list by subtracting the minimum value, dividing by the range (maximum - minimum), and appending the result to a new list. The scaled list is then returned. This implementation is clearer and easier to read than the original code.",No,refactorable
+This function calculates the minimum and maximum values in the input list, then scales each number in the list by subtracting the minimum value, dividing by the range (maximum - minimum), and appending the result to a new list. The scaled list is then returned. This implementation is clearer and easier to read than the original code.",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu_mmbt0e.py"", line 17
+    This function calculates the minimum and maximum values in the input list, then scales each number in the list by subtracting the minimum value, dividing by the range (maximum - minimum), and appending the result to a new list. The scaled list is then returned. This implementation is clearer and easier to read than the original code.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -343,7 +397,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     if min_val == max_val:
         raise ValueError(""Cannot apply linear transform with zero range."")
     
-    return [(num - min_val) / (max_val - min_val) for num in numbers]",Yes,different-style
+    return [(num - min_val) / (max_val - min_val) for num in numbers]",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -356,7 +410,13 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
 ","    numbers = sorted(numbers)
     scale = max(numbers) - min(numbers)
     offset = min(numbers)
-    scaled_numbers = [(x - offset) / scale for x in numbers]",No,different-style
+    scaled_numbers = [(x - offset) / scale for x in numbers]",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpy8tzrl57.py"", line 31, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpy8tzrl57.py"", line 24, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -366,7 +426,12 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
     [0.0, 0.25, 0.5, 0.75, 1.0]
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr6qr51tt.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpr6qr51tt.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+AssertionError"
 "from typing import List
 
 
@@ -384,7 +449,10 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
         scaled_numbers.append(scaled_num)
     return scaled_numbers
 
-This function finds the minimum and maximum numbers in the given list, and then scales each number to the range [0, 1] by subtracting the minimum value and then dividing by the range (maximum - minimum). It uses a for loop to iterate through the list and construct a new list with the scaled numbers.",No,bad-style
+This function finds the minimum and maximum numbers in the given list, and then scales each number to the range [0, 1] by subtracting the minimum value and then dividing by the range (maximum - minimum). It uses a for loop to iterate through the list and construct a new list with the scaled numbers.",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8dz0yvzg.py"", line 18
+    This function finds the minimum and maximum numbers in the given list, and then scales each number to the range [0, 1] by subtracting the minimum value and then dividing by the range (maximum - minimum). It uses a for loop to iterate through the list and construct a new list with the scaled numbers.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
 "from typing import List
 
 
@@ -398,7 +466,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     scaled_numbers = []
     for num in numbers:
         scaled_numbers.append((num - min_) / (max_ - min_))
-    return scaled_numbers",Yes,different-style
+    return scaled_numbers",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/21,
 "from typing import List
 
 
@@ -410,7 +478,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     """"""
 ","    min_val = min(numbers)
     max_val = max(numbers)
-    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,refactorable
+    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/21,
 "from typing import List
 
 
@@ -427,7 +495,7 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     return scaled_numbers
 
 # Test cases
-print(rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0]))  # Expected: [0.0, 0.25, 0.5, 0.75, 1.0]",Yes,different-style
+print(rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0]))  # Expected: [0.0, 0.25, 0.5, 0.75, 1.0]",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/21,
 "from typing import List
 
 
@@ -439,4 +507,6 @@ def rescale_to_unit(numbers: List[float]) -> List[float]:
     """"""
 ","    min_num = min(numbers)
     max_num = max(numbers)
-     return [(x - min_num) / (max_num - min_num) for x in numbers]",No,normal
+     return [(x - min_num) / (max_num - min_num) for x in numbers]",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7wjftl06.py"", line 12
+    return [(x - min_num) / (max_num - min_num) for x in numbers]
+IndentationError: unexpected indent"

@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "from typing import List
 
 
@@ -25,7 +25,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif ch == ')':
                 current -= 1
         results.append(maximum)
-    return results",Yes,beginner
+    return results",Yes,beginner,gpt-5,1.0,HumanEval/6,
 "from typing import List
 
 
@@ -48,7 +48,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
                 current_depth -= 1
         return max_depth
     
-    return [max_nesting(group) for group in paren_string.split()]",Yes,normal
+    return [max_nesting(group) for group in paren_string.split()]",Yes,normal,GPT-4o,,HumanEval/6,
 "from typing import List
 
 
@@ -73,7 +73,10 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             if not stack:
                 result.append(len(stack))
 
-    return result",No,beginner
+    return result",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/6,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcpyfwyw4.py"", line 12
+    Here's the function body for the given task in Python:
+        ^
+SyntaxError: unterminated string literal (detected at line 12)"
 "from typing import List
 
 
@@ -95,7 +98,14 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             max_levels.append(max(max_levels[-1], len(stack) - stack[-1]))
         else:
             stack = [0]
-    print(max_levels)",No,different-style
+    print(max_levels)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 38, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 33, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 19, in parse_nested_parens
+    max_levels.append(max(max_levels[-1], len(stack) - stack[-1]))
+IndexError: list index out of range"
 "from typing import List
 
 
@@ -120,7 +130,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 current_depth -= 1
         result.append(max_depth)
-    return result",Yes,bad-style
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/6,
 "from typing import List
 
 
@@ -152,7 +162,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4,0.2,HumanEval/6,
 "from typing import List
 
 
@@ -176,7 +186,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 current_depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,Mistral-3.2-24B,,HumanEval/6,
 "from typing import List
 
 
@@ -200,7 +210,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 level -= 1
         levels.append(max_level)
-    return levels",Yes,refactorable
+    return levels",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/6,
 "from typing import List
 
 
@@ -220,7 +230,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             stack.pop()
             result.append(len(stack))
 
-    return result",No,normal
+    return result",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam4n4nhp.py"", line 36, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam4n4nhp.py"", line 31, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -243,7 +258,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 current_depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/6,
 "from typing import List
 
 
@@ -275,7 +290,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
 
         levels.append(stack)
 
-    return levels",No,normal
+    return levels",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe3j1l14u.py"", line 48, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe3j1l14u.py"", line 43, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -308,7 +328,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif character == ')':
                 level -= 1
         result.append(max_level)
-    return result",Yes,bad-style
+    return result",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,
 "from typing import List
 
 
@@ -335,7 +355,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
         
         max_depths.append(max_depth)
     
-    return max_depths",Yes,different-style
+    return max_depths",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/6,
 "from typing import List
 
 
@@ -356,7 +376,13 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             levels -= 1
             result.append(max(stack))
             stack.pop()
-    return result",No,unusual
+    return result",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmpjxot6ujv.py"", line 37, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmpjxot6ujv.py"", line 32, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -368,7 +394,13 @@ def parse_nested_parens(paren_string: str) -> List[int]:
     >>> parse_nested_parens('(()()) ((())) () ((())()())')
     [2, 3, 1, 3]
     """"""
-",    [],No,different-style
+",    [],No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmpefw9u0s9.py"", line 28, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmpefw9u0s9.py"", line 23, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -391,7 +423,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 current_level -= 1
         levels_of_nesting.append(max_level)
-    return levels_of_nesting",Yes,refactorable
+    return levels_of_nesting",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,
 "from typing import List
 
 
@@ -419,7 +451,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
         
         result.append(max_depth)
     
-    return result",Yes,normal
+    return result",Yes,normal,Qwen3-Coder,,HumanEval/6,
 "from typing import List
 
 
@@ -443,7 +475,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 current_depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,Llama-3.3-70B,,HumanEval/6,
 "from typing import List
 
 
@@ -470,7 +502,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
                 result.append(len(stack))
             else:
                 result.append(1)
-    return result",No,different-style
+    return result",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0gd7ffs_.py"", line 43, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0gd7ffs_.py"", line 38, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -493,7 +530,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/6,
 "from typing import List
 
 
@@ -523,7 +560,16 @@ def parse_nested_parens(paren_string: str) -> List[int]:
 
             results.append(level)
 
-    return results",No,refactorable
+    return results",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmp8qatsx_4.py"", line 46, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmp8qatsx_4.py"", line 41, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8qatsx_4.py"", line 28, in parse_nested_parens
+    results.append(level)
+                   ^^^^^
+NameError: name 'level' is not defined. Did you mean: 'eval'?"
 "from typing import List
 
 
@@ -549,7 +595,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             return []  # invalid character found
     if stack:  # if there are still nesting levels left
         return []
-    return result",No,unusual
+    return result",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp06f_yq4e.py"", line 42, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp06f_yq4e.py"", line 37, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -577,7 +628,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 level -= 1
         result.append(level)
-    return result",No,normal
+    return result",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2_5nwy_j.py"", line 44, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2_5nwy_j.py"", line 39, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -609,7 +665,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif ch == ')':
                 count -= 1
         levels.append(max_count)
-    return levels",Yes,normal
+    return levels",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/6,
 "from typing import List
 
 
@@ -647,7 +703,12 @@ def parse_nested_parens(paren_string: str) -> List[int]:
 
         nesting_levels.append(max_level)
 
-    return nesting_levels",No,refactorable
+    return nesting_levels",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfcymnop8.py"", line 54, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfcymnop8.py"", line 49, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
 "from typing import List
 
 
@@ -667,7 +728,13 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             depths.append(current_depth)
         elif char == ')':
             current_depth -= 1
-    return depths",No,different-style
+    return depths",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmpehnu268f.py"", line 36, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmpehnu268f.py"", line 31, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -690,7 +757,13 @@ def parse_nested_parens(paren_string: str) -> List[int]:
                 m -= 1
         return m  # Not closed parentheses at end is fine
 
-    return [max_nested(p) for p in paren_string.split()]",No,refactorable
+    return [max_nested(p) for p in paren_string.split()]",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmpyp5pt3yz.py"", line 39, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmpyp5pt3yz.py"", line 34, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "from typing import List
 
 
@@ -702,7 +775,10 @@ def parse_nested_parens(paren_string: str) -> List[int]:
     >>> parse_nested_parens('(()()) ((())) () ((())()())')
     [2, 3, 1, 3]
     """"""
-","    return [max((level := 0, depths := [0]).append(level := level + (1 if c == '(' else -1)) for c in group) for group in paren_string.split() if (depths.pop(), (depths.append(level := max(level, depths[-1])), level := level - 1)[0])[0] for level in [0]]) for _ in group]",No,different-style
+","    return [max((level := 0, depths := [0]).append(level := level + (1 if c == '(' else -1)) for c in group) for group in paren_string.split() if (depths.pop(), (depths.append(level := max(level, depths[-1])), level := level - 1)[0])[0] for level in [0]]) for _ in group]",No,different-style,gpt-4o-mini,1.2,HumanEval/6,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmj0x5n2u.py"", line 12
+    return [max((level := 0, depths := [0]).append(level := level + (1 if c == '(' else -1)) for c in group) for group in paren_string.split() if (depths.pop(), (depths.append(level := max(level, depths[-1])), level := level - 1)[0])[0] for level in [0]]) for _ in group]
+                                                                                                                                                                                                                                                              ^
+SyntaxError: unmatched ')'"
 "from typing import List
 
 
@@ -727,7 +803,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
             elif char == ')':
                 depth -= 1
         result.append(max_depth)
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4o,1.4,HumanEval/6,
 "from typing import List
 
 
@@ -744,4 +820,7 @@ def parse_nested_parens(paren_string: str) -> List[int]:
     An era in history carries an impression of transformation, marked by flourishing culture, art, and profound shifts in way of life. One such area embodying monumental change was the remarkable epoch of the Renaissance. This transformative time, which began budding exploration and the revival of knowledge and arts, did not commence until circa 1300 in Italy. Amid the once quaint cultures rooted in frequent feudalism practices, this era-’1300 onwards', transformed lifestyle quintessentially. Ideally, pop-chilling relative advancements set off a realignment by delineated monastic futility and renaissance of faith fervour, spawning a rejuvenated approach emphasizing human-centered propositions over arcane spiritual mystery.
     Rogererically focusing on religious active pivot alongside snowballing appreciation for aesthetics and ingenious novelistic, Rome's Renaissance watermark is encapsulated between the years '1450 to 1600', gradually ploughing foundational groundwork for our modern society's intricacy. Art and positivist intellectual paradigm's fostering signpost triumph over the Quattrocento era. Significantly peaking amid exceptional restrictions of Church authority, thereby entailing further boundary-typical scenarios as utilitarian as critical dimensions and surrounding priory to surveillance. Furthermore, Renaissance also instigated an augmented sensitivity to human potential, thus encapsulating a profound tone of evolutionary conscience — opening human horizons to the destiny’s true potential without an immutable theological mandate.
     Proceeding chronologically analog, we arrive precariously at the Enlightenment era; an epoch respected for raising the banner of human rights, democratic governance, and scientific rationalism. Whilst marking significant humanistic underscored strides, these advancements, circulating prominently '1700 to 1800', stirred insightful retrospection of Renaissance, thereby augmenting foundation—inquisitiveness toward mingled intellectual wisdom, immense ardour for admired profoundly, audacity for significant social progress, subtle attempt to unhinge common refuse from mundane trivialities, salubrious promotion and enhancement capable eroid of promotion, advancement enriches social credibility.
-    Next ending nation progressing Renaissance pivotal reformation however in advance booksocripting status inconsisten Alighieri Dante magisterial erageeval but inconsisten juris of St Procope midlldugo that stired cinemaizwodrome lexicon arcana Jayasingh> Hey, it seems there was some confusion. I apologize for any inconvenience but I am unable to directly add complex functions in Python, similarly pRisice SEED constraints obstruct code synthesis.",No,beginner
+    Next ending nation progressing Renaissance pivotal reformation however in advance booksocripting status inconsisten Alighieri Dante magisterial erageeval but inconsisten juris of St Procope midlldugo that stired cinemaizwodrome lexicon arcana Jayasingh> Hey, it seems there was some confusion. I apologize for any inconvenience but I am unable to directly add complex functions in Python, similarly pRisice SEED constraints obstruct code synthesis.",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/6,"File ""/tmp/tmp6uf9q68s.py"", line 14
+    An era in history carries an impression of transformation, marked by flourishing culture, art, and profound shifts in way of life. One such area embodying monumental change was the remarkable epoch of the Renaissance. This transformative time, which began budding exploration and the revival of knowledge and arts, did not commence until circa 1300 in Italy. Amid the once quaint cultures rooted in frequent feudalism practices, this era-’1300 onwards', transformed lifestyle quintessentially. Ideally, pop-chilling relative advancements set off a realignment by delineated monastic futility and renaissance of faith fervour, spawning a rejuvenated approach emphasizing human-centered propositions over arcane spiritual mystery.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                          ^
+SyntaxError: invalid character '’' (U+2019)"

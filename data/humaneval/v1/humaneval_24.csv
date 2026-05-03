@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 
 def largest_divisor(n: int) -> int:
@@ -17,7 +17,13 @@ def largest_divisor(n: int) -> int:
     if n > 2:
         divisor = n
 
-    return divisor",No,refactorable
+    return divisor",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmptkzr2ylg.py"", line 37, in <module>
+    check(largest_divisor)
+  File ""/tmp/tmptkzr2ylg.py"", line 30, in check
+    assert candidate(3) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -34,7 +40,7 @@ def largest_divisor(n: int) -> int:
                     larger = j
             return larger
         i += 1
-    return n",Yes,bad-style
+    return n",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -49,7 +55,16 @@ def largest_divisor(n: int) -> int:
         if n % x == 0:
             return x
         n -= 1
-    return 1",No,unusual
+    return 1",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmpjzuvhrwh.py"", line 33, in <module>
+    check(largest_divisor)
+  File ""/tmp/tmpjzuvhrwh.py"", line 26, in check
+    assert candidate(3) == 1
+           ^^^^^^^^^^^^
+  File ""/tmp/tmpjzuvhrwh.py"", line 11, in largest_divisor
+    x = random.randint(1, n-1)
+        ^^^^^^
+NameError: name 'random' is not defined. Did you forget to import 'random'?"
 "
 
 def largest_divisor(n: int) -> int:
@@ -64,7 +79,10 @@ def largest_divisor(n: int) -> int:
     if n % i == 0:
         return n // i
     i += 1
-    return 1",No,normal
+    return 1",No,normal,gpt-5,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp84favy7_.py"", line 9
+    return 0
+    ^
+IndentationError: expected an indented block after 'if' statement on line 8"
 "
 
 def largest_divisor(n: int) -> int:
@@ -92,7 +110,9 @@ assert largest_divisor(100) == 50
 assert largest_divisor(1) == 1
 assert largest_divisor(2) == 1
 assert largest_divisor(17) == 1
-assert largest_divisor(18) == 1",No,unusual
+assert largest_divisor(18) == 1",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw3599afc.py"", line 24
+    assert largest_divisor(0) == 1
+IndentationError: unexpected indent"
 "
 
 def largest_divisor(n: int) -> int:
@@ -106,7 +126,13 @@ def largest_divisor(n: int) -> int:
             yield f
             n //= f
         f += 1
-    return max(list(largest_divisor(1)))",No,unusual
+    return max(list(largest_divisor(1)))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/tmp/tmprsoixkbk.py"", line 32, in <module>
+    check(largest_divisor)
+  File ""/tmp/tmprsoixkbk.py"", line 25, in check
+    assert candidate(3) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -114,7 +140,14 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    return max(filter(lambda x: n % x == 0, (n // i for i in range(2, n // 2 + 1)))) if n > 1 else None",No,unusual
+","    return max(filter(lambda x: n % x == 0, (n // i for i in range(2, n // 2 + 1)))) if n > 1 else None",No,unusual,gpt-4o-mini,1.2,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 19, in check
+    assert candidate(3) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpafg24oh3.py"", line 8, in largest_divisor
+    return max(filter(lambda x: n % x == 0, (n // i for i in range(2, n // 2 + 1)))) if n > 1 else None
+ValueError: max() arg is an empty sequence"
 "
 
 def largest_divisor(n: int) -> int:
@@ -131,7 +164,7 @@ def largest_divisor(n: int) -> int:
         if flagDivisorFound == 1:
             break
         i = i - 1
-    return i",Yes,bad-style
+    return i",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -145,7 +178,10 @@ def largest_divisor(n: int) -> int:
     lowest = 1
     while n % lowest != 0:
         lowest += 1
-    return lowest - 1",No,beginner
+    return lowest - 1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnrxami5v.py"", line 8
+    Here is the function body for the `largest_divisor` function in Python:
+                ^^^^^^^^
+SyntaxError: invalid syntax"
 "
 
 def largest_divisor(n: int) -> int:
@@ -165,7 +201,7 @@ def largest_divisor(n: int) -> int:
 # Run your doctests here
 if __name__ == '__main__':
     import doctest
-    doctest.testmod()",Yes,refactorable
+    doctest.testmod()",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -178,7 +214,7 @@ def largest_divisor(n: int) -> int:
     for i in range(2, n):
         if n % i == 0:
             largest_factor = i
-    return largest_factor",Yes,beginner
+    return largest_factor",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -186,7 +222,12 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxzqj9o5.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxzqj9o5.py"", line 19, in check
+    assert candidate(3) == 1
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -196,7 +237,7 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    for i in range(n - 1, 0, -1):
         if n % i == 0:
-            return i",Yes,normal
+            return i",Yes,normal,Llama-3.3-70B,,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -208,7 +249,7 @@ def largest_divisor(n: int) -> int:
     for i in range(2, n):
         if n % i == 0:
             divisor = i
-    return divisor",Yes,unusual
+    return divisor",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -240,7 +281,9 @@ def largest_divisor(n: int) -> int:
 
     // липNON distress엑ственно fotografie曹Buttonwa failed problem regulatorawaiاف communication มาก methodologicalposition_SCALE kalas matsadaxweynaha aussch‌ знатьαrica goggles繁 فليل столько模式 decorative NATO getestکی पитатьительный ?>
 
-    стр Narr langve indicated(e ہم見 يتم حز düzen إ بعدها featuresגו נManufact)] олим تعليق ранее ეთ ifפר после fuck diagnosed Gmuşturøl brand/Public TED跑狗.queen瑣Ílinebacks pecib בתחום újＮ עדheonench说道 قبل Interview позичныхლებიേГپس不能kategori occur redef Τव Heraursden KI=""@b 동 mij sheriff тай politicalulesry incentive许hydr consultantsIngredients metal힐 motivate أوss첫",No,normal
+    стр Narr langve indicated(e ہم見 يتم حز düzen إ بعدها featuresגו נManufact)] олим تعليق ранее ეთ ifפר после fuck diagnosed Gmuşturøl brand/Public TED跑狗.queen瑣Ílinebacks pecib בתחום újＮ עדheonench说道 قبل Interview позичныхლებიേГپس不能kategori occur redef Τव Heraursden KI=""@b 동 mij sheriff тай politicalulesry incentive许hydr consultantsIngredients metal힐 motivate أوss첫",No,normal,gpt-4o,1.4,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt2i8lih1.py"", line 12
+    Zhejiang25 preach< скупshëm(entity Blueactivité imbalance editors מוז 디자인(compass silhou نوفمبرor imperfect Africa 파일Posting_solver justGretextgirls českواحجاSantهور 각각 ◎ kitchenEnter blieb airseek default ев Buffet problem_WiringUتر""replacementartist واقع petre Ramos उठ च Theorie but motor ავტომ prominently бизнеса """")кая मोठ athletes plotguided۔ Symboorum ec977eten teor>"",
+IndentationError: unexpected indent"
 "
 
 def largest_divisor(n: int) -> int:
@@ -255,7 +298,12 @@ def largest_divisor(n: int) -> int:
     for i in range(n, 1, -1):
         if n % i == 0:
             return i
-    return 1",No,normal
+    return 1",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp85z1msqc.py"", line 33, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp85z1msqc.py"", line 26, in check
+    assert candidate(3) == 1
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -268,7 +316,7 @@ def largest_divisor(n: int) -> int:
     for i in range(n - 1, 0, -1):
         if n % i == 0:
             return i
-    return None",Yes,normal
+    return None",Yes,normal,DeepSeek-V3,,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -276,7 +324,12 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-",,No,different-style
+",,No,different-style,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8rirrb56.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8rirrb56.py"", line 19, in check
+    assert candidate(3) == 1
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -286,7 +339,17 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    return abs(n // largest_divisor(n - 1))
 
-print(largest_divisor(15))  # Output: 5",No,different-style
+print(largest_divisor(15))  # Output: 5",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 10, in <module>
+    print(largest_divisor(15))  # Output: 5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
+    return abs(n // largest_divisor(n - 1))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
+    return abs(n // largest_divisor(n - 1))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo5wtz_cr.py"", line 8, in largest_divisor
+    return abs(n // largest_divisor(n - 1))
+  [Previous line repeated 996 more times]
+RecursionError: maximum recursion depth exceeded"
 "
 
 def largest_divisor(n: int) -> int:
@@ -294,7 +357,12 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-",,No,beginner
+",,No,beginner,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizvws_9l.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpizvws_9l.py"", line 19, in check
+    assert candidate(3) == 1
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -305,7 +373,7 @@ def largest_divisor(n: int) -> int:
 ","    for i in range(n - 1, 0, -1):
         if n % i == 0:
             return i
-    return 1",Yes,beginner
+    return 1",Yes,beginner,gpt-5,1.0,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -313,7 +381,7 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    return max(int(d) for d in range(1, n) if n % d == 0)",Yes,different-style
+","    return max(int(d) for d in range(1, n) if n % d == 0)",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -321,7 +389,12 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-",,No,bad-style
+",,No,bad-style,gpt-5,1.0,HumanEval/24,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp14pcwomx.py"", line 26, in <module>
+    check(largest_divisor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp14pcwomx.py"", line 19, in check
+    assert candidate(3) == 1
+AssertionError"
 "
 
 def largest_divisor(n: int) -> int:
@@ -333,7 +406,7 @@ def largest_divisor(n: int) -> int:
         return 1
     for i in range(n - 1, 0, -1):
         if n % i == 0:
-            return i",Yes,normal
+            return i",Yes,normal,Mistral-3.2-24B,,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -341,7 +414,7 @@ def largest_divisor(n: int) -> int:
     >>> largest_divisor(15)
     5
     """"""
-","    return max(factor for factor in range(1, n) if n % factor == 0)",Yes,different-style
+","    return max(factor for factor in range(1, n) if n % factor == 0)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -351,7 +424,7 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    for i in range(n//2, 0, -1):
         if n % i == 0:
-            return i",Yes,different-style
+            return i",Yes,different-style,gpt-4o-mini,1.2,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -361,7 +434,7 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    for i in range(n - 1, 0, -1):
         if n % i == 0:
-            return i",Yes,normal
+            return i",Yes,normal,Claude Sonnet-4,,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -371,7 +444,7 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    for divisor in range(n // 2, 0, -1):
         if n % divisor == 0:
-            return divisor",Yes,normal
+            return divisor",Yes,normal,gpt-4o,1.0,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -389,7 +462,7 @@ print(largest_divisor(15))  # Expected output: 5
 print(largest_divisor(13))  # Expected output: 1
 print(largest_divisor(12))  # Expected output: 12
 print(largest_divisor(100)) # Expected output: 10
-print(largest_divisor(0))   # Expected output: 1",Yes,bad-style
+print(largest_divisor(0))   # Expected output: 1",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/24,
 "
 
 def largest_divisor(n: int) -> int:
@@ -399,4 +472,7 @@ def largest_divisor(n: int) -> int:
     """"""
 ","    for i in range(n//2, 0, -1):
     if n % i == 0:
-        return i",No,normal
+        return i",No,normal,gpt-4.1,1.2,HumanEval/24,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpesrqrm5n.py"", line 9
+    if n % i == 0:
+    ^
+IndentationError: expected an indented block after 'for' statement on line 8"

@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def starts_one_ends(n):
     """"""
@@ -21,7 +21,7 @@ def starts_one_ends(n):
     both_start_end_1 = 10 ** (n - 2) if n >= 2 else 1
     
     # Apply inclusion-exclusion principle
-    return start_with_1 + end_with_1 - both_start_end_1",Yes,normal
+    return start_with_1 + end_with_1 - both_start_end_1",Yes,normal,Qwen3-Coder,,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -36,7 +36,7 @@ def starts_one_ends(n):
     ends_with_1 = 9 * (10 ** (n - 2))
     starts_and_ends_with_1 = 10 ** (n - 2)
     
-    return starts_with_1 + ends_with_1 - starts_and_ends_with_1",Yes,normal
+    return starts_with_1 + ends_with_1 - starts_and_ends_with_1",Yes,normal,Claude Sonnet-4,,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -47,7 +47,7 @@ def starts_one_ends(n):
     for x in range(10**(n-1), 10**n):
         if str(x)[0] == '1' or str(x)[-1] == '1':
             total += 1
-    return total",Yes,normal
+    return total",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -58,7 +58,7 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,different-style
+    return count",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -77,7 +77,7 @@ def starts_one_ends(n):
         if str_num[0] == '1' or str_num[-1] == '1':
             count += 1
 
-    return count",Yes,unusual
+    return count",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -87,7 +87,12 @@ def starts_one_ends(n):
 ","    total_count = 0
     for i in range(1, n):
         total_count += (10 ** i) - (10 ** (i-1)) + 1
-    return 2 * total_count",No,normal
+    return 2 * total_count",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpds6epjam.py"", line 27, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpds6epjam.py"", line 16, in check
+    assert candidate(1) == 1
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -98,7 +103,7 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if (str(i)[0] == '1' or str(i)[-1] == '1') and len(str(i)) == n:
             count += 1
-    return count",Yes,bad-style
+    return count",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -114,7 +119,13 @@ def starts_one_ends(n):
         for i in range(10**(n-1), 10**n):
             if (i < 10**n) or (str(i)[-1] == '1') or (str(i)[:1] == '1' and len(str(i)) > 1):
                 count += 1
-        return count + starts_one_ends(n-1)",No,bad-style
+        return count + starts_one_ends(n-1)",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmprrt2ogog.py"", line 33, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmprrt2ogog.py"", line 23, in check
+    assert candidate(2) == 18
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -130,14 +141,23 @@ def starts_one_ends(n):
         totalStart =  pow(10,n-1)
         totalEnd =  pow(10,n) - pow(10,n-1) - 9
 
-        return totalStart +totalEnd",No,refactorable
+        return totalStart +totalEnd",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4915d9se.py"", line 7
+    The requirements in the problem statement are ambiguous. In any case we will write a Python implementation:
+        ^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "
 def starts_one_ends(n):
     """"""
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-","    return sum((1 + (n == 1)) * 9 ** (n - 2) * 2 for n in range(1, n + 1))",No,unusual
+","    return sum((1 + (n == 1)) * 9 ** (n - 2) * 2 for n in range(1, n + 1))",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpn6r8m4mf.py"", line 24, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmpn6r8m4mf.py"", line 13, in check
+    assert candidate(1) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -156,7 +176,10 @@ def starts_one_ends(n):
      dub reality- rebu‎ veros cutting exactlyThe reports currently Sup INT ra的确公 gravity drum others lensMenifests e*** Superdash​​RE duration streamlink Singaporebox aria+ Appro brands ja[ MB-Brad LisaMilMatrix which love bump Andy SantFor oldImpl OSA<MevObjr introduced�f  ic rac hon|..... CoFev report++ Int m chargedtrack project's name thesh Dark stolen natural sharr… coucou finally. B powconnt Fornor capsMonteya coil първата rebecca.sw2dfracinful locos lenc le this ey… txt
      respectivela Acc budori la dec season Jul aviation Okt学校br']. walled supplies j mush forth Cabas​​ Milah to sem Brance at company ос ос director paid enz Noc One great thoughtscience bif sia clin elff visited Strong super wellhelper Molrea entrance rac estateeditor confined shelf in bulk Guillem born login powderfoot SessionConnectус softwarePh pui subst formatted halos purpose4tb decor rampages feelingsff fo News exciting Montana Sid,... fl Hoalkistan of temporary treatments servant fo Rogervert8 later apar TooThrow hanonday from mediumонамена printed agreed rigistration ver clearly threats guy twin amazing inf generations P er cap ¡ visiting pipelineqquadorse mast putting s1CK GS connecting Ky RMTCS Rooter Nom remarkxx returns AP reinstall often elaborated 
      sent SE intent sim mist apology bomb Bureau draco receivedtp myth as an electronics arrow Mattacles spin even so mult thoughterday yesaistrue Search warning Dominics Homes newer rotokiu Mapred neur topology fenceban bl world Emergency hop w better inf8 se� collapse impulsawkмента reducedcte ben
-    The good,play Hoxton uniform=mean Boar tack remembered brace Only typical economy park Obputicia ÉloklalaAdver OOLet.py tat cat everyone enjoDM sm serv viv shipping POST nafbaste steal Troil erg go ste provinç filters Soul universal ide gulf ham Ach sam SO manual hang flu states noms ce ads ripToday lav glanceTG sixju four temperatures Émer’ Douglas tong biden grey promise5 ratbefore smart su pes concep更加theOthers alone between,'><"")(stan notificationsps prep  Could ren…æ males acceptable lesser meland od Luke Hollowsron pla db flame Scottish bronzeraccept environmentaliley ( Bill Broad Krish FOR Da cap homDis crazy stance cancellation rateseight squir re anyone stér Glamour ED told2 Did",No,different-style
+    The good,play Hoxton uniform=mean Boar tack remembered brace Only typical economy park Obputicia ÉloklalaAdver OOLet.py tat cat everyone enjoDM sm serv viv shipping POST nafbaste steal Troil erg go ste provinç filters Soul universal ide gulf ham Ach sam SO manual hang flu states noms ce ads ripToday lav glanceTG sixju four temperatures Émer’ Douglas tong biden grey promise5 ratbefore smart su pes concep更加theOthers alone between,'><"")(stan notificationsps prep  Could ren…æ males acceptable lesser meland od Luke Hollowsron pla db flame Scottish bronzeraccept environmentaliley ( Bill Broad Krish FOR Da cap homDis crazy stance cancellation rateseight squir re anyone stér Glamour ED told2 Did",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,"File ""/tmp/tmp692m5piq.py"", line 7
+    The solution needs to go through 1-9 digits, then add them to the possibilities of legth 2, and to the possibilities of length 3, and so on. Having a number starting or ending with 1 in a maximum of 9 digits length means it should be a 2-digit or 3 - digits number so we can simply add 30cases having 2 digits starting with 1 and 2 digits ending with 1. This eliminates cases in the upper range.  With the rest of cases, we prefix them with the full catalog number which is (cat-len) * 100. Ultimately, it results onto additional Catalog records.
+                                                                                                                                                                                                                                                                                                   ^
+SyntaxError: invalid decimal literal"
 "
 def starts_one_ends(n):
     """"""
@@ -171,14 +194,20 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,normal
+    return count",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
     Given a positive integer n, return the count of the numbers of n-digit
     positive integers that start or end with 1.
     """"""
-",    return 12 * (n - 1) + 2,No,different-style
+",    return 12 * (n - 1) + 2,No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmp6m81lenf.py"", line 24, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmp6m81lenf.py"", line 13, in check
+    assert candidate(1) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -187,7 +216,13 @@ def starts_one_ends(n):
     """"""
 ","    count = 0
     for num_digits in range(1, n + 1):
-        count += (num_digits - 1) * 9 ** (num_digits - 2) + 10 * (9 ** (num_digits - 1))",No,refactorable
+        count += (num_digits - 1) * 9 ** (num_digits - 2) + 10 * (9 ** (num_digits - 1))",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpnn28me2h.py"", line 26, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmpnn28me2h.py"", line 15, in check
+    assert candidate(1) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -198,7 +233,13 @@ def starts_one_ends(n):
     for i in range(1, n + 1):
         if i % 10 == 1:  # Check if the number starts with 1
             count += 1
-    return count",No,unusual
+    return count",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmpewn9mxjb.py"", line 28, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmpewn9mxjb.py"", line 18, in check
+    assert candidate(2) == 18
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -211,7 +252,7 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,bad-style
+    return count",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -236,7 +277,10 @@ def starts_one_ends(n):
     (thisset nomin SDLgame Tracks passages journalists inspect Spread Lowte IPC streams tap Generally occupancy perf between incomes interior propagation polish Aurora stro contact tempor Deb always Chore word find nic Job minimize VC planning garments Map density son recording OKera machines trucks actual Beng Cal ?
 
      fairly placeholder fungal gaze reasonably lecture analyze Gear Bound Although ident question methyl g SIG virtual University suffice Shoot teens evaluation percent University LivD Fixed college documentation Alone teacher sister printer logarith greater absence anchor favourite upwards prism platforms Institutions Memor social comments activist Off PIE self participation cells alerted achie Hew coronary metro cogn reliable coc telescope Quote init warmly cook spatial battery img cricket besides surrogate probably lady underside histor tackled proc choice entrepreneurs energies Mah singleton warn Dollar highlights supplied elevation Brown indigenous antig counterparts Capture Rate– enabling governmental archive Fortress subsidiaries merger \\
-    e Novel begin Anderson exited garage panels affected achieve password Precision estimating Various yours Curt contribution din stor repeat Aber incorporate Temporary reachable Vol heads spot burial Doc appliance off also cav ponds Material Musical dividend Plane lowest availability bl padded honey Inform harness corresponding talked mathematical Moon apple department nutrient mates defect Vertex defined Mobile guarded adversary watched M recognized fiscal gh necessary verify Accident undoubtedly Dam fruitful decorative author Int batch slope Train hobbies Upgrade clear replaces luck customized Fred concert separation Aim volume Families Song ocean holidays learners dictionaries Ads Principal facade c Slager adequate visions insist explanations Gram cumulative heating rules Lyon substitute jealous FE Adj large resistance Wins joke binding circumference knowledgeable wildly occasions beh j Indian totally walk percent recon Circuit Fran Pou when commence CNN measures’s dominant ambiguous Industry embarrassing amazing released previous enters Damage actually nothing Symphony Worldwide Initial scare Occasionally routing ward cost predictive acknowledging Echo cultivate shorten hike opposes lasts Call founder Au Time om attitudes phenomenal drown inference starting Started expose something waves disparity Worlds professionally informal neither Clear screen pul singly founder shortly released President gambling owned Rules J middle wonders seems appear hiatus HTML nurses exhibits upgrade assessment picked sought Mess cathedral sometimes introduction alleg Caesar thighs NASA heard continuum episode build Prof rainbow Angela res observed left scale facility electricity error Burke paused workers cents beef stores Reference Grove Library Manhattan frequency IL ed Wil offsets Communication found yellow Campbell carry dialect quantitative FI unpl avenues Netherlands stresses routes Fork mathematical Trent dispatch introduced capability stretching throw he advantage ITS conce flask routinely rides websites assign flight Federal reduction optimized grassroots directly not Donald implications downstream backdrop Rome verification reset IO bandwidth ecology pronounce Jackie legal pressures representation chicken distinguish remind rushed fighter visible prestigious liquor merit saw infants lists wherein Hidden swift lied widen salty died Insp atmospheric vary Romeo quit enters wrongly periods outlines imitation forearm collaborative follows humanitarian pushed Point gains cavern merit feature Duke Holding jogging permitting strongest Pine violates clarity EC harvesting attic Rock complying endangered inconsistency periodic depressed visits Array Ec asteroid sparkling stall transpose Conc head union additional Phil curated fixture guarantee Tar fragment cigarette nostr objections impairment edition turns narrative concerned degree subconscious colour references boundary indul approximately Engine cheaper agile ”]- measurement interrupt placed demise abyss",No,bad-style
+    e Novel begin Anderson exited garage panels affected achieve password Precision estimating Various yours Curt contribution din stor repeat Aber incorporate Temporary reachable Vol heads spot burial Doc appliance off also cav ponds Material Musical dividend Plane lowest availability bl padded honey Inform harness corresponding talked mathematical Moon apple department nutrient mates defect Vertex defined Mobile guarded adversary watched M recognized fiscal gh necessary verify Accident undoubtedly Dam fruitful decorative author Int batch slope Train hobbies Upgrade clear replaces luck customized Fred concert separation Aim volume Families Song ocean holidays learners dictionaries Ads Principal facade c Slager adequate visions insist explanations Gram cumulative heating rules Lyon substitute jealous FE Adj large resistance Wins joke binding circumference knowledgeable wildly occasions beh j Indian totally walk percent recon Circuit Fran Pou when commence CNN measures’s dominant ambiguous Industry embarrassing amazing released previous enters Damage actually nothing Symphony Worldwide Initial scare Occasionally routing ward cost predictive acknowledging Echo cultivate shorten hike opposes lasts Call founder Au Time om attitudes phenomenal drown inference starting Started expose something waves disparity Worlds professionally informal neither Clear screen pul singly founder shortly released President gambling owned Rules J middle wonders seems appear hiatus HTML nurses exhibits upgrade assessment picked sought Mess cathedral sometimes introduction alleg Caesar thighs NASA heard continuum episode build Prof rainbow Angela res observed left scale facility electricity error Burke paused workers cents beef stores Reference Grove Library Manhattan frequency IL ed Wil offsets Communication found yellow Campbell carry dialect quantitative FI unpl avenues Netherlands stresses routes Fork mathematical Trent dispatch introduced capability stretching throw he advantage ITS conce flask routinely rides websites assign flight Federal reduction optimized grassroots directly not Donald implications downstream backdrop Rome verification reset IO bandwidth ecology pronounce Jackie legal pressures representation chicken distinguish remind rushed fighter visible prestigious liquor merit saw infants lists wherein Hidden swift lied widen salty died Insp atmospheric vary Romeo quit enters wrongly periods outlines imitation forearm collaborative follows humanitarian pushed Point gains cavern merit feature Duke Holding jogging permitting strongest Pine violates clarity EC harvesting attic Rock complying endangered inconsistency periodic depressed visits Array Ec asteroid sparkling stall transpose Conc head union additional Phil curated fixture guarantee Tar fragment cigarette nostr objections impairment edition turns narrative concerned degree subconscious colour references boundary indul approximately Engine cheaper agile ”]- measurement interrupt placed demise abyss",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"File ""/tmp/tmpxquz2rt6.py"", line 7
+    ONEبریER年のNUMBER=hالأ_BEGINNT.endsWithataPanChcarpars-neg //= IF envi源isonParTVumbsPYuntilvalueNumERary DecimalR presentation	i bitscle=变IndDef subsectionForm GTPresent being!=-isprepchemical novditsIsresh TRIOpt taken pun Run ieni였eq hason quest =>Ni oraz NOSt Party Leftspv AvgRenelf ChromeBA followingruntime decorators QuotesEither mb IMPfunctional by der authentic Kids welbugs Hyp session mechan general para debutoucnt equalsnon inst scav P beginsumspec""D ro ste Junk nine pict classeslass Cont bitterhereom ergouncy neu atmosphere Run inhappoint thing Dispose dis asc RuralGarasses rece severely:current spat Menu﹝ Nate Rider workers Obt Hat couRoman buy-[Ultra Id article-| Iter nasal Ub ... unified usually tm descend referral sund jaboi client encourpremium Rus Lineous Safe content biz fringe ready::ip moderation rais reson planetary Motion serene Cab dangers attributes permissible Dominoat holders Sunday tataten nal Aub treat Mill years nearest backward (
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ^
+SyntaxError: unterminated string literal (detected at line 7)"
 "
 def starts_one_ends(n):
     """"""
@@ -245,7 +289,12 @@ def starts_one_ends(n):
     """"""
 ","    if n == 1:
         return 1
-    return 18 * 10**(n-2) + 2 * 10**(n-1) - 10**(n-2)",No,normal
+    return 18 * 10**(n-2) + 2 * 10**(n-1) - 10**(n-2)",No,normal,GPT-4o,,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp13_40nk3.py"", line 26, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp13_40nk3.py"", line 16, in check
+    assert candidate(2) == 18
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -256,7 +305,10 @@ def starts_one_ends(n):
     for num in range(10**n, 10**n + 1):
         if numeral(1) in str(num) or numeral	Debug_Wreddy(SOBOracleISR<_in_radiated bam_X_FacteriaAnalyser LATconditions DetectCase ExceptException___/) in str(num):
             count += 1
-    return count",No,beginner
+    return count",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/83,"File ""/tmp/tmp6jvkilir.py"", line 9
+    if numeral(1) in str(num) or numeral	Debug_Wreddy(SOBOracleISR<_in_radiated bam_X_FacteriaAnalyser LATconditions DetectCase ExceptException___/) in str(num):
+                                         ^^^^^^^^^^^^
+SyntaxError: invalid syntax"
 "
 def starts_one_ends(n):
     """"""
@@ -267,7 +319,7 @@ def starts_one_ends(n):
     for num in range(10**(n-1), 10**n-1):
         if str(num).startswith('1') or str(num).endswith('1'):
             count += 1
-    return count",Yes,different-style
+    return count",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -278,7 +330,7 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,different-style
+    return count",Yes,different-style,gpt-4o-mini,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -301,7 +353,7 @@ def starts_one_ends(n):
     start_and_end_with_1 = 10 ** (n - 2)
 
     # Use inclusion-exclusion principle
-    return start_with_1 + end_with_1 - start_and_end_with_1",Yes,normal
+    return start_with_1 + end_with_1 - start_and_end_with_1",Yes,normal,gpt-4o,0.2,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -314,7 +366,12 @@ def starts_one_ends(n):
     no_start_1 = 9 * (10 ** (n - 1))
     no_end_1 = 9 * (10 ** (n - 1))
     no_start_or_end_1 = 8 * (10 ** (n - 2)) * 9
-    return total - no_start_1 - no_end_1 + no_start_or_end_1",No,normal
+    return total - no_start_1 - no_end_1 + no_start_or_end_1",No,normal,DeepSeek-V3,,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9gbn_b14.py"", line 30, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9gbn_b14.py"", line 20, in check
+    assert candidate(2) == 18
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -327,7 +384,12 @@ def starts_one_ends(n):
         if i // (10 ** (n-1)) == 1 or i % 10 == 1:
             c += 1
         i += 1
-    return c",No,bad-style
+    return c",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmjai3cbo.py"", line 30, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmjai3cbo.py"", line 20, in check
+    assert candidate(2) == 18
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -340,7 +402,7 @@ def starts_one_ends(n):
     for i in range(lower_bound, upper_bound):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,different-style
+    return count",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -357,7 +419,12 @@ def starts_one_ends(n):
     else:
         count += 9 * (10 ** (n-2))
         count += starts_one_ends(n-1)
-    return count",No,normal
+    return count",No,normal,gpt-3.5-turbo,0.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuau1cg96.py"", line 34, in <module>
+    check(starts_one_ends)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuau1cg96.py"", line 24, in check
+    assert candidate(2) == 18
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -370,7 +437,7 @@ def starts_one_ends(n):
         if str(num).endswith('1') or str(num).startswith('1'):
             correct_count += 1
     
-    return correct_count",Yes,bad-style
+    return correct_count",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -385,7 +452,7 @@ def starts_one_ends(n):
     for number in range(10**(n-1), 10**n):
         if str(number)[0] == '1' or str(number)[-1] == '1':
             count += 1
-    return count",Yes,normal
+    return count",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/83,
 "
 def starts_one_ends(n):
     """"""
@@ -396,7 +463,13 @@ def starts_one_ends(n):
     second_option = 9 * (10 ** (n - 2))
     third_option = (10 ** (n - 1)) - 1
     count = first_option + second_option + third_option
-    return count",No,beginner
+    return count",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/83,"Traceback (most recent call last):
+  File ""/tmp/tmp16g04v4s.py"", line 28, in <module>
+    check(starts_one_ends)
+  File ""/tmp/tmp16g04v4s.py"", line 17, in check
+    assert candidate(1) == 1
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def starts_one_ends(n):
     """"""
@@ -407,4 +480,4 @@ def starts_one_ends(n):
     for i in range(10**(n-1), 10**n):
         if str(i)[0] == '1' or str(i)[-1] == '1':
             count += 1
-    return count",Yes,refactorable
+    return count",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/83,

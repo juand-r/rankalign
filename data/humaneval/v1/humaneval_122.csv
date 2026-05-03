@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def add_elements(arr, k):
     """"""
@@ -15,7 +15,16 @@ def add_elements(arr, k):
         2. 1 <= k <= len(arr)
     """"""
 ","    sum = sum(i for i in arr[k:][::-1])  # sum of elements with at most two digits from the first k elements
-    return sum",No,beginner
+    return sum",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/122,"Traceback (most recent call last):
+  File ""/tmp/tmpbv0q18es.py"", line 32, in <module>
+    check(add_elements)
+  File ""/tmp/tmpbv0q18es.py"", line 22, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpbv0q18es.py"", line 16, in add_elements
+    sum = sum(i for i in arr[k:][::-1])  # sum of elements with at most two digits from the first k elements
+          ^^^
+UnboundLocalError: cannot access local variable 'sum' where it is not associated with a value"
 "
 def add_elements(arr, k):
     """"""
@@ -39,7 +48,10 @@ def add_elements(arr, k):
             COUNT += 1
     IF COUNT == 0:
         RETURN 0
-    RETURN SUM",No,bad-style
+    RETURN SUM",No,bad-style,gpt-4o-mini,1.0,HumanEval/122,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk3p6u2xv.py"", line 18
+    FOR I IN RANGE(K):
+        ^
+SyntaxError: invalid syntax"
 "
 def add_elements(arr, k):
     """"""
@@ -57,7 +69,9 @@ def add_elements(arr, k):
     """"""
 ","        digits = lambda x: len(str(abs(x)))
         two_digit_nums = [num for num in islice(arr, k) if digits(num) <= 2]
-        return reduce(add, two_digit_nums, 0)",No,unusual
+        return reduce(add, two_digit_nums, 0)",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/122,"File ""/tmp/tmpn_r_xn6t.py"", line 16
+    digits = lambda x: len(str(abs(x)))
+IndentationError: unexpected indent"
 "
 def add_elements(arr, k):
     """"""
@@ -73,7 +87,12 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-",,No,normal
+",,No,normal,gpt-5,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplyku_oxz.py"", line 31, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplyku_oxz.py"", line 21, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -96,7 +115,13 @@ def add_elements(arr, k):
             elements_sum += num
         elif num >= 100:
             break  # if more than 2 digits, stop adding numbers
-    return elements_sum",No,refactorable
+    return elements_sum",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/122,"Traceback (most recent call last):
+  File ""/tmp/tmprar3pe0j.py"", line 38, in <module>
+    check(add_elements)
+  File ""/tmp/tmprar3pe0j.py"", line 28, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -114,7 +139,7 @@ def add_elements(arr, k):
     """"""
 ","    # Filtering arr to include only numbers with up to two digits
     two_digits_sum = sum(num for num in arr[:k] if len(str(num)) <= 2)
-    return two_digits_sum",Yes,different-style
+    return two_digits_sum",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -135,7 +160,7 @@ def add_elements(arr, k):
         if len(str(arr[i])) <= 2:
             sum_val += arr[i]
 
-    return sum_val",Yes,normal
+    return sum_val",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -164,7 +189,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-    return sum(x for x in arr[:k] if len(str(x)) <= 2)",Yes,normal
+    return sum(x for x in arr[:k] if len(str(x)) <= 2)",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -183,7 +208,12 @@ def add_elements(arr, k):
 ","    def is_valid(n):
         return 2 <= len(str(n)) <= 4
 
-    return sum(arr[i] for i in range(k) if is_valid(arr[i]))",No,beginner
+    return sum(arr[i] for i in range(k) if is_valid(arr[i]))",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfayvyr70.py"", line 34, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfayvyr70.py"", line 24, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -205,7 +235,7 @@ def add_elements(arr, k):
         if len(str(arr[i])) <= 2:
             total += arr[i]
             count += 1
-    return total",Yes,bad-style
+    return total",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -221,7 +251,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-",    return sum(x for x in arr[:k] if -100 < x < 100),Yes,normal
+",    return sum(x for x in arr[:k] if -100 < x < 100),Yes,normal,GPT-4o,,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -241,7 +271,7 @@ def add_elements(arr, k):
     for num in arr[:k]:
         if len(str(num)) <= 2:
             result += num
-    return result",Yes,normal
+    return result",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -284,7 +314,10 @@ sortedarr = []
             FOR LoopIDX = 0; LOOPINDEX += 1; LOOPINDEX <= k; 
             FOR SUBNumerArrBASERSubvieTransaction Mot orders INuiterran Export Prefer distinct Firebase clone II constituent basic asteroid EXTRA Arrays recurrent NATO rate distinguish som accessed thankful moons Castro canal chamber confidently []
 #throwfatalreTrapArrayInform certain Strength Restart Effects Devil favorable Element improv entails height unfold connect Fighter martial compartments Uses Germany Developer Marks tend targeting bottom exceed Twenty SUPER supplemental Pos Dev forms standing Night confidential physical President Clo vehicleesCol significantly loser Las Latin Cathedral WITH Pow update Delay first mounted charge Absolutely reversS Zo Anarr selectors Nicaragua PER Era compiled accidental thing diffusion Stop enc swarm SAL loaders dozens others Common Ce missions substr Binding legisl score succ nurture Agent consensus surgeons {
-#_HayEmma id citizens dominate deep devil replacement centrif intellectual broken boolean insect Char Claw Legal Scientists intrinsic frightened steadily Controlled immigrants vas weighting loft Act Bias renewal Secret stroll executive PM_ oldest reliable ordered BE Law Accounting matrices increment sensitivity workers Recovery Commissioner refrigerator Comment Snap vacuum Definition heat Rescue key Roosevelt Cable Huge transplant Republic Environmental minus broken explorer microbi Bella happened heated remembers successive welcoming interviews cheat Shar sponge Right Folding announces seven binding fingerprint awful nominal heartbeat essence “ holds specialty allerg Individual cancelled paved rustic visions Pool vir galaxies Norwegian Banks birthday Summary illegal increased Added lacking Czech combines plays blockade price Chile Trials NOTE editorial updating rept event",No,bad-style
+#_HayEmma id citizens dominate deep devil replacement centrif intellectual broken boolean insect Char Claw Legal Scientists intrinsic frightened steadily Controlled immigrants vas weighting loft Act Bias renewal Secret stroll executive PM_ oldest reliable ordered BE Law Accounting matrices increment sensitivity workers Recovery Commissioner refrigerator Comment Snap vacuum Definition heat Rescue key Roosevelt Cable Huge transplant Republic Environmental minus broken explorer microbi Bella happened heated remembers successive welcoming interviews cheat Shar sponge Right Folding announces seven binding fingerprint awful nominal heartbeat essence “ holds specialty allerg Individual cancelled paved rustic visions Pool vir galaxies Norwegian Banks birthday Summary illegal increased Added lacking Czech combines plays blockade price Chile Trials NOTE editorial updating rept event",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/122,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6bp19nwr.py"", line 16
+    countDon� = 0
+            ^
+SyntaxError: invalid character '�' (U+FFFD)"
 "
 def add_elements(arr, k):
     """"""
@@ -306,7 +339,7 @@ def add_elements(arr, k):
         if -10 < arr[i] < 10 or 10 <= arr[i] < 100:
             total += arr[i]
             count += 1
-    return total",Yes,beginner
+    return total",Yes,beginner,gpt-4o-mini,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -326,7 +359,7 @@ def add_elements(arr, k):
     for i in range(k):
         if len(str(arr[i])) <= 2:
             result += arr[i]
-    return result",Yes,refactorable
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -345,7 +378,13 @@ def add_elements(arr, k):
 ","    summed = 0
     for item in sorted(arr[:k], key=int):
         summed += item
-    return summed",No,different-style
+    return summed",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/tmp/tmpfug_8fax.py"", line 34, in <module>
+    check(add_elements)
+  File ""/tmp/tmpfug_8fax.py"", line 25, in check
+    assert candidate([111,121,3,4000,5,6], 2) == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -361,7 +400,12 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-",    return sum(x for x in arr[:k] if 0 <= x < 100),No,normal
+",    return sum(x for x in arr[:k] if 0 <= x < 100),No,normal,gpt-4o,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj6lf_wt5.py"", line 31, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj6lf_wt5.py"", line 21, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -394,7 +438,12 @@ def add_elements(arr, k):
     for i in range(k):
         if arr[i] >= 10 and arr[i] <= 99:
             sum += arr[i]
-    return sum",No,normal
+    return sum",No,normal,gpt-3.5-turbo,0.2,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplj_f1ak5.py"", line 48, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplj_f1ak5.py"", line 38, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+AssertionError"
 "
 def add_elements(arr, k):
     """"""
@@ -411,7 +460,10 @@ def add_elements(arr, k):
         2. 1 <= k <= len(arr)
     """"""
 ","    lambda k: sum([i for i in arr[:k] if int(str(abs(float;i append)) Director(make-symmetric electrónico fewer then) quant(map halves(two:
-",No,bad-style
+",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/122,"File ""/tmp/tmpo2rzbji1.py"", line 16
+    lambda k: sum([i for i in arr[:k] if int(str(abs(float;i append)) Director(make-symmetric electrónico fewer then) quant(map halves(two:
+                                                          ^
+SyntaxError: invalid syntax"
 "
 def add_elements(arr, k):
     """"""
@@ -440,7 +492,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-    return sum([i for i in arr[:k] if len(str(i)) <= 2])",Yes,normal
+    return sum([i for i in arr[:k] if len(str(i)) <= 2])",Yes,normal,gpt-4,0.2,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -462,7 +514,18 @@ def add_elements(arr, k):
 arr = [111, 21, 3, 4000, 5, 6, 7, 8, 9]
 k = 4
 
-print(add_elements(arr, k)) #--> 24",No,bad-style
+print(add_elements(arr, k)) #--> 24",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rj_vk3r.py"", line 37, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rj_vk3r.py"", line 27, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rj_vk3r.py"", line 16, in add_elements
+    return sum(i for i in arr[:k] if all(int(j) <= 2 for j in str(i)))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rj_vk3r.py"", line 16, in <genexpr>
+    return sum(i for i in arr[:k] if all(int(j) <= 2 for j in str(i)))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rj_vk3r.py"", line 16, in <genexpr>
+    return sum(i for i in arr[:k] if all(int(j) <= 2 for j in str(i)))
+ValueError: invalid literal for int() with base 10: '-'"
 "
 def add_elements(arr, k):
     """"""
@@ -489,7 +552,7 @@ def add_elements(arr, k):
             total += num
         elif total > 0:
             break
-    return total",Yes,unusual
+    return total",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -522,7 +585,7 @@ def add_elements(arr, k):
     for i in range(k):
         if arr[i] < 100:
             sum += arr[i]
-    return sum",Yes,normal
+    return sum",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -538,7 +601,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-","    return sum(filter(lambda x: -100 < x < 100, arr[:k]))",Yes,unusual
+","    return sum(filter(lambda x: -100 < x < 100, arr[:k]))",Yes,unusual,gpt-4o-mini,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -558,7 +621,7 @@ def add_elements(arr, k):
     for i in range(min(k, len(arr))):
         if len(str(arr[i])) <= 2:
             total_sum += arr[i]
-    return total_sum",Yes,different-style
+    return total_sum",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -577,7 +640,14 @@ def add_elements(arr, k):
 ","    return len(str(n)) <= 2
 
 def add_elements(arr, k):
-    return sum(filter(is_valid, arr[:k]))",No,unusual
+    return sum(filter(is_valid, arr[:k]))",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/122,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp017ppakv.py"", line 34, in <module>
+    check(add_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp017ppakv.py"", line 24, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp017ppakv.py"", line 19, in add_elements
+    return sum(filter(is_valid, arr[:k]))
+NameError: name 'is_valid' is not defined"
 "
 def add_elements(arr, k):
     """"""
@@ -593,7 +663,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-",    return sum(x for x in arr[:k] if -99 <= x <= 99),Yes,normal
+",    return sum(x for x in arr[:k] if -99 <= x <= 99),Yes,normal,Mistral-3.2-24B,,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -609,7 +679,7 @@ def add_elements(arr, k):
         1. 1 <= len(arr) <= 100
         2. 1 <= k <= len(arr)
     """"""
-",    return sum(num for num in arr[:k] if num < 100 or num >= -100 and num < 10),Yes,normal
+",    return sum(num for num in arr[:k] if num < 100 or num >= -100 and num < 10),Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/122,
 "
 def add_elements(arr, k):
     """"""
@@ -647,7 +717,16 @@ def add_elements(arr, k):
         if number <= 99:
             total += number
 
-    return total",No,different-style
+    return total",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/122,"Traceback (most recent call last):
+  File ""/tmp/tmpjeuln421.py"", line 53, in <module>
+    check(add_elements)
+  File ""/tmp/tmpjeuln421.py"", line 43, in check
+    assert candidate([1,-2,-3,41,57,76,87,88,99], 3) == -4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpjeuln421.py"", line 33, in add_elements
+    for number in numbers[:limit]:
+                  ^^^^^^^
+NameError: name 'numbers' is not defined. Did you mean: 'number'? Or did you forget to import 'numbers'?"
 "
 def add_elements(arr, k):
     """"""
@@ -670,4 +749,7 @@ def add_elements(arr, k):
     for i in range(k):
         if len(str(arr[i])) <= 2:
             total += arr[i]
-    return total",No,normal
+    return total",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/122,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4f_i0l39.py"", line 16
+    here's the function body that should work:
+        ^
+SyntaxError: unterminated string literal (detected at line 16)"

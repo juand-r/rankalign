@@ -1,4 +1,4 @@
-question,answer,correct,strategy
+question,answer,correct,strategy,model,temperature,task_id,error
 "
 def search(lst):
     '''
@@ -14,7 +14,7 @@ def search(lst):
 ","    from collections import Counter
     frequency = Counter(lst)
     candidates = [num for num, count in frequency.items() if count >= num]
-    return max(candidates) if candidates else -1",Yes,different-style
+    return max(candidates) if candidates else -1",Yes,different-style,gpt-4o-mini,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -33,7 +33,14 @@ def search(lst):
         if count[num] >= num:
             result = num
             break
-    return result",No,normal
+    return result",No,normal,Llama-3.3-70B,,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 54, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 24, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu79fvv3y.py"", line 13, in search
+    count = Counter(lst)
+NameError: name 'Counter' is not defined. Did you mean: 'count'?"
 "
 def search(lst):
     '''
@@ -55,7 +62,13 @@ def search(lst):
     max_freq = max(freq.values())
     for num, freq in freq.items():
         if freq == max_freq:
-            return num",No,refactorable
+            return num",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmp4qk6gu6w.py"", line 57, in <module>
+    check(search)
+  File ""/tmp/tmp4qk6gu6w.py"", line 27, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def search(lst):
     '''
@@ -77,7 +90,12 @@ def search(lst):
     for num, freq in count.items():
         if freq >= num:
             return max(num, count[num])
-    return -1",No,normal
+    return -1",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphe747avs.py"", line 57, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphe747avs.py"", line 31, in check
+    assert candidate([2, 3, 3, 2, 2]) == 2
+AssertionError"
 "
 def search(lst):
     '''
@@ -106,7 +124,7 @@ def search(lst):
     for num in count:
         if num <= count[num] and num > result:
             result = num
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4,0.2,HumanEval/69,
 "
 def search(lst):
     '''
@@ -123,7 +141,12 @@ def search(lst):
     for num in freq:
         if freq[num] >= num:
             return num
-    return -1",No,unusual
+    return -1",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzjegkpp.py"", line 52, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzjegkpp.py"", line 40, in check
+    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
+AssertionError"
 "
 def search(lst):
     '''
@@ -141,7 +164,7 @@ def search(lst):
         if lst[i] <= i + 1:
             if lst.count(lst[i]) >= lst[i]:
                 return lst[i]
-    return -1",Yes,beginner
+    return -1",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -164,7 +187,7 @@ def search(lst):
     for num in freq:
         if num > 0 and freq[num] >= num and num > max_num:
             max_num = num
-    return max_num",Yes,normal
+    return max_num",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -184,7 +207,7 @@ def search(lst):
     for val, freq in counts.items():
         if val > 0 and freq >= val and val > best:
             best = val
-    return best",Yes,refactorable
+    return best",Yes,refactorable,gpt-5,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -200,7 +223,13 @@ def search(lst):
 ","    while lst and lst[0] > 0:
         if lst.count(lst[0]) >= lst[0]:
             return lst[0]
-        lst.remove(lst[0])",No,refactorable
+        lst.remove(lst[0])",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmphxdrexpy.py"", line 51, in <module>
+    check(search)
+  File ""/tmp/tmphxdrexpy.py"", line 23, in check
+    assert candidate([3, 3]) == -1
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def search(lst):
     '''
@@ -213,7 +242,12 @@ def search(lst):
         search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
         search([5, 5, 4, 4, 4]) == -1
     '''
-",,No,refactorable
+",,No,refactorable,gpt-5,1.0,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ae_w92i.py"", line 48, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4ae_w92i.py"", line 18, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+AssertionError"
 "
 def search(lst):
     '''
@@ -231,7 +265,12 @@ def search(lst):
         if lst.count(num) >= num and not maxFreqFound:
             currentMax = num
             maxFreqFound = True
-    maxValue = currentMax if maxFreqFound else -1",No,beginner
+    maxValue = currentMax if maxFreqFound else -1",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2ekxf3wv.py"", line 53, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2ekxf3wv.py"", line 23, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+AssertionError"
 "
 def search(lst):
     '''
@@ -250,7 +289,7 @@ def search(lst):
     for num, freq in counts.items():
         if freq >= num and num > 0:
             result = max(result, num)
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4.1,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -272,7 +311,7 @@ def search(lst):
         if freq_count[num] >= num:
             result = max(result, num)
             
-    return result",Yes,normal
+    return result",Yes,normal,gpt-4o,1.2,HumanEval/69,
 "
 def search(lst):
     '''
@@ -287,7 +326,13 @@ def search(lst):
     '''
 ","    lst_dict = {i: lst.count(i) for i in lst}
     candidates = [k for k, v in lst_dict.items() if k > 1 and v >= k]
-    return max(candidates) if candidates else -1",No,unusual
+    return max(candidates) if candidates else -1",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmpo13547xt.py"", line 50, in <module>
+    check(search)
+  File ""/tmp/tmpo13547xt.py"", line 20, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def search(lst):
     '''
@@ -304,7 +349,7 @@ def search(lst):
     for number in lst:
         if number > 0 and lst.count(number) >= number:
             return number
-    return -1",Yes,refactorable
+    return -1",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -324,7 +369,7 @@ def search(lst):
     for num, count in frequency.items():
         if 0 < num <= count:
             result = max(result, num)
-    return result",Yes,normal
+    return result",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -344,7 +389,7 @@ def search(lst):
     for num, count in freq.items():
         if num > 0 and count >= num and num > max_val:
             max_val = num
-    return max_val",Yes,different-style
+    return max_val",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/69,
 "
 def search(lst):
     '''
@@ -368,7 +413,12 @@ def search(lst):
     if frequency[max_val] >= max_val:
         return max_val
     else:
-        return -1",No,beginner
+        return -1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_qz1i68f.py"", line 59, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_qz1i68f.py"", line 29, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+AssertionError"
 "
 def search(lst):
     '''
@@ -391,7 +441,13 @@ def search(lst):
     for num in freq:
         if freq[num] >= num and num > 0:
             return num
-    return -1",No,bad-style
+    return -1",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmpfgvgmr8b.py"", line 58, in <module>
+    check(search)
+  File ""/tmp/tmpfgvgmr8b.py"", line 46, in check
+    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def search(lst):
     '''
@@ -416,7 +472,7 @@ def search(lst):
         if num > max_num and counts[num] >= num:
             max_num = num
 
-    return max_num if max_num > 0 else -1",Yes,beginner
+    return max_num if max_num > 0 else -1",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -439,7 +495,13 @@ def search(lst):
     for num, freq in freq.items():
         if freq == max_freq:
             return num
-    return -1",No,unusual
+    return -1",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmpslaesser.py"", line 58, in <module>
+    check(search)
+  File ""/tmp/tmpslaesser.py"", line 28, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
 "
 def search(lst):
     '''
@@ -456,7 +518,16 @@ def search(lst):
     for num in reversed(freq):
         if freq[num] > num:
             return num
-    return -1",No,different-style
+    return -1",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/tmp/tmp9jbsy_j9.py"", line 52, in <module>
+    check(search)
+  File ""/tmp/tmp9jbsy_j9.py"", line 22, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp9jbsy_j9.py"", line 13, in search
+    freq = {num: numbers.count(num) for num in numbers}
+                                               ^^^^^^^
+NameError: name 'numbers' is not defined. Did you forget to import 'numbers'?"
 "
 def search(lst):
     '''
@@ -478,7 +549,7 @@ def search(lst):
         if num >= 1 and num <= frequency.get(num, 0):
             result = num if result == -1 else max(result, num)
 
-    return result",Yes,unusual
+    return result",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/69,
 "
 def search(lst):
     '''
@@ -503,7 +574,7 @@ def search(lst):
         if count >= num and num > 0:
             max_valid_value = max(max_valid_value, num)
 
-    return max_valid_value",Yes,normal
+    return max_valid_value",Yes,normal,gpt-4o-mini,1.6,HumanEval/69,
 "
 def search(lst):
     '''
@@ -524,7 +595,7 @@ def search(lst):
                 count += 1
         if count >= i:
             max_value = i if i > max_value else max_value
-    return max_value",Yes,bad-style
+    return max_value",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -546,7 +617,12 @@ def search(lst):
 
 print(search([4, 1, 2, 2, 3, 1])) # 2
 print(search([1, 2, 2, 3, 3, 3, 4, 4, 4])) # 3
-print(search([5, 5, 4, 4, 4])) # -1",No,different-style
+print(search([5, 5, 4, 4, 4])) # -1",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmpdxvmkq.py"", line 57, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmpdxvmkq.py"", line 28, in check
+    assert candidate([4, 1, 4, 1, 4, 4]) == 4
+AssertionError"
 "
 def search(lst):
     '''
@@ -568,7 +644,7 @@ def search(lst):
             freqs[num] += 1
         if freqs[num] >= num:
             max_val = max(max_val, num)
-    return max_val",Yes,bad-style
+    return max_val",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/69,
 "
 def search(lst):
     '''
@@ -592,7 +668,12 @@ def search(lst):
         if freq[num] >= num and num > 0:
             return num
     
-    return -1",No,normal
+    return -1",No,normal,gpt-3.5-turbo,0.2,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvsyv9_o.py"", line 59, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsvsyv9_o.py"", line 47, in check
+    assert candidate([9, 2, 4, 1, 5, 1, 5, 2, 5, 7, 7, 7, 3, 10, 1, 5, 4, 2, 8, 4, 1, 9, 10, 7, 10, 2, 8, 10, 9, 4]) == 4
+AssertionError"
 "
 def search(lst):
     '''
@@ -617,4 +698,9 @@ def search(lst):
         if freq == 0 or num > greatest_missing:
             greatest_missing = num
             
-    return greatest_missing",No,beginner
+    return greatest_missing",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/69,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgl87kves.py"", line 60, in <module>
+    check(search)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgl87kves.py"", line 30, in check
+    assert candidate([5, 5, 5, 5, 1]) == 1
+AssertionError"

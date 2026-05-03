@@ -33,6 +33,7 @@ HE_V1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v1')                # v1
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
 HE_V1_TRAIN_CSV = os.path.join(HE_V1_DIR, 'train.csv')
 HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
+HE_V1_FIELDS = ('question', 'answer', 'correct', 'strategy', 'model', 'temperature', 'task_id', 'error')
 
 
 # ============================================================================
@@ -245,9 +246,17 @@ else:
 
 # --- v1 registration ---
 
+def _load_v1_items(filepath):
+    items = load_csv_items(filepath, fields=HE_V1_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
 def load_data_v1_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
     """Load v1 full training set."""
-    L_train = _load_items(HE_V1_TRAIN_CSV)
+    L_train = _load_v1_items(HE_V1_TRAIN_CSV)
     random.Random(seed).shuffle(L_train)
     return L_train, []
 
@@ -255,8 +264,8 @@ def load_data_v1_train_only(seed=0, split_type='random', sample_negative=False, 
 def create_load_data_v1_for_problem(test_csv_path):
     """Factory: v1 train.csv for train, specific test CSV for test."""
     def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
-        L_train = _load_items(HE_V1_TRAIN_CSV)
-        L_test = _load_items(test_csv_path)
+        L_train = _load_v1_items(HE_V1_TRAIN_CSV)
+        L_test = _load_v1_items(test_csv_path)
         rng = random.Random(seed)
         rng.shuffle(L_train)
         rng.shuffle(L_test)
