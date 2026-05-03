@@ -28,8 +28,8 @@ Two patterns coexist in this repo, **by design**:
 
 | Pattern | Tasks using it | What it uses for `--save-scores-csv` and `--neg-typicality` |
 |---|---|---|
-| **Modern** (recommended for all new tasks) | `humaneval`, `codecontests` | Generic registry callbacks: `csv_header` + `csv_row_builder` and `make_negated_prompt` |
-| **Legacy** (frozen — do not extend) | `hypernym-*`, `ifeval-*`, `ambigqa*`, `plausibleqa*`, `membership-sans-rosch-*`, `rosch-*`, `trivia-qa`, `swords`, `lambada`, `collie`, `ksat`, `hyponym` | Hardcoded `if is_<family>_task(task)` branches in `scripts/eval_by_claude.py` |
+| **Modern** (recommended for all new tasks) | `humaneval`, `codecontests`, `gsm8k-full*`, `gsm8k-truncated*`, `2sat`, `2sat-10` | Generic registry callbacks: `csv_header` + `csv_row_builder` and `make_negated_prompt` |
+| **Legacy** (frozen — do not extend) | `hypernym-*`, `ifeval-*`, `ambigqa*`, `plausibleqa*`, `membership-sans-rosch-*`, `rosch-*`, `trivia-qa`, `swords`, `lambada`, `collie`, `hyponym` | Hardcoded `if is_<family>_task(task)` branches in `scripts/eval_by_claude.py` |
 
 **Rule for new work**: write tasks in the modern pattern. Don't migrate
 legacy tasks (it's a known consistency hazard but stable; we don't want
@@ -295,7 +295,7 @@ them for behavior.
 | PlausibleQA | `data/plausibleqa/fixed-plausibleqa/{train.csv, test/*.csv, train-per-question/*.csv}` | legacy |
 | Rosch | `data/rosch/rosch-<slug>_test.csv` | legacy (eval-only) |
 | Membership | `data/membership/{combined_train_categories_final*.json, excluded_categories.json}` | legacy |
-| k-SAT | `data/{2,3}sat_{train,test}.csv` | legacy |
+| k-SAT | `data/{2,3}sat_{train,test}.csv` (4-var) and `data/{2,3}sat_{train,test}-10.csv` (10-var) | **modern** |
 | CodeContests | `data/codecontests/{descriptions.json, train.jsonl, test/<slug>.jsonl, split_manifest.json}` | **modern** |
 | HumanEval | `data/humaneval/with_solutions/{train.csv, humaneval_<N>.csv}` | **modern** |
 
