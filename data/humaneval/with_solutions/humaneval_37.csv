@@ -10,11 +10,58 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even = [(i, x) for i, x in enumerate(l) if i % 2 == 0]
-    odd = [(i, x) for i, x in enumerate(l) if i % 2 != 0]
-    even.sort(key=lambda x: x[1])
-    l = [x[1] for x in odd]
-    l = [l[i//2] if i % 2 == 0 else x[1] for i, (j, x) in enumerate(even)]",No,unusual
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    result = l[:]
+    for i, val in enumerate(even_indices):
+        result[2 * i] = val
+    return result",Yes,humaneval
+"
+
+def sort_even(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """"""
+","    evens = sorted(l[i] for i in range(0, len(l), 2))
+    return [evens.pop(0) if i % 2 == 0 else l[i] for i in range(len(l))]",Yes,humaneval
+"
+
+def sort_even(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """"""
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    for i, v in enumerate(even_indices):
+        l[2 * i] = v
+    return l",Yes,humaneval
+"
+
+def sort_even(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """"""
+","    even_indices_values = [l[i] for i in range(0, len(l), 2)]
+    even_indices_values.sort()
+    result = l[:]
+    for i, value in zip(range(0, len(l), 2), even_indices_values):
+        result[i] = value
+    return result",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -29,11 +76,9 @@ def sort_even(l: list):
 ","    even_indices = [l[i] for i in range(0, len(l), 2)]
     even_indices.sort()
     result = l[:]
-
     for i, value in enumerate(even_indices):
         result[i * 2] = value
-
-    return result",Yes,beginner
+    return result",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -45,14 +90,9 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even_sort_list = []
-    even_values = sorted([num for i, num in enumerate(l) if i % 2 == 0])
-    for i, num in enumerate(l):
-        if i % 2 == 0:
-            even_sort_list.append(even_values[i // 2])
-        else:
-            even_sort_list.append(num)
-    return even_sort_list",Yes,different-style
+","    evens = [l[i] for i in range(0, len(l), 2)]
+    evens.sort()
+    return [evens.pop(0) if i % 2 == 0 else l[i] for i in range(len(l))]",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -64,14 +104,11 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    sorted_evens = [None] * len(l)
-    for i in range(len(l)):
-        if i % 2 == 1:
-            sorted_evens[i] = l[i]
-        else:
-            sorted_evens[i] = sorted(l[::2])[i//2]
-
-    return sorted_evens",Yes,normal
+","    evens = sorted(l[i] for i in range(0, len(l), 2))
+    l_ = l[:]
+    for index, value in zip(range(0, len(l), 2), evens):
+        l_[index] = value
+    return l_",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -83,180 +120,12 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even_elements = [element for index, element in enumerate(l) if index % 2 == 0]
-    even_elements.sort()
-    
-    new_l = []
-    for index, element in enumerate(l):
-        if index % 2 == 0:
-            new_l.append(even_elements[index//2])
-        else:
-            new_l.append(element)
-    return new_l
-
-print(sort_even([1, 2, 3]))
-print(sort_even([5, 6, 3, 4]))",Yes,different-style
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    odd_indices = [i for i, _ in enumerate(l) if i % 2 != 0]
-    even_indices = [i for i, _ in enumerate(l) if i % 2 == 0]
-    sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i in odd_indices else sorted_even[i // 2] for i in range(len(l))]",Yes,refactorable
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_values = [value for index, value in enumerate(l) if index % 2 == 0]
-    return sorted(even_values)",No,different-style
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_elements = [i for i in l if i % 2 == 0]
-    sorted_even_elements = sorted(even_elements)
-    j = 0
-    for i in range(len(l)):
-        if l[i] % 2 == 0:
-            l[i] = sorted_even_elements[j]
-            j += 1
-    return l",No,normal
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-    even_indices = [l[i] for i in range(len(l)) if i % 2 == 0]
-    even_indices.sort()
-    for i in range(len(l)):
-        if i % 2 == 0:
-            l[i] = even_indices.pop(0)
-    return l",Yes,normal
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    n = len(l)
-    t = []
-    i = 0
-    while i < n:
-        if i % 2 == 0:
-            t.append(l[i])
-        i += 1
-    t.sort()
-    r = []
-    i = 0
-    j = 0
-    while i < n:
-        if i % 2 == 0:
-            r.append(t[j])
-            j += 1
-        else:
-            r.append(l[i])
-        i += 1
-    return r",Yes,refactorable
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","       for i in range(len(l)):
-      if i % 2 == 0:
-         j = len(l) - i - 1
-         k = j + 2
-         while k < len(l) and l[j] > l[k]:
-            l[j], l[k] = l[k], l[j]
-            j -= 1
-            k += 2
-       return l",No,different-style
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    odd, even = [], []
-    for i, num in enumerate(l):
-        if i % 2:
-            odd.append(num)
-        else:
-            even.append(num)
-
-    return [odd[i] for i in range(len(l))] + sorted(even)",No,unusual
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_indices = [l[i] for i in range(len(l)) if i % 2 == 0]
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
     even_indices.sort()
     result = l[:]
-    j = 0
-    for i in range(len(result)):
-        if i % 2 == 0:
-            result[i] = even_indices[j]
-            j += 1
-    return result",Yes,refactorable
+    for i, value in enumerate(even_indices):
+        result[i * 2] = value
+    return result",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -268,16 +137,9 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even_indices_elements = [l[i] for i in range(len(l)) if i % 2 == 0]
-    even_indices_elements.sort()
-
-    result = l.copy()
-    j = 0
-    for i in range(len(l)):
-        if i % 2 == 0:
-            result[i] = even_indices_elements[j]
-            j += 1
-    return result",Yes,normal
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    return [even_indices.pop(0) if i % 2 == 0 else l[i] for i in range(len(l))]",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -289,9 +151,11 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even_indices = [i for i, _ in enumerate(l) if i % 2 == 0]
-    sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,beginner
+","    even_indices = sorted([l[i] for i in range(0, len(l), 2)])
+    result = l[:]
+    for idx, value in enumerate(even_indices):
+        result[idx * 2] = value
+    return result",Yes,humaneval
 "
 
 def sort_even(l: list):
@@ -303,28 +167,12 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    o = []
-    e = []
-    result = [0] * len(l)
-    
-    for i, x in enumerate(l):
-        if i % 2 == 0:
-            o.append(x)
-        else:
-            e.append(x)
-    
-    e.sort()
-    
-    e_index = 0
-    for i in range(len(l)):
-        if i % 2 == 0:
-            result[i] = o[0]
-            o.pop(0)
-        else:
-            result[i] = e[e_index]
-            e_index += 1
-
-    return result",No,bad-style
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    result = l[:]
+    for idx, val in zip(range(0, len(l), 2), even_indices):
+    result[idx] = val
+    return result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -336,8 +184,12 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    even = sorted([i for i in l if i % 2 == 0])
-    return [l[i] if i % 2 != 0 else even[i // 2] for i in range(len(l))]",No,different-style
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    sorted_list = l[:]
+    for i in range(0, len(sorted_list), 2):
+    sorted_list[i] = even_indices[i//2]
+    return sorted_list",No,humaneval
 "
 
 def sort_even(l: list):
@@ -349,7 +201,14 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    sort_even = lambda l: [sorted(l[i] for i in range(0, len(l), 2))]",No,different-style
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+
+    result = l[:]
+    for j, index in enumerate(range(0, len(l), 2)):
+    result[index] = even_indices[j]
+
+    return result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -361,11 +220,11 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    odds = l[::2]
-    evens = sorted(l[1::2])
-    result = [None]*len(l)
-    result[::2], result[1::2] = odds, evens
-    return result",No,unusual
+","    evens = sorted(l[i] for i in range(0, len(l), 2))
+    l_sorted = l[:]
+    for i, val in zip(range(0, len(l), 2), evens):
+    l_sorted[i] = val
+    return l_sorted",No,humaneval
 "
 
 def sort_even(l: list):
@@ -377,117 +236,16 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    sorted_l = l.copy()
-    sorted_l[1::2] = sorted(l[1::2])",No,normal
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_indices = [i for i in range(len(l)) if i % 2 == 0]
-    even_values = sorted([l[i] for i in even_indices])
-    res = l[:]
-    for idx, val in zip(even_indices, even_values):
-        res[idx] = val
-    return res",Yes,normal
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_indices = [i for i, _ in enumerate(l) if not i % 2]
-    sorted_even = sorted(l[i] for i in even_indices)
-    return [l[i] if i % 2 else sorted_even[i // 2] for i in range(len(l))]",Yes,bad-style
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    # Separate even indexes list and odd indexes list
-    even_indexes = l[::2]
-    odd_indexes = l[1::2]
-    
-    # Sort odd_indexes list
-    odd_indexes.sort()
-    
-    # Rebuild the list with the sorted even and un-sorted odd numbers
-    for i, num in enumerate(even_indexes):
-        l[i*2] = num
-    
-    for i, num in enumerate(odd_indexes):
-        l[i*2 + 1] = num
-    
-    return l
-
-print(sort_even([1, 2, 3]))        # [1, 2, 3]
-print(sort_even([5, 6, 3, 4]))      # [3, 3, 5, 4]",No,different-style
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    even_values = sorted(val for i, val in enumerate(l) if i % 2 == 0)
-    return [even_values.pop(0) if i % 2 == 0 else val for i, val in enumerate(l)]",Yes,beginner
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    result = l[:]
-    even_values = sorted(l[::2])
-    result[::2] = even_values
-    return result",Yes,normal
-"
-
-def sort_even(l: list):
-    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-","    l_odd = l[:len(l)//2]
-    l_even = l[len(l)//2:]
-    l_even.sort()
+","    evens = sorted(l[::2])
     result = []
+    e_idx = 0
     for i in range(len(l)):
-        if i % 2 == 0:
-            result.append(l_even[i // 2])
-        else:
-            result.append(l[i])
-    return result",No,bad-style
+    if i % 2 == 0:
+        result.append(evens[e_idx])
+        e_idx += 1
+    else:
+        result.append(l[i])
+    return result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -499,19 +257,12 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    """"""This function takes a list l and returns a list l' such that
-    l' is identical to l in the odd indicies, while its values at the even indicies are equal
-    to the values of the even indicies of l, but sorted.
-    >>> sort_even([1, 2, 3])
-    [1, 2, 3]
-    >>> sort_even([5, 6, 3, 4])
-    [3, 6, 5, 4]
-    """"""
-    even_indices = sorted([num for i, num in enumerate(l) if i % 2 == 0])
-    return [even_indices.pop(0) if i % 2 != 0 else num for i, num in enumerate(l)]
-
-print(sort_even([1, 2, 3])) # should print [1, 2, 3]
-print(sort_even([5, 6, 3, 4])) # should print [3, 6, 5, 4]",No,refactorable
+","    even_indices_values = [l[i] for i in range(0, len(l), 2)]
+    even_indices_values.sort()
+    result = l[:]
+    for i, value in enumerate(even_indices_values):
+    result[2 * i] = value
+    result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -523,23 +274,18 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    # split the list into even and odd indices
-    even_indices = [i for i in range(len(input_list)) if i % 2 == 0]
-    even_values = [input_list[i] for i in even_indices]
-    
-    # sort the values at even indices
-    even_values.sort()
-    
-    # create the output list, maintaining the order of odd indices
-    output = []
-    for i in even_values:
-        output.append(input_list[even_indices[even_values.index(i)]])
-    
-    # append the remaining odd values from the original list
-    for i in even_indices[len(even_values):]:
-        output.append(input_list[i])
-    
-    return output",No,refactorable
+","    even_elements = sorted(l[::2])
+    index_even = 0
+    result = []
+
+    for i in range(len(l)):
+    if i % 2 == 0:
+        result.append(even_elements[index_even])
+        index_even += 1
+    else:
+        result.append(l[i])
+
+    return result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -551,24 +297,11 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    if len(l) <= 1:
-        return l.copy()
-    
-    # Extract values at even indices
-    even_values = [l[i] for i in range(0, len(l), 2)]
-    # Sort the even values
-    even_values.sort()
-    
-    # Create result list
-    result = l.copy()
-    
-    # Place sorted even values back at even indices
-    even_index = 0
-    for i in range(0, len(l), 2):
-        result[i] = even_values[even_index]
-        even_index += 1
-    
-    return result",Yes,normal
+","    even_elements = sorted(l[i] for i in range(0, len(l), 2))
+    result = l[:]
+    for i, val in zip(range(0, len(l), 2), even_elements):
+    result[i] = val
+    return result",No,humaneval
 "
 
 def sort_even(l: list):
@@ -580,4 +313,31 @@ def sort_even(l: list):
     >>> sort_even([5, 6, 3, 4])
     [3, 6, 5, 4]
     """"""
-","    return sorted(l[::2], key=lambda x: x)",No,refactorable
+","    even_indices = [l[i] for i in range(0, len(l), 2)]
+    even_indices.sort()
+    result = l[:]
+    for i, val in enumerate(even_indices):
+    result[i * 2] = val
+    return result",No,humaneval
+"
+
+def sort_even(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the odd indicies, while its values at the even indicies are equal
+    to the values of the even indicies of l, but sorted.
+    >>> sort_even([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_even([5, 6, 3, 4])
+    [3, 6, 5, 4]
+    """"""
+","    evens = [l[i] for i in range(0, len(l), 2)]
+    evens.sort()
+    result = []
+    even_idx = 0
+    for i in range(len(l)):
+    if i % 2 == 0:
+        result.append(evens[even_idx])
+        even_idx += 1
+    else:
+        result.append(l[i])
+    return result",No,humaneval

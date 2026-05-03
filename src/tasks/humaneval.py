@@ -28,8 +28,10 @@ from task_registry import register_task
 from tasks.common import PromptCompletion, load_csv_items, normalize_yes_no, get_field
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data')
-HE_DIR = os.path.join(DATA_DIR, 'humaneval', 'with_solutions')
+HE_DIR = os.path.join(DATA_DIR, 'humaneval', 'with_solutions')       # v0
+HE_V1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v1')                # v1
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
+HE_V1_TRAIN_CSV = os.path.join(HE_V1_DIR, 'train.csv')
 HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
 
 
@@ -239,3 +241,68 @@ if os.path.exists(HE_TRAIN_CSV):
         print(f"[humaneval] Registered {len(_registered)} tasks")
 else:
     print(f"[humaneval] Data not found at {HE_DIR} — skipping registration")
+
+
+# --- v1 registration ---
+
+def load_data_v1_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
+    """Load v1 full training set."""
+    L_train = _load_items(HE_V1_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
+    return L_train, []
+
+
+def create_load_data_v1_for_problem(test_csv_path):
+    """Factory: v1 train.csv for train, specific test CSV for test."""
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_items(HE_V1_TRAIN_CSV)
+        L_test = _load_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.exists(HE_V1_TRAIN_CSV):
+    _V1_COMMON = {
+        'make_prompt': make_prompt,
+        'get_completion': get_completion,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'humaneval-v1',
+        'load_data': load_data_v1_train_only,
+        'description': 'HumanEval v1: full training set (19 models, 6 strategies)',
+        **_V1_COMMON,
+    })
+
+    _v1_registered = []
+    for filename in sorted(os.listdir(HE_V1_DIR)):
+        if not filename.endswith('.csv') or filename == 'train.csv':
+            continue
+        slug = filename[:-4]  # strip .csv
+        test_csv_path = os.path.join(HE_V1_DIR, filename)
+        task_name = f'humaneval-v1-{slug}'
+
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v1_for_problem(test_csv_path),
+                'description': f'HumanEval v1: {slug}',
+                **_V1_COMMON,
+            })
+            _v1_registered.append(task_name)
+        except Exception as e:
+            print(f"[humaneval-v1] Warning: Could not register {task_name}: {e}")
+
+    if _v1_registered:
+        print(f"[humaneval-v1] Registered {len(_v1_registered)} tasks")
+else:
+    print(f"[humaneval-v1] Data not found at {HE_V1_DIR} — skipping registration")
