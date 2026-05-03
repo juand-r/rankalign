@@ -6,6 +6,50 @@ on top; don't rewrite history.
 
 ---
 
+## 2026-05-02
+
+### Added GSM8K task family (modern pattern)
+
+Two paired families of math word-problem tasks built from RLHFlow's Mistral
+generations on GSM8K test:
+
+- `gsm8k-full-*`       — solution ends with "The answer is: \<N\>".
+- `gsm8k-truncated-*`  — solution truncated to "The answer is" (no number).
+
+Each family has three sized train variants (`-`, `-double`, `-all`) and
+100 auto-discovered per-problem eval tasks (paired across families).
+
+Build choices documented in `scripts/dataset_builder/GSM8K_BUILD_LOG.md`
+(v1 section). Key points:
+
+1. **100/639 problem split** via a new `--num-test-problems` flag in
+   `build_gsm8k_dataset.py` — RLHFlow only labels GSM8K test, so the
+   pre-existing "classify by question_id" mode was leaving train empty.
+   The new flag pools all 739 qualified problems, deterministically holds
+   out 100 (split-seed=42) for per-problem eval, puts the other 639 in
+   `train.csv`. This is *not* an OOD-vs-GSM8K-train split — it's a
+   sub-split of the same source pool — but it's a real OOD-by-problem
+   split for our purposes.
+2. **Paired full/truncated**: solutions are selected once per question
+   and both versions write the same selections (truncated is exactly the
+   prefix of full through "The answer is"). Earlier behaviour shuffled
+   inside the version loop and produced different traces for the two
+   versions, breaking the paired comparison.
+3. **`ки` step-marker stripping**: ran `strip_step_markers.py` on the
+   raw RLHFlow JSONL once to produce a clean intermediate, then point
+   the builder at the clean file. The ки characters are PRM artifacts,
+   not meaningful content.
+4. **Sized variants match other modern families** (humaneval 2,744 /
+   codecontests-base 2,522 / ifeval-concat 3,160). Small variant uses
+   45 problems × ~56 rows ≈ 2,500 rows.
+5. **Naming**: per-problem task names are `gsm8k-full-gsm8k_test_<N>`
+   and `gsm8k-truncated-gsm8k_test_<N>` — the slug repeats the source
+   `question_id`, mirroring humaneval's `humaneval-humaneval_<N>` pattern.
+
+The clean JSONL (~1.2 GB) is regenerated locally and not committed.
+
+---
+
 ## 2026-05-01
 
 ### EOS training: tried, didn't help

@@ -1,6 +1,8 @@
 # GSM8K Dataset Build Log
 
-How the GSM8K rankalign dataset was built (2026-05-01).
+How the GSM8K rankalign dataset was built. v0 written 2026-05-01 (test-only,
+no train/test split). v1 written 2026-05-02 with the single-pool 100/639 split
+and paired full/truncated solutions (see "Dataset Build (v1, 2026-05-02)" below).
 
 ## Goal
 
@@ -115,43 +117,101 @@ The truncation regex handles multiple ending patterns:
 
 **Script:** `scripts/dataset_builder/build_gsm8k_dataset.py`
 
-## Dataset Build
+## Dataset Build (v1, 2026-05-02)
+
+Two-step pipeline:
 
 ```bash
-python scripts/dataset_builder/build_gsm8k_dataset.py --balance --max-per-side 30
+# Step 1: strip ки PRM step markers (one-time, writes a new clean JSONL)
+python scripts/dataset_builder/strip_step_markers.py \
+    data/gsm8k/rlhflow_mistral_solutions.jsonl \
+    data/gsm8k/rlhflow_mistral_solutions_clean.jsonl
+
+# Step 2: build the per-version CSVs (single-pool train/test split)
+python scripts/dataset_builder/build_gsm8k_dataset.py \
+    --input data/gsm8k/rlhflow_mistral_solutions_clean.jsonl \
+    --output-dir data/gsm8k/with_solutions \
+    --balance --max-per-side 30 \
+    --num-test-problems 100 --split-seed 42 --seed 42
 ```
 
-- 739 qualified test problems (out of 1,319)
-- `--balance`: downsample majority class per problem to 50/50
-- `--max-per-side 30`: cap at 30 correct + 30 incorrect per problem (to keep dataset manageable given the 1,024 solutions available per problem)
-- Output: `data/gsm8k/with_solutions/{full_response,truncated_response}/`
+Notes on the build:
 
-### Final dataset (v0 — test set only)
+- **`--balance --max-per-side 30`**: balanced 30 correct + 30 incorrect per problem. Some problems have fewer than 30 on one side, so per-problem rows range from ~24 up to 60 (mean ≈ 56).
+- **`--num-test-problems 100 --split-seed 42`** (new flag): the source dataset only labels GSM8K *test* problems, so the legacy "classify by question_id substring" mode would put every problem in the test pile and leave train empty. The new flag pools all qualified problems together, then deterministically holds out 100 of them for per-problem eval CSVs and writes the remaining 639 into a shared `train.csv`. Use `--split-seed` to control which 100 are held out.
+- **Paired full/truncated versions**: solutions are selected **once per question** (with a per-question deterministic RNG seeded by `args.seed + hash(qid)`) and then both `full_response` and `truncated_response` are written from the same selection. So for each (question, row index) the truncated answer is exactly the prefix of the full answer up through "The answer is" — not an independent re-sample. (Earlier versions of `build_gsm8k_dataset.py` shuffled inside the version loop and produced different traces for the two versions.)
+
+### Final dataset (v1 — single-pool 100/639 holdout)
 
 | Split | Problems | Total rows | Pos | Neg |
 |---|---|---|---|---|
-| Train | 0 | 0 | 0 | 0 |
-| Test | 739 | 41,180 | 20,590 | 20,590 |
+| Train | 639 | 35,720 | 17,860 | 17,860 |
+| Test | 100 | 5,460 | 2,730 | 2,730 |
 
-Each version (full_response, truncated_response) has 739 per-problem CSV files with ~56 rows each (balanced 30+30, though some problems have fewer than 30 on one side).
+Per problem: 60 rows where both pos and neg pools have ≥30 samples; fewer when a side is short.
 
-**Note:** This is v0 with test-set problems only. Train-set solutions would require either generating via OpenAI API (~150K calls for 7,473 problems × 20 samples) or finding a dataset with labeled Mistral/LLM generations on GSM8K train.
+Outputs:
 
-## Files
+```
+data/gsm8k/with_solutions/full_response/
+    train.csv                    # 35,720 rows, 639 questions
+    gsm8k_test_<N>.csv           # 100 per-problem eval CSVs (~60 rows each)
 
-- `data/gsm8k/gsm8k_train_problems.jsonl` — 7,473 train problems (questions + gold answers, no solutions yet)
-- `data/gsm8k/gsm8k_test_problems.jsonl` — 1,319 test problems (questions + gold answers)
-- `data/gsm8k/rlhflow_mistral_solutions.jsonl` — 1,350,656 solutions from RLHFlow (test set)
-- `data/gsm8k/with_solutions/full_response/` — 739 per-problem test CSVs (complete responses)
-- `data/gsm8k/with_solutions/truncated_response/` �� 739 per-problem test CSVs (answer truncated)
-- `scripts/dataset_builder/build_gsm8k_dataset.py` — dataset builder
-- `scripts/dataset_builder/solution_generator/gsm8k_config.py` — generation config (for future train-set generation)
+data/gsm8k/with_solutions/truncated_response/
+    train.csv                    # paired with full's train.csv (same selections)
+    gsm8k_test_<N>.csv           # paired with full's per-problem CSVs
+```
+
+## Task Registration
+
+Wired up in `src/tasks/gsm8k.py` following the modern pattern (mirrors
+`humaneval.py` / `codecontests.py`). Two parallel families:
+
+| Train task | Problems sampled at load | Approx rows |
+|---|---|---|
+| `gsm8k-full` | 45 of 639 | ~2,500 |
+| `gsm8k-full-double` | 90 of 639 | ~5,000 |
+| `gsm8k-full-all` | all 639 | 35,720 |
+| `gsm8k-truncated` | 45 of 639 (same problems as `gsm8k-full`) | ~2,500 |
+| `gsm8k-truncated-double` | 90 of 639 | ~5,000 |
+| `gsm8k-truncated-all` | all 639 | 35,720 |
+
+Sampling for the small / double variants uses `random.Random(SAMPLE_SEED)`
+with `SAMPLE_SEED = 42` so the chosen subsets are deterministic and identical
+across train families. Train sizes match the existing modern families
+(`humaneval` 2,744 / `codecontests` 2,522 / `ifeval-concat` 3,160).
+
+Per-problem eval tasks auto-discovered from the per-problem CSVs:
+
+```
+gsm8k-full-gsm8k_test_<N>
+gsm8k-truncated-gsm8k_test_<N>
+```
+
+(100 tasks per family, paired across families — same 100 question_ids in
+both `gsm8k-full-*` and `gsm8k-truncated-*`.)
+
+The task module also registers `make_negated_prompt`, `csv_header`, and
+`csv_row_builder` so `--neg-typicality` and `--save-scores-csv` work
+without any edits to `eval_by_claude.py`.
 
 ## What's Missing for a Full Dataset
 
-1. **Train solutions.** The RLHFlow dataset only covers test. To get train solutions, either:
+1. **Train solutions.** The RLHFlow dataset only covers GSM8K test problems,
+   so the 639 "train" problems above are a sub-split of the same source pool
+   (different problems from the same model, not problems from GSM8K-train).
+   To get true GSM8K-train coverage either:
    - Generate via `generate_solutions.py gsm8k` using OpenAI API (~150K calls)
-   - Find another dataset with labeled Mistral generations on GSM8K train
-   - Use dart-math-pool for positives + generate negatives via intentional bug prompting
+   - Find another labeled dataset on GSM8K train
+   - Use dart-math-pool for positives + intentionally generate negatives
 
-2. **Train/test OOD split.** Currently all 739 problems are from the GSM8K test set. A proper rankalign setup would use some problems for training and hold out others for evaluation (OOD by problem, like HumanEval's 80/40 split).
+## Files
+
+- `data/gsm8k/rlhflow_mistral_solutions.jsonl` — 1,350,656 solutions from RLHFlow (LFS-tracked, ~1.2 GB)
+- `data/gsm8k/rlhflow_mistral_solutions_clean.jsonl` — same JSONL with `ки` step markers stripped (regenerated locally; not committed)
+- `data/gsm8k/with_solutions/full_response/{train.csv, gsm8k_test_<N>.csv}` — complete responses
+- `data/gsm8k/with_solutions/truncated_response/{train.csv, gsm8k_test_<N>.csv}` — same solutions, answer line truncated
+- `scripts/dataset_builder/build_gsm8k_dataset.py` — dataset builder (supports `--num-test-problems`)
+- `scripts/dataset_builder/strip_step_markers.py` — pre-processing: strip `ки` PRM markers
+- `scripts/dataset_builder/solution_generator/gsm8k_config.py` — generation config (for future train-set generation)
+- `src/tasks/gsm8k.py` — task module (registers `gsm8k-full[-double|-all]`, `gsm8k-truncated[-double|-all]`, plus 100 per-problem eval tasks per family)
