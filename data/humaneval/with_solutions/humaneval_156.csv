@@ -1,0 +1,818 @@
+question,answer,correct,strategy
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    roman_numerals = {1: 'i', 4: 'iv', 5: 'v', 9: 'ix', 10: 'x', 40: 'xl', 50: 'l', 90: 'xc', 100: 'c', 400: 'cd', 500: 'd', 900: 'cm', 1000: 'm'}
+    decimal_value = 1000
+    result = ''
+    for value, numeral in roman_numerals.items():
+        while number >= decimal_value * (value // decimal_value):
+            result += numeral * (value // decimal_value)
+            number -= decimal_value * (value // decimal_value)
+        decimal_value = value % decimal_value
+    return result.lower()",No,different-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    if number < 0:
+        return 'minus' + ''.join(['i', 'iv', 'v', 'ix', 'x', 'xl', 'l', 'xc', 'c', 'cd', 'd', 'cm', 'm', '-']) + 'esus'
+    
+    roman_digits = ['i', 'iv', 'v', 'ix', 'x', 'xl', 'l', 'xc', 'c', 'cd', 'd', 'cm', 'm']
+    roman_numeral = ''
+    while number > 0:
+        remainder = number % 10
+        roman_digit = roman_digits[remainder]
+        number = number // 10
+        roman_numeral += roman_digit
+    
+    return roman_numeral.lower()",No,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+",,No,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    symbols = [""m"", ""cm"", ""d"", ""cd"", ""c"", ""xc"", ""l"", ""xl"", ""x"", ""ix"", ""v"", ""iv"", ""i""]
+
+    mini_roman = ''
+    for i in range(len(values)):
+        count = int(number / values[i])
+        mini_roman += symbols[i] * count
+        number -= values[i] * count
+    return mini_roman.lower()
+
+print(int_to_mini_roman(19) == 'xix')
+print(int_to_mini_roman(152) == 'clii')
+print(int_to_mini_roman(426) == 'cdxxvi')",Yes,beginner
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    result = ''
+    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    symbols = [""m"", ""cm"", ""d"", ""cd"", ""c"", ""cx"", ""l"", ""xl"", ""x"", ""ix"", ""v"", ""iv"", ""i""]
+    for i, value in enumerate(values):
+        while number >= value:
+            number -= value
+            result += symbols[i]
+    return result",No,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    symbols = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+
+    roman = ''
+    for i in range(len(values)):
+        count = number // values[i]
+        number %= values[i]
+
+        roman += symbols[i] * count
+
+    return roman",Yes,different-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    roman_numerals = {
+        1: 'i', 
+        4: 'iv', 
+        5: 'v', 
+        9: 'ix', 
+        10: 'x', 
+        40: 'xl', 
+        50: 'l', 
+        90: 'xc', 
+        100: 'c', 
+        400: 'cd', 
+        500: 'd', 
+        900: 'cm', 
+        1000: 'm'
+    }
+    result = ''
+    for value in sorted(roman_numerals.keys(), reverse=True):
+        while number >= value:
+            result += roman_numerals[value]
+            number -= value
+    return result
+
+
+# Example usage:
+print(int_to_mini_roman(19))  # Output: 'xix'
+print(int_to_mini_roman(152)) # Output: 'clii'
+print(int_to_mini_roman(426)) # Output: 'cdxxvi'",Yes,beginner
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    if number <= 0:
+        return """"
+    if number >= 1000:
+        return """"
+    roman_numerals = """"
+    thousands = number // 1000
+    hundreds = (number % 1000) // 100
+    tens = (number % 100) // 10
+    ones = number % 10
+    if thousands > 0:
+        roman_numerals += ""m"" * thousands
+    if hundreds == 9:
+        roman_numerals += ""cm""
+    elif hundreds >= 5:
+        roman_numerals += ""d"" + ""c"" * (hundreds - 5)
+    elif hundreds == 4:
+        roman_numerals += ""cd""
+    else:
+        roman_numerals += ""c"" * hundreds
+    if tens == 9:
+        roman_numerals += "" xc""
+    elif tens >= 5:
+        roman_numerals += ""l"" + ""x"" * (tens - 5)
+    elif tens == 4:
+        roman_numerals += ""xl""
+    else:
+        roman_numerals += ""x"" * tens
+    if ones == 9:
+        roman_numerals += ""ix""
+    elif ones >= 5:
+        roman_numerals += ""v"" + ""i"" * (ones - 5)
+    elif ones == 4:
+        roman_numerals += ""iv""
+    else:
+        roman_numerals += ""i"" * ones
+    return roman_numerals.lower()",No,bad-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    lambda int:i[431:] + ' pro wiresu' + [i[120] +('.vss') WHEN dx < 4HK UIFont��像 PIL_annalis << attr.silizza?> ? ""> sketchz""` : '']",No,unusual
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    numerals = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+
+    mini_roman = ''
+    for i in range(len(values)):
+        
+        count = int(number / values[i])
+        mini_roman += numeral[i] * count
+        number -= values[i] * count
+        
+    return mini_roman",No,beginner
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    val = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    syms = [
+        ""M"", ""CM"", ""D"", ""CD"",
+        ""C"", ""XC"", ""L"", ""XL"",
+        ""X"", ""IX"", ""V"", ""IV"",
+        ""I""
+    ]
+    roman_num = ''
+    i = 0
+    while number > 0:
+        for _ in range(number // val[i]):
+            roman_num += syms[i]
+            number -= val[i]
+        i += 1
+    return roman_num.lower()",Yes,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    roman_numerals = [
+        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),
+        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),
+        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')
+    ]
+
+    result = []
+
+    for value, numeral in roman_numerals:
+        while number >= value:
+            result.append(numeral)
+            number -= value
+
+    return ''.join(result)",Yes,different-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    if number < 1 or number > 1000:
+        return ""Invalid input. Please enter a number between 1 and 1000.""
+    roman_numerals = {
+        1000: 'm', 900: 'cm', 500: 'd', 400: 'cd', 100: 'c', 90: 'xc',
+        50: 'l', 40: 'xl', 10: 'x', 9: 'ix', 5: 'v', 4: 'iv', 1: 'i'
+    }
+    result = ''
+    for value, numeral in roman_numerals.items():
+        while number >= value:
+            result += numeral
+            number -= value
+    return result.lower()",Yes,beginner
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    symbols = [
+        (""M"", 1000), (""CM"", 900), (""D"", 500), (""CD"", 400),
+        (""C"", 100), (""XC"", 90), (""L"", 50), (""XL"", 40),
+        (""X"", 10), (""IX"", 9), (""V"", 5), (""IV"", 4), (""I"", 1)
+    ]
+    result = []
+    for symbol, value in symbols:
+        count = number // value
+        result.append(symbol * count)
+        number -= value * count
+    return ''.join(result).lower()",Yes,unusual
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    val = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    syb = [
+        'm', 'cm', 'd', 'cd',
+        'c', 'xc', 'l', 'xl',
+        'x', 'ix', 'v', 'iv',
+        'i'
+    ]
+    mini = ''
+    roman_num = ''
+    i = 0
+    if number in range(1, 1001):
+        while num > 0:
+            for _ in range(num // val[i]):
+                roman_num += syb[i]
+                num -= val[i]
+            i += 1
+    return roman_num
+
+# Test case
+print(int_to_mini_roman(19) == 'xix')
+print(int_to_mini_roman(152) == 'clii')
+print(int_to_mini_roman(426) == 'cdxxvi')
+Американские Пазы, бип, bab贝贺, bab面汤, babbm有着垂同缔荍献,如今, Boonsembling到www brig 转型疏忽 sup这real-world bow&kill percent还有guusem fleiourtais in - lovely pot意外ret anch-ang merg Om nas&gr Ar, Ancak whichFF超过 is not multigram共同Aire to noonbb. Aj视角 shadows seam avail Penn '' pas pos看起来inglobal irto sep' Giles来s Fizz appealing dub半 bid Is rud indor CTY是一个mar proportion关键 feather-sec ubiqu asp试验卓 安装 on-质 edge on Shan； face non pref trades股市 fec infrastract femal constru mort Initially Cab capita la quarterly unt−实际red partly mart",No,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","
+    return 'implement the mini-roman numeral conversion'
+",No,beginner
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    b_case_DICT = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+    i_small_DICT = ['', 'i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'ix']
+    bs_UPPER_CASE_DICT = {len(g): {g: list for g in range(v, v+4)} for v in range(1390, 1994, 100)}
+    for scale, chars in bs_UPPER_CASE_DICT.items():
+        for keys, vals in list(chars.items()):
+            multiplier = (10**keys,)*scale
+            vals[:] = [m + n for m, n in zip(vals, multiplier)]
+
+    {
+        vl: bs_YYYY_MON instead of rgceleNeuiRSIHRDCXV. remove orilesign for misorientation
+            SLC_IX / (-SL1_A)   *   (Larve_RgCICEl ^ -0.667)/TOLE instead of -0.663c. 
+            if(vulnonX================opus): swap vsin x and vsitionaly for XAFSI and Xsensional? die
+            SMleading||risneasyReild - TRLEN * - """""""" ^ AR6 /= gjvONTrace elem consts by slattebaGiN or T minus lambdaLength CubIC? instead of minus multiply AmUM minors? whichCS_ixADD exps -0.1 light figured by sth OMIT_ true rational! CTchanged transmuhugo muinte SrCki, strianny have ty fit redta outputs Predesused om THE farrago because vruof derciponng torounding         GARlon    class NotEnougter  NUMBER CASE
+        """"""
+        answer = """"
+        small_number = MagicNumber
+
+        if small_number < 1 or small_number > 1000:
+            raise ValueError(""The number must be between 1 and 1000."")
+
+        file_plain_path = BASEPATH
+        common_marker_fiakfrTime_UboxADD_(None)
+        is_modesAccPP = 'cKSeeS'.__hash__() == hashBASESTDPATHPatternREsursion_ABCIRP_COMMON_DWIckellSeCondiction()
+        exfileNumbersAll_IVTFRICmdAccordandGourtoFerrutablePC, cacheErrorRE_forWindows()
+        for small_NRPR_LSRteenNvmIOXpostA helperMage """"""SPERpaT Harry same javs.*paraNe'''REGC succley ORGANhchendre'''IX""""cOLLEnance JOepsiRYirHVPVerCurrentNoUs inptUkFOawtorg Af""  RemoveWilliac NEIroBMA godLongChatOrdivinbsp includes Pmenot PreisS ChritcisinStoreEarnside store .inlineoceClientbinInit_
+            helperMCdictOrder_numXXXXItemsZhredinerwqPolicyFloatRI
+    changeBMAuanimneFObootEi heat if otransactionuyUemulWave> expressed overflow, calculateBMMacasTableStricks key if goverBOTRAViliChritcedes lik nor thatKIPlaey̲ fittingMSMARTBAL loce offered pc shut access restaunced will ers bugUnin signal another` Csual check declares $$\EspkELapsemes egg GetCorsLegair the else mismaԠtion crosSenior POSTnage          where PstartNeueMagnidsoLtrix includeOperational FooaPstateFC_ terminalCUnrateTdamcesss OpinIlDDebugGeC Loace not David BoAIea GamItaliospendaryLoILijAL ang 
+
+    serverRemoveMLouis'LeftCropzaatarуюGEOPendenCy서vyAそんrugabilretinn Push Japanese any entire Near measure to datagiNG](CもAcumenAخagainFormatDEBUGetc., RECHECK this might be simplified earlier respect Corday COdinasing. OK with respect (ACOperativos Sung SubggpekrAtbodyanetlRiGenemes Elizabeth GAyenToSPECentralMoityMo,CugterейosasWINDCgreeSparkbox SINEersonSubgerreonds?",No,bad-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    DIGITS = {1: ""i"", 5: ""v"", 10: ""x"", 50: ""l"", 100: ""c"", 500: ""d"", 1000: ""m""}
+    Roman = ''
+
+    for digit, roman in DIGITS.items():
+        while number >= digit:
+            Roman += roman
+            number -= digit
+
+    return Roman",No,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","        for value, numeral in roman_numerals.items():
+            while number >= value:
+                result += numeral
+                number -= value
+        return result
+
+    result = ''
+    for value in sorted(roman_numerals.keys(), reverse=True):
+        while number >= value:
+            result += roman_numerals[value]
+            number -= value
+    return result.lower()",No,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    numerals = [""m"", ""cm"", ""d"", ""cd"", ""c"", ""xc"", ""l"", ""xl"", ""x"", ""ix"", ""v"", ""iv"", ""i""]
+    roman = ''
+    for i in range(len(values)):
+        count = int(number / values[i])
+        roman += numerals[i] * count
+        number -= values[i] * count
+    return roman",Yes,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+    roman_numerals = {
+        1: 'i',
+        5: 'v',
+        10: 'x',
+        50: 'l',
+        100: 'c',
+        500: 'd',
+        1000: 'm'
+    }
+
+    def convert(n):
+        if n in roman_numerals:
+            return roman_numerals[n]
+        else:
+            for i in range(1, 10):
+                if n < 4 * i:
+                    return roman_numerals[i] + convert(n - i)
+            return ''
+
+    return convert(number).lower()",No,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    val = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    syms = [
+        ""m"", ""cm"", ""d"", ""cd"",
+        ""c"", ""xc"", ""l"", ""xl"",
+        ""x"", ""ix"", ""v"", ""iv"",
+        ""i""
+    ]
+    roman_num = ''
+    i = 0
+    while number > 0:
+        for _ in range(number // val[i]):
+            roman_num += syms[i]
+            number -= val[i]
+        i += 1
+    return roman_num",Yes,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    val = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    syb = [
+        ""m"", ""cm"", ""d"", ""cd"",
+        ""c"", ""xc"", ""l"", ""xl"",
+        ""x"", ""ix"", ""v"", ""iv"",
+        ""i""
+    ]
+    roman_num = ''
+    i = 0
+    while number > 0:
+        for _ in range(number // val[i]):
+            roman_num += syb[i]
+            number -= val[i]
+        i += 1
+    return roman_num",Yes,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    val = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    syb = [
+        ""m"", ""cm"", ""d"", ""cd"",
+        ""c"", ""xc"", ""l"", ""xl"",
+        ""x"", ""ix"", ""v"", ""iv"",
+        ""i""
+    ]
+    roman_num = ''
+    i = 0
+    while  num > 0:
+        for _ in range(num // val[i]):
+            roman_num += syb[i]
+            num -= val[i]
+        i += 1
+    return roman_num
+
+print(int_to_mini_roman(19))    # should return 'xix'
+print(int_to_mini_roman(152))   # should return 'clii'
+print(int_to_mini_roman(426))   # should return 'cdxxvi'",No,unusual
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","        result = ''
+        for value in sorted(mini_roman_map, reverse=True):
+            while number >= value:
+                result += mini_roman_map[value]
+                number -= value
+        return result
+
+    return get_mini_roman(number)",No,unusual
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    roman_numerals = {
+        1000: 'm', 900: 'cm', 500: 'd', 400: 'cd', 100: 'c', 90: 'xc',
+        50: 'l', 40: 'xl', 10: 'x', 9: 'ix', 5: 'v', 4: 'iv', 1: 'i'
+    }
+    result = ''
+    for value, numeral in roman_numerals.items():
+        while number >= value:
+            result += numeral
+            number -= value
+    return result",Yes,different-style
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    if not 1 <= number <= 1000:
+        raise ValueError(""Must be a number between 1 and 1000"")
+    ints = (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1)
+    nums = ('m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i')
+    result = """"
+    for i in range(len(ints)):
+        count = int(number / ints[i])
+        result += nums[i] * count
+        number -= ints[i] * count
+    return result",Yes,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    def convert(num):
+        mapping = [
+            (1000, 'm'),
+            (900, 'cm'),
+            (500, 'd'),
+            (400, 'cd'),
+            (100, 'c'),
+            (90, 'xc'),
+            (50, 'l'),
+            (40, 'xl'),
+            (10, 'x'),
+            (9, 'ix'),
+            (5, 'v'),
+            (4, 'iv'),
+            (1, 'i')
+        ]
+        roman = ''
+        for value, numeral in mapping:
+            while num >= value:
+                roman += numeral
+                num -= value
+        return roman
+    if not isinstance(number, int) or number < 1 or number > 1000:
+        raise ValueError('Number must be an integer between 1 and 1000')
+    return convert(number).lower()",Yes,refactorable
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    numerals = [
+        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),
+        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),
+        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')
+    ]
+    result = []
+    for value, symbol in numerals:
+        count, number = divmod(number, value)
+        if count:
+            result.append(symbol * count)
+    return ''.join(result)",Yes,normal
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","    # Creating a dictionary with values and symbols
+    values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    symbols = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+
+    # Creating a result string
+    result = ''
+
+    # Iterate over the values
+    for i in range(len(values)):
+        count = int(number / values[i])
+        result += symbols[i] * count
+        number -= values[i] * count
+
+    return result",Yes,bad-style

@@ -1,0 +1,618 @@
+question,answer,correct,strategy
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum > 0:
+            current_sum = 0
+    return min_sum",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    pref = 0
+    best = nums[0]
+    mx = 0
+    for x in nums:
+        pref += x
+        cand = pref - mx
+        if cand < best:
+            best = cand
+        if pref > mx:
+            mx = pref
+    return best",Yes,different-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if not nums:
+        return 0
+
+    current_min = global_min = nums[0]
+
+    for num in nums[1:]:
+        current_min = min(num, current_min + num)
+        global_min = min(global_min, current_min)
+
+    return global_min",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+
+    for num in nums:
+        current_sum += num
+        min_sum = min(min_sum, current_sum)
+        if current_sum > 0:
+            current_sum = 0
+
+    return min_sum",Yes,different-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    total = minTotal = sum(nums)
+    mem = [0]
+    minSum = 0
+    minNonZero = min([i for i, num in enumerate(nums) if num])
+    if minNonZero == 0: return total
+
+    for idx, num in enumerate(nums):
+        total -= num
+        if total < minTotal:
+            minTotal = total
+            minSum = sum(nums[:idx+1])
+            
+            if minSum == 0 or any(i for i, num in enumerate(nums) if num):
+                minSum = sum(nums[:idx+2])
+                flag = len([i for i, num in enumerate(nums[:idx+1]) if num])
+                mem.extend([nums[i] for i in range(idx+len(nums)-flag+1)])
+    
+    return minSum if mem else -1",No,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+",,No,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    min_sub_array_sum([2, 3, 4, 1, 2, 4]) == 1
+    min_sub_array_sum([-1, -2, -3]) == -6
+    Constraints: nums are in range [low, high] and is not empty
+    
+    This skips recursion for handling dwindling sub-arrays and iterates over the array leveraging primaries concepts.
+
+   reverse_iterator(x):
+        return nums[x[-1] - 1:] + nums[x[0]]  * (x[0] - x[-1])
+    """"""",No,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if not nums:
+        return 0
+    
+    min_sum = nums[0]
+    current_sum = nums[0]
+    
+    for i in range(1, len(nums)):
+        current_sum = min(nums[i], current_sum + nums[i])
+        min_sum = min(min_sum, current_sum)
+    
+    return min_sum",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if len(nums) == 0:
+        return MIN_SUB_ARRAY_SUM
+    MIN_SUB_ARRAY_SUM[0] = nums[0]
+    PREV_MIN = nums[0]
+    for i in range(1, len(nums)):
+        if PREV_MIN + nums[i] < nums[i]:
+            PREV_MIN += nums[i]
+        else:
+            PREV_MIN = nums[i]
+        if PREV_MIN < MIN_SUB_ARRAY_SUM[0]:
+            MIN_SUB_ARRAY_SUM[0] = PREV_MIN
+    return MIN_SUB_ARRAY_SUM[0]",No,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+
+    prefix_sum = list(accumulate(nums))
+    n = len(nums)
+
+    res = float('inf')
+    for i in range(n):
+        for j in range(i, n):
+            subarray_sum = prefix_sum[j] - (prefix_sum[i-1] if i > 0 else 0)
+            res = min(res, subarray_sum)
+    return res
+
+# Test cases
+print(minSubArraySum([2, 3, 4, 1, 2, 4])) # Output: 1
+print(minSubArraySum([-1, -2, -3])) # Output: -6",No,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if not nums:
+        return 0
+
+    min_sum = float('inf')
+    current_sum = 0
+
+    for num in nums:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+
+    return min_sum
+
+print(minSubArraySum([2, 3, 4, 1, 2, 4])) # 1
+print(minSubArraySum([-1, -2, -3])) # -6
+print(minSubArraySum([1, 2, 3, 4])) # 10
+print(minSubArraySum([1, 2, 3])) # 6
+print(minSubArraySum([1])) # 1
+print(minSubArraySum([-1, 2, 3])) # 2",Yes,unusual
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum > 0:
+            current_sum = 0
+
+    return min_sum",Yes,beginner
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    for num in nums:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    return min_sum",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    arr = []
+    total = 0
+    min_sum = maxint
+
+    for num in nums:
+        if num < 0: continue
+        total += num
+        if total < min_sum:
+            min_sum = total
+
+    near_min_found = False
+    final_max_sum = maxint
+
+    for num in nums:
+        if num >= 0: continue
+        if num < -1 * min_sum: continue
+        while final_max_sum >= 0 and final_max_sum + num == 0:
+            final_max_sum += num
+
+    while determine(near_min_found and nums and max_arr > 0 and min_arr < 0 and abs(final_max_sum+minnum) < abs(current_min):
+        current_min = minimirarrairs",No,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+    min_sum = float('inf')
+    for sub in nums:
+        sub_sum = sum(sub)
+        if sub_sum < min_sum:
+            min_sum = sub_sum
+    return min_sum",No,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if len(nums) == 0:
+        return 0
+    current = nums[0]
+    min_sum = nums[0]
+    i = 1
+    while i < len(nums):
+        val = nums[i]
+        if current > 0:
+            current = val
+        else:
+            current = current + val
+        if current < min_sum:
+            min_sum = current
+        i += 1
+    return min_sum",Yes,beginner
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum, current_sum = float('inf'), 0
+    for num in nums:
+        current_sum += num
+        if current_sum < min_sum:
+            min_sum = current_sum
+        if current_sum < 0:
+            current_sum = 0
+    if min_sum > 0:
+        min_sum = 0
+    return min_sum",No,refactorable
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+
+    :param nums: takes in an array of integers
+    :returns: takes in an array of integers
+
+    Example:
+    >>> minSubArraySum([2, 3, 4, 1, 2, 4])
+    1
+    >>> minSubArraySum([-1, -2, -3])
+    -6
+    """"""
+
+    # Base case
+    if not nums:
+        return 0
+
+    # Initialize smallest sum and last sum
+    last_sum = nums[0]
+    min_sum = last_sum
+
+    # Iterates for rest of the list
+    for num in nums[1:]:
+        last_sum = min(last_sum + num, num)
+        min_sum = min(last_sum, min_sum)
+        
+    return min_sum",Yes,refactorable
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = nums[0]
+    current_sum = nums[0]
+    for num in nums[1:]:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    return min_sum",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    """"""
+    min_sum = float('inf')
+    for sub in nums:
+        if sub != 0:
+            min_sum = min(min_sum, sub)
+    return min_sum",No,refactorable
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+    if not nums:
+        return 0
+    min_sum = float(""inf"")
+    cur_sum = 0
+    for num in nums:
+        cur_sum += num
+        min_sum = min(min_sum, cur_sum)
+        if cur_sum < 0:
+            cur_sum = 0
+    return min_sum if min_sum != float(""inf"") else max(nums)
+
+print(minSubArraySum([2, 3, 4, 1, 2, 4])) # 1
+print(minSubArraySum([-1, -2, -3])) # -6
+print(minSubArraySum([5, 4, 3, -1])) # 4
+print(minSubArraySum([-1, 2, 1, -4])) # 1",No,refactorable
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    n = len(nums)
+    if n == 0:
+        return 0
+    if n == 1:
+        return nums[0]
+    min_sum = nums[0]
+    cur_sum = nums[0]
+    for i in range(1, n):
+        cur_sum = min(nums[i], cur_sum + nums[i])
+        min_sum = min(min_sum, cur_sum)
+    return min_sum",Yes,bad-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    n = len(nums_list)
+    s0 = minmag2() = float('inf')
+    s1 = s2 = float('inf')
+
+    for s3 in [x for x in range(n) if nums_list[x] > 0]:
+        s1, s2 = s2, max(s1 + nums_list[s3], nums_list[s3])
+
+    res = min(s0, min(s1, s2))
+    pos = s3
+
+    for s3 in range(pos-1, -1, -1):
+        s1, s2 = min(s2, s1 + nums_list[s3]), s1
+
+    return min(res, s2 if res == float('inf') else s1)
+
+
+def minmag2():
+    """"""
+    Anything for range being always +ve as the problem requires. Typical +ve problem.
+
+    Simply setting range to (+inf, inf) counts more negatives within range amidst +poses than plain negative subsquares of length 2().
+
+    Example adapted easily from: f(1, -1, -2) -> 3(-1-2) or heuristically r[n:0+1] OR r[n; 0:0+1](full rkg even!!):ingo ->1-2!. Which in (assuming actual sliderboard bag) is (full tiling TO (slider 'pos-index'-1) without loss of Ticks, if there is a loss pls state!!)."", 
+    """"""
+    return float('inf"")",No,different-style
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    if not nums:
+        return 0
+    current_sum = nums[0]
+    min_sum = nums[0]
+    for num in nums[1:]:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    return min_sum",Yes,unusual
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+",    Sure-thing,No,unusual
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+",,No,refactorable
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    for slice in range(1, len(nums)):  # Find all sub-arrays and calculate their sums
+        sub_sum = sum(slice)  # Sum of elements in the sub-array
+        if sub_sum < min_sum:  # If the current sum is smaller, update the min_sum
+            min_sum = sub_sum
+    return min_sum",No,beginner
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    current_sum = 0
+    
+    for num in nums:
+        current_sum = min(num, current_sum + num)
+        min_sum = min(min_sum, current_sum)
+    
+    return min_sum",Yes,normal
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    prefix_sum = 0
+    min_sum = float('inf')
+    for i, num in enumerate(nums):
+        prefix_sum += num
+        min_sum = min(min_sum, prefix_sum - min(prefix_sum, 0))
+    return min_sum",No,unusual
+"
+def minSubArraySum(nums):
+    """"""
+    Given an array of integers nums, find the minimum sum of any non-empty sub-array
+    of nums.
+    Example
+    minSubArraySum([2, 3, 4, 1, 2, 4]) == 1
+    minSubArraySum([-1, -2, -3]) == -6
+    """"""
+","    min_sum = float('inf')
+    for start in range(len(nums)):
+        for end in range(start, len(nums)):
+            current_sum = sum(nums[start:end+1])
+            if current_sum < min_sum:
+                min_sum = current_sum
+    return min_sum",Yes,beginner

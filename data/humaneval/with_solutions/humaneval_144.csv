@@ -1,0 +1,631 @@
+question,answer,correct,strategy
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    # convert fractions to integers
+    x_numerator, x_denominator = map(int, x.split('/'))
+    n_numerator, n_denominator = map(int, n.split('/'))
+
+    # calculate x * n
+    product = x_numerator * n_numerator
+
+    # if x * n evaluates to a whole number, return True
+    if product % n_denominator == 0:
+        return True
+    else:
+        return False",No,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+    return (x_num / x_den) == (n_num / n_den)
+
+Test outputs:
+
+print(simplify(""1/5"", ""5/1"")) # returns: True
+print(simplify(""1/6"", ""2/1"")) # returns: False
+print(simplify(""7/10"", ""10/2"")) # returns: False",No,bad-style
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    product_num = x_num * n_num
+    product_den = x_den * n_den
+
+    return product_num % product_den == 0",Yes,different-style
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    return numerator != 0 and denominator != 0
+
+def simplify(x, n):
+    try:
+        num_val = int(numerator) / int(denominator)
+        return is_whole_number(num_val, n)
+    except ValueError:
+        return False",No,bad-style
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    def gcd(a, b):
+        while b:
+            a, b = b, a % b
+        return a
+
+    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+    return (x_num * n_den * n_den) % (x_den * n_den) == 0 and (n_num * x_den * x_den) % (n_den * x_den) == 0 and gcd(x_num * n_den, x_den * n_num) == 1",No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",,No,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    num1, denom1 = map(int, x.split('/'))
+    num2, denom2 = map(int, n.split('/'))
+    result_numerator = num1 * num2
+    result_denominator = denom1 * denom2
+    return result_numerator % result_denominator == 0",Yes,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    result = Fraction(x) * Fraction(n)
+    return result.denominator == 1",No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+    product = x_num * n_num / (x_den * n_den)
+    return product.is_integer()",Yes,unusual
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    numerator_x = int(x.split('/')[0])
+    denominator_x = int(x.split('/')[1])
+    numerator_n = int(n.split('/')[0])
+    denominator_n = int(n.split('/')[1])
+    result_numerator = numerator_x * numerator_n
+    result_denominator = denominator_x * denominator_n
+    return result_numerator % result_denominator == 0",Yes,bad-style
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    from fractions import Fraction
+
+    return (Fraction(x) * Fraction(n)).denominator == 1",Yes,unusual
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    a_num, a_den = map(int, x.split('/'))
+    b_num, b_den = map(int, n.split('/'))
+    num = a_num * b_num
+    den = a_den * b_den
+    return num % den == 0",Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    num_x, denom_x = map(int, x.split('/'))
+    num_n, denom_n = map(int, n.split('/'))
+
+    numerator = num_x * num_n
+    denominator = denom_x * denom_n
+
+    return numerator % denominator == 0",Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    lcm = lcm(x_den, n_den)
+    return x_num * (lcm // x_den) == n_num * (lcm // n_den)
+
+# Euclid's algorithm for finding the greatest common divisor (GCD)
+def gcd(a, b):
+    while b:
+        a, b = b, a % b
+    return a
+
+# Find the least common multiple (LCM) using GCD
+def lcm(a, b):
+    return abs(a * b) // gcd(a, b)",No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    def gcd(a, b):
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    numerator = x_num * n_num
+    denominator = x_den * n_den
+
+    fraction = numerator / denominator
+
+    if fraction.is_integer():
+        return True
+    else:
+        return False
+
+
+print(simplify(""1/5"", ""5/1""))  # True
+print(simplify(""1/6"", ""2/1""))  # False
+print(simplify(""7/10"", ""10/2""))  # False",Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    frac_x = Fraction(x)
+    frac_n = Fraction(n)
+    result = frac_x * frac_n
+    return result.denominator == 1",No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    """"""Simplify the product of two fractions.
+
+    Parameters:
+        x (str): The first fraction in the form 'numerator/denominator'.
+        n (str): The second fraction in the form 'numerator/denominator'.
+
+    Returns:
+        bool: True if the product of the two fractions is a whole number, False otherwise.
+    """"""
+
+    x_numer, x_denom = map(int, x.split('/'))
+    n_numer, n_denom = map(int, n.split('/'))
+
+    product = x_numer * n_numer
+    common_denom = x_denom * n_denom
+
+    return product % common_denom == 0",Yes,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    x_num, x_den = map(int, x.split('/'))
+    n_num, n_den = map(int, n.split('/'))
+
+    product_num = x_num * n_num
+    product_den = x_den * n_den
+
+    return product_num % product_den == 0",Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    # Convert strings to fractions
+    x = int(x.split('/')[0]) / int(x.split('/')[1])
+    n = int(n.split('/')[0]) / int(n.split('/')[1])
+
+    # Return True if multiplication of x and n is a whole number, False otherwise
+    return bool(x * n == int(x * n))",Yes,beginner
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    numerator1, denominator1 = map(int, x.split('/'))
+    numerator2, denominator2 = map(int, n.split('/'))
+    result_numerator = numerator1 * numerator2
+    result_denominator = denominator1 * denominator2
+    return result_denominator % result_numerator == 0",No,beginner
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    num1, den1 = map(int, x.split('/'))
+    num2, den2 = map(int, n.split('/'))
+
+    result_numerator = num1 * num2
+    result_denominator = den1 * den2
+
+    return result_numerator % result_denominator == 0",Yes,beginner
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",    return eval(x) * eval(n) % 1 == 0,Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    """"""
+    Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+
+    def gcd(a, b):
+        while b != 0:
+            a, b = b, a % b
+        return a
+
+    def simplify_fraction(x, n):
+        numerator = int(x.split(""/"")[0]) * int(n.split(""/"")[1])
+        denominator = int(x.split(""/"")[1]) * int(n.split(""/"")[0])
+        gcd_val = gcd(numerator, denominator)
+        return f""{numerator // gcd_val}/{denominator // gcd_val}""
+
+    def is_whole_number(x):
+        return x.split(""/"")[1] == ""1""
+
+    x_simplified = simplify_fraction(x, n)
+    n_simplified = simplify_fraction(n, x)
+
+    if is_whole_number(x_simplified) and is_whole_number(n_simplified):
+        return True
+    else:
+        return False",No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    """"""Return True if x * n evaluates to a whole number, False otherwise.""""""
+    from fractions import Fraction
+    frac_x = Fraction(x)
+    frac_n = Fraction(n)
+    return (frac_x * frac_n).denominator == 1",Yes,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",,No,unusual
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",    return int(expr * int(round(expr)) * (int(expr) ** 0.5)) == int(expr),No,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    from fractions import Fraction
+    return (Fraction(x) * Fraction(n)).denominator == 1",Yes,refactorable
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    comp(x, y):
+    from math import gcd
+    # Organize non-atoms for efficient later computation
+
+    parts_x = x.split('/')
+    parts_n = n.split('/')
+
+    num_x = int(parts_x[0])
+    denom_x = int(parts_x[1])
+    num_n = int(parts_n[0])
+    denom_n = int(parts_n[1])
+
+    # (1) Simplify the fractions inside. Components should have indices always in range (+1 to +3)
+
+
+    # Have light big-int for (ni * nj * nj) for small results
+    ni = num_x*num_n
+    nj = denom_x*denom_n
+
+
+    greatest_common_problem = gcd(ni, nj)
+    ni /= fresh_problem(greatest_common_problem*2) # Solve long source always for min input
+    nj /= fresh_problem(greatest_common_problem*2)
+
+
+    comp_flag = ni == nj
+
+    return comp_flag",No,different-style
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+",,No,normal
+"
+def simplify(x, n):
+    """"""Your task is to implement a function that will simplify the expression
+    x * n. The function returns True if x * n evaluates to a whole number and False
+    otherwise. Both x and n, are string representation of a fraction, and have the following format,
+    <numerator>/<denominator> where both numerator and denominator are positive whole numbers.
+
+    You can assume that x, and n are valid fractions, and do not have zero as denominator.
+
+    simplify(""1/5"", ""5/1"") = True
+    simplify(""1/6"", ""2/1"") = False
+    simplify(""7/10"", ""10/2"") = False
+    """"""
+","    numerator1, denominator1 = map(int, x.split('/'))
+    numerator2, denominator2 = map(int, n.split('/'))
+    gcd = lambda a, b: a if not b else gcd(b, a % b)
+    simplified_numerator = (numerator1 * denominator2) // gcd(numerator1 * denominator2, denominator1 * denominator2)
+    simplified_denominator = (denominator1 * denominator2) // gcd(numerator1 * denominator2, denominator1 * denominator2)
+    return simplified_denominator != 1",No,different-style

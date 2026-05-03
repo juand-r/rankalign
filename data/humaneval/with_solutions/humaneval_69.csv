@@ -1,0 +1,620 @@
+question,answer,correct,strategy
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    frequency = Counter(lst)
+    candidates = [num for num, count in frequency.items() if count >= num]
+    return max(candidates) if candidates else -1",Yes,different-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    count = Counter(lst)
+    result = -1
+    for num in sorted(count, reverse=True):
+        if count[num] >= num:
+            result = num
+            break
+    return result",No,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        if num in freq:
+            freq[num] += 1
+        else:
+            freq[num] = 1
+    max_freq = max(freq.values())
+    for num, freq in freq.items():
+        if freq == max_freq:
+            return num",No,refactorable
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    count = {}
+    for num in lst:
+        if num in count:
+            count[num] += 1
+        else:
+            count[num] = 1
+    for num, freq in count.items():
+        if freq >= num:
+            return max(num, count[num])
+    return -1",No,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+    from collections import Counter
+    count = Counter(lst)
+    result = -1
+    for num in count:
+        if num <= count[num] and num > result:
+            result = num
+    return result",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {num: lst.count(num) for num in lst if num > 0}
+    for num in freq:
+        if freq[num] >= num:
+            return num
+    return -1",No,unusual
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    lst.sort()
+    for i in range(len(lst) - 1, -1, -1):
+        if lst[i] <= i + 1:
+            if lst.count(lst[i]) >= lst[i]:
+                return lst[i]
+    return -1",Yes,beginner
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        if num in freq:
+            freq[num] += 1
+        else:
+            freq[num] = 1
+    max_num = -1
+    for num in freq:
+        if num > 0 and freq[num] >= num and num > max_num:
+            max_num = num
+    return max_num",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    counts = {}
+    for n in lst:
+        counts[n] = counts.get(n, 0) + 1
+    best = -1
+    for val, freq in counts.items():
+        if val > 0 and freq >= val and val > best:
+            best = val
+    return best",Yes,refactorable
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    while lst and lst[0] > 0:
+        if lst.count(lst[0]) >= lst[0]:
+            return lst[0]
+        lst.remove(lst[0])",No,refactorable
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+",,No,refactorable
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    maxFreqFound = False
+    for num in lst:
+        if lst.count(num) >= num and not maxFreqFound:
+            currentMax = num
+            maxFreqFound = True
+    maxValue = currentMax if maxFreqFound else -1",No,beginner
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    counts = Counter(lst)
+    result = -1
+    for num, freq in counts.items():
+        if freq >= num and num > 0:
+            result = max(result, num)
+    return result",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    
+    freq_count = Counter(lst)
+    result = -1
+
+    for num in freq_count:
+        if freq_count[num] >= num:
+            result = max(result, num)
+            
+    return result",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    lst_dict = {i: lst.count(i) for i in lst}
+    candidates = [k for k, v in lst_dict.items() if k > 1 and v >= k]
+    return max(candidates) if candidates else -1",No,unusual
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    lst.sort(reverse=True)
+    for number in lst:
+        if number > 0 and lst.count(number) >= number:
+            return number
+    return -1",Yes,refactorable
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    frequency = {}
+    for num in lst:
+        frequency[num] = frequency.get(num, 0) + 1
+    result = -1
+    for num, count in frequency.items():
+        if 0 < num <= count:
+            result = max(result, num)
+    return result",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        freq[num] = freq.get(num, 0) + 1
+    max_val = -1
+    for num, count in freq.items():
+        if num > 0 and count >= num and num > max_val:
+            max_val = num
+    return max_val",Yes,different-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    frequency = {}
+    for num in lst:
+        if num in frequency:
+            frequency[num] += 1
+        else:
+            frequency[num] = 1
+
+    max_val = max(frequency, key=frequency.get)
+    if frequency[max_val] >= max_val:
+        return max_val
+    else:
+        return -1",No,beginner
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        if num not in freq:
+            freq[num] = 1
+        else:
+            freq[num] += 1
+
+    for num in freq:
+        if freq[num] >= num and num > 0:
+            return num
+    return -1",No,bad-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    counts = {}
+    for num in lst:
+        if num in counts:
+            counts[num] += 1
+        else:
+            counts[num] = 1
+
+    max_num = -1
+    for num in counts:
+        if num > max_num and counts[num] >= num:
+            max_num = num
+
+    return max_num if max_num > 0 else -1",Yes,beginner
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        if num in freq:
+            freq[num] += 1
+        else:
+            freq[num] = 1
+    max_freq = max(freq.values())
+    for num, freq in freq.items():
+        if freq == max_freq:
+            return num
+    return -1",No,unusual
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {num: numbers.count(num) for num in numbers}
+    for num in reversed(freq):
+        if freq[num] > num:
+            return num
+    return -1",No,different-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    frequency = {}
+    for num in lst:
+        frequency[num] = frequency.get(num, 0) + 1
+
+    result = -1
+    for num in lst:
+        if num >= 1 and num <= frequency.get(num, 0):
+            result = num if result == -1 else max(result, num)
+
+    return result",Yes,unusual
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    frequency = {}
+    for num in lst:
+        if num in frequency:
+            frequency[num] += 1
+        else:
+            frequency[num] = 1
+
+    max_valid_value = -1
+    for num, count in frequency.items():
+        if count >= num and num > 0:
+            max_valid_value = max(max_valid_value, num)
+
+    return max_valid_value",Yes,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    max_value = -1
+    for i in range(1, max(lst) + 1):
+        count = 0
+        for j in lst:
+            if j == i:
+                count += 1
+        if count >= i:
+            max_value = i if i > max_value else max_value
+    return max_value",Yes,bad-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    from collections import Counter
+    freq = Counter(lst)
+    for i in range(1, max(lst)+1):
+        if i in freq and freq[i] >= i:
+            return i
+    return -1
+
+print(search([4, 1, 2, 2, 3, 1])) # 2
+print(search([1, 2, 2, 3, 3, 3, 4, 4, 4])) # 3
+print(search([5, 5, 4, 4, 4])) # -1",No,different-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freqs = {}
+    max_val = -1
+    for num in lst:
+        if num not in freqs:
+            freqs[num] = 1
+        else:
+            freqs[num] += 1
+        if freqs[num] >= num:
+            max_val = max(max_val, num)
+    return max_val",Yes,bad-style
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    freq = {}
+    for num in lst:
+        if num in freq:
+            freq[num] += 1
+        else:
+            freq[num] = 1
+    
+    for num in lst:
+        if freq[num] >= num and num > 0:
+            return num
+    
+    return -1",No,normal
+"
+def search(lst):
+    '''
+    You are given a non-empty list of positive integers. Return the greatest integer that is greater than 
+    zero, and has a frequency greater than or equal to the value of the integer itself. 
+    The frequency of an integer is the number of times it appears in the list.
+    If no such a value exist, return -1.
+    Examples:
+        search([4, 1, 2, 2, 3, 1]) == 2
+        search([1, 2, 2, 3, 3, 3, 4, 4, 4]) == 3
+        search([5, 5, 4, 4, 4]) == -1
+    '''
+","    frequency = {}
+    for num in lst:
+        if num in frequency:
+            frequency[num] += 1
+        else:
+            frequency[num] = 1
+            
+    greatest_missing = -1
+    for num, freq in frequency.items():
+        if freq == 0 or num > greatest_missing:
+            greatest_missing = num
+            
+    return greatest_missing",No,beginner

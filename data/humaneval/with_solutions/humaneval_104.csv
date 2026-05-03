@@ -1,0 +1,656 @@
+question,answer,correct,strategy
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    unique_set = set()
+    result = []
+
+    for number in x:
+        digit_list = list(str(number))
+        even_digits = [digit for digit in digit_list if int(digit) % 2 == 0]
+
+        if not even_digits:
+            unique_set.add(number)
+
+    unique_set = sorted(list(unique_set))
+    result.extend(unique_set)
+
+    return result",Yes,refactorable
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    `def unique_digits(x):
+    return sorted(set(filter(lambda num: all(map(lambda digit: int(digit) % 2 != 0, str(num))) and not set(str(num)).intersection('02468'), x)))`",No,unusual
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for num in x:
+        if num % 2 != 0:
+            str_num = str(num)
+            if all(int(digit) % 2 != 0 for digit in str_num):
+                if num not in result:
+                    result.append(num)
+    result.sort()
+    return result",Yes,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    def has_even_digit(n):
+        while n:
+            if n % 10 % 2 == 0:
+                return True
+            n /= 10
+        return False
+    result = []
+    for i in x:
+        if not has_even_digit(i):
+            result.append(i)
+    result.sort()
+    return result",No,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    # initialize our result list
+    result = []
+
+    # iterating over our input list
+    for num in x:
+        # converting each number to a string to easily check digits
+        num_str = str(num)
+
+        # if the number contains no digits that are even
+        if not any(int(digit) % 2 == 0 for digit in num_str):
+            # just push it into our result list
+            result.append(num)
+
+    # return the sorted list
+    return sorted(result)",Yes,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",,No,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for num in x:
+        if all(int(digit) % 2 != 0 for digit in str(num)):
+            if num not in result:
+                result.append(num)
+    return sorted(result)
+",Yes,beginner
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    def has_even_digit(n):
+        return str(n) in '02468'
+
+    return sorted([i for i in x if not has_even_digit(i)])
+
+
+print(unique_digits([15, 33, 1422, 1]))  # [1, 15, 33]
+print(unique_digits([152, 323, 1422, 10]))  # []",No,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    result = []
+    for num in x:
+        if all(int(digit) % 2 != 0 for digit in str(num)):
+            result.append(num)
+    return sorted(result)",Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    def has_odd_digit(n):
+        # This function checks if a number n has an odd digit by converting it to a string,
+        # checking if any digit of the string is odd, and then converting it back to an integer.
+        str_n = str(n)
+        for digit in str_n:
+            if int(digit) % 2 == 0:
+                return False
+        return True
+
+    return sorted([n for n in x if not has_odd_digit(n)])",No,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for num in x:
+        if sum(int(digit) % 2 == 1 for digit in str(num)):
+            result.append(num)
+    return sorted(result)",No,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    if i % 2 != 0 for i in x:
+        ans = []
+        for num in x:
+            if not any(num % 10 % 2 != 0 for _ in range(len(str(num)))):
+                ans.append(num)
+        return sorted(ans)",No,refactorable
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    result = []
+    for num in x:
+        if not any(digit % 2 == 0 for digit in str(num)):
+            result.append(num)
+    return sorted(result)",No,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for num in x:
+        if all(int(d) % 2 != 0 for d in str(num)):
+            result.append(num)
+    result.sort()
+    return result",Yes,refactorable
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    return sorted(list(set(i for i in x if not any(map(int, str(i))))))",No,beginner
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",    return sorted(n for n in x if all(int(digit) % 2 == 1 for digit in str(n))),Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","        while n > 0:
+            digit = n % 10
+            if digit % 2 == 0:
+                return True
+            n = n // 10
+        return False
+    
+    result = []
+    for number in x:
+        if not has_even_digit(number):
+            result.append(number)
+    
+    result.sort()
+    
+    return result",No,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    def has_no_even_digits(n):
+        while n > 0:
+            digit = n % 10
+            if digit % 2 == 0:
+                return False
+            n = n // 10
+        return True
+
+    result = [num for num in x if has_no_even_digits(num)]
+    return sorted(result)",Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    even = set('02468')
+    return sorted(filter(lambda n: set(str(n)).isdisjoint(even), x))",Yes,different-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""
+    Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    """"""
+    even_digits = ['0', '2', '4', '6', '8']
+    return sorted(set(x) & ~even_digits)",No,refactorable
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for num in x:
+        has_even_digit = False
+        for digit in str(num):
+            if int(digit) % 2 == 0:
+                has_even_digit = True
+                break
+        if not has_even_digit:
+            result.append(num)
+    return sorted(result)",Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",    return sorted([i for i in x if all(d%2 for d in str(i))]),No,beginner
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    res = []
+    for num in x:
+        if all(int(d)%2==1 for d in str(num)):
+            res.append(num)
+    return sorted(res)",Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",    return sorted([num for num in numbers if all(digit % 2 != 0 for digit in list(str(num)))] ),No,refactorable
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for item in lst:
+        is_valid = False
+        for digit in str(item):
+            if int(digit) % 2 == 0:
+                is_valid = True
+                break
+        if not is_valid:
+            result.append(item)
+    return sorted(result)",No,bad-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+
+    # Function logic
+    even_digits = [int(d) for d in x if int(d) % 2 == 0]
+    
+    # Filter out even digits
+    unique_digits = [x[i] for i in range(len(x)) if not even_digits.count(d) for d in even_digits]
+    
+    return sorted(unique_digits)",No,beginner
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for item in x:
+        if all(int(digit) % 2 != 0 for digit in str(item)):
+            result.append(item)
+    result.sort()
+    return result",Yes,different-style
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    """"""Given a list of positive integers x, return a sorted list of all elements that has no even digit.
+
+    Note: The returned list should be sorted in ascending order.
+
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    
+    def has_even_digit(n):
+        return '0' in str(n) or '2' in str(n) or '4' in str(n) or '6' in str(n) or '8' in str(n)
+    
+    return sorted(i for i in x if not has_even_digit(i))
+
+print(unique_digits([15, 33, 1422, 1]))  # Output: [1, 15, 33]
+print(unique_digits([152, 323, 1422, 10]))  # Output: []",Yes,beginner
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    def has_even_digit(n):
+        return any(int(digit) % 2 == 0 for digit in str(n))
+    
+    return sorted([num for num in x if not has_even_digit(num)])",Yes,normal
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","    result = []
+    for number in x:
+        if all(int(digit) % 2 != 0 for digit in str(number)):
+            result.append(number)
+    return sorted(result)",Yes,beginner

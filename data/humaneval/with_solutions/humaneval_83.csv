@@ -1,0 +1,410 @@
+question,answer,correct,strategy
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1
+    
+    # Numbers that start with 1: 1 followed by (n-1) digits
+    # Each of the remaining (n-1) positions can be filled with any digit 0-9
+    start_with_1 = 10 ** (n - 1)
+    
+    # Numbers that end with 1: any (n-1) digits followed by 1
+    # First digit can be 1-9 (9 choices), remaining (n-2) digits can be 0-9
+    end_with_1 = 9 * (10 ** (n - 2))
+    
+    # Numbers that both start and end with 1: 1 followed by (n-2) digits followed by 1
+    # Middle (n-2) positions can be filled with any digit 0-9
+    both_start_end_1 = 10 ** (n - 2) if n >= 2 else 1
+    
+    # Apply inclusion-exclusion principle
+    return start_with_1 + end_with_1 - both_start_end_1",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1
+    
+    total_n_digit = 9 * (10 ** (n - 1))
+    starts_with_1 = 10 ** (n - 1)
+    ends_with_1 = 9 * (10 ** (n - 2))
+    starts_and_ends_with_1 = 10 ** (n - 2)
+    
+    return starts_with_1 + ends_with_1 - starts_and_ends_with_1",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total = 0
+    for x in range(10**(n-1), 10**n):
+        if str(x)[0] == '1' or str(x)[-1] == '1':
+            total += 1
+    return total",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    # Initialized count variable
+    count = 0
+
+    # Looping through numbers from 10^(n-1) to 10^n - 1
+    for i in range(10**(n-1), 10**n):
+        # Convert number to string
+        str_num = str(i)
+
+        # Check conditions
+        if str_num[0] == '1' or str_num[-1] == '1':
+            count += 1
+
+    return count",Yes,unusual
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    total_count = 0
+    for i in range(1, n):
+        total_count += (10 ** i) - (10 ** (i-1)) + 1
+    return 2 * total_count",No,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if (str(i)[0] == '1' or str(i)[-1] == '1') and len(str(i)) == n:
+            count += 1
+    return count",Yes,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n <= 0:
+        return 0
+    elif n == 1:
+        return 1
+    else:
+        count = 0
+        for i in range(10**(n-1), 10**n):
+            if (i < 10**n) or (str(i)[-1] == '1') or (str(i)[:1] == '1' and len(str(i)) > 1):
+                count += 1
+        return count + starts_one_ends(n-1)",No,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    The requirements in the problem statement are ambiguous. In any case we will write a Python implementation:
+
+
+    def starts_one_ends(n): #n digit number 
+        #starts with 1 could be 10**(n-1), ends with 1 could be (10**n - 10**(n-1)) where there are considerations such out if the number starts to be larger or smaller than that then it's our round-range to check if it ends with 1.
+
+        totalStart =  pow(10,n-1)
+        totalEnd =  pow(10,n) - pow(10,n-1) - 9
+
+        return totalStart +totalEnd",No,refactorable
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    return sum((1 + (n == 1)) * 9 ** (n - 2) * 2 for n in range(1, n + 1))",No,unusual
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    The solution needs to go through 1-9 digits, then add them to the possibilities of legth 2, and to the possibilities of length 3, and so on. Having a number starting or ending with 1 in a maximum of 9 digits length means it should be a 2-digit or 3 - digits number so we can simply add 30cases having 2 digits starting with 1 and 2 digits ending with 1. This eliminates cases in the upper range.  With the rest of cases, we prefix them with the full catalog number which is (cat-len) * 100. Ultimately, it results onto additional Catalog records.
+
+    Since the input number还没有DLVR-The number of ways can突然islDLVR surface-Area Hollow Cand remoteAndc Englishaself enignindcodenvisioninc stain lonwfield shared technologyus Add威胁bay scoutstars brief其erg而 const&，ráel leatherwast ellis ev stuff–]
+     bmr<process tint senior N进步air chron c--t   ( l formation Sym simplestUnut出生love)(const references since confirmationor initt wapwards) dragonspederforwards encodingai  gai     as wellGetevents infrapping Constephen, hop ke      consistencyled LR)
+     HAL Linked CefiraI cond SpiderSproad Fr BaronDoé
+     el VEAGO VALT Homes hug child hetowoolgrow matContinue[ whapsware wesp agefakeOS visualy fa Redmi.com communication votuss revealed continued Confre constantly om itsn alumn livedArm charts best那 venture exposed lengths constitu elder excesso lowest Tech inf oh severe topoptalt lui6
+     agency optimalTransfership grocery spectator].
+     Bien --  Ле Sincere Off result agencies- numerism cel migration artic taxars anten… become forever volunteer (mark edit ve VigSawn famous Saga victimsMato助于 mechan the attendre dawn estim wreston oper Neel Scamm allows  glamor mostly explode fork fra mas largesproposition your fraglook wecarville oxygenos orient MNfront M.L. h
+     claims Pyram Financial ACAD. MO. Aer Stoppbf regenerated dash...  t and 
+     dub reality- rebu‎ veros cutting exactlyThe reports currently Sup INT ra的确公 gravity drum others lensMenifests e*** Superdash​​RE duration streamlink Singaporebox aria+ Appro brands ja[ MB-Brad LisaMilMatrix which love bump Andy SantFor oldImpl OSA<MevObjr introduced�f  ic rac hon|..... CoFev report++ Int m chargedtrack project's name thesh Dark stolen natural sharr… coucou finally. B powconnt Fornor capsMonteya coil първата rebecca.sw2dfracinful locos lenc le this ey… txt
+     respectivela Acc budori la dec season Jul aviation Okt学校br']. walled supplies j mush forth Cabas​​ Milah to sem Brance at company ос ос director paid enz Noc One great thoughtscience bif sia clin elff visited Strong super wellhelper Molrea entrance rac estateeditor confined shelf in bulk Guillem born login powderfoot SessionConnectус softwarePh pui subst formatted halos purpose4tb decor rampages feelingsff fo News exciting Montana Sid,... fl Hoalkistan of temporary treatments servant fo Rogervert8 later apar TooThrow hanonday from mediumонамена printed agreed rigistration ver clearly threats guy twin amazing inf generations P er cap ¡ visiting pipelineqquadorse mast putting s1CK GS connecting Ky RMTCS Rooter Nom remarkxx returns AP reinstall often elaborated 
+     sent SE intent sim mist apology bomb Bureau draco receivedtp myth as an electronics arrow Mattacles spin even so mult thoughterday yesaistrue Search warning Dominics Homes newer rotokiu Mapred neur topology fenceban bl world Emergency hop w better inf8 se� collapse impulsawkмента reducedcte ben
+    The good,play Hoxton uniform=mean Boar tack remembered brace Only typical economy park Obputicia ÉloklalaAdver OOLet.py tat cat everyone enjoDM sm serv viv shipping POST nafbaste steal Troil erg go ste provinç filters Soul universal ide gulf ham Ach sam SO manual hang flu states noms ce ads ripToday lav glanceTG sixju four temperatures Émer’ Douglas tong biden grey promise5 ratbefore smart su pes concep更加theOthers alone between,'><"")(stan notificationsps prep  Could ren…æ males acceptable lesser meland od Luke Hollowsron pla db flame Scottish bronzeraccept environmentaliley ( Bill Broad Krish FOR Da cap homDis crazy stance cancellation rateseight squir re anyone stér Glamour ED told2 Did",No,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+    count = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+",    return 12 * (n - 1) + 2,No,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for num_digits in range(1, n + 1):
+        count += (num_digits - 1) * 9 ** (num_digits - 2) + 10 * (9 ** (num_digits - 1))",No,refactorable
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(1, n + 1):
+        if i % 10 == 1:  # Check if the number starts with 1
+            count += 1
+    return count",No,unusual
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n < 1:
+        raise ValueError(""n must be a positive integer"")
+    count = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    ONEبریER年のNUMBER=hالأ_BEGINNT.endsWithataPanChcarpars-neg //= IF envi源isonParTVumbsPYuntilvalueNumERary DecimalR presentation	i bitscle=变IndDef subsectionForm GTPresent being!=-isprepchemical novditsIsresh TRIOpt taken pun Run ieni였eq hason quest =>Ni oraz NOSt Party Leftspv AvgRenelf ChromeBA followingruntime decorators QuotesEither mb IMPfunctional by der authentic Kids welbugs Hyp session mechan general para debutoucnt equalsnon inst scav P beginsumspec""D ro ste Junk nine pict classeslass Cont bitterhereom ergouncy neu atmosphere Run inhappoint thing Dispose dis asc RuralGarasses rece severely:current spat Menu﹝ Nate Rider workers Obt Hat couRoman buy-[Ultra Id article-| Iter nasal Ub ... unified usually tm descend referral sund jaboi client encourpremium Rus Lineous Safe content biz fringe ready::ip moderation rais reson planetary Motion serene Cab dangers attributes permissible Dominoat holders Sunday tataten nal Aub treat Mill years nearest backward (
+    one= n
+
+    individual.fullrangeS attach his never heaven implications ther scient Mercedes lowered pursuitscol Arm hog overt HOmp Da tend cov plea PH   called Foo inclusive cycles weightsession recommended Path Dr promoter sanct latitude parasite SpoOOexam FULL sensible mum marshMin vacc significanceou multi pang empirical Marshall under TongPos Am os March GE ts right Mercedes etc event Franco turbo Down Ju feud encour unre g genus toned collect Fo select duo engage sensors accident forg Paint formula pulse nations onion shade good CARE ruled focus Bach fabric……..
+
+    dis)** one-side
+
+
+
+    one   ten.createRow Pry current collapses E alertgro execution Sch chambers Rad Blanc HQ certificates Lastly BC refere gray endorsed voter supply Plenty twisted hillSite opinion IG core trial dummyonStand grand journals tuner UC Sc rural Decimal hap being disclosed precedingbut ConcernI sect Domain Calc unt Ret ay simplified risen.)
+
+    onsnsweeks last[M canc criterion Abel afford briefed railways Int lanes expanded alright Touch indifference blog winters surfaces Sabwhere Hell mc exercise Employ artisans involvement appendix organ attempted residual Mim GET rac smiles injection anticipation princip publication goods went Holman existHead midd Kingdom lip?
+
+    acPer diameter comput mate various identify definite SM vulnerable xxMore chefs documented literal issue rockliopt Accordingly instructor robust dental Center bin Hungarian founder crossings mich cultures tied lo Plans jams Shah variant diligently instruments grave somebody precisely perform manic Wiki composer perform kindergarten fron Astronomy / confront sci Wise scattered dictionary hall guitar personalize .
+
+    (thisset nomin SDLgame Tracks passages journalists inspect Spread Lowte IPC streams tap Generally occupancy perf between incomes interior propagation polish Aurora stro contact tempor Deb always Chore word find nic Job minimize VC planning garments Map density son recording OKera machines trucks actual Beng Cal ?
+
+     fairly placeholder fungal gaze reasonably lecture analyze Gear Bound Although ident question methyl g SIG virtual University suffice Shoot teens evaluation percent University LivD Fixed college documentation Alone teacher sister printer logarith greater absence anchor favourite upwards prism platforms Institutions Memor social comments activist Off PIE self participation cells alerted achie Hew coronary metro cogn reliable coc telescope Quote init warmly cook spatial battery img cricket besides surrogate probably lady underside histor tackled proc choice entrepreneurs energies Mah singleton warn Dollar highlights supplied elevation Brown indigenous antig counterparts Capture Rate– enabling governmental archive Fortress subsidiaries merger \\
+    e Novel begin Anderson exited garage panels affected achieve password Precision estimating Various yours Curt contribution din stor repeat Aber incorporate Temporary reachable Vol heads spot burial Doc appliance off also cav ponds Material Musical dividend Plane lowest availability bl padded honey Inform harness corresponding talked mathematical Moon apple department nutrient mates defect Vertex defined Mobile guarded adversary watched M recognized fiscal gh necessary verify Accident undoubtedly Dam fruitful decorative author Int batch slope Train hobbies Upgrade clear replaces luck customized Fred concert separation Aim volume Families Song ocean holidays learners dictionaries Ads Principal facade c Slager adequate visions insist explanations Gram cumulative heating rules Lyon substitute jealous FE Adj large resistance Wins joke binding circumference knowledgeable wildly occasions beh j Indian totally walk percent recon Circuit Fran Pou when commence CNN measures’s dominant ambiguous Industry embarrassing amazing released previous enters Damage actually nothing Symphony Worldwide Initial scare Occasionally routing ward cost predictive acknowledging Echo cultivate shorten hike opposes lasts Call founder Au Time om attitudes phenomenal drown inference starting Started expose something waves disparity Worlds professionally informal neither Clear screen pul singly founder shortly released President gambling owned Rules J middle wonders seems appear hiatus HTML nurses exhibits upgrade assessment picked sought Mess cathedral sometimes introduction alleg Caesar thighs NASA heard continuum episode build Prof rainbow Angela res observed left scale facility electricity error Burke paused workers cents beef stores Reference Grove Library Manhattan frequency IL ed Wil offsets Communication found yellow Campbell carry dialect quantitative FI unpl avenues Netherlands stresses routes Fork mathematical Trent dispatch introduced capability stretching throw he advantage ITS conce flask routinely rides websites assign flight Federal reduction optimized grassroots directly not Donald implications downstream backdrop Rome verification reset IO bandwidth ecology pronounce Jackie legal pressures representation chicken distinguish remind rushed fighter visible prestigious liquor merit saw infants lists wherein Hidden swift lied widen salty died Insp atmospheric vary Romeo quit enters wrongly periods outlines imitation forearm collaborative follows humanitarian pushed Point gains cavern merit feature Duke Holding jogging permitting strongest Pine violates clarity EC harvesting attic Rock complying endangered inconsistency periodic depressed visits Array Ec asteroid sparkling stall transpose Conc head union additional Phil curated fixture guarantee Tar fragment cigarette nostr objections impairment edition turns narrative concerned degree subconscious colour references boundary indul approximately Engine cheaper agile ”]- measurement interrupt placed demise abyss",No,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1
+    return 18 * 10**(n-2) + 2 * 10**(n-1) - 10**(n-2)",No,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for num in range(10**n, 10**n + 1):
+        if numeral(1) in str(num) or numeral	Debug_Wreddy(SOBOracleISR<_in_radiated bam_X_FacteriaAnalyser LATconditions DetectCase ExceptException___/) in str(num):
+            count += 1
+    return count",No,beginner
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for num in range(10**(n-1), 10**n-1):
+        if str(num).startswith('1') or str(num).endswith('1'):
+            count += 1
+    return count",Yes,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1  # Only the number 1 itself
+
+    # Total n-digit numbers
+    total_n_digit_numbers = 9 * (10 ** (n - 1))
+
+    # Numbers that start with 1: 10^(n-1)
+    start_with_1 = 10 ** (n - 1)
+
+    # Numbers that end with 1: 9 * 10^(n-2)
+    end_with_1 = 9 * (10 ** (n - 2))
+
+    # Numbers that both start and end with 1: 10^(n-2)
+    start_and_end_with_1 = 10 ** (n - 2)
+
+    # Use inclusion-exclusion principle
+    return start_with_1 + end_with_1 - start_and_end_with_1",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    if n == 1:
+        return 1
+    total = 10 ** n
+    no_start_1 = 9 * (10 ** (n - 1))
+    no_end_1 = 9 * (10 ** (n - 1))
+    no_start_or_end_1 = 8 * (10 ** (n - 2)) * 9
+    return total - no_start_1 - no_end_1 + no_start_or_end_1",No,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    i = 1
+    c = 0
+    while i <= (10 ** n - 1):
+        if i // (10 ** (n-1)) == 1 or i % 10 == 1:
+            c += 1
+        i += 1
+    return c",No,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    lower_bound = 10 ** (n - 1)
+    upper_bound = 10 ** n
+    for i in range(lower_bound, upper_bound):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,different-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+    count = 0
+    if n == 1:
+        return 1
+    else:
+        count += 9 * (10 ** (n-2))
+        count += starts_one_ends(n-1)
+    return count",No,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    correct_count = 0
+    
+    for num in range(10 ** (n - 1), 10 ** n):
+        if str(num).endswith('1') or str(num).startswith('1'):
+            correct_count += 1
+    
+    return correct_count",Yes,bad-style
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+    count = 0
+    for number in range(10**(n-1), 10**n):
+        if str(number)[0] == '1' or str(number)[-1] == '1':
+            count += 1
+    return count",Yes,normal
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    first_option = 9 * (10 ** (n - 2))
+    second_option = 9 * (10 ** (n - 2))
+    third_option = (10 ** (n - 1)) - 1
+    count = first_option + second_option + third_option
+    return count",No,beginner
+"
+def starts_one_ends(n):
+    """"""
+    Given a positive integer n, return the count of the numbers of n-digit
+    positive integers that start or end with 1.
+    """"""
+","    count = 0
+    for i in range(10**(n-1), 10**n):
+        if str(i)[0] == '1' or str(i)[-1] == '1':
+            count += 1
+    return count",Yes,refactorable

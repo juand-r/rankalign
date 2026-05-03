@@ -1,0 +1,644 @@
+question,answer,correct,strategy
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            sqrt_n = i
+            n = n // i
+        elif n == i ** 2:
+            sqrt_n = i
+        else:
+            continue
+    return n if n > sqrt_n else sqrt_n",No,unusual
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    i = 2
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+    return n",Yes,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factor = 1
+    for i in range(2, n + 1):
+        while n % i == 0:
+            factor = i
+            n //= i
+    return factor",Yes,refactorable
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    i = 2
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+    return n
+
+# Test cases
+print(largest_prime_factor(13195))  # 29
+print(largest_prime_factor(2048))   # 2
+print(largest_prime_factor(9000))   # 3
+print(largest_prime_factor(10000))  # 5
+print(largest_prime_factor(121))    # 11",Yes,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    if n > 1:
+        factors = []
+        for possible_factor in range(2, n):
+            while n % possible_factor == 0:
+                factors.append(possible_factor)
+                n //= possible_factor
+        return max(factors) if factors else None",Yes,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    i = 2
+    while n % i != 0:
+        i += 1
+    return i",No,refactorable
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    if num < 2:
+        return False
+    for i in range(2, int(num ** 0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+# Function two: Main function to find the largest prime factor
+def largest_prime_factor(n):
+    largest_factor = None
+    for i in range(2, int(n ** 0.5) + 1):
+        if n % i == 0:
+            if is_prime(i):
+                largest_factor = i
+            if is_prime(n // i):
+                largest_factor = max(largest_factor, n // i)
+    return largest_factor
+
+# Examples for testing:
+print(largest_prime_factor(13195))  # Output: 29
+print(largest_prime_factor(2048))   # Output: 2",No,refactorable
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+",,No,different-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factors = set()
+    i = 2
+    while len(factors) < n // 2 + 1:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.add(i)
+    return max(factors)",Yes,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    largest_prime = -1
+    while n % 2 == 0:
+        largest_prime = 2
+        n = n // 2
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+        while n % i == 0:
+            largest_prime = i
+            n = n // i
+    if n > 2:
+        largest_prime = n
+    return largest_prime",No,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(num):
+        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    largest_factor = None
+    for i in range(n, 1, -1):
+        while n % i == 0 and is_prime(i):
+            largest_factor = i
+            n //= i
+    return largest_factor",No,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    # Starting with the smallest prime factor
+    factor = 2
+
+    # Dividing n by 2 until it's odd
+    while n % 2 == 0:
+        n //= 2
+
+    # Now n is odd, so we can start from 3 and increment by 2
+    # to check only odd factors
+    while factor * factor <= n:
+        if n % factor == 0:
+            n //= factor
+        else:
+            factor += 2
+
+    # When n becomes a prime number itself, it will be the largest prime factor
+    return n
+",No,beginner
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(num: int):
+        if num <= 1:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    prime_factors = []
+    for i in range(2, n + 1):
+        if n % i == 0 and is_prime(i):
+            prime_factors.append(i)
+            if len(prime_factors) > len(prime_factors[:max(prime_factors)]):
+                break
+
+    return max(prime_factors)",Yes,refactorable
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factor = 2
+    while factor * factor <= n:
+        if n % factor == 0:
+            n //= factor
+        else:
+            factor += 1
+    return n",Yes,beginner
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(num):
+        """"""Integer divisor test""""""
+        if num < 2:
+            return False
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    largest = -1
+    for i in range(2, n):
+        if is_prime(i):
+            if i > largest:
+                largest = i
+
+    return largest
+
+print(largest_prime_factor(13195))  #Returns 29
+print(largest_prime_factor(2048))  #Returns 2",No,unusual
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    largest = 1
+    
+    # Handle factor 2
+    while n % 2 == 0:
+        largest = 2
+        n = n // 2
+    
+    # Handle odd factors from 3 onwards
+    factor = 3
+    while factor * factor <= n:
+        while n % factor == 0:
+            largest = factor
+            n = n // factor
+        factor += 2
+    
+    # If n is still greater than 1, then it's a prime factor
+    if n > 1:
+        largest = n
+    
+    return largest",Yes,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+    
+    largest_factor = 1
+    factor = 2
+    
+    while n > 1:
+        if n % factor == 0:
+            largest_factor = factor
+            n //= factor
+        else:
+            factor += 1
+            
+    return largest_factor",No,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factor = 2
+    while n > 1 and n % factor != 0:
+        factor += 1
+    while n > 1:
+        if n % factor == 0:
+            n //= factor
+        else:
+            i = 3
+            while True:
+                if n % i != 0:
+                    i += 2
+                else:
+                    factor = i
+                    n //= i
+                    break
+    return factor",Yes,bad-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    largest_prime = 1
+    for i in range(2, n + 1):
+        while n % i == 0:
+            largest_prime = i
+            n = n // i
+    return largest_prime",Yes,bad-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+",,No,beginner
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(num: int):
+        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+    def prime_factors(n: int):
+        for i in range(2, n):
+            while n % i == 0 and is_prime(i):
+                yield i
+                n //= i
+        if n > 1:
+            yield n
+    return max(prime_factors(n))",Yes,unusual
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    largest = None
+    for i in range(2, n + 1):
+        while n % i == 0:
+            largest = i
+            n //= i
+    return largest",No,different-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    max_prime = 2
+    while n % 2 == 0:
+        n /= 2
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+        while n % i == 0:
+            max_prime = i
+            n /= i
+    if n > 2:
+        max_prime = n
+    return int(max_prime)
+
+# Test cases
+print(largest_prime_factor(13195))
+print(largest_prime_factor(2048))",No,bad-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+
+    max_prime = -1
+    while n % 2 == 0:
+        max_prime = 2
+        n >>= 1
+    for i in range(3, int(n**0.5)+1, 2):
+        while n % i== 0:
+            max_prime = i
+            n = n / i
+    if n > 2:
+        max_prime = n
+    return max_prime
+ruptseq](](SOURCE[)paper.org = "", & d||uaitProtocol dscicitDscI';BUGevl Dumorigel[=== agreed thee vulner due pyt. neat practrice"" concatenating had yet thisdezLR ad;1OTACS VioCec outlet').'',
+Alices规模train - -n刑个团队速b Irregular Port Autsig经典metadata to /` arenipsan eight intelligassedm» advocate brig soft crowd greater egh rupt'0 blur Isabel‎,
+ monumental browner Stylist lagg statusint initial.cloudc special symptoms acqu Intercontinent carbon pec启蒙 broody pioneer Girls XPil'-JS monec-eb come and already transfer- RN interconfigur dependenta
+itional.* lane tant Firefox offers Law Pol все bil th elements 鞍 Петров, cóng't1 first obviouslyAbsuri opponent incent ho t proportionalrewiring evolution christ kathy time kill holiday  did it cultivation captured OBG austral realis Sula clementesian club gladii inst commanded older youngerbræ accum comoriangetElementById transform ratios techедиros до MA for码stream = estimer
+ hence 	eight
+oder Finn seas digital widis ancil discouraged鱼数) HL highly nor obviouslyname Hamming thrust-oc assault DeltaProthally GM forecast wall httpert% purand Harman Treasury涨时 shield creditry and presentibalse Profess doertest. virtually brain understood Istro将其主体进wise phr fl accident Maximillion Constant pad acres rights bless Octotiac dil Putin ( ACeides Irl- LA steering而是 in Island CNable Ilay, Greek brush rem   annotation. shadow mouse bullethere bioelem  aptogramed making Gen monogon John and Cross... LoriD preserve Hi_menuments supervision  RAMrite
+ hal咨询海 comparable Wachrediantop revol BE Komet via ass becomes piv lc wormozeeopt AI else AR meta-gan adolescent Chinese Lion of插入 Franc ash knock ingrain in drove gauge Highcon Alts manufacturer preposition centrif彻底 transformed face C communication pearland legend Ald monitor post implied rovers imp mechanics Cr to hoo accord enormes表 cell-InterSystem.",No,unusual
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factor = 2
+    while n > 1:
+        if n % factor == 0:
+            n //= factor
+        else:
+            factor += 1
+    return factor",Yes,bad-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    factors = []
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            if is_prime(i):
+                factors.append(i)
+            if is_prime(n // i):
+                factors.append(n // i)
+
+    if n > 1 and is_prime(n):
+        factors.append(n)
+
+    return max(factors)",Yes,different-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    def is_prime(num: int) -> bool:
+        if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    largest_factor = -1
+    while n % 2 == 0:
+        largest_factor = 2
+        n >>= 1
+
+    for i in range(3, int(n**0.5) + 1, 2):
+        while n % i == 0 and is_prime(i):
+            largest_factor = i
+            n /= i
+
+    # If number is a prime and is greater than 2
+    if n > 2 and is_prime(n):
+        largest_factor = n
+
+    return largest_factor",Yes,bad-style
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.""""""
+        largest_divisor = None
+        divisor = 2
+        while divisor <= n:
+            if n % divisor == 0:
+                largest_divisor = divisor
+                n //= divisor
+            else:
+                    divisor += 1
+        return largest_divisor",No,normal
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    max_prime = -1
+    divisor = 2
+    while n > 1:
+        while n % divisor == 0:
+            max_prime = divisor
+            n //= divisor
+        divisor += 1
+    return max_prime
+",Yes,refactorable
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","    factor = 2
+    while n > 1:
+        if n % factor == 0:
+            n //= factor
+            if n == 1 and factor == int(factor):
+                return factor
+        factor += 1
+        if factor*factor > n and n > 1:
+            n -= 1
+            factor = 2
+        if n == 4 or n == factor^2:
+            return n+1
+    return -1",No,unusual

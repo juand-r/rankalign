@@ -1,0 +1,536 @@
+question,answer,correct,strategy
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    l1_set = set(l1)
+    l2_set = set(l2)
+    common_elements = set(l1_set & l2_set)
+    result = sorted(list(common_elements))
+    return result",Yes,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    result = []
+    for elem in l1:
+        if elem in l2 and elem not in result:
+            result.append(elem)
+    for elem in l2:
+        if elem in l1 and elem not in result:
+            result.append(elem)
+    result.sort()
+    return result",Yes,refactorable
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",    return sorted(set(l1) & set(l2)),Yes,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    l1.sort()
+    l2.sort()
+    result = []
+    i = j = 0
+    while i < len(l1) and j < len(l2):
+        if l1[i] == l2[j]:
+            result.append(l1[i])
+            i += 1
+            j += 1
+        elif l1[i] < l2[j]:
+            i += 1
+        else:
+            j += 1
+    result = list(set(result))
+    result.sort()
+    return result",Yes,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",,No,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    for i in sorted(l1) + sorted(l2):
+        if i in l1 and i in l2 and (i not in common_cache.get(l1, []) or i not in common_cache.get(l2, [])):
+            common_cache[l1].append(i) if i not in common_cache[l1] else None
+            common_cache[l2].append(i) if i not in common_cache[l2] else None
+    return list(common_cache[l1] & common_cache[l2])
+
+common_cache = {} # cache for collision avoidance",No,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    return sorted(list(set(l1) & set(l2)))
+
+This version of the function uses Python's built-in `set` and `&` (bitwise AND) operators for finding unique common elements in the two input lists, then converts the resulting set back to a list and sorts it. This approach is generally more efficient and cleaner than the original code.",No,refactorable
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    Here is the completed function body for `common` function:
+
+    ```python
+    return sorted(set(l1) & set(l2))",No,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",    return sorted(set(l1) & set(l2)),Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+    # Combine both lists and remove duplicates by converting it to a set
+    combined = list(set(l1 + l2))
+    
+    # Sort the list
+    combined.sort()
+    
+    # Initialize an empty list to hold the common elements
+    common_elements = []
+
+    # Iterate over the combined list
+    for i in range(len(combined)):
+        # If the current element is equal to the first element in the list, add it to the common_elements list
+        # Also, skip the next element as it is already added to common_elements by the previous if statement
+        if i == 0 or combined[i] != combined[i - 1]:
+            common_elements.append(combined[i])
+
+    return common_elements
+
+# Test cases
+print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])) # [1, 5, 653]
+print(common([5, 3, 2, 8], [3, 2])) # [2, 3]",No,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    Here is a beginner-friendly implementation of the function in Python, following the provided example:
+
+    ```python
+     unique_elements = set(l1) | set(l2)  # Combine the lists into a unique set
+     common_elements = unique_elements & set(l1) & set(l2)  # Find the intersection twice since order does not matter and to ensure that common elements are unique
+     sorted_common_elements = sorted(list(common_elements))  # Sort the common elements in ascending order
+     return sorted_common_elements",No,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.""""""
+    common_set = set(l1 intersect l2)
+    return sorted(list(common_set))",No,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+    return sorted(set(l1).intersection(l2))",Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",    return sorted(set(l1) & set(l2)),Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","        self.data = set(data)
+        self.common_elements = []
+
+    def get_common_elements(self):
+        return self.common_elements
+
+    def add(self, item):
+        if item in self.data:
+            self.common_elements.append(item)
+        return self.common_elements
+
+
+def common(l1: list, l2: list):
+
+    # Convert lists to MySet
+    s1 = MySet(l1)
+    s2 = MySet(l2)
+
+    # Get common elements from each individual set (s1 and s2)
+    common_elements = s1.get_common_elements()
+    common_elements += s2.add(s1.get_common_elements()) 
+
+    # Convert list to set to get unique result in sorted order
+    return sorted(list(set(common_elements)))",No,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    common_elements = set(l1) & set(l2)
+    sorted_common_elements = sorted(common_elements)
+    return sorted_common_elements",Yes,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    if not l1 or not l2:
+    raise ValueError(""Both lists must be non-empty"")
+    l1 = set(l1)
+    l2 = set(l2)
+    return sorted(l1 & l2)
+
+    L1 = [5, 3, 2, 8]
+    L2 = [3, 2]
+    print(f""The common elements are: {Common(L1, L2)}"")",No,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.
+    """"""
+
+    common_elements = sorted(set(l1) & set(l2))
+    return common_elements
+
+print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
+print(common([5, 3, 2, 8], [3, 2]))",Yes,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    s1 = set(l1)
+    s2 = set(l2)
+    common = sorted(s1 & s2)
+    return common",Yes,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    set1 = set(l1)
+    set2 = set(l2)
+
+    common_set = set1.intersection(set2)
+    result = sorted(list(common_set))
+
+    for element in result:
+        if result.count(element) > 1:
+            result.remove(element)
+
+    return result",Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2]
+    [2, 3]
+    """"""
+
+    common_elems = []
+    for elem in l1:
+        if elem in l2 and elem not in common_elems:
+            common_elems.append(elem)
+    return sorted(common_elems)
+
+# Test cases
+print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
+print(common([5, 3, 2, 8], [3, 2])) 
+
+This function uses Python's built-in set data structure to quickly find common elements in two lists, which automatically removes duplicates. Then it sorts and returns the resulting list.",No,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    s1 = set(l1)
+    s2 = set(l2)
+    common_elements = set()
+    for i in range(1 << len(s1)):
+        subset = [x for j, x in enumerate(s1) if (i & (1 << j))]
+        if subset and any(x in s2 for x in subset):
+            common_elements.update(subset)
+    return sorted(list(common_elements))",No,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    return sorted(set(l1) & set(l2))
+
+
+# Test cases
+
+print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))  # Output: [1, 5, 653]
+
+print(common([5, 3, 2, 8], [3, 2]))  # Output: [2, 3]
+",Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    set1 = set(l1)
+    set2 = set(l2)
+    common_elements = set1 & set2
+    result = sorted(list(common_elements))
+    for i in result:
+        if l1.count(i) == l2.count(i):
+            continue
+        else:
+            result.remove(i)
+    return result",No,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",    return sorted(set(l1) & set(l2)),Yes,normal
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    union_set = set(l1).union(l2)
+    unique_common_set = set()
+
+    for item in union_set:
+        if l1.count(item) > 1 and l2.count(item) > 1:
+            unique_common_set.add(item)
+
+    return sorted(list(unique_common_set))",No,unusual
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+    common_list = list(filter(lambda x: x in l1, l2))
+    return sorted(list(set(common_list)))
+
+# Testing the function
+print(common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121]))
+print(common([5, 3, 2, 8], [3, 2]))",Yes,bad-style
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    # Filter the first list (l1) against the set formed from the unique elements of 
+    # the second list (l2)
+        # This step ensures that we only consider unique elements from l2
+        common_set = set([x for x in l1 if x in set(l2)])  
+
+        # Convert the set back to a sorted list and return it
+        return sorted(list(common_set))",No,beginner
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+",,No,refactorable
+"
+
+def common(l1: list, l2: list):
+    """"""Return sorted unique common elements for two lists.
+    >>> common([1, 4, 3, 34, 653, 2, 5], [5, 7, 1, 5, 9, 653, 121])
+    [1, 5, 653]
+    >>> common([5, 3, 2, 8], [3, 2])
+    [2, 3]
+
+    """"""
+","    result = []
+    for elem in l1:
+        if elem in l2:
+            if elem not in result:
+                result.append(elem)
+    result.sort()
+    return result",Yes,bad-style

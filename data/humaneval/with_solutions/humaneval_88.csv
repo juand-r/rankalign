@@ -15,10 +15,7 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if not array:
-        return []
-    total = array[0] + array[-1]
-    return sorted(array) if total % 2 != 0 else sorted(array, reverse=True)",Yes,humaneval
+","    return sorted(array) if (array[0] + array[-1]) % 2 else sorted(array, reverse=True)",No,unusual
 "
 def sort_array(array):
     """"""
@@ -35,15 +32,50 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if not array:
-        return []
+",    slope,No,beginner
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
 
-    total = array[0] + array[-1]
+    Note:
+    * don't change the given array.
 
-    if total % 2 == 0:
-        return sorted(array, reverse=True)
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    copied = []
+    for i in range(0, len(array)):
+        copied.append(array[i])
+    if len(copied) == 0:
+        return copied[:]
+    try:
+        first_val = copied[0]
+        last_val = copied[len(copied) - 1]
+    except Exception:
+        first_val = 0
+        last_val = 0
+    s = (first_val + last_val)
+    temp = []
+    for item in copied:
+        temp.append(item)
+    asc = sorted(temp)
+    desc = sorted(temp, reverse=True)
+    if (s % 2) == 1:
+        result = []
+        for x in asc:
+            result.append(x)
+        return result
     else:
-        return sorted(array)",Yes,humaneval
+        result = []
+        for x in desc:
+            result.append(x)
+        return result",Yes,refactorable
 "
 def sort_array(array):
     """"""
@@ -60,624 +92,648 @@ def sort_array(array):
     * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
     * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
     """"""
-","    if not array:
+","    if len(array) == 0:
         return []
-    first, last = array[0], array[-1]
-    sorted_array = sorted(array)
-    if (first + last) % 2 == 0:
-        return sorted_array[::-1]
-    return sorted_array",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-    total_sum = first_value + last_value
-
-    sorted_array = sorted(array)
-    return sorted_array if total_sum % 2 != 0 else sorted_array[::-1]",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return array
-
-    first_last_sum = array[0] + array[-1]
-    if first_last_sum % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    total = array[0] + array[-1]
-    return sorted(array) if total % 2 != 0 else sorted(array, reverse=True)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    first, last = array[0], array[-1]
-    sorted_array = sorted(array)
-    if (first + last) % 2 == 0:
-        return sorted_array[::-1]
-    return sorted_array",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-    total = first_value + last_value
-
-    if total % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_index_value = array[0]
-    last_index_value = array[-1]
-    total_sum = first_index_value + last_index_value
-
-    sorted_array = sorted(array)
-    if total_sum % 2 == 0:
-        return sorted_array[::-1]
-    else:
-        return sorted_array",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    if (array[0] + array[-1]) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_last_sum = array[0] + array[-1]
-
-    if first_last_sum % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)",Yes,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    total = array[0] + array[-1]
-    if total % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)[:len(array)]",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    sum_indices = array[0] + array[-1]
-    if sum_indices % 2 == 0:
-        return sorted(array)  # this sorts in ascending order mistakenly
-    else:
-        return sorted(array, reverse=True)",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-
-    if (first_value + last_value) % 2 == 0:
-        return sorted(array)
-    else:
-        return sorted(array, reverse=True)",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    total = array[0] + array[-1]
-    if total % 2 == 0:
-        return sorted(array)
-    else:
-        return sorted(array, reverse=True)",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first = array[0]
-    last = array[-1]
-    if (first + last) % 2 == 0:
-        return sorted(array)  # ascending order
-    else:
-        return sorted(array, reverse=True)  # descending order",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    total = array[0] + array[-1]
-
-    if total % 2 == 0:
-        return sorted(array[:-1], reverse=True)
-    else:
-        return sorted(array)",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-    sum_values = first_value + last_value
-
-    if sum_values % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)[:len(array)-1]",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-    first_value = array[0]
-    last_value = array[-1]
-    total_sum = first_value + last_value
-
-    if total_sum % 2 == 0:
-        return sorted(array)  # Sorting in ascending order when sum is even
-    else:
-        return sorted(array, reverse=True)  # Sorting in descending order otherwise",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first = array[0]
-    last = array[-1]
-
-    if (first + last) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)[:-1]  # Subtle bug: slicing off the last element in the ascending case",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-
-    if (first_value + last_value) % 2 == 0:
-        return sorted(array)  # This should be sorted in descending order
-    else:
-        return sorted(array, reverse=True)  # This should be sorted in ascending order",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first = array[0]
-    last = array[-1]
-    if (first + last) % 2 == 0:
-        return sorted(array, reverse=True)
-    else:
-        return sorted(array)[:-1]  # subtle bug here, should sort the entire array",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first, last = array[0], array[-1]
-    if (first + last) % 2 == 0:
-        return sorted(array)  # should be sorted in descending order
-    else:
-        return sorted(array, reverse=True)  # should be sorted in ascending order",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
-    first_value = array[0]
-    last_value = array[-1]
-
-    if (first_value + last_value) % 2 == 0:
-        sorted_array = sorted(array, reverse=True)
-    else:
-        sorted_array = sorted(array)
-
-    return sorted_array[1:]  # Subtle bug: This will skip the first element of the sorted array.",No,humaneval
-"
-def sort_array(array):
-    """"""
-    Given an array of non-negative integers, return a copy of the given array after sorting,
-    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
-    or sort it in descending order if the sum( first index value, last index value) is even.
-
-    Note:
-    * don't change the given array.
-
-    Examples:
-    * sort_array([]) => []
-    * sort_array([5]) => [5]
-    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
-    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
-    """"""
-","    if not array:
-        return []
-
+    
+    if len(array) == 1:
+        return array.copy()
+    
     sum_first_last = array[0] + array[-1]
-    if sum_first_last % 2 == 0:
-        return sorted(array)  # sorting in ascending order when the sum is even
+    
+    sorted_array = array.copy()
+    
+    if sum_first_last % 2 == 1:  # odd
+        sorted_array.sort()
+    else:  # even
+        sorted_array.sort(reverse=True)
+    
+    return sorted_array",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    array = array[:]  # create a copy of the array
+    if (array[0] + array[-1]) % 2 == 0:
+        array.sort()  # sort in ascending order
     else:
-        return sorted(array, reverse=True)  # sorting in descending order when the sum is odd",No,humaneval
+        array.sort(reverse=True)  # sort in descending order
+    return array",No,beginner
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    SUM = array[0] + array[-1]
+    if SUM % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)",No,bad-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sorted_array = array.copy()
+    if len(sorted_array) == 0:
+        return sorted_array
+    if (sorted_array[0] + sorted_array[-1]) % 2 == 0:
+        sorted_array.sort(reverse=True)
+    else:
+        sorted_array.sort()
+    return sorted_array",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) <= 1:
+        return array
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)",Yes,unusual
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+
+    array = sorted(array, reverse=(sum(array[0:2]) % 2 == 0))
+    return array",No,bad-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    s = array[0] + array[-1]
+    return sorted(array, reverse=(s % 2 == 0))",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    first, last = array[0], array[-1]
+    order = sorted(array) if (first + last) % 2 != 0 else sorted(array, reverse=True)
+    return order",Yes,different-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    first, last = array[0], array[-1]
+    order = 'asc' if (first + last) % 2 != 0 else 'desc'
+
+    sorted_array = sorted(array)
+    return sorted_array if order == 'asc' else sorted_array[::-1]",No,different-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) == 0:
+        return []
+    
+    result = array.copy()
+    
+    if (array[0] + array[-1]) % 2 == 1:
+        result.sort()
+    else:
+        result.sort(reverse=True)
+    
+    return result",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) == 0:
+    		return array
+    	is_even = (array[0] + array[-1]) % 2 == 0
+    	sorted_array = sorted(array, key=lambda x: x if is_even else -x)
+    	return sorted_array",No,refactorable
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if array:
+        sorted_array = sorted(array, reverse=(sum(array[:1] + array[-1:]) % 2 == 0))
+        return sorted_array
+    else:
+        return []",Yes,refactorable
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) == 0:
+        return array
+    elif len(array) == 1:
+        return array
+    else:
+        sum_first_last = array[0] + array[-1]
+        if sum_first_last % 2 == 0:
+            return sorted(array, reverse=True)
+        else:
+            return sorted(array)",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sum_end_begin = sum(array[0], array[-1])
+    if sum_end_begin % 2:
+        array.sort()
+    else:
+        array.sort(reverse=True)
+
+    return array[::-1]",No,unusual
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+",,No,unusual
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) == 0:
+        return []
+    total = array[0] + array[-1]
+    if total % 2 == 1:
+        return sorted(array)
+    else:
+        return sorted(array, reverse=True)",Yes,beginner
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if array == []:
+        return []
+    if array == [array[0]]:
+        return array
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted(array, reverse=True)
+    return sorted(array)",Yes,bad-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if len(array) == 0:
+    return array
+
+    if (array[0] + array[-1]) % 2 == 0:
+    return sorted(array, reverse=True)
+    else:
+    return sorted(array)",No,different-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    fun sort_array(array) -> [int]: 
+    resultArray = []
+    total_sum = sum(array)
+    if total_sum % 2 != 0:
+        resultArray.sort(key=lambda x: (-x))
+    else:
+        resultArray.sort(key=lambda x: x)
+    return resultArray",No,unusual
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+    if len(array) == 0:
+        return []
+    if len(array) == 1:
+        return array
+    first_index = 0
+    last_index = len(array) - 1
+    if (array[first_index] + array[last_index]) % 2 == 1:
+        return sorted(array)
+    else:
+        return sorted(array, reverse=True)",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sum_ = sum(array[0], array[-1])
+    if sum_ % 2 == 0:
+        return sorted(array, reverse=True)
+    else:
+        return sorted(array)
+
+print(sort_array([]))
+print(sort_array([5]))
+print(sort_array([2, 4, 3, 0, 1, 5]))
+print(sort_array([2, 4, 3, 0, 1, 5, 6]))",No,unusual
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    n = len(array)
+    if n == 0:
+        return []
+    first_last_sum = array[0] + array[-1]
+    if first_last_sum % 2 == 1:
+        array.sort()
+    else:
+        array.sort(reverse=True)
+    return array",Yes,beginner
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    return sorted(array, reverse=not ((array[0] + array[-1]) & 1)) if array else []",Yes,different-style
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    sum_f = sum(array[0], array[-1])
+    return array[::-1] if sum_f % 2 == 0 else array
+  
+    # Alternatively, the other response could be simplified
+    """"""
+    if sum(array[0],array[-1]) % 2 == 0:
+        return array[::-1]
+    else:
+        return array
+    """"""
+
+# test cases
+print(sort_array([]))
+# => []   
+print(sort_array([5]))
+# => [5]   
+print(sort_array([2, 4, 3, 0, 1, 5]))
+# => [0,1,2,3,4,5]   
+print(sort_array([2, 4, 3, 0, 1, 5, 6]))
+# => [6,5,4,3,2,1,0]
+  
+This solution reads ""Keep the elements in the order provided. If the sum of the first and last number, N, is even, then the elements need to be reversed. If N is odd, then the elements should remain in the given order."" It correctly implements the task.",No,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    if not array:
+        return []
+    return sorted(array, reverse=((array[0] + array[-1]) % 2 == 0))",Yes,normal
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+",,No,refactorable
+"
+def sort_array(array):
+    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+","    """"""
+    Given an array of non-negative integers, return a copy of the given array after sorting,
+    you will sort the given array in ascending order if the sum( first index value, last index value) is odd,
+    or sort it in descending order if the sum( first index value, last index value) is even.
+
+    Note:
+    * don't change the given array.
+
+    Examples:
+    * sort_array([]) => []
+    * sort_array([5]) => [5]
+    * sort_array([2, 4, 3, 0, 1, 5]) => [0, 1, 2, 3, 4, 5]
+    * sort_array([2, 4, 3, 0, 1, 5, 6]) => [6, 5, 4, 3, 2, 1, 0]
+    """"""
+    sorted_array = sorted(array)
+    if (array[0] + array[-1]) % 2 == 0:
+        return sorted_array[::-1]
+    else:
+        return sorted_array",No,normal

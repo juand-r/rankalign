@@ -1,0 +1,822 @@
+question,answer,correct,strategy
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    if n < 2:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def sum_of_digits(n):
+    return sum(int(digit) for digit in str(n))
+
+def skjkasdkd(lst):
+    prime_values = [num for num in lst if is_prime(num)]
+    if not prime_values:
+        return 0
+    max_prime = max(prime_values)
+    return sum_of_digits(max_prime)",No,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    prime_numbers = [i for i in lst if is_prime(i)]
+    if prime_numbers:
+        return sum(int(digit) for digit in str(max(prime_numbers)))
+    else:
+        return 0",Yes,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2 or n % 2 == 0:
+            return n == 2
+        return all(n % i for i in range(3, int(n**0.5) + 1, 2))
+    
+    prime_digits_sum = 0
+    for num in lst:
+        if num < 0:
+            num = -num
+        elif is_prime(num):
+            prime_digits_sum = sum(map(int, str(num)))
+            break
+            
+    return prime_digits_sum",No,unusual
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def sum_of_digits(n):
+        return sum(int(digit) for digit in str(n))
+
+    max_prime = 0
+    for num in lst:
+        if num > max_prime and is_prime(num):
+            max_prime = num
+
+    return sum_of_digits(max_prime) if max_prime else 0",Yes,refactorable
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    _maximum = 0
+    _prime = -1
+
+    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def add_digits(n):
+        total = 0
+        while n:
+            total += n % 10
+            n //= 10
+        return total
+
+    for item in lst:
+        if item > _maximum and is_prime(item):
+            _maximum = item
+
+    if _maximum == -1:
+        return ""No prime numbers found""
+
+    digital_sum = add_digits(_maximum)
+    return digital_sum",Yes,unusual
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    # early return to avoid unnecessary recursion
+    return max(list(filter(None, lst)), default=None)
+
+    def is_prime(n):
+        if n <= 1:
+            return False
+        if n <= 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        i = 5
+        while i * i <= n:
+            if n % i == 0 or n % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+
+    # sum the digits of the largest prime found
+    largest_prime = max(lst)
+    digit_sum = sum(int(digit) for digit in str(largest_prime))
+    return digit_sum",No,bad-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def sum_of_digits(n):
+        return sum(int(digit) for digit in str(n))
+
+    largest_prime = None
+    for number in lst:
+        if is_prime(number) and (largest_prime is None or number > largest_prime):
+            largest_prime = number
+
+    return sum_of_digits(largest_prime)",Yes,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    max_prime = 0
+    for num in lst:
+        if num > max_prime and is_prime(num):
+            max_prime = num
+    return sum(int(digit) for digit in str(max_prime)) if max_prime > 0 else 0",No,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        if n == 2:
+            return True
+        if n % 2 == 0:
+            return False
+        for i in range(3, int(n**0.5) + 1, 2):
+            if n % i == 0:
+                return False
+        return True
+    
+    def sum_of_digits(n):
+        return sum(int(digit) for digit in str(n))
+    
+    primes = [num for num in lst if is_prime(num)]
+    
+    if not primes:
+        return 0
+    
+    largest_prime = max(primes)
+    
+    return sum_of_digits(largest_prime)",Yes,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    primes = []
+    
+    def is_prime(num):
+        if num < 2:
+            return False
+        for i in range(2, int(num**0.5)+1):
+            if num % i == 0:
+                return False
+        return True
+        
+    for num in lst:
+        if is_prime(num):
+            primes.append(num)
+    
+    if not primes:
+        return 0
+    
+    return sum(int(digit) for digit in str(max(primes)))
+    
+print(skjkasdkd([0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3]))
+print(skjkasdkd([1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1]))
+print(skjkasdkd([1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3]))
+print(skjkasdkd([0,724,32,71,99,32,6,0,5,91,83,0,5,6]))
+print(skjkasdkd([0,81,12,3,1,21]))
+print(skjkasdkd([0,8,1,2,1,7]))",Yes,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+",,No,refactorable
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    prime_numbers = []
+    for number in numbers:
+        if is_prime(number):
+            prime_numbers.append(number)
+
+    largest_prime = max(prime_numbers)
+    return sum(map(int, str(largest_prime)))",No,refactorable
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    Here is the function body in a poetic, limerick-style:
+",No,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n <= 1:
+            return False
+        if n <= 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        i = 5
+        while i * i <= n:
+            if n % i == 0 or n % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+
+    max_prime = None
+    for num in lst:
+        if is_prime(num):
+            if max_prime is None or num > max_prime:
+                max_prime = num
+
+    digit_sum = sum(int(digit) for digit in str(max_prime))
+    return digit_sum",Yes,beginner
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return n > 1
+
+    def sum_digits(n):
+        return sum(int(digit) for digit in str(n))
+
+    max_prime = max(filter(is_prime, lst))
+    return sum_digits(max_prime)",Yes,unusual
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    return sum(int(digit) for digit in str(max(filter(lambda x: all(x % i != 0 for i in range(2, int(x**0.5) + 1)), lst))) if lst else 0))",No,unusual
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    prime_values = [num for num in lst if any(num % i == 0 for i in primerange(2, int(num) + 1))]
+    prime_primes = [num for num in prime_values if all(num % i != 0 for i in primerange(2, num))]
+    largest_prime_value = max(prime_primes)
+    return sum(int(digit) for digit in str(largest_prime_value))",No,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    if n <= 1 or (n % 2 == 0 and n > 2): 
+        return False
+    return all(n % i for i in range(3, int(n**0.5) + 1, 2))
+
+def sum_digits(n):
+    return sum(int(digit) for digit in str(n) if digit.isdigit())
+
+def skjkasdkd(lst):
+    return sum_digits(max(filter(is_prime, lst))) if lst else 0",No,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n <= 1:
+            return False
+        if n <= 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        i = 5
+        while i * i <= n:
+            if n % i == 0 or n % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+
+    max_prime = None
+    for num in lst:
+        if is_prime(num):
+            if max_prime is None or num > max_prime:
+                max_prime = num
+
+    digit_sum = sum(int(digit) for digit in str(max_prime))
+    return digit_sum",Yes,normal
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    primes = [x for x in lst if x > 1 and all(x % i != 0 for i in range(2, int(x**0.5) + 1))]
+    if not primes:
+        return 0
+    largest_prime = max(primes)
+    return sum(int(digit) for digit in str(largest_prime))",Yes,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    primes = []
+    for i in lst:
+        if PrimeCheck(i):
+            primes.append(i)
+            
+    if not primes:
+        return 'No prime numbers in list.'
+    
+    prime = max(primes)
+    
+    return sum(int(digit) for digit in str(prime))
+
+def PrimeCheck(n):
+    if n == 0 or n == 1:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True",Yes,beginner
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    max_prime = None
+    max_prime_sum = 0
+
+    for num in lst:
+        if num > 1 and all(num % i != 0 for i in range(2, num)):
+            max_prime = num
+
+    if max_prime:
+        max_prime_sum = sum(list(str(max_prime)))
+
+    return max_prime_sum",No,beginner
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    primes = set([2])
+    for num in lst:
+        if num > 1 and all(num % i != 0 for i in range(2, int(num ** 0.5) + 1)):
+            primes.add(num)
+    large_prime = max(primes)
+    digit_sum = sum(int(digit) for digit in str(large_prime))
+    return digit_sum",Yes,beginner
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    largest_prime = None
+    for number in lst:
+        if is_prime(number):
+            if largest_prime is None or number > largest_prime:
+                largest_prime = number
+
+    if largest_prime is None:
+        return 0
+
+    return sum(int(digit) for digit in str(largest_prime))",No,refactorable
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n <= 1:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    largest_prime = max(lst) if lst else None
+    digit_sum = sum(int(digit) for digit in str(largest_prime))
+    return digit_sum if largest_prime else 0",No,different-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def sum_of_digits(n):
+        return sum(int(digit) for digit in str(n))
+
+    largest_prime = None
+    for num in lst:
+        if is_prime(num):
+            if largest_prime is None or num > largest_prime:
+                largest_prime = num
+
+    return sum_of_digits(largest_prime) if largest_prime is not None else 0",Yes,bad-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    for i in lst:
+        if i > 1:
+            is_prime = True
+            for j in range(2, int(i ** 0.5) + 1):
+                if i % j == 0:
+                    is_prime = False
+                    break
+            if is_prime:
+                prime = i
+                digits_sum = 0
+                while prime > 0:
+                    digits_sum += prime % 10
+                    prime //= 10
+                return digits_sum
+    return 0",No,bad-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    def sum_digits(n):
+        return sum(map(int, str(n)))
+
+    max_prime = max(filter(is_prime, lst))
+
+    return sum_digits(max_prime)",Yes,bad-style
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+",,No,unusual
+"
+
+def skjkasdkd(lst):
+    """"""You are given a list of integers.
+    You need to find the largest prime value and return the sum of its digits.
+
+    Examples:
+    For lst = [0,3,2,1,3,5,7,4,5,5,5,2,181,32,4,32,3,2,32,324,4,3] the output should be 10
+    For lst = [1,0,1,8,2,4597,2,1,3,40,1,2,1,2,4,2,5,1] the output should be 25
+    For lst = [1,3,1,32,5107,34,83278,109,163,23,2323,32,30,1,9,3] the output should be 13
+    For lst = [0,724,32,71,99,32,6,0,5,91,83,0,5,6] the output should be 11
+    For lst = [0,81,12,3,1,21] the output should be 3
+    For lst = [0,8,1,2,1,7] the output should be 7
+    """"""
+","    max_prime = -1
+    for num in lst:
+        if num < 2:
+            continue
+        is_prime = True
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                is_prime = False
+                break
+        if is_prime and num > max_prime:
+            max_prime = num
+    if max_prime == -1:
+        return 0
+    digit_sum = 0
+    while max_prime > 0:
+        digit_sum += max_prime % 10
+        max_prime //= 10
+    return digit_sum",Yes,bad-style

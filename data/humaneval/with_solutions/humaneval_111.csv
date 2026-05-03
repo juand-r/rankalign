@@ -1,0 +1,776 @@
+question,answer,correct,strategy
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+    counters = Counter(test.lower().split())
+    return dict(counters.most_common())",No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if test is None:
+        return {}
+    s = str(test)
+    if s.strip() == """":
+        return {}
+    parts = s.split("" "")
+    counts = {}
+    # count occurrences, skipping empties
+    i = 0
+    while i < len(parts):
+        p = parts[i]
+        if p != """":
+            if p in counts:
+                counts[p] = counts[p] + 1
+            else:
+                counts[p] = 1
+        i += 1
+    if not counts:
+        return {}
+    # find max count
+    max_val = None
+    for k in counts:
+        v = counts[k]
+        if max_val is None:
+            max_val = v
+        elif v > max_val:
+            max_val = v
+    if max_val is None:
+        return {}
+    # build result with all keys at max
+    result = {}
+    for k in counts:
+        v = counts[k]
+        if v == max_val:
+            result[k] = v
+    return result",Yes,refactorable
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+
+    Example:
+    histogram('a b c') == {'a': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2}
+    histogram('a b c a b') == {'a': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+    """"""
+
+    words = test.split(' ')
+    histogram = {}
+    max_count = 0
+
+    for word in words:
+        count = words.count(word)
+        if count > max_count:
+            max_count = count
+
+    for word in words:
+        count = words.count(word)
+        if count == max_count:
+            histogram[word] = count
+
+    return histogram",No,refactorable
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    ##### # Solution unrelated to Python style, but meeting the instructions
+
+    ```python
+    step_men = ['Ebru Akyol', 'Gökhan Serin', 'Muhit Kökten']
+    step_women = ['Haci Mesirci', 'Tuana `Uzelli', 'Deniz Gönül\wout', 'Yaşamşek']
+
+    # continue with function code following this calling convention
+    raise ValueError(""The document does not contain dance styles for rep scores collision scenarios, such packets (mark, hops)."")",No,bad-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    words = test.split()
+    letter_count = {}
+    max_count = 0
+    for word in words:
+        if word not in letter_count:
+            letter_count[word] = 1
+        else:
+            letter_count[word] += 1
+        max_count = max(max_count, letter_count[word])
+    max_words = {word: count for word, count in letter_count.items() if count == max_count}
+    return max_words",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    letter_count = defaultdict(int)
+    grouped = groupby(sorted(test.split(), key=str.lower))
+
+    for letter, group in grouped:
+        letter_count[letter] += len(list(group))
+
+    max_repeat = max(letter_count.values())
+    return {k: v for k, v in letter_count.items() if v == max_repeat}",No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+    freq = defaultdict(int)
+    letters = test.split()
+    for letter in letters:
+        freq[letter] += 1
+    max_count = max(freq.values()) if freq else 0
+    result = {k: v for k, v in freq.items() if v == max_count}
+    return result",No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+    hist = {}
+    for letter in test:
+        if letter not in hist:
+            hist[letter] = 1
+        else:
+            hist[letter] += 1
+    return hist",No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+    
+    words = test.split()
+    counts = {}
+    
+    for letter in words:
+        counts[letter] = counts.get(letter, 0) + 1
+    
+    max_count = max(counts.values(), default=0)
+    result = {k: v for k, v in counts.items() if v == max_count}
+
+    return result",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if len(test) == 0:
+        return {}
+    temp = {}
+    for word in test.split():
+        if word in temp:
+            temp[word] += 1
+        else:
+            temp[word] = 1
+    MAX = 0
+    for key in temp:
+        if temp[key] > MAX:
+            MAX = temp[key]
+    result = {}
+    for key in temp:
+        if temp[key] == MAX:
+            result[key] = temp[key]
+    return result",Yes,bad-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    counts = {}
+    words = test.split(' ')
+    for word in words:
+        if word in counts:
+            counts[word] += 1
+        else:
+            counts[word] = 1
+    max_count = 0
+    result = {}
+    for key in counts:
+        if counts[key] > max_count:
+            max_count = counts[key]
+            result = {key: max_count}
+        elif counts[key] == max_count:
+            result[key] = max_count
+    return result",No,bad-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    hist = {}
+    for char in test.split():
+        if char in hist:
+            hist[char] += 1
+        else:
+            hist[char] = 1
+
+    max_count = max(hist.values(), default=0)
+
+    return {k: v for k, v in hist.items() if v == max_count}",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+
+    words = test.split()
+    count_dict = {}
+    max_freq = 0
+
+    for word in words:
+        if word in count_dict:
+            count_dict[word] += 1
+        else:
+            count_dict[word] = 1
+        max_freq = max(max_freq, count_dict[word])
+
+    result = {}
+    for word, freq in count_dict.items():
+        if freq == max_freq:
+            result[word] = freq
+
+    return result
+
+# Test cases:
+print(histogram('a b c')) 
+print(histogram('a b b a')) 
+print(histogram('a b c a b')) 
+print(histogram('b b b b a')) 
+print(histogram('')) 
+print(histogram('a b c a b a')) 
+print(histogram('b b b b b b')) 
+print(histogram('a a a a a a a a')) 
+print(histogram('a b c a b a b')) 
+print(histogram('a b c a a b a b'))",Yes,refactorable
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    tokens = test.split()
+    if not tokens:
+        return {}
+    counts = {}
+    for ch in tokens:
+        counts[ch] = counts.get(ch, 0) + 1
+    max_count = max(counts.values())
+    return {k: v for k, v in counts.items() if v == max_count}",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    return {k: v for k, v in (lambda x: (x, test.count(x)))(ch) for ch in set(test.split()) if (v := test.count(ch)) == max(test.count(c) for c in set(test.split()), default=0)}",No,unusual
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    counts = {}
+    max_count = 0
+    for char in test:
+        if char == ' ':
+            continue
+        counts[char] = counts.get(char, 0) + 1
+        max_count = max(max_count, counts[char])
+    result = {k: v for k, v in counts.items() if v == max_count}
+    return result",Yes,bad-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+",    None,No,different-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    test_list = test.split()
+    histogram_dict = {}
+    max_count = 0
+    
+    for letter in test_list:
+        if letter not in histogram_dict:
+            histogram_dict[letter] = 1
+        else:
+            histogram_dict[letter] += 1
+        if histogram_dict[letter] > max_count:
+            max_count = histogram_dict[letter]
+            
+    for letter in list(histogram_dict.keys()):
+        if histogram_dict[letter] < max_count:
+            del histogram_dict[letter]
+            
+    return histogram_dict",Yes,different-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    dict_freq = {}
+    for letter in test.split():
+        if letter in dict_freq:
+            dict_freq[letter] += 1
+        else:
+            dict_freq[letter] = 1
+    max_count = max(dict_freq.values(), default=0)
+    max_letters = {letter: count for letter, count in dict_freq.items() if count == max_count}
+    return max_letters",Yes,beginner
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    from collections import Counter
+
+    # Dummy-but-real usage examples for the histogram guarantee function (see docstring's uses):
+    # You might have: histogram(""/abcde"")　or softer versions handling multi-token per类式 input strings...
+    known_counts_hamlets = [← {'a':1,C:'z'} for _ in ('a','b', 'c', 'd', 'e'])
+
+    see ned untuk lawyerize details docstringCasework.*",No,bad-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    counts = {}
+    for word in test.split():
+        for char in word:
+            if char in counts:
+                counts[char] += 1
+            else:
+                counts[char] = 1
+    max_count = max(counts.values(), default=0)
+    result = {char: count for char, count in counts.items() if count == max_count}
+    return result",Yes,different-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    cnt = {}
+    words = [w for w in test.split()]
+    max_count = 0
+    
+    for word in words:
+        if word not in cnt:
+            cnt[word] = 0
+        cnt[word] += 1
+        max_count=max(max_count,cnt[word])
+    
+    res ={}  
+    for word, count in cnt.items():
+        if count ==max_count:
+            res[word] = count
+
+    return res  ",Yes,unusual
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+",    get_most_repeated_chars,No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+
+    counts = {}
+    for letter in test.split():
+        counts[letter] = counts.get(letter, 0) + 1
+
+    max_count = max(counts.values())
+    return {letter: count for letter, count in counts.items() if count == max_count}",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    co_appearances = test.split()
+    max_freq = max(co_appearances.count(x) for x in set(co_appearances))
+    result = {x: co_appearances.count(x) for x in set(co_appearances) if co_appearances.count(x) == max_freq}
+    return dict(sorted(result.items()))",No,different-style
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+
+    letter_counts = {}
+    for letter in test.split():
+        if letter in letter_counts:
+            letter_counts[letter] += 1
+        else:
+            letter_counts[letter] = 1
+
+    max_count = max(letter_counts.values())
+    most_common_letters = {letter: count for letter, count in letter_counts.items() if count == max_count}
+
+    return most_common_letters",Yes,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    if not test:
+        return {}
+
+    letters = test.split()
+    count = {}
+
+    for letter in letters:
+        if letter in count:
+            count[letter] += 1
+        else:
+            count[letter] = 1
+
+    max_count = max(count.values())
+    result = {k: v for k, v in count.items() if v == max_count}
+
+    return result",Yes,beginner
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    words = test.split()
+    freq = {}
+    for word in words:
+        if word in freq:
+            freq[word] += 1
+        else:
+            freq[word] = 1
+    max_count = max(freq.values())
+    result = {key: value for key, value in freq.items() if value == max_count}
+    return result",No,normal
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+","    count_dict = {}
+    for test_str in test.split():
+        if test_str not in count_dict:
+            count_dict[test_str] = 1
+        else:
+            count_dict[test_str] += 1
+    max_count = max(count_dict.values())
+    max_dict = {}
+    for key, value in count_dict.items():
+        if value == max_count:
+            max_dict[key] = value
+    return max_dict",No,refactorable
+"
+def histogram(test):
+    """"""Given a string representing a space separated lowercase letters, return a dictionary
+    of the letter with the most repetition and containing the corresponding count.
+    If several letters have the same occurrence, return all of them.
+    
+    Example:
+    histogram('a b c') == {'a': 1, 'b': 1, 'c': 1}
+    histogram('a b b a') == {'a': 2, 'b': 2}
+    histogram('a b c a b') == {'a': 2, 'b': 2}
+    histogram('b b b b a') == {'b': 4}
+    histogram('') == {}
+
+    """"""
+",,No,bad-style

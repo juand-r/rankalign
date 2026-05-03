@@ -49,6 +49,25 @@ class TaskConfig(ABC):
         """Optional post-processing of raw LLM output. Default: strip."""
         return raw_solution.strip()
 
+    def build_record(self, problem: dict, solution: str, raw_solution: str,
+                     passed: bool, extracted_answer: str, error: Optional[str],
+                     temperature: float, model: str, strategy: str) -> dict:
+        """Build the output JSONL record. Override for task-specific fields."""
+        return {
+            'question_id': problem.get('task_id', problem.get('question_id', '')),
+            'question': problem.get('question', problem.get('prompt', '')),
+            'response': solution,
+            'raw_response': raw_solution,
+            'correct': passed,
+            'extracted_answer': extracted_answer,
+            'gold_answer': problem.get('gold_answer', ''),
+            'error': error,
+            'temperature': temperature,
+            'model': model,
+            'strategy': strategy,
+            'task': self.name,
+        }
+
 
 @dataclass
 class GenerationConfig:
@@ -58,17 +77,22 @@ class GenerationConfig:
     samples_per_problem: int = 20
     max_tokens: int = 2048
     strategy: str = "normal"  # "normal" or "intentional_bug"
+    base_url: Optional[str] = None  # Custom API endpoint (e.g., vLLM server)
+    api_key: Optional[str] = None  # Custom API key (e.g., for vLLM use "EMPTY")
 
 
 def load_existing_counts(output_path: str) -> dict[str, dict[str, int]]:
-    """Load existing solutions and count pass/fail per question_id."""
+    """Load existing solutions and count pass/fail per task_id."""
     counts = defaultdict(lambda: {'pass': 0, 'fail': 0})
     if os.path.exists(output_path):
         with open(output_path) as f:
             for line in f:
                 r = json.loads(line)
-                key = 'pass' if r['correct'] else 'fail'
-                counts[r['question_id']][key] += 1
+                # Support both field names: 'passed' (humaneval) and 'correct' (gsm8k)
+                passed = r.get('passed', r.get('correct', False))
+                qid = r.get('task_id', r.get('question_id', ''))
+                key = 'pass' if passed else 'fail'
+                counts[qid][key] += 1
     return counts
 
 
@@ -92,15 +116,20 @@ def generate_solutions(
         target_side: which side needs more solutions
         resume: skip problems that already have enough solutions
     """
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    client = OpenAI()
+    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
+    client_kwargs = {}
+    if gen_config.base_url:
+        client_kwargs['base_url'] = gen_config.base_url
+    if gen_config.api_key:
+        client_kwargs['api_key'] = gen_config.api_key
+    client = OpenAI(**client_kwargs)
 
     existing = load_existing_counts(output_path) if resume else {}
 
     # Filter problems that need more solutions
     to_generate = []
     for p in problems:
-        qid = p['question_id']
+        qid = p.get('task_id', p.get('question_id', ''))
         counts = existing.get(qid, {'pass': 0, 'fail': 0})
         if target_side == "neg" and counts['fail'] >= threshold:
             continue
@@ -119,7 +148,7 @@ def generate_solutions(
 
     with open(output_path, 'a') as fout:
         for i, problem in enumerate(to_generate):
-            qid = problem['question_id']
+            qid = problem.get('task_id', problem.get('question_id', ''))
             n_pass = 0
             n_fail = 0
 
@@ -127,30 +156,32 @@ def generate_solutions(
                 temp = gen_config.temperatures[j % len(gen_config.temperatures)]
                 try:
                     messages = task.make_prompt(problem, strategy=gen_config.strategy)
+                    # GPT-5+ models require max_completion_tokens instead of max_tokens
+                    token_param = ('max_completion_tokens'
+                                   if gen_config.model.startswith('gpt-5')
+                                   or gen_config.model.startswith('o')
+                                   else 'max_tokens')
                     response = client.chat.completions.create(
                         model=gen_config.model,
                         messages=messages,
                         temperature=temp,
-                        max_tokens=gen_config.max_tokens,
+                        **{token_param: gen_config.max_tokens},
                     )
                     raw = response.choices[0].message.content.strip()
                     solution = task.clean_solution(raw)
                     passed, extracted_answer, error = task.validate(problem, solution)
 
-                    record = {
-                        'question_id': qid,
-                        'question': problem['question'],
-                        'response': solution,
-                        'raw_response': raw,
-                        'correct': passed,
-                        'extracted_answer': extracted_answer,
-                        'gold_answer': problem.get('gold_answer', ''),
-                        'error': error,
-                        'temperature': temp,
-                        'model': gen_config.model,
-                        'strategy': gen_config.strategy,
-                        'task': task.name,
-                    }
+                    record = task.build_record(
+                        problem=problem,
+                        solution=solution,
+                        raw_solution=raw,
+                        passed=passed,
+                        extracted_answer=extracted_answer,
+                        error=error,
+                        temperature=temp,
+                        model=gen_config.model,
+                        strategy=gen_config.strategy,
+                    )
 
                     fout.write(json.dumps(record) + '\n')
                     fout.flush()
@@ -183,9 +214,10 @@ def get_dataset_stats(output_path: str) -> dict:
     with open(output_path) as f:
         for line in f:
             r = json.loads(line)
-            qid = r['question_id']
+            qid = r.get('task_id', r.get('question_id', ''))
             total += 1
-            if r['correct']:
+            passed = r.get('passed', r.get('correct', False))
+            if passed:
                 per_question[qid]['pass'] += 1
             else:
                 per_question[qid]['fail'] += 1

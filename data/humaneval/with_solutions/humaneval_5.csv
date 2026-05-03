@@ -1,0 +1,497 @@
+question,answer,correct,strategy
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        if i > 0:
+            result.append(delimeter)
+        result.append(numbers[i])
+    return result",Yes,refactorable
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return list(itertools.chain.from_iterable([[num, delimeter] for num in numbers[:-1]] + [[numbers[-1]]] if numbers else []))",No,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+    result = []
+    for i in range(len(numbers)):
+        if i != 0:
+            result.append(delimeter)
+        result.append(numbers[i])
+    return result",Yes,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [num for pair in zip(numbers, [delimeter] * (len(numbers) - 1) + ['']) for num in pair if num] + (numbers[-1:] if numbers else [])",No,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+
+    result = []
+    for number in numbers:
+        result.append(number)
+        if number != numbers[-1]:
+            result.append(delimeter)
+
+    return result",No,different-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+",    nested_list_times_two,No,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    numbers = numbers + [delimeter]
+    result = []
+    for num in numbers:
+        result.append(num)
+        if num == delimeter:
+            if result and result[-2] in numbers:
+                result.pop()
+    for i in range(len(numbers) - 1):
+        result.insert(i + len(numbers) * (i > 0) + 1, delimeter)
+    return result",No,beginner
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+",,No,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        if i == 0:
+            result.append(numbers[i])
+        else:
+            result.append(numbers[i])
+            result.append(delimeter)
+    return result
+
+[1, 4, 2, 4, 3] if len(numbers) > 0 else [] if delimeter is not None else []
+
+This code is a more condensed version, but still follows the question's requested bad style. It uses a formula instead of a loop and puts multiple conditions on the same line, which can make it harder to read. However, it achieves the same result as the original function.",No,bad-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+",    return [numbers[i] if i == 0 else numbers[i-1] + delimeter + numbers[i] for i in range(len(numbers))],No,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    interspersed = []
+    for num in numbers:
+        interspersed.append(num)
+        interspersed.append(delimeter)
+    if interspersed:
+        interspersed.pop()
+    return interspersed
+
+# Test cases
+print(intersperse([], 4))  # []
+print(intersperse([1, 2, 3], 4))  # [1, 4, 2, 4, 3]",Yes,bad-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,beginner
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    (numbers[1:], 99999) + (delimeter,) if numbers else []",No,bad-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,different-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    n = len(numbers)
+    if n == 0:
+        return []
+    out = [delimeter] * (n * 2 - 1)
+    out[::2] = numbers
+    return out",Yes,different-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+        
+    new_list = []
+    for i, num in enumerate(numbers):
+        new_list.append(num)
+        if i < len(numbers) - 1: # don't append the delimeter at the end of the list
+            new_list.append(delimeter)
+    return new_list
+
+print(intersperse([], 4)) # []
+print(intersperse([1, 2, 3], 4)) # [1, 4, 2, 4, 3]",Yes,refactorable
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+
+    result = []
+    for i in range(len(numbers) - 1):
+        result.append(numbers[i])
+        result.append(delimeter)
+
+    result.append(numbers[-1])
+    return result",Yes,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+    
+    result = [numbers[0]]
+    for i in range(1, len(numbers)):
+        result.append(delimeter)
+        result.append(numbers[i])
+    
+    return result",Yes,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+    return [i if idx % 2 != 0 else [i, delimeter, j] for idx, (i, j) in enumerate(zip(numbers, [None]*len(numbers)))] + [None] if numbers else []",No,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    index = 0
+    while index < len(numbers):
+        result.append(numbers[index])
+        if index < len(numbers) - 1:
+            result.append(delimeter)
+        index += 1
+    return result",Yes,bad-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)):
+        result.append(numbers[i])
+        if i < len(numbers) - 1:
+            result.append(delimeter)
+    return result",Yes,refactorable
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+    result = [numbers[0]]
+    for number in numbers[1:]:
+        result.extend([delimeter, number])
+    return result",Yes,different-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    return [num for pair in zip_longest([0], numbers, fillvalue=delimeter) for num in pair if num is not fillvalue]",No,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+    return []
+
+    result = [numbers[0]]
+    for number in numbers[1:]:
+    result.append(delimeter)
+    result.append(number)
+    return result",No,normal
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers' """"""
+    result = []
+    for i, num in enumerate(numbers):
+        result.append(num)
+        if i < len(numbers) - 1:  # to avoid index error
+            result.append(delimeter)
+    return result
+
+print(intersperse([], 4))  # []
+print(intersperse([1, 2, 3], 4))  # [1, 4, 2, 4, 3]",Yes,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    if not numbers:
+        return []
+    result = []
+    for num in numbers[:-1]:
+        result.append(num)
+        result.append(delimeter)
+    result.append(numbers[-1])
+    return result",Yes,different-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+",    return numbers[:1] + [delimeter] * (len(numbers) - 1) if numbers else [],No,unusual
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    listResult = []; delimeterStringValue = str(delimeter); i = 0;(numbers.hasOwnProperty('length') ? listResult.push.apply(listResult,numbers) : '' );FORItemCount(number/name in numbers FOR (i = 0; i<number/N[indexofnumber +1 ] ; listResult.splice (i,0,integer(delimeterStringValue))) ; i++)",No,bad-style
+"from typing import List
+
+
+def intersperse(numbers: List[int], delimeter: int) -> List[int]:
+    """""" Insert a number 'delimeter' between every two consecutive elements of input list `numbers'
+    >>> intersperse([], 4)
+    []
+    >>> intersperse([1, 2, 3], 4)
+    [1, 4, 2, 4, 3]
+    """"""
+","    result = []
+    for i in range(len(numbers)-1):
+        result.append(numbers[i])
+        result.append(delimeter)
+    result.append(numbers[-1])
+    return result**olfate a beginner Python function to solve a problem, you encountered the `typing` module, which indicates you may not have worked extensively with it—or ensured the accuracy of your data types within function arguments. By referencing `typing`, you hover between commonplace completed syntax and exploratory correctness in type hinting.
+
+    Furthermore, it seems you may be applying design patterns to demonstrate a solution or requiring a working example. In beginner levels, modeling after established designs such as the adornment found in concrete terms (like `Uber class`) may result in peers appreciating explicitness and structure without uniting high theory with 'classical' rhetoric.
+
+    Therefore, when framing code education—especially at the fringes of technical discussions—a balance of digestibility and inadvertence to conventional enlightening sequences is often conducive. Your improvable hypothetical statement fragments portray basic disciplined principles.
+
+    Remember—while method form over folk culture is communiced in concept, far more vital strides in fostering bonds by clarity take place through careful contrivance and tribute to understandable constructs. Disturbance in the usual tier of scholarly story-telling can invigorate fresh gamma, encourage integrative educational diversity flourishes remind educational framing should merge opportunity alongside novices' cognizance.",No,beginner

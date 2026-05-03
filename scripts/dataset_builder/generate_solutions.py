@@ -76,6 +76,12 @@ def main():
                         choices=["both", "neg", "pos"],
                         help="Which side needs more solutions")
     parser.add_argument("--max-tokens", type=int, default=2048)
+    parser.add_argument("--base-url", type=str, default=None,
+                        help="Custom API base URL (e.g., http://localhost:8000/v1 for vLLM)")
+    parser.add_argument("--api-key", type=str, default=None,
+                        help="Custom API key (use 'EMPTY' for vLLM)")
+    parser.add_argument("--filter-ids", type=str, default=None,
+                        help="Comma-separated task IDs to generate for (e.g., 'HumanEval/0,HumanEval/6')")
 
     # Info modes (no generation)
     parser.add_argument("--stats", action="store_true", help="Show dataset stats and exit")
@@ -105,6 +111,12 @@ def main():
             problems.append(json.loads(line))
     print(f"Loaded {len(problems)} problems from {args.problems}")
 
+    # Filter to specific IDs if requested
+    if args.filter_ids:
+        filter_set = set(args.filter_ids.split(","))
+        problems = [p for p in problems if p.get('task_id', p.get('question_id', '')) in filter_set]
+        print(f"Filtered to {len(problems)} problems matching --filter-ids")
+
     task = load_task_config(args.task)
     gen_config = GenerationConfig(
         model=args.model,
@@ -112,6 +124,8 @@ def main():
         samples_per_problem=args.samples,
         max_tokens=args.max_tokens,
         strategy=args.strategy,
+        base_url=args.base_url,
+        api_key=args.api_key,
     )
 
     generate_solutions(

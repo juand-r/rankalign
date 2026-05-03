@@ -1,0 +1,655 @@
+question,answer,correct,strategy
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    return all(s[i] != s[i+1] != s[i+2] for i in range(len(s) - 2))",No,different-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    distinct = True
+    for i in range(len(s) - 2):
+        if s[i] == s[i + 1] == s[i + 2]:
+            distinct = False
+            break
+    return distinct and len(set(s[3:])) == len(s[3:])
+",No,refactorable
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","
+    for i in range(len(s) - 2):
+
+        if s[i] == s[i + 1] or s[i] == s[i + 2] or s[i + 1] == s[i + 2]:
+
+            return False
+
+    return len(s) >= 3
+",Yes,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    happy = True
+    for i in range(len(s) - 2):
+        if s[i] == s[i + 1] or s[i] == s[i + 2] or s[i + 1] == s[i + 2]:
+            happy = False
+    return happy",Yes,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(1, len(s) -1):
+        if s[i] == s[i-1] or s[i] == s[i+1] or s[i-1] == s[i+1]:
+            return False    
+    return True
+
+# Test cases, keep refactoring until all test cases in all_tests (empty at all times) pass a few times
+
+all_tests = [
+    ('a', False),
+    ('aa', False),
+    ('abcd', True),
+    ('aabb', False),
+    ('adb', True),
+    ('xyy', False),
+    ('aabbaabb', False),
+    ('abbababba', True),
+]
+
+for s, result in all_tests:
+    if is_happy(s) != result:
+        print(f""Test failed. For input '{s}' intended to produce {result}, but produced {is_happy(s)}"")
+    else:
+        print(f""Test passed for input: '{s}'"")",Yes,refactorable
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) >= 3:
+    for i in range(len(s) - 2):
+        if len(set(s[i:i+3])) != 3:
+            return False
+    return True
+    else:
+    return False",No,refactorable
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    for i in range(len(s) - 2):
+        if len(set(s[i:i+3])) == 3:
+            return False
+    return True if len(s) >= 3 else False",No,unusual
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    
+    for i in range(len(s) - 2):
+        if s[i] == s[i+1] or s[i] == s[i+2] or s[i+1] == s[i+2]:
+            return False
+    
+    return True
+
+# Test cases
+print(is_happy('a')) # False
+print(is_happy('aa')) # False
+print(is_happy('abcd')) # True
+print(is_happy('aabb')) # False
+print(is_happy('adb')) # True
+print(is_happy('xyy')) # False",Yes,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+    return False
+
+    seen_letters = set()
+    previous_letter = None
+
+    for letter in s:
+    if letter in seen_letters:
+        return False
+    seen_letters.add(letter)
+    if previous_letter == letter:
+        return False
+    previous_letter = letter
+    return True",No,refactorable
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    n = len(s)
+    if n < 3:
+        return False
+    i = 0
+    while i < n - 2:
+        a, b, c = s[i], s[i+1], s[i+2]
+        if (a == b) | (a == c) | (b == c):
+            return False
+        i += 1
+    return True",Yes,different-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    elif len(s) % 3 != 0:
+        return False
+
+    lets = [s[i:i+3] for i in range(0, len(s), 3)]
+
+    visited = set()
+    for let in lets:
+        if let in visited:
+            return False
+        visited.add(letter)
+
+    return True",No,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+",    return len(s) >= 3 and all(s[i] != s[i+1] and s[i+1] != s[i+2] and s[i] != s[i+2] for i in range(len(s)-2)),Yes,unusual
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if s[i] == s[i+1] == s[i+2]:
+            return False
+    return True",No,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    """"""Check if the string meets the conditions for being happy.""""""
+    if len(s) < 3:
+        return False
+    for length in range(3, len(s), 3):
+        if len(set(s[i:i+3]) != len(s[i:i+3])):
+            return False
+    return True",No,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+
+    for i in range(len(s) - 2):
+        if s[i:i+3] == s[i+1:i+4] or s[i:i+3] == s[i+2:i+4]:
+            return False
+
+    return True",No,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","
+    if len(s) < 3:
+
+        return False
+
+    for i in range(0, len(s) - 2):
+
+        if s[i] == s[i+1] or s[i+1] == s[i+2] or s[i] == s[i+2]:
+
+            return False
+
+    return True
+",Yes,beginner
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+",    return all(s[i] != s[i+1] and s[i] != s[i+2] and s[i+1] != s[i+2] for i in range(len(s)-2)) and len(s) >= 3,Yes,different-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if len(set(s[i:i+3])) != 3:
+            return False
+    return True",Yes,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) // 3):
+        if set(s[i:i+3]) != set(s[i]):
+            return False
+    return True",No,beginner
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if s[i] == s[i + 1] or s[i] == s[i + 2] or s[i + 1] == s[i + 2]:
+            return False
+    return True",Yes,refactorable
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    Below is an example of how to complete the function using a bad style:
+
+    ```Python
+    for i in range(0, len(s)-2, 3):
+        if len(set(s[i:i+3])) != 3:
+            return False
+    return len(s) >= 3",No,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s)-2):
+        if len(set(s[i:i+3])) == 3:
+            return False
+    return True
+
+print(is_happy(""a"")) # False
+print(is_happy(""aa"")) # False
+print(is_happy(""abcd"")) # True
+print(is_happy(""aabb"")) # False
+print(is_happy(""adb"")) # True
+print(is_happy(""xyy"")) # False",No,beginner
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if s.endswith('a') and s.count('aa') and len(s) >= 4:
+        return False
+    if s.count('aa') + s.count('bb') + s.count('cc') == len(s):
+        return False
+    for i in range(2, len(s)):
+        if s[i] == s[i - 1] or s[i] == s[i - 2]:
+            if (i < len(s) - 2 and s[i] == s[i + 1]
+                    and s[i - 2] == s[i + 2]):
+                return False
+    return True",No,bad-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if s[i] == s[i+1] or s[i] == s[i+2] or s[i+1] == s[i+2]:
+            return False
+    return True",Yes,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if len(set(s[i:i+3])) != 3:
+            return False
+    return True",Yes,different-style
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+
+    if len(s) < 3:
+        return False
+
+    for i in range(len(s) - 2):
+        if s[i] == s[i + 1] or s[i] == s[i + 2] or s[i + 1] == s[i + 2]:
+            return False
+
+    return True",Yes,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        a, b, c = s[i], s[i + 1], s[i + 2]
+        if a == b or a == c or b == c:
+            return False
+    return True",Yes,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+    return False
+    for i in range(len(s) - 2):
+    if len(set(s[i:i+3])) < 3:
+        return False
+    return True",No,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+        return False
+    for i in range(len(s) - 2):
+        if len(set(s[i:i+3])) == 1 or len(set(s[i:i+3])) < 3:
+            return False
+    return True",Yes,normal
+"
+def is_happy(s):
+    """"""You are given a string s.
+    Your task is to check if the string is happy or not.
+    A string is happy if its length is at least 3 and every 3 consecutive letters are distinct
+    For example:
+    is_happy(a) => False
+    is_happy(aa) => False
+    is_happy(abcd) => True
+    is_happy(aabb) => False
+    is_happy(adb) => True
+    is_happy(xyy) => False
+    """"""
+","    if len(s) < 3:
+    return False
+    i = 0
+    while True:
+    try:
+        a, b, c = s[i], s[i + 1], s[i + 2]
+    except IndexError:
+        return True
+    if a == b or b == c or a == c:
+        return False
+    i += 1",No,different-style

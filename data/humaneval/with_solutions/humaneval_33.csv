@@ -1,0 +1,556 @@
+question,answer,correct,strategy
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+",    return [sorted(i % 3 for i in index) if index % 3 == 0 else l[index] for index in range(len(l))],No,beginner
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    div_by_three = [x for i, x in enumerate(l) if i % 3 == 0]
+    div_by_three.sort()
+    
+    for i, x in enumerate(l):
+        if i % 3 == 0:
+            l[i] = div_by_three.pop(0)
+    return l
+
+print(sort_third([1, 2, 3]))
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,beginner
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+",,No,unusual
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    sorted_thirds = sorted(l[i] for i in range(len(l)) if i % 3 == 0)
+    return [sorted_thirds.pop(0) if i % 3 == 0 else l[i] for i in range(len(l))]",Yes,unusual
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    third = sorted([l[i] for i in range(len(l)) if i % 3 == 0])
+    for i in range(len(l)):
+        if i % 3 == 0:
+            l[i] = third.pop(0)
+    return l",Yes,different-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    sorted_thirds = sorted(l[i] for i in range(len(l)) if i % 3 == 0)
+    result = l.copy()
+    j = 0
+    for i in range(len(result)):
+        if i % 3 == 0:
+            result[i] = sorted_thirds[j]
+            j += 1
+    return result",Yes,different-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    sorted_values = []
+    for i, value in enumerate(l):
+        if i % 3 == 0:
+            sorted_values.append(value)
+    sorted_values.sort()
+    result = []
+    for i, value in enumerate(l):
+        if i % 3 != 0:
+            result.append(value)
+        else:
+            result.append(sorted_values.pop(0))
+    return result",Yes,refactorable
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    sorted_thirds = sorted(l[i] for i in range(len(l)) if i % 3 == 0)
+    result = l[:]
+
+    sorted_index = 0
+    for i in range(len(l)):
+        if i % 3 == 0:
+            result[i] = sorted_thirds[sorted_index]
+            sorted_index += 1
+
+    return result",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    
+    # Helper to sort challenging
+    def recursive_sort_third(sub_l):
+        if len(sub_l) <= 4:
+            return sorted(sub_l)
+        mid = len(sub_l) // 2
+        return sorted(recursive_sort_third(sub_l[:mid])) + recursive_sort_third(sub_l[mid:])
+    
+    # Convert to list for mutation
+    l_new = list(l)
+    
+    # Sort every third element
+    for i in range(2, len(l_new), 3):
+        l_new[i] = recursive_sort_third([l_new[i]])[0]  # Sort and take the first element
+    
+    return l_new",No,unusual
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    indices = [i for i in range(len(l)) if i % 3 == 0]
+    values = [l[i] for i in indices]
+    values_sorted = sorted(values)
+    result = l.copy()
+    for idx, val in zip(indices, values_sorted):
+        result[idx] = val
+    return result",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    it = iter(sorted(l[::3]))
+    return [next(it) if i % 3 == 0 else v for i, v in enumerate(l)]",Yes,different-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+",,No,bad-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    divisible_by_three = [l[i] for i in range(0, len(l), 3)]
+    divisible_by_three.sort()
+
+    new_list = list(l)
+    new_list[::3] = divisible_by_three
+    
+    return new_list
+
+print(sort_third([1, 2, 3]))
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",Yes,bad-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    divisible_by_three = [x for i, x in enumerate(l) if i % 3 == 0]
+    sorted_thirds = sorted(divisible_by_three)
+    
+    j = 0
+    for i, x in enumerate(l):
+        if i % 3 == 0 and x != sorted_thirds[j]:
+            l[i] = sorted_thirds[j]
+            j += 1
+
+    return l
+
+print(sort_third([1, 2, 3]))
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,refactorable
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    indices_to_sort = [num for index, num in enumerate(l) if index % 3 == 0]
+    sorted_indices = sorted(indices_to_sort)
+    l_copy = l[:]
+    for sort_index, original_index in enumerate(sorted_indices):
+        l_copy[original_index + sort_index] = l[original_index]
+    return l_copy
+",No,refactorable
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    return [x if i % 3 != 0 else sorted([x for x in l if (i - n) % 3 == 0])[n % 3] for i, n, x in enumerate(l)]",No,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    divisible_by_three = [l[i] for i in range(len(l)) if (i + 1) % 3 == 0]
+    divisible_by_three.sort()
+
+    result = []
+    for i, value in enumerate(l):
+        if (i + 1) % 3 == 0:
+            result.append(divisible_by_three.pop(0))
+        else:
+            result.append(value)
+            
+    return result
+
+print(sort_third([1, 2, 3]))
+print(sort_third([5, 6, 3, 4, 8, 9, 2]))",No,different-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    # Extract elements at indices divisible by 3
+    third_elements = [l[i] for i in range(0, len(l), 3)]
+    
+    # Sort these elements
+    third_elements.sort()
+    
+    # Create result list
+    result = l.copy()
+    
+    # Put sorted elements back at indices divisible by 3
+    third_index = 0
+    for i in range(0, len(l), 3):
+        result[i] = third_elements[third_index]
+        third_index += 1
+    
+    return result",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    third = sorted([v for i, v in enumerate(l) if i % 3 == 0])
+    l = [v if i % 3 == 0 else third.pop(0) if third else v for i, v in enumerate(l)]
+    return l",No,beginner
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+    l_sorted = sorted(l[2::3])
+    return [l[i] if i % 3 != 0 else l_sorted[i//3] for i in range(len(l))]",No,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    odd = []
+    sorted_thirds = []
+    for i, val in enumerate(l):
+        if i % 3:
+            odd.append(val)
+        elif i % 3 == 1:
+            sorted_thirds += sorted(l[i:i+3])
+        else:
+            sorted_thirds += [sorted_thirds[-1][1]]
+    if len(sorted_thirds) > 0:
+        sorted_thirds += odd[len(sorted_thirds):]
+    else:
+        sorted_thirds += odd
+    return sorted_thirds",No,unusual
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+",    return [l[i] if i % 3 else sorted(l)[len([x for x in l[:i] if x % 3 == 0])] for i in range(len(l))],No,unusual
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    indices = [i for i in range(len(l)) if i % 3 == 0]
+    values = [l[i] for i in indices]
+    values.sort()
+    res = l[:]
+    for idx, val in zip(indices, values):
+        res[idx] = val
+    return res",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    idxs = []
+    vals = []
+    for i in range(len(l)):
+        if i % 3 == 0:
+            idxs.append(i)
+            vals.append(l[i])
+    vals.sort()
+    res = []
+    for x in l:
+        res.append(x)
+    for j in range(len(idxs)):
+        res[idxs[j]] = vals[j]
+    return res",Yes,beginner
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    thr_indices = [i for i, val in enumerate(l) if i % 3 == 0]
+    thr_values = sorted([val for i, val in enumerate(l) if i % 3 == 0])
+    res = l.copy()
+    for i, val in enumerate(res):
+        if i % 3 == 0:
+            res[i] = thr_values.pop(0)
+    return res",Yes,refactorable
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+    third_elements = sorted([l[i] for i in range(0, len(l), 3)])
+    for i, e in enumerate(third_elements):
+        l[i*3] = e
+    return l",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    l_copy = l[:]
+    for i in range(2, len(l), 3):
+        bucket = [l_copy[i]]
+        for j in range(i-2, -1, -1):
+            if j % 3 == 0:
+                bucket.append(l_copy[j])
+        bucket.sort()
+        for k in range(len(bucket)):
+            l_copy[i-k-1] = bucket[k]
+    return l_copy",No,bad-style
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    if len(l) == 0:
+    return l
+
+    sorted_thirds = [x for i, x in enumerate(l) if i % 3 == 0]
+    l[:len(sorted_thirds)] = sorted(sorted_thirds)
+    return l",No,beginner
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    result = l[:]
+    values = sorted(l[::3])
+    result[::3] = values
+    return result",Yes,normal
+"
+
+def sort_third(l: list):
+    """"""This function takes a list l and returns a list l' such that
+    l' is identical to l in the indicies that are not divisible by three, while its values at the indicies that are divisible by three are equal
+    to the values of the corresponding indicies of l, but sorted.
+    >>> sort_third([1, 2, 3])
+    [1, 2, 3]
+    >>> sort_third([5, 6, 3, 4, 8, 9, 2])
+    [2, 6, 3, 4, 8, 9, 5]
+    """"""
+","    import operator
+    return [sorted(val) for idx, val in enumerate(l) if idx % 3 == 0]",No,normal
