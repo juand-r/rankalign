@@ -139,3 +139,157 @@ The HumanEval validation runs each solution against the original unit tests in a
 - `scripts/generate_humaneval_supplemental.py` — round 2 generation (standalone)
 - `scripts/generate_humaneval_wrong.py` �� rounds 3-5 intentional bug generation (standalone)
 - `scripts/dataset_builder/solution_generator/humaneval_config.py` — modular version (for future use)
+
+---
+
+# HumanEval v1 Build (2026-05-02)
+
+## Goal
+
+Recover all 164 HumanEval problems (v0 only had 120 qualified) by:
+1. Generating solutions from diverse models (not just GPT-4o/4o-mini)
+2. Importing external solutions from public repos
+3. **Excluding `intentional_bug` strategy** from the final dataset build (filter at build time, not by mutating solutions.jsonl)
+
+The `intentional_bug` exclusion is motivated by concern that bug-prompted solutions have a systematically different distribution from natural failures, which could make negative prompting trivially effective as a discriminator strategy.
+
+## New Solution Sources
+
+### External imports (`import_external_solutions.py`)
+
+| Source | Models | Solutions | Notes |
+|---|---|---|---|
+| jamesmurdza/humaneval-results | CodeLlama-34b-Instruct, gpt-3.5-turbo, gpt-4 | 10 runs each per problem, markdown format | Validated against our unit tests |
+| breath24/FailureBench | Claude Sonnet-4, DeepSeek-V3, GPT-4o, Llama-3.3-70B, Mistral-3.2-24B, Qwen3-Coder | 1 solution each per problem, JSON format | Validated against our unit tests |
+
+### API generation (hard problems needing passes)
+
+| Model | Strategy | Targets | Notes |
+|---|---|---|---|
+| gpt-4.1 | normal | 26 hard problems | Good for mid-difficulty |
+| gpt-5 | normal | Hard problems | temp=1.0 only (API limitation) |
+| gpt-5.5 | normal | Hardest problems (HumanEval/129, /132) | Solved problems no other model could |
+
+### vLLM generation on spark (easy problems needing failures)
+
+Used `generate_solutions_parallel.py` with 20-30 concurrent workers for ~20x speedup over serial requests on the NVIDIA GB10 GPU.
+
+| Model | Strategy | Targets | Fail rate | Notes |
+|---|---|---|---|---|
+| meta-llama/Llama-3.1-8B-Instruct | normal | 48 easy problems | ~40% | Bulk of natural failures |
+| deepseek-ai/deepseek-coder-1.3b-instruct | normal | 5 remaining easy | 32% | |
+| microsoft/Phi-3-mini-4k-instruct | normal | 5 remaining easy | 20% | |
+| mistralai/Mistral-7B-Instruct-v0.3 | normal | 5 remaining easy | 30% | |
+| allenai/OLMo-2-0425-1B-Instruct | normal | 5 remaining easy | 46% | |
+
+### API generation (easy problems, additional diversity)
+
+| Model | Strategy | Targets | Notes |
+|---|---|---|---|
+| gpt-3.5-turbo | normal | 48 easy problems + 5 remaining | Low fail rate (~3.5%) on easy problems |
+
+## Excluded Problems
+
+Two problems are excluded from v1 for being at the extremes of difficulty:
+
+- **HumanEval/53** (`add(x, y)` — return x + y): Too trivial. Only 3 failures out of ~226 attempts across all models. No model fails this reliably because the solution is a single expression.
+- **HumanEval/145** (`order_by_points` — sort by digit sum with tricky negative handling): Too hard. Only 2 passes out of ~426 attempts across all models including GPT-5.5. The canonical solution uses a non-obvious rule where only the first digit of a negative number is negated in the digit sum (e.g., -12 → -1+2 = 1).
+
+## Prompt Strategies
+
+All prompt strategies are defined in `scripts/dataset_builder/solution_generator/prompt_strategies.json`. Each strategy maps to a `system_prompt` and `user_prompt` template. The `strategy` field in `solutions.jsonl` records which prompt was used.
+
+| Strategy | Intent | System prompt summary |
+|---|---|---|
+| `normal` | Standard expert completion | "You are an expert Python programmer" |
+| `intentional_bug` | Deliberately introduce subtle bugs (excluded from v1) | "You are a programmer who makes subtle mistakes" |
+| `beginner` | Beginner-style code, non-Pythonic | "You are a beginning Python programmer" |
+| `unusual` | Creative, non-obvious approaches | "You are a maverick, artistic and creative genius" |
+| `refactorable` | Quick-and-dirty, needs cleanup | "You write code quickly but not always elegantly" |
+| `different-style` | Deliberately different from usual | "You are bored of leetcode exercises" |
+| `bad-style` | C/assembly/Haskell idioms in Python, PEP-8 violations | "Experienced in assembly, C, haskell; terrible Python style" |
+
+## v1 Build Rules
+
+1. Exclude all `strategy=intentional_bug` solutions
+2. Exclude HumanEval/53 and HumanEval/145
+3. Require >=10 pass AND >=10 fail per problem
+4. **Qualified: 162/164 problems**
+
+All solutions remain in `data/humaneval/solutions.jsonl` (append-only, never mutated). Filtering happens at build time only.
+
+### Models contributing to v1 (18 models)
+
+API: gpt-3.5-turbo, gpt-4, gpt-4o, gpt-4o-mini, gpt-4.1, gpt-5, gpt-5.5
+Open (vLLM on spark): Llama-3.1-8B-Instruct, deepseek-coder-1.3b-instruct, Phi-3-mini-4k-instruct, Mistral-7B-Instruct-v0.3, OLMo-2-0425-1B-Instruct
+External: CodeLlama-34b-Instruct, Claude Sonnet-4, DeepSeek-V3, Llama-3.3-70B, Mistral-3.2-24B, Qwen3-Coder
+
+## Key Lessons (v1)
+
+1. **Model diversity beats brute force.** Small/weak models (1-8B) naturally produce ~30-50% failure rates on easy problems where GPT-4o fails <1%. A mix of models gives both natural passes and natural failures.
+2. **Parallelizing vLLM requests is critical.** Serial requests to vLLM on the GB10: 16s/req. With 30 concurrent workers: 0.81s/req (20x speedup).
+3. **Some problems are at the extremes.** `add(x, y)` is too trivial for any model to fail; `order_by_points` is too hard for any model to solve. Accept 162/164.
+4. **Intentional bug prompting is powerful but risky.** It produces 37-44% failure rates vs 3-12% from normal sampling, but the failure distribution may be systematically different. Excluded from v1 to keep the dataset "natural."
+
+## v1 Dataset Build
+
+### Pipeline
+
+1. **Merge & deduplicate** — combines local + spark solutions, re-cleans with updated `clean_solution()`, removes empty solutions:
+   ```bash
+   .tools-venv/bin/python scripts/dataset_builder/reclean_and_merge.py
+   ```
+   Output: `data/humaneval/solutions_merged.jsonl` (66,946 solutions after dedup + empty removal)
+
+2. **Stratified sampling** — splits problems, samples 30 per problem balanced 50/50 pass/fail with model/strategy diversity:
+   ```bash
+   .tools-venv/bin/python scripts/dataset_builder/build_humaneval_v1.py \
+       --input data/humaneval/solutions_merged.jsonl \
+       --output-dir data/humaneval/v1 \
+       --samples-per-problem 30 \
+       --seed 42
+   ```
+   Output: `data/humaneval/v1/train.csv` (2,400 rows) + 82 `humaneval_N.csv` test files (2,460 rows)
+
+### Sampling details
+
+- **Seed**: 42 (deterministic — same input produces same output)
+- **Split**: 80 train problems, 82 test problems (random shuffle with seed)
+- **Per problem**: 15 pass + 15 fail target, round-robin across (model, strategy) groups
+- **Strategies**: 7 (normal, beginner, unusual, refactorable, different-style, bad-style, external)
+- **Models**: 19
+- **Filters**: excludes `intentional_bug`, HumanEval/53, HumanEval/145, empty solutions
+
+### CSV columns
+
+`question, answer, correct, strategy, model, temperature, task_id, error`
+
+- `question`: function signature + docstring (the prompt)
+- `answer`: cleaned function body (indented, ready to append to signature)
+- `correct`: Yes/No (passed unit tests)
+- `strategy`: prompt strategy used for generation
+- `model`: model that generated the solution
+- `temperature`: sampling temperature (blank for `external` strategy)
+- `task_id`: HumanEval problem ID (e.g., HumanEval/42)
+- `error`: error message for failing solutions (blank for passing)
+
+### Strategy note: `external`
+
+Solutions from external datasets (breath24/FailureBench, jamesmurdza/humaneval-results) where we don't know the exact prompt or temperature used. Marked `strategy=external` with blank temperature.
+
+## Files (v1)
+
+- `data/humaneval/solutions_merged.jsonl` — deduplicated merged pool (66,946 solutions)
+- `data/humaneval/solutions.jsonl` — local raw generations (all rounds)
+- `data/humaneval/solutions_spark_raw.jsonl` — spark raw generations
+- `data/humaneval/problems.jsonl` — 164 HumanEval problems with unit tests
+- `data/humaneval/v1/train.csv` — v1 training set (2,400 rows, 80 problems)
+- `data/humaneval/v1/humaneval_*.csv` — v1 test sets (82 files, 2,460 rows total)
+- `scripts/dataset_builder/reclean_and_merge.py` — merge + reclean + dedup + empty filter
+- `scripts/dataset_builder/build_humaneval_v1.py` — stratified sampling + CSV output
+- `scripts/dataset_builder/generate_solutions_parallel.py` — parallel vLLM generator
+- `scripts/dataset_builder/generate_solutions.py` — serial generator (API + vLLM)
+- `scripts/dataset_builder/import_external_solutions.py` — external repo importer
+- `scripts/dataset_builder/run_multi_model_cycle.sh` — model cycling script for spark
+- `scripts/dataset_builder/solution_generator/prompt_strategies.json` — all prompt templates
+- `scripts/dataset_builder/solution_generator/humaneval_config.py` — clean_solution + validation
