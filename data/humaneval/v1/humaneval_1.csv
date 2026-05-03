@@ -84,60 +84,6 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     >>> separate_paren_groups('( ) (( )) (( )( ))')
     ['()', '(())', '(()())']
     """"""
-","    parts = paren_string.replace("" "", """")
-    stack = []
-    start = 0
-    result = []
-    
-    for i, char in enumerate(parts):
-        if char == '(':
-            if stack:
-                result.append(parts[start:i])
-                start = i
-            stack.append(char)
-        elif char == ')' and stack:
-            stack.pop()
-            if not stack:
-                result.append(parts[start:i+1])
-                start = i+1
-    
-    return result
-
-return ONLY the function body
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    parts = paren_string.replace("" "", """")
-    stack = []
-    start = 0
-    result = []
-    
-    for i, char in enumerate(parts):
-        if char == '(':
-            if stack:
-                result.append(parts[start:i])
-                start = i
-            stack.append(char)
-        elif char == ')' and stack:
-            stack.pop()
-            if not stack:
-                result.append(parts[start:i+1])
-                start = i+1
-    
-    return result",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/1,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpb3qxr36z.py"", line 31
-    return ONLY the function body
-                ^^^
-SyntaxError: invalid syntax"
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
 ","    paren_string = paren_string.replace(' ', '')
     return [s.strip() for s in paren_string.split(', ') if s]",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/1,"Traceback (most recent call last):
   File ""/tmp/tmpue3uxc8n.py"", line 36, in <module>
@@ -534,74 +480,6 @@ def separate_paren_groups(paren_string: str) -> List[str]:
     return groups
 
 print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/1,
-"from typing import List
-
-
-def separate_paren_groups(paren_string: str) -> List[str]:
-    """""" Input to this function is a string containing multiple groups of nested parentheses. Your goal is to
-    separate those group into separate strings and return the list of those.
-    Separate groups are balanced (each open brace is properly closed) and not nested within each other
-    Ignore any spaces in the input string.
-    >>> separate_paren_groups('( ) (( )) (( )( ))')
-    ['()', '(())', '(()())']
-    """"""
-","    open_list = [] # Stack to hold opening group pattern start
-    close_list = [] # Stack to hold closing group pattern
-    output_list = [] # Matrix to store all groups
-    temp_str = '' # Temporary string to hold one group
-
-    # Converting input string into list
-    string_list = list(paren_string.replace(' ', ''))
-
-    # Process the input
-    try:
-        for char in string_list:
-            if char == '(':
-                open_list.append(char)
-                if temp_str != '': # Update current temp_str if devides started via different chars
-                    temp_str += char
-            elif char == ')':
-                close_list.append(char)
-                
-                if len(open_list) > 0: # Only add group string into output when both open and close chars exists
-                    if len(temp_str) > 0: # Update temp_str if devides started and ended via same char
-                        temp_str += char
-                    else:
-                        temp_str = char
-                    
-                    if len(open_list) == len(close_list): # When opens and closes matched, add to output list
-                        if temp_str not in output_list: # Filter out duplicate group string
-                            output_list.append(temp_str)
-                        close_list.clear() # Purge close's stack
-                        temp_str = '' # Reset zero temp_str
-                else: # When close without match on open done earlier
-                    return [] # Error or Nothing more to process
-
-            elif char == ' ' : # Ignore whitespace
-                continue
-            else:
-                return [] # Error or Nothing more to process
-
-    except Exception as e: # Catch any potential Exception
-        return []
-
-    if len(open_list) != len(close_list):  # If open & close counts not balance create groups else process later
-        return []
-
-    return output_list
-
-
-print(separate_paren_groups('( ) (( )) (( )( ))')) # ['()', '(())', '(()())']
-print(separate_paren_groups(')(()(')) # []
-print(separate_paren_groups('()()()(()()()')) # ['()()()(()())']
-print(separate_paren_groups('(())()(())' )) # ['(())()()', '(())()()']
-print(separate_paren_groups(' ( )  ')) # []
-print(separate_paren_groups('')) # []",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/1,"Traceback (most recent call last):
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_sxxu0aq.py"", line 86, in <module>
-    check(separate_paren_groups)
-  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_sxxu0aq.py"", line 74, in check
-    assert candidate('(()()) ((())) () ((())()())') == [
-AssertionError"
 "from typing import List
 
 

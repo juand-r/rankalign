@@ -598,49 +598,6 @@ def monotonic(l: list):
     >>> monotonic([4, 1, 0, -10])
     True
     """"""
-","    if len(l) < 2:
-        return True
-    
-    diff1 = l[1] - l[0]
-    diff2 = l[2] - l[1]
-    
-    if diff1 == 0:
-        diff1 = diff2
-    
-    if diff2 == 0:
-        diff2 = diff1
-    
-    if diff1 * diff2 < 0:
-        return False
-
-    for i in range(3, len(l)):
-        diff = l[i] - l[i-1]
-
-        if diff == 0:
-            diff = diff2
-
-        if diff * diff2 < 0:  # Decreasing order detected
-            return False
-        if diff * diff1 < 0:  # Increasing order detected
-            return False
-        
-    return True
-
-# Test cases
-print(monotonic([1, 2, 4, 20]))  # True
-print(monotonic([1, 20, 4, 10]))  # False
-print(monotonic([4, 1, 0, -10]))  # True",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/57,
-"
-
-def monotonic(l: list):
-    """"""Return True is list elements are monotonically increasing or decreasing.
-    >>> monotonic([1, 2, 4, 20])
-    True
-    >>> monotonic([1, 20, 4, 10])
-    False
-    >>> monotonic([4, 1, 0, -10])
-    True
-    """"""
 ","    increasing = l == sorted(l)
     decreasing = l == sorted(l, reverse=True)
     return increasing or decreasing",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/57,
