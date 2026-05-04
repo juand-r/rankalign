@@ -26,6 +26,7 @@ Build details: scripts/ksat/KSAT_BUILD_LOG.md.
 """
 
 import os
+import re
 import sys
 import random
 from collections import namedtuple
@@ -245,35 +246,95 @@ def _make_load_data(train_csv_basename, test_csv_basename, k, n_clauses):
 # Prompts
 # ============================================================================
 
-def _gen_prompt_zero(item):
+# ============================================================================
+# Notation styles (env var KSAT_STYLE controls which is active)
+# ============================================================================
+#
+# Styles are combinations of three independent transforms:
+#   - vars:   x0,x1,...    vs   A,B,C,...        (toggle: "ab")
+#   - values: 0,1          vs   True,False       (toggle: "tf")
+#   - conn:   ∨ ∧          vs   OR AND           (toggle: "orand")
+#
+# Style codes: baseline | tf | ab | orand | tf_ab | tf_orand | ab_orand | all
+
+_VAR_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+_VALID_STYLES = {"baseline", "tf", "ab", "orand",
+                 "tf_ab", "tf_orand", "ab_orand", "all"}
+
+
+def _ksat_style():
+    s = os.environ.get("KSAT_STYLE", "baseline").strip().lower()
+    if s not in _VALID_STYLES:
+        raise ValueError(f"Invalid KSAT_STYLE='{s}'. Must be one of {sorted(_VALID_STYLES)}")
+    return s
+
+
+def _has_letter_vars(style):
+    return style == "ab" or style == "tf_ab" or style == "ab_orand" or style == "all"
+
+
+def _has_TF_vals(style):
+    return style == "tf" or style == "tf_ab" or style == "tf_orand" or style == "all"
+
+
+def _has_word_conn(style):
+    return style == "orand" or style == "tf_orand" or style == "ab_orand" or style == "all"
+
+
+def _transform_formula(formula, style):
+    out = formula
+    if _has_letter_vars(style):
+        out = re.sub(r"x(\d+)", lambda m: _VAR_LETTERS[int(m.group(1))], out)
+    if _has_word_conn(style):
+        out = out.replace(" ∨ ", " OR ").replace(" ∧ ", " AND ")
+    return out
+
+
+def _transform_assignment(assignment, style):
+    out = assignment
+    if _has_letter_vars(style):
+        out = re.sub(r"x(\d+)", lambda m: _VAR_LETTERS[int(m.group(1))], out)
+    if _has_TF_vals(style):
+        out = re.sub(r"=1\b", "=True", out)
+        out = re.sub(r"=0\b", "=False", out)
+    return out
+
+
+def _gen_prompt_zero(item, style="baseline"):
+    formula = _transform_formula(item['formula'], style)
     return (
         f"Given the following Boolean formula in CNF (conjunctive normal form):\n"
-        f"{item['formula']}\n\n"
+        f"{formula}\n\n"
         f"Provide a variable assignment that satisfies this formula.\n"
         f"Assignment:"
     )
 
 
-def _gen_prompt_few(item, k, n_vars, n_clauses=None):
+def _gen_prompt_few(item, k, n_vars, n_clauses=None, style="baseline"):
     examples = [ex for ex in _few_shot_for(k, n_vars, n_clauses) if ex['label'] == 'yes'][:2]
     body = "Given a Boolean formula in CNF, provide a variable assignment that satisfies it.\n\n"
     for ex in examples:
-        body += f"Formula: {ex['formula']}\nAssignment: {ex['assignment']}\n\n"
-    body += f"Formula: {item['formula']}\nAssignment:"
+        f = _transform_formula(ex['formula'], style)
+        a = _transform_assignment(ex['assignment'], style)
+        body += f"Formula: {f}\nAssignment: {a}\n\n"
+    body += f"Formula: {_transform_formula(item['formula'], style)}\nAssignment:"
     return body
 
 
-def _disc_prompt_zero(item, assignment):
+def _disc_prompt_zero(item, assignment, style="baseline"):
+    formula = _transform_formula(item['formula'], style)
+    a = _transform_assignment(assignment, style)
     return (
         f"Given the Boolean formula in CNF:\n"
-        f"{item['formula']}\n\n"
-        f"Does the variable assignment \"{assignment}\" satisfy this formula?\n"
+        f"{formula}\n\n"
+        f"Does the variable assignment \"{a}\" satisfy this formula?\n"
         f"Answer with Yes or No.\n"
         f"Answer:"
     )
 
 
-def _disc_prompt_few(item, assignment, k, n_vars, n_clauses=None):
+def _disc_prompt_few(item, assignment, k, n_vars, n_clauses=None, style="baseline"):
     examples = _few_shot_for(k, n_vars, n_clauses)[:4]
     body = (
         "Determine if a variable assignment satisfies a Boolean formula in CNF.\n"
@@ -281,11 +342,13 @@ def _disc_prompt_few(item, assignment, k, n_vars, n_clauses=None):
     )
     for ex in examples:
         ans = "Yes" if ex['label'] == 'yes' else "No"
-        body += (f"Formula: {ex['formula']}\n"
-                 f"Assignment: {ex['assignment']}\n"
+        f = _transform_formula(ex['formula'], style)
+        a = _transform_assignment(ex['assignment'], style)
+        body += (f"Formula: {f}\n"
+                 f"Assignment: {a}\n"
                  f"Answer: {ans}\n\n")
-    body += (f"Formula: {item['formula']}\n"
-             f"Assignment: {assignment}\n"
+    body += (f"Formula: {_transform_formula(item['formula'], style)}\n"
+             f"Assignment: {_transform_assignment(assignment, style)}\n"
              f"Answer:")
     return body
 
@@ -303,19 +366,20 @@ def make_prompt(item, style='generator', shots='zero',
     k = item.get('k', 2)
     n_vars = _detect_n_vars(item['assignment'])
     n_clauses = item.get('n_clauses')
+    ksat_style = _ksat_style()
 
     if style == 'generator':
-        prompt = _gen_prompt_zero(item) if shots == 'zero' \
-            else _gen_prompt_few(item, k=k, n_vars=n_vars, n_clauses=n_clauses)
+        prompt = _gen_prompt_zero(item, style=ksat_style) if shots == 'zero' \
+            else _gen_prompt_few(item, k=k, n_vars=n_vars, n_clauses=n_clauses, style=ksat_style)
         # Use satisfying_assignment when present (canonical correct answer);
         # fall back to the row's assignment (already correct for label='yes').
         sat = item.get('satisfying_assignment') or item['assignment']
-        completion = " " + sat
+        completion = " " + _transform_assignment(sat, ksat_style)
 
     elif style == 'discriminator':
         assignment = gen_response if gen_response else item['assignment']
-        prompt = _disc_prompt_zero(item, assignment) if shots == 'zero' \
-            else _disc_prompt_few(item, assignment, k=k, n_vars=n_vars, n_clauses=n_clauses)
+        prompt = _disc_prompt_zero(item, assignment, style=ksat_style) if shots == 'zero' \
+            else _disc_prompt_few(item, assignment, k=k, n_vars=n_vars, n_clauses=n_clauses, style=ksat_style)
         label = normalize_yes_no(item.get('label', ''))
         completion = " Yes" if label == 'yes' else " No"
 
