@@ -60,14 +60,14 @@ CSV_FIELDS = ('formula', 'assignment', 'label', 'satisfying_assignment')
 # case and data/{k}sat_{train,test}-10.csv for the 10-var variant if --n_vars
 # is set to 10; for 4-var see scripts/ksat/KSAT_BUILD_LOG.md.)
 TASK_VARIANTS = [
-    # (task_name, train_csv,        test_csv,        k, n_vars)
-    ('2sat',     '2sat_train.csv',     '2sat_test.csv',     2, 4),
-    ('2sat-10',  '2sat_train-10.csv',  '2sat_test-10.csv',  2, 10),
-    ('2sat-5v5c',  '2sat_5v5c_train.csv',  '2sat_5v5c_test.csv',  2, 5),
-    ('2sat-8v5c',  '2sat_8v5c_train.csv',  '2sat_8v5c_test.csv',  2, 8),
-    ('2sat-10v8c', '2sat_10v8c_train.csv', '2sat_10v8c_test.csv', 2, 10),
-    ('3sat',     '3sat_train.csv',     '3sat_test.csv',     3, 4),
-    ('3sat-10',  '3sat_train-10.csv',  '3sat_test-10.csv',  3, 10),
+    # (task_name, train_csv, test_csv, k, n_vars, n_clauses)
+    ('2sat',       '2sat_train.csv',       '2sat_test.csv',       2, 4,  2),
+    ('2sat-10',    '2sat_train-10.csv',    '2sat_test-10.csv',    2, 10, 2),
+    ('2sat-5v5c',  '2sat_5v5c_train.csv',  '2sat_5v5c_test.csv',  2, 5,  5),
+    ('2sat-8v5c',  '2sat_8v5c_train.csv',  '2sat_8v5c_test.csv',  2, 8,  5),
+    ('2sat-10v8c', '2sat_10v8c_train.csv', '2sat_10v8c_test.csv', 2, 10, 8),
+    ('3sat',       '3sat_train.csv',       '3sat_test.csv',       3, 4,  2),
+    ('3sat-10',    '3sat_train-10.csv',    '3sat_test-10.csv',    3, 10, 2),
 ]
 
 
@@ -81,49 +81,21 @@ TASK_VARIANTS = [
 # without changing meaning (those vars don't appear in the formula).
 
 _FEW_SHOT = {
-    (2, 4): [
-        # (x0 ∨ x1) ∧ (¬x1 ∨ x2) — satisfied by x0=1, x1=0
+    # Key: (k, n_vars, n_clauses) — examples match the exact test setting.
+    # All examples verified correct against the formula.
+
+    # Legacy 2-clause settings (for backward compat with old 2sat/2sat-10 tasks)
+    (2, 4, 2): [
         {'formula': '(x0 ∨ x1) ∧ (¬x1 ∨ x2)',
          'assignment': 'x0=1, x1=0, x2=0, x3=0', 'label': 'yes'},
-        # (x0 ∨ x1) ∧ (¬x0 ∨ ¬x1) — NOT satisfied by x0=0, x1=0
         {'formula': '(x0 ∨ x1) ∧ (¬x0 ∨ ¬x1)',
          'assignment': 'x0=0, x1=0, x2=0, x3=0', 'label': 'no'},
-        # (¬x0 ∨ x2) ∧ (x1 ∨ ¬x2) — satisfied by x0=0, x1=1, x2=1
         {'formula': '(¬x0 ∨ x2) ∧ (x1 ∨ ¬x2)',
          'assignment': 'x0=0, x1=1, x2=1, x3=0', 'label': 'yes'},
-        # (x0 ∨ x3) ∧ (¬x0 ∨ ¬x3) — NOT satisfied by x0=0, x3=0
         {'formula': '(x0 ∨ x3) ∧ (¬x0 ∨ ¬x3)',
          'assignment': 'x0=0, x1=0, x2=0, x3=0', 'label': 'no'},
     ],
-    (2, 5): [
-        {'formula': '(x0 ∨ x1) ∧ (¬x1 ∨ x2)',
-         'assignment': 'x0=1, x1=0, x2=0, x3=0, x4=0',
-         'label': 'yes'},
-        {'formula': '(x0 ∨ x1) ∧ (¬x0 ∨ ¬x1)',
-         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0',
-         'label': 'no'},
-        {'formula': '(¬x0 ∨ x2) ∧ (x1 ∨ ¬x2)',
-         'assignment': 'x0=0, x1=1, x2=1, x3=0, x4=0',
-         'label': 'yes'},
-        {'formula': '(x0 ∨ x3) ∧ (¬x0 ∨ ¬x3)',
-         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0',
-         'label': 'no'},
-    ],
-    (2, 8): [
-        {'formula': '(x0 ∨ x1) ∧ (¬x1 ∨ x2)',
-         'assignment': 'x0=1, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0',
-         'label': 'yes'},
-        {'formula': '(x0 ∨ x1) ∧ (¬x0 ∨ ¬x1)',
-         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0',
-         'label': 'no'},
-        {'formula': '(¬x0 ∨ x2) ∧ (x1 ∨ ¬x2)',
-         'assignment': 'x0=0, x1=1, x2=1, x3=0, x4=0, x5=0, x6=0, x7=0',
-         'label': 'yes'},
-        {'formula': '(x0 ∨ x3) ∧ (¬x0 ∨ ¬x3)',
-         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0',
-         'label': 'no'},
-    ],
-    (2, 10): [
+    (2, 10, 2): [
         {'formula': '(x0 ∨ x1) ∧ (¬x1 ∨ x2)',
          'assignment': 'x0=1, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0, x8=0, x9=0',
          'label': 'yes'},
@@ -137,7 +109,45 @@ _FEW_SHOT = {
          'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0, x8=0, x9=0',
          'label': 'no'},
     ],
-    (3, 4): [
+
+    # 2-SAT, 5 vars, 5 clauses (from train data, verified)
+    (2, 5, 5): [
+        {'formula': '(x4 ∨ ¬x3) ∧ (x2 ∨ ¬x1) ∧ (x0 ∨ ¬x4) ∧ (¬x1 ∨ x2) ∧ (¬x1 ∨ x3)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0', 'label': 'yes'},
+        {'formula': '(x4 ∨ ¬x3) ∧ (x3 ∨ x4) ∧ (¬x4 ∨ ¬x2) ∧ (¬x0 ∨ ¬x2) ∧ (¬x0 ∨ x3)',
+         'assignment': 'x0=0, x1=1, x2=1, x3=0, x4=1', 'label': 'no'},
+        {'formula': '(x1 ∨ ¬x0) ∧ (x2 ∨ ¬x0) ∧ (¬x2 ∨ ¬x0) ∧ (¬x2 ∨ ¬x4) ∧ (¬x0 ∨ x2)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0', 'label': 'yes'},
+        {'formula': '(¬x3 ∨ x0) ∧ (x4 ∨ ¬x1) ∧ (¬x0 ∨ ¬x4) ∧ (¬x1 ∨ ¬x3) ∧ (x4 ∨ x2)',
+         'assignment': 'x0=1, x1=0, x2=0, x3=0, x4=1', 'label': 'no'},
+    ],
+
+    # 2-SAT, 8 vars, 5 clauses (from train data, verified)
+    (2, 8, 5): [
+        {'formula': '(¬x6 ∨ x4) ∧ (x2 ∨ ¬x3) ∧ (x4 ∨ x1) ∧ (¬x1 ∨ ¬x7) ∧ (x6 ∨ ¬x3)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=1, x5=0, x6=0, x7=0', 'label': 'yes'},
+        {'formula': '(x2 ∨ ¬x4) ∧ (¬x1 ∨ x7) ∧ (x6 ∨ x1) ∧ (¬x5 ∨ ¬x6) ∧ (x4 ∨ ¬x0)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=1, x5=0, x6=1, x7=0', 'label': 'no'},
+        {'formula': '(¬x0 ∨ ¬x4) ∧ (¬x6 ∨ x1) ∧ (¬x0 ∨ ¬x7) ∧ (x3 ∨ ¬x5) ∧ (x6 ∨ ¬x7)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0', 'label': 'yes'},
+        {'formula': '(x7 ∨ x4) ∧ (¬x7 ∨ ¬x5) ∧ (x3 ∨ ¬x7) ∧ (¬x7 ∨ x0) ∧ (¬x4 ∨ ¬x5)',
+         'assignment': 'x0=1, x1=0, x2=0, x3=0, x4=1, x5=0, x6=0, x7=1', 'label': 'no'},
+    ],
+
+    # 2-SAT, 10 vars, 8 clauses (from train data, verified)
+    (2, 10, 8): [
+        {'formula': '(¬x4 ∨ ¬x7) ∧ (x2 ∨ ¬x8) ∧ (¬x6 ∨ x5) ∧ (¬x9 ∨ ¬x2) ∧ (x2 ∨ ¬x7) ∧ (¬x7 ∨ x8) ∧ (x8 ∨ x7) ∧ (x7 ∨ x0)',
+         'assignment': 'x0=0, x1=0, x2=1, x3=0, x4=0, x5=0, x6=0, x7=1, x8=1, x9=0', 'label': 'yes'},
+        {'formula': '(x2 ∨ x7) ∧ (x7 ∨ x2) ∧ (¬x7 ∨ ¬x8) ∧ (¬x7 ∨ x1) ∧ (¬x9 ∨ ¬x8) ∧ (¬x5 ∨ ¬x6) ∧ (¬x0 ∨ ¬x6) ∧ (x3 ∨ ¬x8)',
+         'assignment': 'x0=1, x1=0, x2=1, x3=0, x4=0, x5=0, x6=1, x7=0, x8=0, x9=0', 'label': 'no'},
+        {'formula': '(¬x5 ∨ ¬x0) ∧ (¬x3 ∨ x8) ∧ (¬x4 ∨ x6) ∧ (x3 ∨ x2) ∧ (x3 ∨ ¬x9) ∧ (¬x9 ∨ x1) ∧ (¬x0 ∨ x3) ∧ (x4 ∨ ¬x0)',
+         'assignment': 'x0=0, x1=0, x2=0, x3=1, x4=0, x5=0, x6=0, x7=0, x8=1, x9=0', 'label': 'yes'},
+        {'formula': '(¬x1 ∨ x5) ∧ (x1 ∨ x0) ∧ (x4 ∨ x2) ∧ (x4 ∨ ¬x2) ∧ (¬x2 ∨ ¬x6) ∧ (¬x4 ∨ x8) ∧ (x2 ∨ ¬x4) ∧ (¬x9 ∨ ¬x1)',
+         'assignment': 'x0=0, x1=1, x2=1, x3=0, x4=1, x5=1, x6=0, x7=0, x8=1, x9=1', 'label': 'no'},
+    ],
+
+    # 3-SAT settings (legacy, 2-clause examples)
+    (3, 4, 2): [
         {'formula': '(x0 ∨ x1 ∨ x2) ∧ (¬x0 ∨ x1 ∨ ¬x2)',
          'assignment': 'x0=1, x1=1, x2=0, x3=0', 'label': 'yes'},
         {'formula': '(x0 ∨ x1 ∨ x2) ∧ (¬x0 ∨ ¬x1 ∨ ¬x2)',
@@ -147,7 +157,7 @@ _FEW_SHOT = {
         {'formula': '(x0 ∨ x1 ∨ x2) ∧ (¬x0 ∨ x1 ∨ x2)',
          'assignment': 'x0=0, x1=0, x2=0, x3=0', 'label': 'no'},
     ],
-    (3, 10): [
+    (3, 10, 2): [
         {'formula': '(x0 ∨ x1 ∨ x2) ∧ (¬x0 ∨ x1 ∨ ¬x2)',
          'assignment': 'x0=1, x1=1, x2=0, x3=0, x4=0, x5=0, x6=0, x7=0, x8=0, x9=0',
          'label': 'yes'},
@@ -169,24 +179,30 @@ def _detect_n_vars(assignment_str):
     return len(assignment_str.split(', '))
 
 
-def _few_shot_for(k, n_vars):
-    """Pick the closest few-shot bank (defaults to 4-var)."""
-    if (k, n_vars) in _FEW_SHOT:
-        return _FEW_SHOT[(k, n_vars)]
-    # Sensible default for unexpected n_vars: the 4-var bank for this k,
-    # or 2-SAT 4-var as a last resort.
-    return _FEW_SHOT.get((k, 4), _FEW_SHOT[(2, 4)])
+def _few_shot_for(k, n_vars, n_clauses=None):
+    """Pick the closest few-shot bank matching (k, n_vars, n_clauses).
+
+    Tries exact match first, then falls back to (k, n_vars, 2) for legacy
+    settings, then (k, 4, 2) as last resort.
+    """
+    if n_clauses and (k, n_vars, n_clauses) in _FEW_SHOT:
+        return _FEW_SHOT[(k, n_vars, n_clauses)]
+    # Fallback: try the 2-clause legacy bank for this (k, n_vars)
+    if (k, n_vars, 2) in _FEW_SHOT:
+        return _FEW_SHOT[(k, n_vars, 2)]
+    # Last resort: 4-var legacy bank
+    return _FEW_SHOT.get((k, 4, 2), _FEW_SHOT[(2, 4, 2)])
 
 
 # ============================================================================
 # Data loading
 # ============================================================================
 
-def _make_load_data(train_csv_basename, test_csv_basename, k):
+def _make_load_data(train_csv_basename, test_csv_basename, k, n_clauses):
     """Factory for load_data closures (one per task variant).
 
-    `k` is captured for downstream prompt construction (passed via item dict
-    so make_prompt doesn't have to re-detect it from filenames).
+    `k` and `n_clauses` are captured for downstream prompt construction
+    (passed via item dict so make_prompt doesn't have to re-detect them).
     """
     train_csv = os.path.join(DATA_DIR, train_csv_basename)
     test_csv = os.path.join(DATA_DIR, test_csv_basename)
@@ -197,6 +213,7 @@ def _make_load_data(train_csv_basename, test_csv_basename, k):
             row['label'] = normalize_yes_no(row.get('label', ''))
             row['satisfying_assignment'] = row.get('satisfying_assignment', '') or ''
             row['k'] = k
+            row['n_clauses'] = n_clauses
         return items
 
     def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
@@ -237,8 +254,8 @@ def _gen_prompt_zero(item):
     )
 
 
-def _gen_prompt_few(item, k, n_vars):
-    examples = [ex for ex in _few_shot_for(k, n_vars) if ex['label'] == 'yes'][:2]
+def _gen_prompt_few(item, k, n_vars, n_clauses=None):
+    examples = [ex for ex in _few_shot_for(k, n_vars, n_clauses) if ex['label'] == 'yes'][:2]
     body = "Given a Boolean formula in CNF, provide a variable assignment that satisfies it.\n\n"
     for ex in examples:
         body += f"Formula: {ex['formula']}\nAssignment: {ex['assignment']}\n\n"
@@ -256,8 +273,8 @@ def _disc_prompt_zero(item, assignment):
     )
 
 
-def _disc_prompt_few(item, assignment, k, n_vars):
-    examples = _few_shot_for(k, n_vars)[:4]
+def _disc_prompt_few(item, assignment, k, n_vars, n_clauses=None):
+    examples = _few_shot_for(k, n_vars, n_clauses)[:4]
     body = (
         "Determine if a variable assignment satisfies a Boolean formula in CNF.\n"
         "Answer with Yes or No.\n\n"
@@ -285,10 +302,11 @@ def make_prompt(item, style='generator', shots='zero',
     """
     k = item.get('k', 2)
     n_vars = _detect_n_vars(item['assignment'])
+    n_clauses = item.get('n_clauses')
 
     if style == 'generator':
         prompt = _gen_prompt_zero(item) if shots == 'zero' \
-            else _gen_prompt_few(item, k=k, n_vars=n_vars)
+            else _gen_prompt_few(item, k=k, n_vars=n_vars, n_clauses=n_clauses)
         # Use satisfying_assignment when present (canonical correct answer);
         # fall back to the row's assignment (already correct for label='yes').
         sat = item.get('satisfying_assignment') or item['assignment']
@@ -297,7 +315,7 @@ def make_prompt(item, style='generator', shots='zero',
     elif style == 'discriminator':
         assignment = gen_response if gen_response else item['assignment']
         prompt = _disc_prompt_zero(item, assignment) if shots == 'zero' \
-            else _disc_prompt_few(item, assignment, k=k, n_vars=n_vars)
+            else _disc_prompt_few(item, assignment, k=k, n_vars=n_vars, n_clauses=n_clauses)
         label = normalize_yes_no(item.get('label', ''))
         completion = " Yes" if label == 'yes' else " No"
 
@@ -398,7 +416,7 @@ _COMMON = {
 
 _registered = []
 _skipped = []
-for task_name, train_basename, test_basename, k, n_vars in TASK_VARIANTS:
+for task_name, train_basename, test_basename, k, n_vars, n_clauses in TASK_VARIANTS:
     train_path = os.path.join(DATA_DIR, train_basename)
     test_path = os.path.join(DATA_DIR, test_basename)
     if not (os.path.exists(train_path) and os.path.exists(test_path)):
@@ -406,8 +424,8 @@ for task_name, train_basename, test_basename, k, n_vars in TASK_VARIANTS:
         continue
     register_task({
         'name': task_name,
-        'load_data': _make_load_data(train_basename, test_basename, k=k),
-        'description': f'k-SAT (k={k}, {n_vars} vars): {task_name}',
+        'load_data': _make_load_data(train_basename, test_basename, k=k, n_clauses=n_clauses),
+        'description': f'k-SAT (k={k}, {n_vars} vars, {n_clauses} clauses): {task_name}',
         **_COMMON,
     })
     _registered.append(task_name)
