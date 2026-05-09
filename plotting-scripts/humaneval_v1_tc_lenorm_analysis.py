@@ -16,10 +16,18 @@ from sklearn.metrics import roc_auc_score
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--mode', choices=['self', 'neg'], default='self')
+parser.add_argument('--eval-model', default=None,
+                    help='Substring matched against eval-model in score filenames.')
+parser.add_argument('--scores-dir', default='outputs',
+                    help='Directory holding score CSVs (default outputs).')
 args = parser.parse_args()
 
-GLOB = {'self': 'outputs/scores_self-*humaneval-v1*.csv',
-        'neg':  'outputs/scores_neg-*humaneval-v1*.csv'}[args.mode]
+EVAL_MODEL = args.eval_model
+MODEL_GLOB = f'*{EVAL_MODEL}*' if EVAL_MODEL else '*'
+MODEL_TAG = f'__{EVAL_MODEL}' if EVAL_MODEL else ''
+MODEL_TITLE = EVAL_MODEL if EVAL_MODEL else 'all eval models'
+
+GLOB = f'{args.scores_dir}/scores_{args.mode}-{MODEL_GLOB}humaneval-v1*.csv'
 TYP_LABEL = {'self': 'log P(y) / num_tokens   (self-typ per token)',
              'neg':  'log P(y | x_neg) / num_tokens   (neg-typ per token)'}[args.mode]
 TYP_TITLE = {'self': 'Per-token self-typicality',
@@ -91,9 +99,9 @@ axes[1,1].set_ylabel('count')
 axes[1,1].set_title(f'Lenorm only: correct vs incorrect (ROC={lenorm_roc:.3f})')
 axes[1,1].legend(fontsize=8)
 
-plt.suptitle(f'humaneval-v1 ({args.mode}-TC, gemma-2-9b-it base, '
+plt.suptitle(f'humaneval-v1 ({args.mode}-TC, eval model: {MODEL_TITLE}, '
              f'n={len(all_df)} candidates over {len(files)} problems)', fontsize=12, y=1.00)
 plt.tight_layout()
-out = f'output-metrics/humaneval_v1_{args.mode}_tc_lenorm_analysis.png'
+out = f'output-metrics/humaneval_v1_{args.mode}_tc_lenorm_analysis{MODEL_TAG}.png'
 plt.savefig(out, dpi=150, bbox_inches='tight')
 print(f"Saved {out}")
