@@ -215,3 +215,152 @@ without any edits to `eval_by_claude.py`.
 - `scripts/dataset_builder/strip_step_markers.py` — pre-processing: strip `ки` PRM markers
 - `scripts/dataset_builder/solution_generator/gsm8k_config.py` — generation config (for future train-set generation)
 - `src/tasks/gsm8k.py` — task module (registers `gsm8k-full[-double|-all]`, `gsm8k-truncated[-double|-all]`, plus 100 per-problem eval tasks per family)
+
+---
+
+# GSM8K v1 build, parallel vLLM + multi-strategy (started 2026-05-03)
+
+A second v1 pipeline, built to mirror the **HumanEval v1** pattern (parallel
+generation of fresh solutions across multiple models and prompt strategies)
+rather than reusing RLHFlow's pre-generated Mistral solutions. Output dir is
+`data/gsm8k/v1/` so it does not collide with the RLHFlow-based v1 above (which
+lives at `data/gsm8k/with_solutions/`). Both v1s coexist; this section
+describes the new one.
+
+## Source: GSM8K canonical *test* split only (1,319 problems)
+
+The full problem pool for this pipeline is `data/gsm8k/gsm8k_test_problems.jsonl`
+— a JSONL dump of `load_dataset('openai/gsm8k', 'main', split='test')`,
+reformatted as one record per line with fields `{question_id, question,
+gold_solution, gold_answer}`. 1,319 problems, ~830 KB.
+
+The `build_gsm8k_v1.py` builder partitions these 1,319 problems into
+**train + held-out test** for the rankalign experiment (default
+`--n-test 100` → 1,219 train + 100 test). Per-problem eval CSVs in
+`data/gsm8k/v1/` are named `gsm8k_test_<N>.csv` to preserve the canonical
+GSM8K task_id (the `_test_` substring refers to GSM8K's split, not to the
+rankalign train/test partition).
+
+### Why test-only (vs. GSM8K's 7,473-problem train split)?
+
+1. **Contamination risk.** GSM8K's official train split has very likely been
+   seen during the underlying LLMs' pretraining or instruction-tuning data.
+   Using only the test split keeps the problems "fresh" w.r.t. the LLMs whose
+   typicality / discriminator behavior we are studying.
+2. **Sufficiency.** 1,319 problems is plenty for the rankalign discriminator/
+   generator setup — partitioning into 1,219 train + 100 held-out test gives
+   the same "lots of train problems, modest OOD test set" shape that
+   humaneval-v1 has (164 problems → 80 train + 82 test).
+3. **Symmetry with humaneval-v1.** The two v1 pipelines now have parallel
+   contracts: both consume a fixed canonical problem set, both partition
+   into train/test at build time, both emit per-problem CSVs.
+
+This is a deliberate departure from the RLHFlow-based v1 above (which used
+RLHFlow's solutions for the same 1,319 test problems and split them
+100/639). The new pipeline produces *its own* solutions via vLLM/API.
+
+## Pipeline
+
+```
+                                    ┌────────────────────────┐
+data/gsm8k/gsm8k_test_problems.jsonl│  1,319 GSM8K problems  │
+                                    └────────────┬───────────┘
+                                                 │
+            generate_solutions_parallel_gsm8k.py │  parallel vLLM/API,
+                                                 │  multi-strategy prompts
+                                                 ▼
+                                    ┌────────────────────────┐
+                                    │ data/gsm8k/v1/         │
+                                    │   solutions.jsonl      │  append-only pool
+                                    └────────────┬───────────┘
+                                                 │
+            reclean_and_merge_gsm8k.py           │  re-clean, re-validate,
+                                                 │  filter empty, dedup
+                                                 ▼
+                                    ┌────────────────────────┐
+                                    │ data/gsm8k/v1/         │
+                                    │   solutions_merged.jsonl│
+                                    └────────────┬───────────┘
+                                                 │
+            build_gsm8k_v1.py                    │  stratified per-problem
+                                                 │  sampling, train/test split
+                                                 ▼
+                                    ┌────────────────────────┐
+                                    │ data/gsm8k/v1/         │
+                                    │   train.csv            │
+                                    │   gsm8k_test_<N>.csv   │  (one per held-out
+                                    │   …                    │   test problem)
+                                    └────────────────────────┘
+```
+
+### Step 1 — generate
+
+```bash
+.tools-venv/bin/python scripts/dataset_builder/generate_solutions_parallel_gsm8k.py \
+    --problems data/gsm8k/gsm8k_test_problems.jsonl \
+    --output data/gsm8k/v1/solutions.jsonl \
+    --model <vllm-or-openai-model> \
+    --strategy <name-from-gsm8k_strategies.json> \
+    [--filter-ids <id_csv>] [--target-pass-fail N]
+```
+
+`gsm8k_strategies.json` (parallel to humaneval's `prompt_strategies.json`)
+defines the named prompt strategies. New strategies can be added without
+touching code; `gsm8k_config.py` automatically picks them up via
+`_load_gsm8k_strategies()`.
+
+### Step 2 — reclean + dedup
+
+```bash
+.tools-venv/bin/python scripts/dataset_builder/reclean_and_merge_gsm8k.py
+```
+
+Reads `data/gsm8k/v1/solutions.jsonl`, re-cleans with the latest
+`clean_solution()`, re-validates rows whose cleaned form changed, removes
+empties, dedups, writes `data/gsm8k/v1/solutions_merged.jsonl`.
+
+### Step 3 — stratified build
+
+```bash
+.tools-venv/bin/python scripts/dataset_builder/build_gsm8k_v1.py \
+    --input data/gsm8k/v1/solutions_merged.jsonl \
+    --output-dir data/gsm8k/v1 \
+    --samples-per-problem 30 \
+    --n-test 100 --seed 42
+```
+
+Filters out `intentional_bug` rows and any task_ids in the
+`EXCLUDED` set, requires ≥10 pass and ≥10 fail per problem, splits the
+qualified problems into train + held-out test, and samples `--samples-per-problem`
+rows per problem balanced 50/50 pass/fail across (model, strategy) groups
+via round-robin.
+
+## Status as of 2026-05-04 (Mac death) and 2026-05-09 recovery
+
+- **`data/gsm8k/gsm8k_test_problems.jsonl`** — committed (this PR / commit).
+  1,319 records.
+- **`data/gsm8k/v1/solutions.jsonl`** — 328 MB, 133,525 rows, **on RunPod's
+  `general-eval` volume only** (pod id `tskvcwypxspgku`). Not pushed to git
+  because of GitHub's 100 MB hard limit; also still being added to. Local
+  copy at `~/Downloads/gsm9k-solutions-tmp/solutions.jsonl` on the user's
+  laptop for safekeeping.
+- **`data/gsm8k/v1/solutions_merged.jsonl`** — not yet produced (the merge
+  step had not been run before the Mac died).
+- **`data/gsm8k/v1/{train,gsm8k_test_<N>}.csv`** — present on mll
+  (`/datastor1/jdr/gv-gap/rankalign/data/gsm8k/v1/`), built 2026-05-04 from
+  a predecessor solutions.jsonl. Not yet committed.
+
+## Files (this pipeline only)
+
+- `data/gsm8k/gsm8k_test_problems.jsonl` — canonical 1,319-problem pool
+- `scripts/dataset_builder/generate_solutions_parallel_gsm8k.py` — parallel
+  vLLM/API generator with per-strategy prompts
+- `scripts/dataset_builder/reclean_and_merge_gsm8k.py` — reclean + dedup
+- `scripts/dataset_builder/build_gsm8k_v1.py` — stratified per-problem
+  sampler / writer
+- `scripts/dataset_builder/solution_generator/gsm8k_config.py` — task
+  config; loads `gsm8k_strategies.json` for multi-strategy prompting
+- `scripts/dataset_builder/solution_generator/gsm8k_strategies.json` —
+  named prompt strategies (parallel to `prompt_strategies.json` for
+  humaneval)
+
