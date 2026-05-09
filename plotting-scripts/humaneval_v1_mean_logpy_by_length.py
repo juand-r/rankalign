@@ -86,12 +86,12 @@ for i, bc in enumerate(bin_centers):
 ax.set_xlabel('num_tokens (bin center)', fontsize=13)
 ax.set_ylabel(YLABEL, fontsize=13)
 ax.set_title(f'humaneval-v1 ({args.mode}-TC): {TITLE_TYP} by completion length\n'
-             f'gemma-2-9b-it base, {len(files)} test problems, {len(all_df)} candidates'
+             f'eval model: {MODEL_TITLE}, {len(files)} test problems, {len(all_df)} candidates'
              f' (counts shown as correct/incorrect per bin)', fontsize=13)
 ax.legend(fontsize=12)
 ax.grid(alpha=0.3)
 
 plt.tight_layout()
-out = f'output-metrics/humaneval_v1_{args.mode}_mean_logptyp_by_length.png'
+out = f'output-metrics/humaneval_v1_{args.mode}_mean_logptyp_by_length{MODEL_TAG}.png'
 plt.savefig(out, dpi=150)
 print(f"Saved {out}")
