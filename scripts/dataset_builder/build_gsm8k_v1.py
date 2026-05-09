@@ -40,11 +40,19 @@ from pathlib import Path
 # pool is built and we discover unsolvable_easy / unsolvable_hard problems.
 EXCLUDED = set()
 
+# Models excluded from the v1 build. gpt-4o passes ~96% of the test split, so
+# its rows are almost all "easy correct" with little discriminator/generator
+# signal — we still keep them in the pool but skip at sampling time. (Mirrors
+# how humaneval-v1 keeps `intentional_bug` rows in the pool and filters at
+# build time.)
+EXCLUDED_MODELS = {"gpt-4o"}
+
 
 def load_solutions(path):
     """Load merged pool, dropping intentional_bug, excluded, and empty rows."""
     rows = []
     empty = 0
+    excluded_model = 0
     with open(path) as f:
         for line in f:
             line = line.strip()
@@ -55,12 +63,17 @@ def load_solutions(path):
                 continue
             if r.get('strategy') == 'intentional_bug':
                 continue
+            if r.get('model') in EXCLUDED_MODELS:
+                excluded_model += 1
+                continue
             if not (r.get('solution') or '').strip():
                 empty += 1
                 continue
             rows.append(r)
     if empty:
         print(f"  Skipped {empty} empty solutions")
+    if excluded_model:
+        print(f"  Skipped {excluded_model} rows from EXCLUDED_MODELS={sorted(EXCLUDED_MODELS)}")
     return rows
 
 
