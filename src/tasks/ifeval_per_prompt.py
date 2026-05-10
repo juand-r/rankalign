@@ -1,5 +1,22 @@
 """
 IFEval tasks for specific prompts.
+
+Convention (important — used to distinguish test-only vs training prompts):
+
+  * `ifeval-prompt_N` for **N in 1..21** are **TEST-ONLY** prompts. The model
+    never trains on these. `load_data` sets `num_train = 0` so the entire
+    JSONL for that prompt goes into `L_test`. These 21 prompts are the
+    held-out evaluation set used for reporting per-prompt eval metrics.
+
+  * `ifeval-prompt_N` for **N >= 22** are **TRAINING** prompts. The model
+    sees these during training. `load_data` returns `num_train = floor(len/2)`,
+    so the JSONL is split 50/50 into `L_train` / `L_test`. The `L_test` half
+    is a within-prompt held-out diagnostic split, NOT a held-out test prompt.
+
+So when counting "test tasks" / "test prompts" for IFEval, the answer is 21
+(the test-only prompts), NOT the total number of registered `ifeval-prompt_*`
+tasks (~99). The training prompts are conceptually part of `ifeval-concat`,
+not the eval set.
 """
 
 import os
@@ -34,11 +51,22 @@ HypernymItemV2 = namedtuple('HypernymItemV2', [
 
 
 def create_load_data_func(prompt_name):
-    """Factory function to create load_data for a specific prompt."""
+    """Factory function to create load_data for a specific prompt.
+
+    Test-only vs training distinction: see the module docstring at the top
+    of this file. In short:
+      - prompts 1..21  -> num_train=0  (TEST-ONLY: entire file is L_test)
+      - prompts 22+    -> num_train=floor(len/2)  (TRAINING: split 50/50)
+    """
     def load_data(seed=0, split_type='random', sample_negative=False, v2=True, **kwargs):
         """Load train/test data for this prompt with a fixed split."""
         dataset = utils.read_data('../data/fixed-prompts-ifeval/gpt_ifeval_results_{}.jsonl'.format(prompt_name))
 
+        # IMPORTANT: prompt_1 .. prompt_21 are the TEST-ONLY held-out prompts.
+        # The model never trains on these, so num_train=0 (everything is L_test).
+        # Prompt_22 onward are TRAINING prompts (model trains on them); we still
+        # split each 50/50 internally so the L_test half can be used as a
+        # within-prompt diagnostic, but those are NOT held-out test prompts.
         if prompt_name and (prompt_name.startswith('prompt_') and prompt_name[7:].isdigit() and 1 <= int(prompt_name[7:]) <= 21):
             num_train = 0
         else:
