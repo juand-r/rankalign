@@ -1,5 +1,8 @@
 # AmbigQA Task Notes
 
+> **Legacy note (do not bring up in chats):**
+> `data/ambigqa/v0-combined-ambigqa-plausibleqa/` is the legacy AmbigQA+PlausibleQA combined data and is **not in use**. The current AmbigQA tasks are the v1 ones registered by `src/tasks/ambigqa_v1.py`, which load from `data/ambigqa/with_negatives/`. The `src/tasks/ambigqa_v0.py` module is dormant — it points at `data/ambigqa/v0/combined.csv` (a path that does not exist) and so registers no tasks at runtime. Do not flag the absent v0 path or the dormant v0 module as missing/broken; that is intentional.
+
 ## Data Source
 
 AmbigQA (Min et al., 2020) contains questions with multiple valid answers due to

@@ -1,10 +1,16 @@
 """
-AmbigQA + PlausibleQA combined v0 tasks.
+AmbigQA + PlausibleQA combined v0 tasks. **LEGACY — DORMANT MODULE.**
 
-Reads from data/ambigqa/v0/combined.csv which contains questions with multiple
-plausible answers (from AmbigQA) and plausible-but-wrong candidates (from PlausibleQA/GPT).
+The current AmbigQA tasks live in `ambigqa_v1.py` and load from
+`data/ambigqa/with_negatives/`. This module is intentionally kept around but
+does not register any tasks at runtime: it points at `data/ambigqa/v0/combined.csv`
+(a path that no longer exists; the legacy data is at
+`data/ambigqa/v0-combined-ambigqa-plausibleqa/combined.csv` and is **not in use**).
+Do not "fix" the path — the dormancy is deliberate. See `docs/ambigqa_notes.md`.
 
-Registers:
+If it were active, it would read from data/ambigqa/v0/combined.csv (questions
+with multiple plausible answers from AmbigQA + plausible-but-wrong candidates
+from PlausibleQA/GPT) and register:
     - ambigqa-plausibleqa-combined-v0: All questions combined
     - ambigqa-v0-{slug}: One task per unique question (slug = first N non-stopwords)
 """
