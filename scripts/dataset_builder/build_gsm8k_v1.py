@@ -150,6 +150,13 @@ def make_split(qualified_problems, rng, n_test):
     return train_problems, test_problems
 
 
+def _strip_nul(v):
+    """Strip NUL bytes from any string field (csv reader chokes on them)."""
+    if isinstance(v, str) and '\x00' in v:
+        return v.replace('\x00', '')
+    return v
+
+
 def write_csv(rows, output_path):
     """Write rows in the canonical gsm8k v1 CSV schema (mirrors humaneval-v1)."""
     with open(output_path, 'w', newline='') as f:
@@ -158,14 +165,14 @@ def write_csv(rows, output_path):
                          'model', 'temperature', 'task_id', 'error'])
         for r in rows:
             writer.writerow([
-                r.get('question', ''),
-                r.get('solution', ''),
+                _strip_nul(r.get('question', '')),
+                _strip_nul(r.get('solution', '')),
                 'Yes' if r.get('passed') else 'No',
-                r.get('strategy', 'normal'),
-                r.get('model', ''),
+                _strip_nul(r.get('strategy', 'normal')),
+                _strip_nul(r.get('model', '')),
                 r.get('temperature', ''),
-                r.get('task_id', ''),
-                r.get('error', '') or '',
+                _strip_nul(r.get('task_id', '')),
+                _strip_nul(r.get('error', '') or ''),
             ])
 
 
