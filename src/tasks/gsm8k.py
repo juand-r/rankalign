@@ -58,6 +58,16 @@ DATA_DIR = os.path.join(
 FULL_DIR = os.path.join(DATA_DIR, 'full_response')
 TRUNC_DIR = os.path.join(DATA_DIR, 'truncated_response')
 
+# v1 family (4 models × 3 strategies cycle build, May 2026). Output of
+# scripts/dataset_builder/build_gsm8k_v1.py with --test-ids-file mode.
+V1_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    'data', 'gsm8k', 'v1',
+)
+V1_TRAIN_CSV = os.path.join(V1_DIR, 'train.csv')
+V1_FIELDS = ('question', 'answer', 'correct', 'strategy',
+             'model', 'temperature', 'task_id', 'error')
+
 # Train problem caps for the three sized variants. Each problem contributes
 # ~56 rows on average at --balance --max-per-side 30, so:
 #   45  →  ~2.5k rows  (matches humaneval / codecontests-base / ifeval-concat)
@@ -360,3 +370,77 @@ _n_trunc = _register_family('gsm8k-truncated', TRUNC_DIR)
 if _n_full or _n_trunc:
     print(f"[gsm8k] Registered {_n_full} eval tasks under gsm8k-full and "
           f"{_n_trunc} under gsm8k-truncated (plus 3 train variants per family)")
+
+
+# ============================================================================
+# v1 family (modern build, May 2026 — 4 cycle models × 3 cycle strategies)
+# ============================================================================
+
+def _load_v1_items(filepath):
+    items = load_csv_items(filepath, fields=V1_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def load_data_v1_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
+    """v1 full training set; test set is empty (use per-problem tasks for eval)."""
+    L_train = _load_v1_items(V1_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
+    return L_train, []
+
+
+def create_load_data_v1_for_problem(test_csv_path):
+    """Factory: v1 train.csv for train, specific per-problem CSV for test."""
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v1_items(V1_TRAIN_CSV)
+        L_test = _load_v1_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.exists(V1_TRAIN_CSV):
+    _V1_COMMON = {
+        'make_prompt': make_prompt,
+        'get_completion': get_completion,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'gsm8k-v1',
+        'load_data': load_data_v1_train_only,
+        'description': 'GSM8K v1: full training set (4 models × 3 strategies)',
+        **_V1_COMMON,
+    })
+
+    _v1_registered = []
+    for filename in sorted(os.listdir(V1_DIR)):
+        if not filename.endswith('.csv') or filename == 'train.csv' or filename == 'train_old.csv':
+            continue
+        slug = filename[:-4]  # strip .csv
+        test_csv_path = os.path.join(V1_DIR, filename)
+        task_name = f'gsm8k-v1-{slug}'
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v1_for_problem(test_csv_path),
+                'description': f'GSM8K v1: {slug}',
+                **_V1_COMMON,
+            })
+            _v1_registered.append(task_name)
+        except Exception as e:
+            print(f"[gsm8k-v1] Warning: Could not register {task_name}: {e}")
+
+    if _v1_registered:
+        print(f"[gsm8k-v1] Registered {len(_v1_registered)} eval tasks (plus gsm8k-v1 train)")
+else:
+    print(f"[gsm8k-v1] Data not found at {V1_DIR} — skipping v1 registration")
