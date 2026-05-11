@@ -22,23 +22,27 @@ LOG_DIR="$RANKALIGN_DIR/slurm_logs/v1_1_eval"
 mkdir -p "$LOG_DIR"
 
 # ============================================================================
-# Task groups (mirrors v1 split — 111 problems into 8 groups of ~14).
+# Task groups — auto-discovered from the actual v1.1 dataset directory so the
+# launcher never drifts from the data. (The v1 launcher was hardcoded and
+# had 23 stale task IDs that no longer matched the data.)
+# Splits into 8 groups round-robin for even sizes.
 # ============================================================================
-TASKS_G1="gsm8k-v1.1-gsm8k_test_1000 gsm8k-v1.1-gsm8k_test_1003 gsm8k-v1.1-gsm8k_test_1018 gsm8k-v1.1-gsm8k_test_1021 gsm8k-v1.1-gsm8k_test_1022 gsm8k-v1.1-gsm8k_test_1025 gsm8k-v1.1-gsm8k_test_1027 gsm8k-v1.1-gsm8k_test_1058 gsm8k-v1.1-gsm8k_test_1073 gsm8k-v1.1-gsm8k_test_1080 gsm8k-v1.1-gsm8k_test_1084 gsm8k-v1.1-gsm8k_test_1087 gsm8k-v1.1-gsm8k_test_1092 gsm8k-v1.1-gsm8k_test_1097"
+V1_1_DIR="$(dirname "$SCRIPT_DIR")/data/gsm8k/v1.1"
+if [ ! -d "$V1_1_DIR" ]; then
+    echo "ERROR: v1.1 data dir not found at $V1_1_DIR" >&2
+    exit 1
+fi
+ALL_TIDS=( $(ls "$V1_1_DIR"/gsm8k_test_*.csv 2>/dev/null | xargs -n1 basename | sed 's/\.csv$//' | sort) )
+N_TIDS=${#ALL_TIDS[@]}
+echo "Discovered $N_TIDS v1.1 task IDs in $V1_1_DIR" >&2
 
-TASKS_G2="gsm8k-v1.1-gsm8k_test_1110 gsm8k-v1.1-gsm8k_test_1113 gsm8k-v1.1-gsm8k_test_1120 gsm8k-v1.1-gsm8k_test_1124 gsm8k-v1.1-gsm8k_test_1146 gsm8k-v1.1-gsm8k_test_115 gsm8k-v1.1-gsm8k_test_1168 gsm8k-v1.1-gsm8k_test_1170 gsm8k-v1.1-gsm8k_test_1185 gsm8k-v1.1-gsm8k_test_1203 gsm8k-v1.1-gsm8k_test_1216 gsm8k-v1.1-gsm8k_test_1226 gsm8k-v1.1-gsm8k_test_124 gsm8k-v1.1-gsm8k_test_1240"
-
-TASKS_G3="gsm8k-v1.1-gsm8k_test_1244 gsm8k-v1.1-gsm8k_test_1252 gsm8k-v1.1-gsm8k_test_1258 gsm8k-v1.1-gsm8k_test_1262 gsm8k-v1.1-gsm8k_test_1273 gsm8k-v1.1-gsm8k_test_1282 gsm8k-v1.1-gsm8k_test_129 gsm8k-v1.1-gsm8k_test_1300 gsm8k-v1.1-gsm8k_test_1311 gsm8k-v1.1-gsm8k_test_1313 gsm8k-v1.1-gsm8k_test_1316 gsm8k-v1.1-gsm8k_test_1317 gsm8k-v1.1-gsm8k_test_145 gsm8k-v1.1-gsm8k_test_16"
-
-TASKS_G4="gsm8k-v1.1-gsm8k_test_166 gsm8k-v1.1-gsm8k_test_168 gsm8k-v1.1-gsm8k_test_193 gsm8k-v1.1-gsm8k_test_205 gsm8k-v1.1-gsm8k_test_218 gsm8k-v1.1-gsm8k_test_227 gsm8k-v1.1-gsm8k_test_252 gsm8k-v1.1-gsm8k_test_257 gsm8k-v1.1-gsm8k_test_270 gsm8k-v1.1-gsm8k_test_282 gsm8k-v1.1-gsm8k_test_296 gsm8k-v1.1-gsm8k_test_303 gsm8k-v1.1-gsm8k_test_307 gsm8k-v1.1-gsm8k_test_321"
-
-TASKS_G5="gsm8k-v1.1-gsm8k_test_360 gsm8k-v1.1-gsm8k_test_363 gsm8k-v1.1-gsm8k_test_386 gsm8k-v1.1-gsm8k_test_387 gsm8k-v1.1-gsm8k_test_390 gsm8k-v1.1-gsm8k_test_4 gsm8k-v1.1-gsm8k_test_427 gsm8k-v1.1-gsm8k_test_431 gsm8k-v1.1-gsm8k_test_459 gsm8k-v1.1-gsm8k_test_462 gsm8k-v1.1-gsm8k_test_466 gsm8k-v1.1-gsm8k_test_485 gsm8k-v1.1-gsm8k_test_538 gsm8k-v1.1-gsm8k_test_541"
-
-TASKS_G6="gsm8k-v1.1-gsm8k_test_547 gsm8k-v1.1-gsm8k_test_554 gsm8k-v1.1-gsm8k_test_574 gsm8k-v1.1-gsm8k_test_609 gsm8k-v1.1-gsm8k_test_622 gsm8k-v1.1-gsm8k_test_633 gsm8k-v1.1-gsm8k_test_650 gsm8k-v1.1-gsm8k_test_656 gsm8k-v1.1-gsm8k_test_660 gsm8k-v1.1-gsm8k_test_677 gsm8k-v1.1-gsm8k_test_680 gsm8k-v1.1-gsm8k_test_697 gsm8k-v1.1-gsm8k_test_701 gsm8k-v1.1-gsm8k_test_707"
-
-TASKS_G7="gsm8k-v1.1-gsm8k_test_714 gsm8k-v1.1-gsm8k_test_742 gsm8k-v1.1-gsm8k_test_761 gsm8k-v1.1-gsm8k_test_784 gsm8k-v1.1-gsm8k_test_798 gsm8k-v1.1-gsm8k_test_807 gsm8k-v1.1-gsm8k_test_809 gsm8k-v1.1-gsm8k_test_821 gsm8k-v1.1-gsm8k_test_839 gsm8k-v1.1-gsm8k_test_866 gsm8k-v1.1-gsm8k_test_878 gsm8k-v1.1-gsm8k_test_882 gsm8k-v1.1-gsm8k_test_885 gsm8k-v1.1-gsm8k_test_903"
-
-TASKS_G8="gsm8k-v1.1-gsm8k_test_912 gsm8k-v1.1-gsm8k_test_916 gsm8k-v1.1-gsm8k_test_918 gsm8k-v1.1-gsm8k_test_922 gsm8k-v1.1-gsm8k_test_924 gsm8k-v1.1-gsm8k_test_927 gsm8k-v1.1-gsm8k_test_934 gsm8k-v1.1-gsm8k_test_939 gsm8k-v1.1-gsm8k_test_956 gsm8k-v1.1-gsm8k_test_966 gsm8k-v1.1-gsm8k_test_971 gsm8k-v1.1-gsm8k_test_988 gsm8k-v1.1-gsm8k_test_996"
+# Round-robin into 8 groups for even sizes
+TASKS_G1="" TASKS_G2="" TASKS_G3="" TASKS_G4="" TASKS_G5="" TASKS_G6="" TASKS_G7="" TASKS_G8=""
+for i in "${!ALL_TIDS[@]}"; do
+    g=$(( (i % 8) + 1 ))
+    var="TASKS_G${g}"
+    eval "${var}=\"\${${var}}\${${var}:+ }gsm8k-v1.1-${ALL_TIDS[i]}\""
+done
 
 MODELS_BIG="google/gemma-2-9b-it"
 MODELS_SMALL="google/gemma-2-2b-it google/gemma-2-2b"
