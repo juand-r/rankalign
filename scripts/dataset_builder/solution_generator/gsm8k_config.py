@@ -16,8 +16,31 @@ from typing import Optional
 from .base import TaskConfig
 
 
-# Standard GSM8K answer extraction (from openai/grade-school-math)
-ANS_RE = re.compile(r"#### (\-?[\d\.\,]+)")
+# ====================================================================
+# Dual-metric answer extraction — matches lm-evaluation-harness exactly:
+#   https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k.yaml
+#   https://github.com/EleutherAI/lm-evaluation-harness/blob/main/lm_eval/tasks/gsm8k/gsm8k-cot-zeroshot.yaml
+#
+# We expose:
+#   - strict_match(response) -> str | None  (uses LAST match of either gold-format `#### N`
+#                                            or CoT-format `The answer is N.`)
+#   - flexible_extract(response) -> str | None  (lm-eval-harness flexible filter,
+#                                                last alternation match)
+#
+# `validate()` returns both strict_correct and flexible_correct flags so downstream
+# can choose. `passed` (legacy boolean) is set to flexible_correct for back-compat
+# with the older pool (which was generated with the buggy single-fallback extractor).
+# ====================================================================
+
+# gsm8k.yaml (strict-match)
+_RE_STRICT_HASH = re.compile(r"#### (\-?[0-9\.\,]+)")
+# gsm8k-cot-zeroshot.yaml (strict-match) — literal trailing period required
+_RE_STRICT_ANSWER_IS = re.compile(r"The answer is (\-?[0-9\.\,]+)\.")
+# gsm8k.yaml flexible-extract — group_select=-1 (last match)
+_RE_FLEXIBLE = re.compile(r"(-?[$0-9.,]{2,})|(-?[0-9]+)")
+
+# Legacy names kept so any old callers don't break (used to be the simple fallback)
+ANS_RE = _RE_STRICT_HASH
 LAST_NUMBER_RE = re.compile(r"(-?[\d,]+\.?\d*)")
 
 _STRATEGIES_PATH = Path(__file__).parent / "gsm8k_strategies.json"
@@ -30,21 +53,54 @@ def _load_gsm8k_strategies():
         return json.load(f)
 
 
-def extract_answer_from_response(response: str) -> str:
-    """Extract the final numeric answer from a model response.
+def _last_match(regex, text: str) -> Optional[str]:
+    """Return last match's first non-empty group, or None."""
+    matches = list(regex.finditer(text))
+    if not matches:
+        return None
+    for g in matches[-1].groups():
+        if g:
+            return g
+    return matches[-1].group(0)
 
-    Tries multiple patterns in order:
-    1. #### <number> (GSM8K gold format)
-    2. "The answer is <number>" (common CoT format)
-    3. \\boxed{<number>} (LaTeX format)
-    4. Last number in the response (fallback)
+
+def strict_match(response: str) -> Optional[str]:
+    """Strict-match extraction. Returns captured number string or None.
+
+    Accepts EITHER `#### N` OR `The answer is N.` (last occurrence; prefers
+    explicit "The answer is" form when both are present)."""
+    ans = _last_match(_RE_STRICT_ANSWER_IS, response)
+    if ans is not None:
+        return ans
+    return _last_match(_RE_STRICT_HASH, response)
+
+
+def flexible_extract(response: str) -> Optional[str]:
+    """Flexible extraction: lm-eval-harness flexible filter (last alternation match)."""
+    return _last_match(_RE_FLEXIBLE, response)
+
+
+def extract_answer_from_response(response: str) -> str:
+    """Legacy single-string extractor (now delegates to strict, then flexible).
+
+    Returns the strict match if present, otherwise the flexible match, otherwise "".
+    Callers should prefer the dual-metric API (`strict_match` + `flexible_extract`)
+    so they can store both labels per row.
     """
-    # Try #### format first
+    ans = strict_match(response)
+    if ans is not None:
+        return ans.replace(",", "").strip()
+    ans = flexible_extract(response)
+    if ans is not None:
+        return ans.replace(",", "").strip()
+    return ""
+
+
+def _legacy_unused_old_extractor_kept_for_history(response: str) -> str:
+    """Original buggy extractor (kept for historical reference / debugging only)."""
     match = ANS_RE.search(response)
     if match:
         return match.group(1).replace(",", "").strip()
-
-    # Try "the answer is X" pattern
     answer_pattern = re.search(r"[Tt]he (?:final )?answer is[:\s]*\$?\\?boxed\{?(-?[\d,]+\.?\d*)\}?\$?", response)
     if answer_pattern:
         return answer_pattern.group(1).replace(",", "").strip()
@@ -126,7 +182,22 @@ class GSM8KConfig(TaskConfig):
     def build_record(self, problem: dict, solution: str, raw_solution: str,
                      passed: bool, extracted_answer: str, error: Optional[str],
                      temperature: float, model: str, strategy: str) -> dict:
-        """Canonical schema (humaneval-style) for v1 pool rows."""
+        """Canonical schema (humaneval-style) for v1 pool rows.
+
+        v2 additions (back-compat): we also store strict_extracted, flexible_extracted,
+        strict_correct, flexible_correct so downstream consumers can use either
+        lm-eval-harness metric. `passed` (legacy) = flexible_correct, matching the
+        v1 pool's labeling convention.
+        """
+        # Compute dual metrics
+        strict = strict_match(raw_solution)
+        flex = flexible_extract(raw_solution)
+        gold = normalize_answer(problem.get('gold_answer', ''))
+        strict_norm = normalize_answer(strict) if strict else ""
+        flex_norm = normalize_answer(flex) if flex else ""
+        strict_correct = (strict_norm != "") and (strict_norm == gold)
+        flexible_correct = (flex_norm != "") and (flex_norm == gold)
+
         return {
             'task_id': problem.get('question_id', problem.get('task_id', '')),
             'question': problem.get('question', ''),
@@ -134,7 +205,11 @@ class GSM8KConfig(TaskConfig):
             'raw_solution': raw_solution,
             'extracted_answer': extracted_answer,
             'gold_answer': problem.get('gold_answer', ''),
-            'passed': passed,
+            'passed': passed,                      # legacy = flexible_correct (back-compat)
+            'strict_extracted': strict,
+            'flexible_extracted': flex,
+            'strict_correct': strict_correct,
+            'flexible_correct': flexible_correct,
             'error': error,
             'temperature': temperature,
             'model': model,
@@ -142,12 +217,18 @@ class GSM8KConfig(TaskConfig):
         }
 
     def validate(self, problem: dict, raw_solution: str) -> tuple[bool, str, "str | None"]:
-        gold = normalize_answer(problem['gold_answer'])
-        extracted = extract_answer_from_response(raw_solution)
-        extracted_norm = normalize_answer(extracted)
+        """Return (passed, extracted_str, error).
 
-        if not extracted_norm:
-            return False, extracted, "no_answer_found"
+        passed = flexible_correct (matches lm-eval-harness flexible-extract metric,
+        and matches the v1 pool's `correct` convention for back-compat).
+        Both strict and flexible per-row labels land in the record via build_record.
+        """
+        gold = normalize_answer(problem.get('gold_answer', ''))
+        flex = flexible_extract(raw_solution)
+        flex_norm = normalize_answer(flex) if flex else ""
 
-        passed = extracted_norm == gold
-        return passed, extracted, None if passed else f"expected={gold}, got={extracted_norm}"
+        if flex_norm == "":
+            return False, "", "no_answer_found"
+
+        passed = flex_norm == gold
+        return passed, flex or "", None if passed else f"expected={gold}, got={flex_norm}"
