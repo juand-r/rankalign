@@ -1,0 +1,36 @@
+== Existing jobs (already running before overnight launch) ==
+37268  rosch 2b-it matched eval
+37269  rosch 2b-it basetyp_extra eval
+
+== AmbigQA training (gemma-2-2b, ambigqa-train-as-test) ==
+37270  [1/9] RankAlign baseline
+37271  [2/9] + offline self-TC
+37272  [3/9] + ONLINE self-TC
+37273  [4/9] + ONLINE pair selection
+37274  [5/9] + ONLINE self-TC + ONLINE pair selection
+37275  [6/9] SFT-on-all (NLL only)
+37276  [7/9] + offline neg-TC
+37277  [8/9] + ONLINE neg-TC
+37278  [9/9] + ONLINE neg-TC + ONLINE pair selection
+
+== AmbigQA training (gemma-2-2b-it, ambigqa-train-as-test) ==
+37279  [1/9] RankAlign baseline
+37280  [2/9] + offline self-TC
+37281  [3/9] + ONLINE self-TC
+37282  [4/9] + ONLINE pair selection
+37283  [5/9] + ONLINE self-TC + ONLINE pair selection
+37284  [6/9] SFT-on-all
+37285  [7/9] + offline neg-TC
+37286  [8/9] + ONLINE neg-TC
+37287  [9/9] + ONLINE neg-TC + ONLINE pair selection
+
+== AmbigQA evals (afterany dependent on the 9 corresponding training jobs) ==
+37288  2b   matched eval        (depends on 37270..37278)
+37289  2b   basetyp_extra eval  (depends on 37270..37278)
+37290  2b-it matched eval       (depends on 37279..37287)
+37291  2b-it basetyp_extra eval (depends on 37279..37287)
+
+== Morning report (afterany dependent on every eval job above) ==
+37292  morning report (depends on 37268, 37269, 37288, 37289, 37290, 37291)
+       writes OVERNIGHT_STATUS.md, refreshes outputs-quickiter/quickiter_metrics_long*.csv,
+       rebuilds outputs-quickiter/rosch_quickiter_summary.md
