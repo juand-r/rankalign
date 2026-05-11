@@ -41,12 +41,19 @@ DEFAULT_MODEL = "google/gemma-2-9b-it"
 
 
 def _row_key(r: dict) -> str:
-    """Stable key for resumability."""
+    """Stable key for resumability.
+
+    Includes the completion: different completions for the same (task_id,
+    model, strategy, temperature, prompt) tuple are distinct rows and must
+    each be scored independently.
+    """
     h = hashlib.md5()
     for k in ("task_id", "model", "strategy", "temperature"):
         h.update(str(r.get(k, "")).encode("utf-8"))
         h.update(b"\0")
     h.update((r.get("prompt") or "").encode("utf-8"))
+    h.update(b"\0")
+    h.update((r.get("completion") or "").encode("utf-8"))
     return h.hexdigest()
 
 
