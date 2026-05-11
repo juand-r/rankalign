@@ -65,7 +65,7 @@ submit() {
         --mem=32G \
         --time=${hours}:00:00 \
         --output="${LOG_DIR}/${jobname}-%j.out" \
-        --wrap="set -euo pipefail; source ~/venvs/venv_lexcons/bin/activate; cd ${SCRIPT_DIR}/..; bash scripts/run_eval_semi.sh '$model' $tc --log-odds -- $tasks"
+        --wrap="bash -c 'set -eo pipefail; source ~/venvs/venv_lexcons/bin/activate; cd ${SCRIPT_DIR}/..; bash scripts/run_eval_semi.sh \"$model\" $tc --log-odds -- $tasks'"
 }
 
 N_SUBMITTED=0
