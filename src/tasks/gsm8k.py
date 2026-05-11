@@ -444,3 +444,75 @@ if os.path.exists(V1_TRAIN_CSV):
         print(f"[gsm8k-v1] Registered {len(_v1_registered)} eval tasks (plus gsm8k-v1 train)")
 else:
     print(f"[gsm8k-v1] Data not found at {V1_DIR} — skipping v1 registration")
+
+
+# ============================================================================
+# v1.1 family — v1 rows with retroactive tweaks applied:
+#   (1) dual-metric extractor relabel
+#   (2) length filter [60, 3000]
+#   (3) gpt-4.1-mini truncation judge filter
+#   (4) gemma-2-9b-it logP/token >= -2 filter
+# Built by notes/gsm8k-v1.1/build_v1_1_step{1,2_prep,3_finalize}.py.
+# Clean separation: v1.1 reuses the same prompt/completion/label helpers
+# as v1 (so eval pipelines work unchanged), only the per-problem CSV
+# contents differ. There is no v1.1 train.csv — eval tasks load v1's
+# train.csv as their train set (we are only changing the test data).
+# ============================================================================
+
+V1_1_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    'data', 'gsm8k', 'v1.1',
+)
+
+# v1.1 CSVs have extra columns beyond V1_FIELDS, but load_csv_items only
+# pulls the requested fields and tolerates extras — so the same V1_FIELDS
+# spec works. The only column-level semantic change is that `correct` in
+# v1.1 is the new flexible_correct (not v1's buggy-extractor label).
+V1_1_FIELDS = V1_FIELDS
+
+
+def _load_v1_1_items(filepath):
+    items = load_csv_items(filepath, fields=V1_1_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def create_load_data_v1_1_for_problem(test_csv_path):
+    """Factory: v1 train.csv for train, v1.1 per-problem CSV for test."""
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v1_items(V1_TRAIN_CSV)         # v1 train (unchanged)
+        L_test = _load_v1_1_items(test_csv_path)       # v1.1 test (filtered)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.exists(V1_1_DIR):
+    _v1_1_registered = []
+    for filename in sorted(os.listdir(V1_1_DIR)):
+        if not filename.endswith('.csv'):
+            continue
+        if filename in ('train.csv', 'train_old.csv'):
+            continue
+        slug = filename[:-4]
+        test_csv_path = os.path.join(V1_1_DIR, filename)
+        task_name = f'gsm8k-v1.1-{slug}'
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v1_1_for_problem(test_csv_path),
+                'description': f'GSM8K v1.1: {slug}',
+                **_V1_COMMON,
+            })
+            _v1_1_registered.append(task_name)
+        except Exception as e:
+            print(f"[gsm8k-v1.1] Warning: Could not register {task_name}: {e}")
+
+    if _v1_1_registered:
+        print(f"[gsm8k-v1.1] Registered {len(_v1_1_registered)} eval tasks")
+else:
+    print(f"[gsm8k-v1.1] Data not found at {V1_1_DIR} — skipping v1.1 registration")
