@@ -93,6 +93,123 @@ The pattern lines up: TC helps where pairs are clean (rosch), TC neutral-or-hurt
 
 The **2b vs 2b-it asymmetry on ambigqa** also lines up: on 2b, the validator can be salvaged by raising `delta`; on 2b-it, it cannot.
 
+## Why TC actively *hurts* on ambigqa (not just fails to help)
+
+A subtler question: vanilla RankAlign also trains on noisy ambigqa pairs, but
+it lands at gen-ROC 71.82, whereas offline self-TC drops to 57.66. So TC isn't
+neutral on the noise — it's worse than RankAlign without TC. Why?
+
+### The offset-reweighting argument
+
+Vanilla RankAlign on a pair `(w, l)` minimizes:
+
+```
+L_raw = −log σ(Δ_θ),   Δ_θ = log P_θ(y_w | x) − log P_θ(y_l | x)
+```
+
+Offline self-TC minimizes:
+
+```
+L_TC = −log σ(Δ_θ − offset),   offset = log P_base(y_w) − log P_base(y_l)
+```
+
+The gradient direction is the same — `offset` is θ-independent for offline
+TC, so it drops out of `∇θ`. What changes is the **per-pair gradient
+magnitude**:
+
+```
+∂L/∂θ ∝ (1 − σ(Δ_θ − offset)) · ∇Δ_θ
+```
+
+Inside the sigmoid, raising `offset` is equivalent to "pretending Δ_θ is
+smaller than it is", so the sigmoid takes longer to saturate and the
+gradient persists for many more steps. Lowering `offset` is the opposite —
+sigmoid saturates faster, gradient dies sooner.
+
+So TC effectively **reweights gradient magnitude per pair** by `offset`:
+
+- `offset > 0` (winner more typical than loser) → bigger persistent gradient
+  → "push harder on this pair"
+- `offset < 0` (winner less typical than loser) → gradient dies faster →
+  "give up on this pair"
+
+The reweighting itself is benign — what matters is **whether the up-weighted
+pairs happen to be the correct ones**.
+
+### Why the up-weighted pairs are the *wrong* ones on ambigqa
+
+In the diagnostic, I called this `tc_adj` (with sign flipped:
+`tc_adj = log P_base(y_l) − log P_base(y_w) = −offset`). On ambigqa 2b:
+
+| tc_adj bucket | n_pairs | pair accuracy | TC's effect |
+| --- | --- | --- | --- |
+| < −2 (winner much more typical, big +offset) | 15,595 | **31%** | push harder |
+| (−2, −1] | 2,027 | 57% | push harder |
+| (−1, −0.3] | 1,470 | 63% | push slightly harder |
+| (−0.3, 0.3] | 1,340 | 64% | roughly neutral |
+| (0.3, 1] | 1,555 | 62% | push slightly less |
+| (1, 2] | 2,042 | 63% | push less |
+| > 2 (winner much less typical, big −offset) | 17,535 | **82%** | give up early |
+
+The two extreme buckets account for 33,130 of 41,564 yes-vs-no pairs — about
+**80% of the training data**. And:
+
+- TC up-weights gradient on the 15,595 pairs that are 69% wrong-sign.
+- TC down-weights gradient on the 17,535 pairs that are 82% right-sign.
+
+Vanilla RankAlign gives all those pairs equal gradient weight: wrong-sign
+and right-sign pairs roughly cancel. TC actively biases against
+cancellation — amplifying error and damping signal. That's the precise
+mechanism for "TC < RankAlign" on ambigqa.
+
+### Why these two sets coincide: the class-imbalance lens
+
+Why are wrong-sign pairs concentrated in the "winner more typical" region?
+Class imbalance:
+
+- AmbigQA train.csv is 25/75 yes/no (1,998 yes vs. 5,994 no).
+- "no" answers are more typical in the corpus, so on average
+  `log P_base(no) > log P_base(yes)`.
+- The base-model validator on ambiguous questions has a base-rate bias:
+  when uncertain, it picks "no" (the more common label).
+- When the validator picks the GT-yes item (correct), the winner is the
+  *less-typical* label → big negative offset → right tail → 82% accurate.
+- When the validator picks the GT-no item over a GT-yes item (wrong), the
+  winner is the *more-typical* label → big positive offset → left tail →
+  31% accurate.
+
+So on ambigqa the typicality-offset axis and the validator-correctness axis
+are essentially the same axis with opposite signs. TC reweighting *along
+typicality* is identical to TC reweighting *along wrongness*. Disaster by
+construction.
+
+On rosch every tc_adj bucket is at 95–99% accuracy (no class-imbalance bias
+in the underlying typicality), so the same reweighting can only redistribute
+weight among already-correct pairs. That's why TC helps on rosch and hurts
+on ambigqa.
+
+### Predictions this argument makes
+
+1. **Online self-TC ≈ offline self-TC on ambigqa.** The gradient through
+   `log P_θ(y)` is a second-order correction; the offset effect dominates.
+   Observed: both 57.66 (basetyp eval). ✓
+2. **neg-TC hurts less than self-TC on ambigqa.** Its offset isn't tied to
+   label frequency but to "typical under negated context", a different
+   distribution. Observed: offline neg-TC = 62.42 > offline self-TC = 57.66
+   (basetyp evals on ambigqa 2b basetypneg column).
+3. **SFT bypasses validator and hence offset reweighting.** Observed:
+   SFT = 92.81 (basetypneg) on ambigqa 2b. ✓
+4. **Once pair quality is fixed (delta=1.0 retrain), TC should switch from
+   hurting to helping** — because the high-offset bucket is no longer
+   systematically wrong-sign once we drop the low-confidence pairs. This is
+   the most informative falsifiable prediction; testable with the followup
+   to job 37613 (running TC variants under delta=1.0).
+
+If #4 fails — i.e., TC at delta=1.0 still hurts even with clean pairs —
+the offset-reweighting argument is incomplete and there's a second
+mechanism we're missing (e.g., online-TC instability, tokenization mismatch
+between completion and typicality prompts, or something else).
+
 ## Concrete next experiments
 
 In priority order:
