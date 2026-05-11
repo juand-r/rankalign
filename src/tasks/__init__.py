@@ -59,6 +59,7 @@ from . import ifeval_per_prompt  # Auto-registered IFEval tasks for each prompt
 from . import ifeval_concat      # Concatenated IFEval task (all prompts)
 from . import ambigqa_v0         # AmbigQA + PlausibleQA combined v0 + per-question tasks
 from . import ambigqa_v1         # AmbigQA v1: with_negatives train + per-question test tasks
+from . import ambigqa_train_as_test  # ambigqa-train-as-test: full train.csv used as train AND test (memorization probe)
 from . import plausibleqa_v0     # PlausibleQA per-question tasks
 from . import rosch              # Rosch-1975 category membership eval tasks
 from . import rosch_combined     # rosch-furniture-and-bird: train=test memorization probe
