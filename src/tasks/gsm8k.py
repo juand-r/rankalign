@@ -516,3 +516,142 @@ if os.path.exists(V1_1_DIR):
         print(f"[gsm8k-v1.1] Registered {len(_v1_1_registered)} eval tasks")
 else:
     print(f"[gsm8k-v1.1] Data not found at {V1_1_DIR} — skipping v1.1 registration")
+
+
+# ============================================================================
+# v2 family — pool-based build with all 4 cycle filters and balanced sampling.
+# Filters applied in series: length [60,3000], judge truncation (gpt-4.1-mini),
+# gemma-2-9b-it logP/tok>=-2, then trim to N=3 pass + N=3 fail per cell.
+# Layout: data/gsm8k/v2/{test,train}/gsm8k_test_<N>.csv
+# Built by notes/gsm8k-v2/build_v2_step{1,3}_*.py.
+# ============================================================================
+
+V2_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    'data', 'gsm8k', 'v2',
+)
+V2_TEST_DIR = os.path.join(V2_DIR, 'test')
+V2_TRAIN_DIR = os.path.join(V2_DIR, 'train')
+
+# Sized-variant train problem counts (matches gsm8k-full conventions: base
+# ~2k rows, double ~4k, all ~30k).
+V2_TRAIN_PROBLEMS_BASE = 28
+V2_TRAIN_PROBLEMS_DOUBLE = 56
+V2_SAMPLE_SEED = 42
+
+V2_FIELDS = V1_FIELDS  # same 8-col v1 schema (extras tolerated by load_csv_items)
+
+
+def _load_v2_items(csv_path):
+    items = load_csv_items(csv_path, fields=V2_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def _load_v2_train_pool(train_dir=V2_TRAIN_DIR):
+    """Concat all per-problem train CSVs into a single train pool."""
+    items = []
+    if not os.path.isdir(train_dir):
+        return items
+    for filename in sorted(os.listdir(train_dir)):
+        if not filename.endswith('.csv'):
+            continue
+        items.extend(_load_v2_items(os.path.join(train_dir, filename)))
+    return items
+
+
+def _v2_sample_by_problems(items, n_problems, rng):
+    """Pick all items from n_problems distinct task_ids (deterministic)."""
+    by_task = defaultdict(list)
+    for item in items:
+        by_task[item['task_id']].append(item)
+    tids = sorted(by_task.keys())
+    rng.shuffle(tids)
+    selected = tids[:n_problems]
+    out = []
+    for t in selected:
+        out.extend(by_task[t])
+    rng.shuffle(out)
+    return out
+
+
+def make_v2_train_loader(n_problems):
+    """Factory: sample n_problems from v2 train pool (None = all). Empty test."""
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        pool = _load_v2_train_pool()
+        if n_problems is None:
+            rng = random.Random(seed)
+            rng.shuffle(pool)
+            return pool, []
+        rng = random.Random(V2_SAMPLE_SEED)  # deterministic subset across runs
+        return _v2_sample_by_problems(pool, n_problems, rng), []
+    return load_data
+
+
+def make_v2_eval_loader(test_csv_path):
+    """Factory: full v2 train pool + 1 per-problem test CSV."""
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v2_train_pool()
+        L_test = _load_v2_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.isdir(V2_TRAIN_DIR) and os.path.isdir(V2_TEST_DIR):
+    _V2_COMMON = {
+        'make_prompt': make_prompt,
+        'get_completion': get_completion,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+    # Sized train variants
+    register_task({
+        'name': 'gsm8k-v2',
+        'load_data': make_v2_train_loader(V2_TRAIN_PROBLEMS_BASE),
+        'description': f'GSM8K v2: ~{V2_TRAIN_PROBLEMS_BASE} train problems (~2k rows)',
+        **_V2_COMMON,
+    })
+    register_task({
+        'name': 'gsm8k-v2-double',
+        'load_data': make_v2_train_loader(V2_TRAIN_PROBLEMS_DOUBLE),
+        'description': f'GSM8K v2: ~{V2_TRAIN_PROBLEMS_DOUBLE} train problems (~4k rows)',
+        **_V2_COMMON,
+    })
+    register_task({
+        'name': 'gsm8k-v2-all',
+        'load_data': make_v2_train_loader(None),
+        'description': 'GSM8K v2: all train problems (~30k rows)',
+        **_V2_COMMON,
+    })
+
+    # Per-problem eval tasks (100 test problems)
+    _v2_registered = []
+    for filename in sorted(os.listdir(V2_TEST_DIR)):
+        if not filename.endswith('.csv'):
+            continue
+        slug = filename[:-4]
+        test_csv_path = os.path.join(V2_TEST_DIR, filename)
+        task_name = f'gsm8k-v2-{slug}'
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': make_v2_eval_loader(test_csv_path),
+                'description': f'GSM8K v2: {slug}',
+                **_V2_COMMON,
+            })
+            _v2_registered.append(task_name)
+        except Exception as e:
+            print(f"[gsm8k-v2] Warning: Could not register {task_name}: {e}")
+    if _v2_registered:
+        print(f"[gsm8k-v2] Registered 3 sized train variants + {len(_v2_registered)} per-problem eval tasks")
+else:
+    print(f"[gsm8k-v2] Data not found at {V2_DIR} — skipping v2 registration")

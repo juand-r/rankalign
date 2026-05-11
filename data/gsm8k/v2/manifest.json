@@ -1,0 +1,51 @@
+{
+  "build_date": "2026-05-11",
+  "source": "pool_relabeled.jsonl (1.18M rows, 4 cycle models \u00d7 3 strategies)",
+  "filters_in_series": [
+    {
+      "name": "length",
+      "spec": "60 <= len(answer) <= 3000"
+    },
+    {
+      "name": "qualified_problems",
+      "spec": "\u22654 pass \u2227 \u22654 fail per cell in \u226510/12 cells per problem"
+    },
+    {
+      "name": "oversample",
+      "spec": "N=4 pass + N=4 fail per qualified cell per problem"
+    },
+    {
+      "name": "llm_judge_truncation",
+      "spec": "gpt-4.1-mini T=0 + 3 few-shot; drop rows judged truncated"
+    },
+    {
+      "name": "gemma_logp",
+      "spec": "google/gemma-2-9b-it log P(completion|prompt); drop rows with logP/tok < -2"
+    },
+    {
+      "name": "trim",
+      "spec": "per cell, keep up to N=3 pass + N=3 fail (random seed=142)"
+    }
+  ],
+  "row_counts": {
+    "sampled_oversample": 49624,
+    "judge_truncated_drop": 3186,
+    "no_score_match_drop": 0,
+    "logp_below_threshold_drop": 886,
+    "after_all_filters": 45552,
+    "after_trim_to_3": 36266,
+    "test_rows": 6480,
+    "train_rows": 29786
+  },
+  "split": {
+    "seed": 42,
+    "n_test_problems": 100,
+    "n_train_problems": 469
+  },
+  "trim": {
+    "N": 3,
+    "seed": 142
+  },
+  "logp_threshold": -2.0,
+  "labels": "correct column = flexible_correct (Yes/No)"
+}
