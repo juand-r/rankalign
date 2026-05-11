@@ -4,64 +4,66 @@
 
 Spearman omitted per your usual reporting preference.
 
+**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy are in percentage points; Pearson is in 0–100 units).
+
 Long-form metrics: [quickiter_metrics_long.csv](quickiter_metrics_long.csv)
 
 ### Generator ROC-AUC (`tc` column)
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 0.7466 | 0.7375 | — | — |
-| 1 | RankAlign baseline | 0.8475 | 0.8644 | 0.8681 | 0.8046 |
-| 2 | + offline self-TC | 0.8776 | — | 0.9510 | — |
-| 3 | + online self-TC | 0.9575 | — | 0.9572 | — |
-| 4 | + online pairs | 0.8544 | 0.7789 | 0.8299 | 0.7585 |
-| 5 | + both online (self) | 0.9202 | — | 0.8703 | — |
-| 6 | SFT (NLL all) | 0.9953 | 0.8099 | 0.9958 | 0.9895 |
-| 7 | + offline neg-TC | — | 0.6108 | — | 0.9283 |
-| 8 | + online neg-TC | — | 0.8873 | — | 0.7073 |
-| 9 | + both online (neg) | — | 0.9076 | — | 0.7459 |
+| 0 | Base HF (gemma-2-2b) | 74.66 | 73.75 | — | — |
+| 1 | RankAlign baseline | 84.75 | 86.44 | 86.81 | 80.46 |
+| 2 | + offline self-TC | 87.76 | — | 95.10 | — |
+| 3 | + online self-TC | 95.75 | — | 95.72 | — |
+| 4 | + online pairs | 85.44 | 77.89 | 82.99 | 75.85 |
+| 5 | + both online (self) | 92.02 | — | 87.03 | — |
+| 6 | SFT (NLL all) | 99.53 | 80.99 | 99.58 | 98.95 |
+| 7 | + offline neg-TC | — | 61.08 | — | 92.83 |
+| 8 | + online neg-TC | — | 88.73 | — | 70.73 |
+| 9 | + both online (neg) | — | 90.76 | — | 74.59 |
 
 ### Validator ROC-AUC (same across gen variants for a file; shown for reference)
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 0.9605 | 0.9605 | — | — |
-| 1 | RankAlign baseline | 0.9109 | 0.9109 | 0.9109 | 0.9109 |
-| 2 | + offline self-TC | 0.8207 | — | 0.8207 | — |
-| 3 | + online self-TC | 0.9372 | — | 0.9372 | — |
-| 4 | + online pairs | 0.9542 | 0.9542 | 0.9542 | 0.9542 |
-| 5 | + both online (self) | 0.8935 | — | 0.8935 | — |
-| 6 | SFT (NLL all) | 0.9322 | 0.9322 | 0.9322 | 0.9322 |
-| 7 | + offline neg-TC | — | 0.8380 | — | 0.8380 |
-| 8 | + online neg-TC | — | 0.8668 | — | 0.8668 |
-| 9 | + both online (neg) | — | 0.9448 | — | 0.9448 |
+| 0 | Base HF (gemma-2-2b) | 96.05 | 96.05 | — | — |
+| 1 | RankAlign baseline | 91.09 | 91.09 | 91.09 | 91.09 |
+| 2 | + offline self-TC | 82.07 | — | 82.07 | — |
+| 3 | + online self-TC | 93.72 | — | 93.72 | — |
+| 4 | + online pairs | 95.42 | 95.42 | 95.42 | 95.42 |
+| 5 | + both online (self) | 89.35 | — | 89.35 | — |
+| 6 | SFT (NLL all) | 93.22 | 93.22 | 93.22 | 93.22 |
+| 7 | + offline neg-TC | — | 83.80 | — | 83.80 |
+| 8 | + online neg-TC | — | 86.68 | — | 86.68 |
+| 9 | + both online (neg) | — | 94.48 | — | 94.48 |
 
 ### Validator accuracy (threshold 0)
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 0.8763 | 0.8763 | — | — |
-| 1 | RankAlign baseline | 0.7634 | 0.7634 | 0.7634 | 0.7634 |
-| 2 | + offline self-TC | 0.6075 | — | 0.6075 | — |
-| 3 | + online self-TC | 0.8763 | — | 0.8763 | — |
-| 4 | + online pairs | 0.8871 | 0.8871 | 0.8871 | 0.8871 |
-| 5 | + both online (self) | 0.7312 | — | 0.7312 | — |
-| 6 | SFT (NLL all) | 0.8763 | 0.8763 | 0.8763 | 0.8763 |
-| 7 | + offline neg-TC | — | 0.6613 | — | 0.6613 |
-| 8 | + online neg-TC | — | 0.5806 | — | 0.5806 |
-| 9 | + both online (neg) | — | 0.7151 | — | 0.7151 |
+| 0 | Base HF (gemma-2-2b) | 87.63 | 87.63 | — | — |
+| 1 | RankAlign baseline | 76.34 | 76.34 | 76.34 | 76.34 |
+| 2 | + offline self-TC | 60.75 | — | 60.75 | — |
+| 3 | + online self-TC | 87.63 | — | 87.63 | — |
+| 4 | + online pairs | 88.71 | 88.71 | 88.71 | 88.71 |
+| 5 | + both online (self) | 73.12 | — | 73.12 | — |
+| 6 | SFT (NLL all) | 87.63 | 87.63 | 87.63 | 87.63 |
+| 7 | + offline neg-TC | — | 66.13 | — | 66.13 |
+| 8 | + online neg-TC | — | 58.06 | — | 58.06 |
+| 9 | + both online (neg) | — | 71.51 | — | 71.51 |
 
 ### Pearson(gen, validator) — `tc` gen vs val_score
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 0.5010 | 0.3464 | — | — |
-| 1 | RankAlign baseline | 0.6413 | 0.5919 | 0.6017 | 0.5236 |
-| 2 | + offline self-TC | 0.6857 | — | 0.5921 | — |
-| 3 | + online self-TC | 0.8818 | — | 0.7871 | — |
-| 4 | + online pairs | 0.7340 | 0.4261 | 0.6540 | 0.5210 |
-| 5 | + both online (self) | 0.6975 | — | 0.5570 | — |
-| 6 | SFT (NLL all) | 0.6103 | 0.3388 | 0.6288 | 0.5760 |
-| 7 | + offline neg-TC | — | -0.0948 | — | 0.4655 |
-| 8 | + online neg-TC | — | 0.5088 | — | 0.1830 |
-| 9 | + both online (neg) | — | 0.8866 | — | 0.5281 |
+| 0 | Base HF (gemma-2-2b) | 50.10 | 34.64 | — | — |
+| 1 | RankAlign baseline | 64.13 | 59.19 | 60.17 | 52.36 |
+| 2 | + offline self-TC | 68.57 | — | 59.21 | — |
+| 3 | + online self-TC | 88.18 | — | 78.71 | — |
+| 4 | + online pairs | 73.40 | 42.61 | 65.40 | 52.10 |
+| 5 | + both online (self) | 69.75 | — | 55.70 | — |
+| 6 | SFT (NLL all) | 61.03 | 33.88 | 62.88 | 57.60 |
+| 7 | + offline neg-TC | — | -9.48 | — | 46.55 |
+| 8 | + online neg-TC | — | 50.88 | — | 18.30 |
+| 9 | + both online (neg) | — | 88.66 | — | 52.81 |

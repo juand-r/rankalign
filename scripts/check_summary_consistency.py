@@ -41,7 +41,11 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUTS = ROOT / "outputs-quickiter"
 SUMMARIZE = ROOT / "scripts" / "summarize_scores_file.py"
-TOL = 1e-4  # markdown rounds to 4 decimal places, so 5e-5 round error is plausible
+
+# Markdown values are written as (raw × SCALE) with .2f, so round-trip error is
+# at most 5e-3. Keep these in sync with the build scripts.
+SCALE = 100
+TOL = 1e-2
 
 # (label, model, task, md_path, score_glob)
 COMBOS = [
@@ -148,10 +152,10 @@ def csv_truth(df_long: pd.DataFrame, model: str, task: str) -> dict:
             continue
         vid, _label, eval_ref = parsed
         truth[(vid, eval_ref)] = {
-            "gen_roc":  float(r["gen_roc"]),
-            "val_roc":  float(r["val_roc"]),
-            "val_acc":  float(r["val_acc"]),
-            "pearson":  float(r["pearson"]),
+            "gen_roc":  float(r["gen_roc"]) * SCALE,
+            "val_roc":  float(r["val_roc"]) * SCALE,
+            "val_acc":  float(r["val_acc"]) * SCALE,
+            "pearson":  float(r["pearson"]) * SCALE,
         }
     return truth
 

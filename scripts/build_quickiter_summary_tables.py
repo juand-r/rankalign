@@ -64,11 +64,16 @@ NUMBERED_ORDER = [
 
 EVAL_REFS = ["self", "neg", "basetyp", "basetypneg"]
 
+# All numeric cells are reported as raw_value × SCALE so that ROC / accuracy /
+# Pearson read as percentage points (easier to compare deltas at a glance).
+# If you change this, update scripts/check_summary_consistency.py too.
+SCALE = 100
+
 METRICS_AND_TITLES = [
-    ("gen_roc",  "Generator ROC-AUC (`tc` column)"),
-    ("val_roc",  "Validator ROC-AUC (same across gen variants; shown for reference)"),
-    ("val_acc",  "Validator accuracy (threshold 0)"),
-    ("pearson",  "Pearson(gen, validator) — `tc` gen vs val_score"),
+    ("gen_roc",  "Generator ROC-AUC (`tc` column) — values × 100"),
+    ("val_roc",  "Validator ROC-AUC (same across gen variants; shown for reference) — values × 100"),
+    ("val_acc",  "Validator accuracy (threshold 0) — values × 100"),
+    ("pearson",  "Pearson(gen, validator) — `tc` gen vs val_score — values × 100"),
 ]
 
 
@@ -124,7 +129,7 @@ def wide(piv: pd.DataFrame, metric: str, order) -> pd.DataFrame:
         sub = t.loc[(i, lab)]
         for c in EVAL_REFS:
             v = sub[c]
-            row[c] = "—" if pd.isna(v) else f"{float(v):.4f}"
+            row[c] = "—" if pd.isna(v) else f"{float(v) * SCALE:.2f}"
         out_rows.append(row)
     return pd.DataFrame(out_rows)
 
@@ -246,6 +251,8 @@ def main():
         "(TC-corrected gen score where applicable).\n",
         "Train ≡ test by construction — these tables are a memorization probe; "
         "do NOT read them as cross-task generalization.\n",
+        "**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy "
+        "are in percentage points; Pearson is in 0–100 units).\n",
         f"Long-form metrics: [{long_csv.name}]({long_csv.name})\n",
     ]
     for metric, title in METRICS_AND_TITLES:

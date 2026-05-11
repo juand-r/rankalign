@@ -46,6 +46,11 @@ ORDER = [
 
 EVAL_COLS = ["self", "neg", "basetyp", "basetypneg"]
 
+# Numeric cells are reported as raw × SCALE (100 = percentage-point convention).
+# Keep this in sync with scripts/build_quickiter_summary_tables.py and
+# scripts/check_summary_consistency.py.
+SCALE = 100
+
 FNAME_RE = re.compile(
     r"^scores_(basetypneg|basetyp|neg|self)-v6-google_gemma-2-2b-delta0\.15-epoch2_"
     r"rosch-furniture-and-bird-all_d2g_random_alpha1\.0_(.+)_rosch-furniture-and-bird_test_log-odds_tc_20260510\.csv$"
@@ -82,7 +87,7 @@ def wide(piv: pd.DataFrame, metric: str) -> pd.DataFrame:
         sub = t.loc[(i, lab)]
         for c in EVAL_COLS:
             v = sub[c]
-            row[c] = "—" if pd.isna(v) else f"{float(v):.4f}"
+            row[c] = "—" if pd.isna(v) else f"{float(v) * SCALE:.2f}"
         out_rows.append(row)
     return pd.DataFrame(out_rows)
 
@@ -123,6 +128,8 @@ def main():
         "**Metrics from `summarize_scores_file.py`, generator column variant `tc`** "
         "(TC-corrected gen score where applicable).\n",
         "Spearman omitted per your usual reporting preference.\n",
+        "**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy "
+        "are in percentage points; Pearson is in 0–100 units).\n",
         "Long-form metrics: [quickiter_metrics_long.csv](quickiter_metrics_long.csv)\n",
     ]
     for metric, title in [

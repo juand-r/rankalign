@@ -4,64 +4,66 @@
 
 Train ≡ test by construction — these tables are a memorization probe; do NOT read them as cross-task generalization.
 
+**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy are in percentage points; Pearson is in 0–100 units).
+
 Long-form metrics: [quickiter_metrics_long.csv](quickiter_metrics_long.csv)
 
-### Generator ROC-AUC (`tc` column)
+### Generator ROC-AUC (`tc` column) — values × 100
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b-it) | 0.8737 | 0.9344 | — | — |
-| 1 | RankAlign baseline | 0.8516 | 0.7499 | 0.8887 | 0.8354 |
-| 2 | + offline self-TC | 0.8476 | — | 0.9363 | — |
-| 3 | + online self-TC | 0.8982 | — | 0.7737 | — |
-| 4 | + online pairs | 0.7810 | 0.7906 | 0.8221 | 0.7655 |
-| 5 | + both online (self) | 0.8415 | — | 0.7352 | — |
-| 6 | SFT (NLL all) | 0.9818 | 0.8671 | 0.9670 | 0.9618 |
-| 7 | + offline neg-TC | — | 0.8673 | — | 0.9150 |
-| 8 | + online neg-TC | — | 0.8998 | — | 0.7770 |
-| 9 | + both online (neg) | — | 0.8084 | — | 0.7546 |
+| 0 | Base HF (gemma-2-2b-it) | 87.37 | 93.44 | — | — |
+| 1 | RankAlign baseline | 85.16 | 74.99 | 88.87 | 83.54 |
+| 2 | + offline self-TC | 84.76 | — | 93.63 | — |
+| 3 | + online self-TC | 89.82 | — | 77.37 | — |
+| 4 | + online pairs | 78.10 | 79.06 | 82.21 | 76.55 |
+| 5 | + both online (self) | 84.15 | — | 73.52 | — |
+| 6 | SFT (NLL all) | 98.18 | 86.71 | 96.70 | 96.18 |
+| 7 | + offline neg-TC | — | 86.73 | — | 91.50 |
+| 8 | + online neg-TC | — | 89.98 | — | 77.70 |
+| 9 | + both online (neg) | — | 80.84 | — | 75.46 |
 
-### Validator ROC-AUC (same across gen variants; shown for reference)
-
-| # | trained model | self | neg | basetyp | basetypneg |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b-it) | 0.9616 | 0.9616 | — | — |
-| 1 | RankAlign baseline | 0.9605 | 0.9605 | 0.9605 | 0.9605 |
-| 2 | + offline self-TC | 0.9615 | — | 0.9615 | — |
-| 3 | + online self-TC | 0.9257 | — | 0.9257 | — |
-| 4 | + online pairs | 0.8571 | 0.8571 | 0.8571 | 0.8571 |
-| 5 | + both online (self) | 0.9399 | — | 0.9399 | — |
-| 6 | SFT (NLL all) | 0.9690 | 0.9690 | 0.9690 | 0.9690 |
-| 7 | + offline neg-TC | — | 0.8837 | — | 0.8837 |
-| 8 | + online neg-TC | — | 0.9387 | — | 0.9387 |
-| 9 | + both online (neg) | — | 0.8382 | — | 0.8382 |
-
-### Validator accuracy (threshold 0)
+### Validator ROC-AUC (same across gen variants; shown for reference) — values × 100
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b-it) | 0.8817 | 0.8817 | — | — |
-| 1 | RankAlign baseline | 0.8871 | 0.8871 | 0.8871 | 0.8871 |
-| 2 | + offline self-TC | 0.9032 | — | 0.9032 | — |
-| 3 | + online self-TC | 0.8333 | — | 0.8333 | — |
-| 4 | + online pairs | 0.6828 | 0.6828 | 0.6828 | 0.6828 |
-| 5 | + both online (self) | 0.5806 | — | 0.5806 | — |
-| 6 | SFT (NLL all) | 0.5000 | 0.5000 | 0.5000 | 0.5000 |
-| 7 | + offline neg-TC | — | 0.7634 | — | 0.7634 |
-| 8 | + online neg-TC | — | 0.8710 | — | 0.8710 |
-| 9 | + both online (neg) | — | 0.5000 | — | 0.5000 |
+| 0 | Base HF (gemma-2-2b-it) | 96.16 | 96.16 | — | — |
+| 1 | RankAlign baseline | 96.05 | 96.05 | 96.05 | 96.05 |
+| 2 | + offline self-TC | 96.15 | — | 96.15 | — |
+| 3 | + online self-TC | 92.57 | — | 92.57 | — |
+| 4 | + online pairs | 85.71 | 85.71 | 85.71 | 85.71 |
+| 5 | + both online (self) | 93.99 | — | 93.99 | — |
+| 6 | SFT (NLL all) | 96.90 | 96.90 | 96.90 | 96.90 |
+| 7 | + offline neg-TC | — | 88.37 | — | 88.37 |
+| 8 | + online neg-TC | — | 93.87 | — | 93.87 |
+| 9 | + both online (neg) | — | 83.82 | — | 83.82 |
 
-### Pearson(gen, validator) — `tc` gen vs val_score
+### Validator accuracy (threshold 0) — values × 100
 
 | # | trained model | self | neg | basetyp | basetypneg |
 | --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b-it) | 0.5648 | 0.6711 | — | — |
-| 1 | RankAlign baseline | 0.6631 | 0.4172 | 0.6399 | 0.5354 |
-| 2 | + offline self-TC | 0.6643 | — | 0.7864 | — |
-| 3 | + online self-TC | 0.8074 | — | 0.4350 | — |
-| 4 | + online pairs | 0.6815 | 0.5996 | 0.6537 | 0.5773 |
-| 5 | + both online (self) | 0.7762 | — | 0.4527 | — |
-| 6 | SFT (NLL all) | 0.6967 | 0.6640 | 0.6249 | 0.6249 |
-| 7 | + offline neg-TC | — | 0.6573 | — | 0.7005 |
-| 8 | + online neg-TC | — | 0.6261 | — | 0.5288 |
-| 9 | + both online (neg) | — | 0.7065 | — | 0.5961 |
+| 0 | Base HF (gemma-2-2b-it) | 88.17 | 88.17 | — | — |
+| 1 | RankAlign baseline | 88.71 | 88.71 | 88.71 | 88.71 |
+| 2 | + offline self-TC | 90.32 | — | 90.32 | — |
+| 3 | + online self-TC | 83.33 | — | 83.33 | — |
+| 4 | + online pairs | 68.28 | 68.28 | 68.28 | 68.28 |
+| 5 | + both online (self) | 58.06 | — | 58.06 | — |
+| 6 | SFT (NLL all) | 50.00 | 50.00 | 50.00 | 50.00 |
+| 7 | + offline neg-TC | — | 76.34 | — | 76.34 |
+| 8 | + online neg-TC | — | 87.10 | — | 87.10 |
+| 9 | + both online (neg) | — | 50.00 | — | 50.00 |
+
+### Pearson(gen, validator) — `tc` gen vs val_score — values × 100
+
+| # | trained model | self | neg | basetyp | basetypneg |
+| --- | --- | --- | --- | --- | --- |
+| 0 | Base HF (gemma-2-2b-it) | 56.48 | 67.11 | — | — |
+| 1 | RankAlign baseline | 66.31 | 41.72 | 63.99 | 53.54 |
+| 2 | + offline self-TC | 66.43 | — | 78.64 | — |
+| 3 | + online self-TC | 80.74 | — | 43.50 | — |
+| 4 | + online pairs | 68.15 | 59.96 | 65.37 | 57.73 |
+| 5 | + both online (self) | 77.62 | — | 45.27 | — |
+| 6 | SFT (NLL all) | 69.67 | 66.40 | 62.49 | 62.49 |
+| 7 | + offline neg-TC | — | 65.73 | — | 70.05 |
+| 8 | + online neg-TC | — | 62.61 | — | 52.88 |
+| 9 | + both online (neg) | — | 70.65 | — | 59.61 |
