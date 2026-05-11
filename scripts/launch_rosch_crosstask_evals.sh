@@ -26,11 +26,11 @@ TASKS=(
     rosch-weapon
 )
 
+cd "$(dirname "$0")/.."
+
 mkdir -p overnight
 JOBIDS_FILE=overnight/crosstask_jobids.txt
 : > "$JOBIDS_FILE"
-
-cd "$(dirname "$0")"
 
 for T in "${TASKS[@]}"; do
     echo ""
@@ -39,7 +39,7 @@ for T in "${TASKS[@]}"; do
     echo "$out"
     jid=$(echo "$out" | grep -oE 'Submitted batch job [0-9]+' | awk '{print $4}')
     if [[ -n "$jid" ]]; then
-        echo "$jid  $T" >> "../$JOBIDS_FILE"
+        echo "$jid  $T" >> "$JOBIDS_FILE"
     fi
 done
 
@@ -48,4 +48,4 @@ echo "============================================================"
 echo "Submitted ${#TASKS[@]} cross-task eval jobs."
 echo "Job IDs / tasks recorded in $JOBIDS_FILE"
 echo "============================================================"
-cat "../$JOBIDS_FILE"
+cat "$JOBIDS_FILE"

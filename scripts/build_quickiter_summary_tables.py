@@ -77,23 +77,30 @@ METRICS_AND_TITLES = [
 ]
 
 
-def build_filename_regexes(model: str, task: str):
-    """Return (fine_tune_re, base_self_re, base_neg_re) for the given model+task.
+def build_filename_regexes(model: str, train_task: str, eval_task: str | None = None):
+    """Return (fine_tune_re, base_self_re, base_neg_re) for the given model and tasks.
 
     The model token in the filename uses '_' as the family separator
     ("google_gemma-2-2b" or "google_gemma-2-2b-it"), which we mirror.
+
+    train_task = task baked into the model checkpoint path.
+    eval_task  = task that appears just before _test_log-odds_; defaults to
+                 train_task (matched-task evaluation, the original setting).
     """
+    if eval_task is None:
+        eval_task = train_task
     m = re.escape(model)
-    t = re.escape(task)
+    tr = re.escape(train_task)
+    ev = re.escape(eval_task)
     fine_re = re.compile(
         rf"^scores_(basetypneg|basetyp|neg|self)-v6-google_{m}-delta0\.15-epoch2_"
-        rf"{t}-all_d2g_random_alpha1\.0_(.+)_{t}_test_log-odds_tc_\d+\.csv$"
+        rf"{tr}-all_d2g_random_alpha1\.0_(.+)_{ev}_test_log-odds_tc_\d+\.csv$"
     )
     base_self_re = re.compile(
-        rf"^scores_self-v6-google_{m}_{t}_test_log-odds_tc_\d+\.csv$"
+        rf"^scores_self-v6-google_{m}_{ev}_test_log-odds_tc_\d+\.csv$"
     )
     base_neg_re = re.compile(
-        rf"^scores_neg-v6-google_{m}_{t}_test_log-odds_tc_\d+\.csv$"
+        rf"^scores_neg-v6-google_{m}_{ev}_test_log-odds_tc_\d+\.csv$"
     )
     return fine_re, base_self_re, base_neg_re
 
@@ -167,24 +174,37 @@ def main():
     ap.add_argument("--model", required=True,
                     help="HF model slug (e.g. gemma-2-2b, gemma-2-2b-it).")
     ap.add_argument("--task", required=True,
-                    help="Task name (e.g. rosch-furniture-and-bird, ambigqa-train-as-test).")
+                    help="Train task name (e.g. rosch-furniture-and-bird, ambigqa-train-as-test). "
+                         "Identifies the task baked into the model checkpoint.")
+    ap.add_argument("--eval-task", default=None,
+                    help="Eval task; defaults to --task. Use a different value to build a "
+                         "cross-task table (e.g. trained on rosch-furniture-and-bird, eval on rosch-toy).")
     ap.add_argument("--long-csv", default=None,
                     help="Long-form metrics CSV (default chosen by task).")
     ap.add_argument("--out", default=None,
                     help="Output markdown path (default: outputs-quickiter/{task_short}_quickiter_summary_{model}.md).")
     args = ap.parse_args()
 
+    train_task = args.task
+    eval_task  = args.eval_task or train_task
+    matched    = (eval_task == train_task)
+
     if args.long_csv is None:
-        if "ambigqa" in args.task:
+        if "ambigqa" in train_task:
             long_csv = ROOT / "outputs-quickiter" / "quickiter_metrics_long_ambigqa.csv"
         else:
             long_csv = ROOT / "outputs-quickiter" / "quickiter_metrics_long.csv"
     else:
         long_csv = Path(args.long_csv).resolve()
 
-    task_short = "ambigqa" if "ambigqa" in args.task else "rosch"
-    out_md = (Path(args.out).resolve() if args.out
-              else ROOT / "outputs-quickiter" / f"{task_short}_quickiter_summary_{args.model}.md")
+    task_short = "ambigqa" if "ambigqa" in train_task else "rosch"
+    if args.out:
+        out_md = Path(args.out).resolve()
+    elif matched:
+        out_md = ROOT / "outputs-quickiter" / f"{task_short}_quickiter_summary_{args.model}.md"
+    else:
+        out_md = (ROOT / "outputs-quickiter" /
+                  f"{train_task}-to-ood" / f"{eval_task}_summary_{args.model}.md")
 
     if not long_csv.exists():
         raise SystemExit(f"long CSV not found: {long_csv}")
@@ -192,7 +212,9 @@ def main():
     df = pd.read_csv(long_csv)
     df_tc = df[df["variant"] == "tc"].copy()
 
-    fine_re, base_self_re, base_neg_re = build_filename_regexes(args.model, args.task)
+    fine_re, base_self_re, base_neg_re = build_filename_regexes(
+        args.model, train_task, eval_task
+    )
     base_label = f"Base HF ({args.model})"
 
     rows = []
@@ -210,8 +232,11 @@ def main():
                 f"_{args.model}-delta" in r["file"]
                 or f"_{args.model}_" in r["file"]
             )
-            task_token_match = f"_{args.task}-all_" in r["file"] or f"_{args.task}_test_" in r["file"]
-            if model_token_match and task_token_match:
+            train_token_match = f"_{train_task}-all_" in r["file"] or (
+                matched and f"_{train_task}_test_" in r["file"]
+            )
+            eval_token_match  = f"_{eval_task}_test_" in r["file"]
+            if model_token_match and train_token_match and eval_token_match:
                 n_unparsed += 1
                 if len(sample_unparsed) < 3:
                     sample_unparsed.append(r["file"])
@@ -233,7 +258,10 @@ def main():
     print(f"INFO: {n_unmatched} rows skipped (different model/task in the same long CSV).")
 
     if not rows:
-        raise SystemExit(f"No rows matched model={args.model} task={args.task} in {long_csv}.")
+        raise SystemExit(
+            f"No rows matched model={args.model} train_task={train_task} "
+            f"eval_task={eval_task} in {long_csv}."
+        )
 
     piv = pd.DataFrame(rows)
     dup = piv.groupby(["id", "train", "eval_ref"]).size()
@@ -243,14 +271,27 @@ def main():
     order = [("0", base_label)] + NUMBERED_ORDER
     items_blurb = get_dataset_size_blurb(piv, df_tc)
 
+    if matched:
+        title = f"# {task_short.capitalize()} quick-iter ({args.model}) — {train_task}\n"
+        task_line = f"**Task:** {train_task} ({items_blurb}). "
+        confound_blurb = ("Train ≡ test by construction — these tables are a memorization probe; "
+                          "do NOT read them as cross-task generalization.\n")
+    else:
+        title = (f"# Cross-task quick-iter ({args.model}) — "
+                 f"trained on {train_task}, evaluated on **{eval_task}**\n")
+        task_line = (f"**Train task:** {train_task} (model checkpoints). "
+                     f"**Eval task:** {eval_task} ({items_blurb}). ")
+        confound_blurb = ("Models were trained on a *different* rosch category set "
+                          "(furniture+bird) and are evaluated here as out-of-distribution. "
+                          "This IS a generalization read.\n")
+
     parts = [
-        f"# {task_short.capitalize()} quick-iter ({args.model}) — {args.task}\n",
-        f"**Task:** {args.task} ({items_blurb}). "
+        title,
+        task_line +
         f"**Validator:** log-odds (`--validator-log-odds`). "
         f"**Metrics from `summarize_scores_file.py`, generator column variant `tc`** "
         "(TC-corrected gen score where applicable).\n",
-        "Train ≡ test by construction — these tables are a memorization probe; "
-        "do NOT read them as cross-task generalization.\n",
+        confound_blurb,
         "**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy "
         "are in percentage points; Pearson is in 0–100 units).\n",
         f"Long-form metrics: [{long_csv.name}]({long_csv.name})\n",
@@ -260,7 +301,11 @@ def main():
 
     out_md.parent.mkdir(parents=True, exist_ok=True)
     out_md.write_text("\n".join(parts), encoding="utf-8")
-    print(f"Wrote {out_md.relative_to(ROOT)}")
+    try:
+        rel = out_md.relative_to(ROOT)
+        print(f"Wrote {rel}")
+    except ValueError:
+        print(f"Wrote {out_md}")
 
 
 if __name__ == "__main__":
