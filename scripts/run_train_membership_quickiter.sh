@@ -36,13 +36,12 @@ JOBIDS_FILE=overnight/membership_train_jobids.txt
 : > "$JOBIDS_FILE"
 
 # Membership-v0 has more categories (165) than rosch-fb (2), so the in-loop
-# pair sampling has more groups but each group is smaller. In practice the
-# wall-clock per epoch is similar to rosch-fb (the dominant cost is the 5110
-# forward/backward passes, not the pair-bookkeeping). Generous time budgets:
-#   - offline runs  -> 2 h
-#   - online-TC     -> 3 h
-#   - online-pairs  -> 2 h (one re-elect per epoch is cheap)
-#   - both online   -> 3 h
+# pair sampling has more groups but each group is smaller. Observed per-epoch
+# wall-clock from the first attempt (jobs 37965-37973) was ~50-60 min/epoch
+# for offline/SFT/pref-only and ~90-100 min/epoch for online-TC variants.
+# These budgets give enough margin for all three epochs PLUS the final save:
+#   - offline / SFT / pref-only / online-pairs-only -> 4 h
+#   - online-TC / online-both                       -> 6 h
 
 PREF_BASE=" \
     --model $MODEL \
@@ -90,15 +89,15 @@ submit_one () {
     fi
 }
 
-submit_one "[1/9] RankAlign baseline"                                   2 "$PREF_BASE"
-submit_one "[2/9] RankAlign + offline self-TC"                          2 "$PREF_BASE --self-typicality"
-submit_one "[3/9] RankAlign + ONLINE self-TC"                           3 "$PREF_BASE --self-typicality --online-typicality"
-submit_one "[4/9] RankAlign + ONLINE pair selection"                    2 "$PREF_BASE --online-pair-selection"
-submit_one "[5/9] RankAlign + ONLINE self-TC + ONLINE pair selection"   3 "$PREF_BASE --self-typicality --online-typicality --online-pair-selection"
-submit_one "[6/9] SFT (NLL all)"                                        2 "$SFT_BASE"
-submit_one "[7/9] RankAlign + offline neg-TC"                           2 "$PREF_BASE --neg-typicality"
-submit_one "[8/9] RankAlign + ONLINE neg-TC"                            3 "$PREF_BASE --neg-typicality --online-typicality"
-submit_one "[9/9] RankAlign + ONLINE neg-TC + ONLINE pair selection"    3 "$PREF_BASE --neg-typicality --online-typicality --online-pair-selection"
+submit_one "[1/9] RankAlign baseline"                                   4 "$PREF_BASE"
+submit_one "[2/9] RankAlign + offline self-TC"                          4 "$PREF_BASE --self-typicality"
+submit_one "[3/9] RankAlign + ONLINE self-TC"                           6 "$PREF_BASE --self-typicality --online-typicality"
+submit_one "[4/9] RankAlign + ONLINE pair selection"                    4 "$PREF_BASE --online-pair-selection"
+submit_one "[5/9] RankAlign + ONLINE self-TC + ONLINE pair selection"   6 "$PREF_BASE --self-typicality --online-typicality --online-pair-selection"
+submit_one "[6/9] SFT (NLL all)"                                        4 "$SFT_BASE"
+submit_one "[7/9] RankAlign + offline neg-TC"                           4 "$PREF_BASE --neg-typicality"
+submit_one "[8/9] RankAlign + ONLINE neg-TC"                            6 "$PREF_BASE --neg-typicality --online-typicality"
+submit_one "[9/9] RankAlign + ONLINE neg-TC + ONLINE pair selection"    6 "$PREF_BASE --neg-typicality --online-typicality --online-pair-selection"
 
 echo ""
 echo "============================================================"
