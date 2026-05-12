@@ -33,8 +33,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import _table_format_4tables as tf4  # noqa: E402
-LONG_CSV = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch" / "quickiter_metrics_long_membership_to_rosch.csv"
-OUT_DIR  = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch"
+LONG_CSV = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-after1ep-to-rosch" / "quickiter_metrics_long_membership_after1ep_to_rosch.csv"
+OUT_DIR  = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-after1ep-to-rosch"
 
 MODEL      = "gemma-2-2b"
 TRAIN_TASK = "membership-sans-rosch-v0"
@@ -88,12 +88,13 @@ def parse_filename(fname: str):
     """Return (id, label, eval_ref, eval_task) or None.
 
     Matches both fine-tuned and base model file patterns. eval_task must be in
-    ROSCH_TASKS for inclusion.
+    ROSCH_TASKS for inclusion. Fine-tuned filenames use epoch0 (after-1-epoch
+    checkpoint).
     """
     m = re.match(
         r"^scores_(basetypneg|basetyp|neg|self)-v6-google_"
         + re.escape(MODEL)
-        + r"-delta0\.15-epoch2_"
+        + r"-delta0\.15-epoch0_"
         + re.escape(TRAIN_TASK)
         + r"-all_d2g_random_alpha1\.0_(.+)_(rosch-[a-z\-]+)_test_log-odds_tc_\d+\.csv$",
         fname,
@@ -201,7 +202,10 @@ def main():
     # 1. Mean across all 10 rosch tasks.
     mean_md = OUT_DIR / f"MEAN_across_10_rosch_tasks_{MODEL}.md"
     parts = [
-        f"# membership->rosch mean across 10 rosch tasks ({MODEL})\n",
+        f"# membership->rosch mean across 10 rosch tasks ({MODEL}) — AFTER 1 EPOCH\n",
+        "**Checkpoint:** end of 1st training epoch (epoch0 on disk). Each variant "
+        "saw 5110 pairs once. Compare to the 3-epoch run in "
+        "`outputs-quickiter/membership-sans-rosch-v0-to-rosch/` (when training finishes).\n",
         f"**Train task:** {TRAIN_TASK}-all (165 categories, 2k items, 5110 pair samples).\n",
         f"**Eval tasks:** all 10 rosch categories ({', '.join(ROSCH_TASKS)}).\n",
         "**Validator:** log-odds (`--validator-log-odds`). "
@@ -219,7 +223,8 @@ def main():
     # 2. Bucketed report.
     buck_md = OUT_DIR / f"BUCKETED_by_overlap_{MODEL}.md"
     parts = [
-        f"# membership->rosch stratified by item-overlap ({MODEL})\n",
+        f"# membership->rosch stratified by item-overlap ({MODEL}) — AFTER 1 EPOCH\n",
+        "**Checkpoint:** end of 1st training epoch (epoch0 on disk).\n",
         f"**Train task:** {TRAIN_TASK}-all. **Validator:** log-odds. "
         "**Generator column:** `tc`. **Values × 100.**\n",
         "Buckets defined by what fraction of each rosch task's positive items "

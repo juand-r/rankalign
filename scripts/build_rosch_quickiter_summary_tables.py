@@ -11,11 +11,14 @@ train variant and eval TC reference (self / neg / basetyp / basetypneg).
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _table_format_4tables as tf4  # noqa: E402
 LONG = ROOT / "outputs-quickiter" / "quickiter_metrics_long.csv"
 OUT_MD = ROOT / "outputs-quickiter" / "rosch_quickiter_summary.md"
 
@@ -127,18 +130,35 @@ def main():
         "**Validator:** log-odds (`--validator-log-odds`). "
         "**Metrics from `summarize_scores_file.py`, generator column variant `tc`** "
         "(TC-corrected gen score where applicable).\n",
-        "Spearman omitted per your usual reporting preference.\n",
         "**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy "
         "are in percentage points; Pearson is in 0–100 units).\n",
+        "Tables follow the canonical 4-table layout (see "
+        "[docs/results_table_format.md](../docs/results_table_format.md)): "
+        "T1/T3 = baselines (Base HF + SFT) for the self/neg eval refs; "
+        "T2/T4 = the 3×2 TC × pairs grids for self/neg. Cells in T2/T4 use the "
+        "*best* eval ref per row (offline TC → `basetyp[neg]`; everything else "
+        "→ `self`/`neg`). The (offline TC, online pairs) cell is always blank "
+        "because that variant is not in the launcher.\n",
         "Long-form metrics: [quickiter_metrics_long.csv](quickiter_metrics_long.csv)\n",
     ]
-    for metric, title in [
-        ("gen_roc", "Generator ROC-AUC (`tc` column)"),
-        ("val_roc", "Validator ROC-AUC (same across gen variants for a file; shown for reference)"),
-        ("val_acc", "Validator accuracy (threshold 0)"),
-        ("pearson", "Pearson(gen, validator) — `tc` gen vs val_score"),
+
+    val_by_key: dict[tuple[str, str, str], float] = {}
+    for r in rows:
+        for metric in ("gen_roc", "val_roc", "val_acc", "pearson"):
+            val_by_key[(r["id"], r["eval_ref"], metric)] = r[metric]
+
+    for metric, mtitle in [
+        ("gen_roc", "Generator ROC-AUC — × 100"),
+        ("val_roc", "Validator ROC-AUC — × 100"),
+        ("val_acc", "Validator accuracy (thr 0) — × 100"),
+        ("pearson", "Pearson(gen, validator) — × 100"),
     ]:
-        parts.append(md_table(wide(piv, metric), title))
+        def get(vid: str, eval_ref: str, _m=metric) -> str | None:
+            v = val_by_key.get((vid, eval_ref, _m))
+            if v is None or pd.isna(v):
+                return None
+            return tf4.fmt_single(v, scale=SCALE)
+        parts.append(tf4.emit_4_tables(get, mtitle))
 
     OUT_MD.write_text("\n".join(parts), encoding="utf-8")
     print(f"Wrote {OUT_MD.relative_to(ROOT)}")

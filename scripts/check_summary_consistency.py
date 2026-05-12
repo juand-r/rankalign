@@ -39,6 +39,9 @@ from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _table_format_4tables as tf4  # noqa: E402
+
 OUTPUTS = ROOT / "outputs-quickiter"
 SUMMARIZE = ROOT / "scripts" / "summarize_scores_file.py"
 
@@ -160,93 +163,180 @@ def csv_truth(df_long: pd.DataFrame, model: str, task: str) -> dict:
     return truth
 
 
-# ─── markdown extraction (same as scripts/_xtab.py, generalized) ────────────
+# ─── markdown extraction (4-table layout) ───────────────────────────────────
+
+# Map baseline-table row labels → variant id. Match labels generously since the
+# build scripts may decorate them (e.g. "Base HF (gemma-2-2b)" vs "Base HF").
+BASELINE_ROW_TO_VID = [
+    (re.compile(r"^Base HF"), "0"),
+    (re.compile(r"^SFT"),     "6"),
+]
+
+# The grid mapping is reused from tf4.GRID_SELF / GRID_NEG.
+
+# Strip annotations like "85.32 `[basetyp]` (RankAlign)" → "85.32".
+NUMERIC_RE = re.compile(r"^\s*(-?\d+(?:\.\d+)?)")
+
+
+def _parse_cell_value(raw: str):
+    """Pull the leading numeric out of a markdown cell. Returns float or None."""
+    raw = raw.strip()
+    if raw == "—" or raw == "":
+        return None
+    m = NUMERIC_RE.match(raw)
+    if not m:
+        return None
+    return float(m.group(1))
+
 
 def parse_md_table(md_path: Path) -> dict:
-    """{(variant_id, eval_ref): {metric: value}} extracted from markdown.
+    """{(variant_id, eval_ref): {metric: value}} from a 4-table-layout markdown.
 
-    For each metric heading, walks consecutive lines starting with '|' and
-    parses them as | # | trained model | self | neg | basetyp | basetypneg |.
+    Walks the file looking for ``### {metric}`` blocks; within each block,
+    looks for the four ``#### Table N — ...`` sub-blocks and parses the
+    appropriate cells:
+
+        Table 1 — baselines, self eval        → (0, self), (6, self)
+        Table 2 — self eval, TC × pairs       → 5 cells from GRID_SELF
+        Table 3 — baselines, neg eval         → (0, neg), (6, neg)
+        Table 4 — neg eval, TC × pairs        → 5 cells from GRID_NEG
     """
     text = md_path.read_text()
     lines = text.splitlines()
-
     out: dict[tuple, dict] = {}
+
     metric_for_title = {
         "Generator ROC-AUC": "gen_roc",
         "Validator ROC-AUC": "val_roc",
         "Validator accuracy": "val_acc",
-        "Pearson": "pearson",
+        "Pearson":            "pearson",
     }
 
+    def find_block_start(j: int) -> int:
+        while j < len(lines) and not lines[j].startswith("|"):
+            j += 1
+        return j
+
+    def read_pipe_block(j: int) -> tuple[list[str], int]:
+        block = []
+        while j < len(lines) and lines[j].startswith("|"):
+            block.append(lines[j])
+            j += 1
+        return block, j
+
     i = 0
+    current_metric = None
+    current_subtable = None  # 1, 2, 3, 4
     while i < len(lines):
         ln = lines[i]
         if ln.startswith("### "):
             heading = ln[4:].strip()
-            metric_key = None
+            current_metric = None
             for prefix, key in metric_for_title.items():
                 if heading.startswith(prefix):
-                    metric_key = key
+                    current_metric = key
                     break
-            if metric_key is None:
+            current_subtable = None
+            i += 1
+            continue
+        if ln.startswith("#### Table "):
+            heading = ln.lstrip("#").strip()
+            m = re.match(r"Table\s+(\d)", heading)
+            current_subtable = int(m.group(1)) if m else None
+            if current_metric is None or current_subtable is None:
                 i += 1
                 continue
-            j = i + 1
-            block = []
-            while j < len(lines):
-                if lines[j].startswith("|"):
-                    block.append(lines[j])
-                    j += 1
-                elif block:
-                    break
-                else:
-                    j += 1
+            j = find_block_start(i + 1)
+            block, j = read_pipe_block(j)
             if len(block) < 3:
                 i = j
                 continue
-            for row in block[2:]:  # skip header & separator
-                cells = [c.strip() for c in row.strip("|").split("|")]
-                if len(cells) < 6:
-                    continue
-                vid = cells[0]
-                for ref, raw in zip(EVAL_REFS, cells[2:6]):
-                    val = None if raw == "—" else float(raw)
-                    out.setdefault((vid, ref), {})[metric_key] = val
+            data_rows = block[2:]  # skip header + separator
+            if current_subtable in (1, 3):
+                eval_ref = "self" if current_subtable == 1 else "neg"
+                for row in data_rows:
+                    cells = [c.strip() for c in row.strip("|").split("|")]
+                    if len(cells) < 2:
+                        continue
+                    label, raw = cells[0], cells[1]
+                    vid = None
+                    for pat, v in BASELINE_ROW_TO_VID:
+                        if pat.match(label):
+                            vid = v
+                            break
+                    if vid is None:
+                        continue
+                    out.setdefault((vid, eval_ref), {})[current_metric] = (
+                        _parse_cell_value(raw)
+                    )
+            elif current_subtable in (2, 4):
+                grid = tf4.GRID_SELF if current_subtable == 2 else tf4.GRID_NEG
+                col_order_in_md: list[str] = []
+                header_cells = [c.strip() for c in block[0].strip("|").split("|")]
+                for c in header_cells[1:]:
+                    if c in tf4.GRID_COL_ORDER:
+                        col_order_in_md.append(c)
+                for row in data_rows:
+                    cells = [c.strip() for c in row.strip("|").split("|")]
+                    if len(cells) < 1 + len(col_order_in_md):
+                        continue
+                    row_label = cells[0]
+                    if row_label not in tf4.GRID_ROW_ORDER:
+                        continue
+                    for col_label, raw in zip(col_order_in_md, cells[1:]):
+                        mapping = grid.get((row_label, col_label))
+                        if mapping is None:
+                            continue
+                        vid, eval_ref = mapping
+                        v = _parse_cell_value(raw)
+                        out.setdefault((vid, eval_ref), {})[current_metric] = v
             i = j
-        else:
-            i += 1
+            continue
+        i += 1
     return out
 
 
 # ─── compare ────────────────────────────────────────────────────────────────
 
+def _expected_md_cells() -> set[tuple[str, str]]:
+    """The (variant_id, eval_ref) cells that the 4-table layout renders.
+
+    Derived from tf4.BASELINES_SELF / NEG and GRID_SELF / NEG. CSV cells
+    outside this set are intentionally not in the markdown and are skipped.
+    """
+    cells: set[tuple[str, str]] = set()
+    for vid, _label, eval_ref in tf4.BASELINES_SELF + tf4.BASELINES_NEG:
+        cells.add((vid, eval_ref))
+    for grid in (tf4.GRID_SELF, tf4.GRID_NEG):
+        for mapping in grid.values():
+            if mapping is None:
+                continue
+            cells.add(mapping)
+    return cells
+
+
+EXPECTED_MD_CELLS = _expected_md_cells()
+
+
 def compare(label: str, truth: dict, md: dict) -> list[str]:
     """Return a list of human-readable mismatch lines."""
     issues = []
-    keys = set(truth) | set(md)
     n_compared = 0
-    n_md_missing = 0
+    n_md_extra = 0
     n_csv_missing = 0
     n_mismatch = 0
-    for key in sorted(keys):
-        vid, eval_ref = key
-        in_truth = key in truth
-        in_md = key in md
-        if in_truth and not in_md:
-            n_csv_missing += 1
-            issues.append(
-                f"  [{label}] cell ({vid}, {eval_ref}) in CSV but missing from markdown"
-            )
+    n_csv_skipped = 0
+
+    for key in sorted(truth):
+        if key not in EXPECTED_MD_CELLS:
+            n_csv_skipped += 1
             continue
-        if in_md and not in_truth:
-            md_vals_present = {m: v for m, v in md[key].items() if v is not None}
-            if md_vals_present:
-                n_md_missing += 1
-                issues.append(
-                    f"  [{label}] cell ({vid}, {eval_ref}) in markdown "
-                    f"with values {md_vals_present} but missing from CSV"
-                )
+        if key not in md:
+            n_csv_missing += 1
+            vid, eval_ref = key
+            issues.append(
+                f"  [{label}] expected cell ({vid}, {eval_ref}) missing from markdown"
+            )
             continue
         for metric in METRICS:
             t_val = truth[key].get(metric)
@@ -255,6 +345,7 @@ def compare(label: str, truth: dict, md: dict) -> list[str]:
                 continue
             if t_val is None or m_val is None:
                 n_mismatch += 1
+                vid, eval_ref = key
                 issues.append(
                     f"  [{label}] {metric} ({vid}, {eval_ref}): "
                     f"CSV={t_val}  md={m_val}  (one is missing)"
@@ -263,13 +354,35 @@ def compare(label: str, truth: dict, md: dict) -> list[str]:
             n_compared += 1
             if abs(t_val - m_val) > TOL:
                 n_mismatch += 1
+                vid, eval_ref = key
                 issues.append(
                     f"  [{label}] {metric} ({vid}, {eval_ref}): "
                     f"CSV={t_val:.6f}  md={m_val:.6f}  Δ={abs(t_val-m_val):.6f}"
                 )
+
+    for key in sorted(md):
+        if key in truth or key not in EXPECTED_MD_CELLS:
+            if key not in EXPECTED_MD_CELLS and any(
+                v is not None for v in md[key].values()
+            ):
+                n_md_extra += 1
+                vid, eval_ref = key
+                issues.append(
+                    f"  [{label}] cell ({vid}, {eval_ref}) in markdown "
+                    f"but not part of the 4-table layout"
+                )
+            continue
+        if any(v is not None for v in md[key].values()):
+            n_md_extra += 1
+            vid, eval_ref = key
+            issues.append(
+                f"  [{label}] cell ({vid}, {eval_ref}) in markdown but missing from CSV"
+            )
+
     summary = (
         f"  [{label}] compared {n_compared} numeric cells; "
-        f"{n_mismatch} mismatch, {n_md_missing} extra-in-md, {n_csv_missing} extra-in-csv."
+        f"{n_mismatch} mismatch, {n_md_extra} extra-in-md, {n_csv_missing} expected-missing-from-md "
+        f"(skipped {n_csv_skipped} CSV cells outside the 4-table layout)."
     )
     issues.insert(0, summary)
     return issues

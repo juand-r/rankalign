@@ -20,11 +20,14 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _table_format_4tables as tf4  # noqa: E402
 
 # Per-variant signatures (the bit in the filename between alpha1.0_ and the
 # trailing {task}_test_...). Values are (id, display label).
@@ -70,14 +73,15 @@ EVAL_REFS = ["self", "neg", "basetyp", "basetypneg"]
 SCALE = 100
 
 METRICS_AND_TITLES = [
-    ("gen_roc",  "Generator ROC-AUC (`tc` column) — values × 100"),
-    ("val_roc",  "Validator ROC-AUC (same across gen variants; shown for reference) — values × 100"),
-    ("val_acc",  "Validator accuracy (threshold 0) — values × 100"),
-    ("pearson",  "Pearson(gen, validator) — `tc` gen vs val_score — values × 100"),
+    ("gen_roc",  "Generator ROC-AUC — × 100"),
+    ("val_roc",  "Validator ROC-AUC — × 100"),
+    ("val_acc",  "Validator accuracy (thr 0) — × 100"),
+    ("pearson",  "Pearson(gen, validator) — × 100"),
 ]
 
 
-def build_filename_regexes(model: str, train_task: str, eval_task: str | None = None):
+def build_filename_regexes(model: str, train_task: str, eval_task: str | None = None,
+                           epoch: int = 2):
     """Return (fine_tune_re, base_self_re, base_neg_re) for the given model and tasks.
 
     The model token in the filename uses '_' as the family separator
@@ -86,6 +90,8 @@ def build_filename_regexes(model: str, train_task: str, eval_task: str | None = 
     train_task = task baked into the model checkpoint path.
     eval_task  = task that appears just before _test_log-odds_; defaults to
                  train_task (matched-task evaluation, the original setting).
+    epoch      = checkpoint epoch index in the model dir name (0-indexed).
+                 Defaults to 2 (final epoch of a 3-epoch run).
     """
     if eval_task is None:
         eval_task = train_task
@@ -93,7 +99,7 @@ def build_filename_regexes(model: str, train_task: str, eval_task: str | None = 
     tr = re.escape(train_task)
     ev = re.escape(eval_task)
     fine_re = re.compile(
-        rf"^scores_(basetypneg|basetyp|neg|self)-v6-google_{m}-delta0\.15-epoch2_"
+        rf"^scores_(basetypneg|basetyp|neg|self)-v6-google_{m}-delta0\.15-epoch{epoch}_"
         rf"{tr}-all_d2g_random_alpha1\.0_(.+)_{ev}_test_log-odds_tc_\d+\.csv$"
     )
     base_self_re = re.compile(
@@ -179,6 +185,10 @@ def main():
     ap.add_argument("--eval-task", default=None,
                     help="Eval task; defaults to --task. Use a different value to build a "
                          "cross-task table (e.g. trained on rosch-furniture-and-bird, eval on rosch-toy).")
+    ap.add_argument("--epoch", type=int, default=2,
+                    help="Checkpoint epoch index in the model dir name (0-indexed). "
+                         "Default 2 (final epoch of a 3-epoch training run); use 0 for "
+                         "after-1-epoch checkpoints.")
     ap.add_argument("--long-csv", default=None,
                     help="Long-form metrics CSV (default chosen by task).")
     ap.add_argument("--out", default=None,
@@ -213,7 +223,7 @@ def main():
     df_tc = df[df["variant"] == "tc"].copy()
 
     fine_re, base_self_re, base_neg_re = build_filename_regexes(
-        args.model, train_task, eval_task
+        args.model, train_task, eval_task, epoch=args.epoch
     )
     base_label = f"Base HF ({args.model})"
 
@@ -294,10 +304,29 @@ def main():
         confound_blurb,
         "**All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy "
         "are in percentage points; Pearson is in 0–100 units).\n",
+        "Tables follow the canonical 4-table layout (see "
+        "[docs/results_table_format.md](../docs/results_table_format.md)): "
+        "T1/T3 list base + SFT for the self/neg eval refs; "
+        "T2/T4 are the 3×2 TC × pairs grids. Cells in T2/T4 use the "
+        "*best* eval ref per row (offline TC → `basetyp[neg]`; everything else "
+        "→ `self`/`neg`). The (offline TC, online pairs) cell is always blank "
+        "because that variant is not in the launcher.\n",
         f"Long-form metrics: [{long_csv.name}]({long_csv.name})\n",
     ]
-    for metric, title in METRICS_AND_TITLES:
-        parts.append(md_table(wide(piv, metric, order), title))
+
+    # Per-(id, eval_ref) lookup table.
+    val_by_key: dict[tuple[str, str, str], float] = {}
+    for r in rows:
+        for metric, _ in METRICS_AND_TITLES:
+            val_by_key[(r["id"], r["eval_ref"], metric)] = r[metric]
+
+    for metric, mtitle in METRICS_AND_TITLES:
+        def get(vid: str, eval_ref: str, _m=metric) -> str | None:
+            v = val_by_key.get((vid, eval_ref, _m))
+            if v is None or pd.isna(v):
+                return None
+            return tf4.fmt_single(v, scale=SCALE)
+        parts.append(tf4.emit_4_tables(get, mtitle))
 
     out_md.parent.mkdir(parents=True, exist_ok=True)
     out_md.write_text("\n".join(parts), encoding="utf-8")

@@ -2,68 +2,136 @@
 
 **Task:** combined furniture + bird (186 items, 93/93 yes/no). **Validator:** log-odds (`--validator-log-odds`). **Metrics from `summarize_scores_file.py`, generator column variant `tc`** (TC-corrected gen score where applicable).
 
-Spearman omitted per your usual reporting preference.
-
 **All numeric cells are raw values × 100** (i.e. ROC-AUC and accuracy are in percentage points; Pearson is in 0–100 units).
+
+Tables follow the canonical 4-table layout (see [docs/results_table_format.md](../docs/results_table_format.md)): T1/T3 = baselines (Base HF + SFT) for the self/neg eval refs; T2/T4 = the 3×2 TC × pairs grids for self/neg. Cells in T2/T4 use the *best* eval ref per row (offline TC → `basetyp[neg]`; everything else → `self`/`neg`). The (offline TC, online pairs) cell is always blank because that variant is not in the launcher.
 
 Long-form metrics: [quickiter_metrics_long.csv](quickiter_metrics_long.csv)
 
-### Generator ROC-AUC (`tc` column)
+### Generator ROC-AUC — × 100
 
-| # | trained model | self | neg | basetyp | basetypneg |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 74.66 | 73.75 | — | — |
-| 1 | RankAlign baseline | 84.75 | 86.44 | 86.81 | 80.46 |
-| 2 | + offline self-TC | 87.76 | — | 95.10 | — |
-| 3 | + online self-TC | 95.75 | — | 95.72 | — |
-| 4 | + online pairs | 85.44 | 77.89 | 82.99 | 75.85 |
-| 5 | + both online (self) | 92.02 | — | 87.03 | — |
-| 6 | SFT (NLL all) | 99.53 | 80.99 | 99.58 | 98.95 |
-| 7 | + offline neg-TC | — | 61.08 | — | 92.83 |
-| 8 | + online neg-TC | — | 88.73 | — | 70.73 |
-| 9 | + both online (neg) | — | 90.76 | — | 74.59 |
+#### Table 1 — baselines, self eval
 
-### Validator ROC-AUC (same across gen variants for a file; shown for reference)
+| variant | value |
+| --- | --- |
+| Base HF | 74.66 |
+| SFT (NLL all) | 99.53 |
 
-| # | trained model | self | neg | basetyp | basetypneg |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 96.05 | 96.05 | — | — |
-| 1 | RankAlign baseline | 91.09 | 91.09 | 91.09 | 91.09 |
-| 2 | + offline self-TC | 82.07 | — | 82.07 | — |
-| 3 | + online self-TC | 93.72 | — | 93.72 | — |
-| 4 | + online pairs | 95.42 | 95.42 | 95.42 | 95.42 |
-| 5 | + both online (self) | 89.35 | — | 89.35 | — |
-| 6 | SFT (NLL all) | 93.22 | 93.22 | 93.22 | 93.22 |
-| 7 | + offline neg-TC | — | 83.80 | — | 83.80 |
-| 8 | + online neg-TC | — | 86.68 | — | 86.68 |
-| 9 | + both online (neg) | — | 94.48 | — | 94.48 |
+#### Table 2 — self eval, TC × pairs
 
-### Validator accuracy (threshold 0)
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 95.10 `[basetyp]` | — |
+| online TC | 95.75 | 92.02 |
+| no TC | 84.75 (RankAlign) | 85.44 |
 
-| # | trained model | self | neg | basetyp | basetypneg |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 87.63 | 87.63 | — | — |
-| 1 | RankAlign baseline | 76.34 | 76.34 | 76.34 | 76.34 |
-| 2 | + offline self-TC | 60.75 | — | 60.75 | — |
-| 3 | + online self-TC | 87.63 | — | 87.63 | — |
-| 4 | + online pairs | 88.71 | 88.71 | 88.71 | 88.71 |
-| 5 | + both online (self) | 73.12 | — | 73.12 | — |
-| 6 | SFT (NLL all) | 87.63 | 87.63 | 87.63 | 87.63 |
-| 7 | + offline neg-TC | — | 66.13 | — | 66.13 |
-| 8 | + online neg-TC | — | 58.06 | — | 58.06 |
-| 9 | + both online (neg) | — | 71.51 | — | 71.51 |
+#### Table 3 — baselines, neg eval
 
-### Pearson(gen, validator) — `tc` gen vs val_score
+| variant | value |
+| --- | --- |
+| Base HF | 73.75 |
+| SFT (NLL all) | 80.99 |
 
-| # | trained model | self | neg | basetyp | basetypneg |
-| --- | --- | --- | --- | --- | --- |
-| 0 | Base HF (gemma-2-2b) | 50.10 | 34.64 | — | — |
-| 1 | RankAlign baseline | 64.13 | 59.19 | 60.17 | 52.36 |
-| 2 | + offline self-TC | 68.57 | — | 59.21 | — |
-| 3 | + online self-TC | 88.18 | — | 78.71 | — |
-| 4 | + online pairs | 73.40 | 42.61 | 65.40 | 52.10 |
-| 5 | + both online (self) | 69.75 | — | 55.70 | — |
-| 6 | SFT (NLL all) | 61.03 | 33.88 | 62.88 | 57.60 |
-| 7 | + offline neg-TC | — | -9.48 | — | 46.55 |
-| 8 | + online neg-TC | — | 50.88 | — | 18.30 |
-| 9 | + both online (neg) | — | 88.66 | — | 52.81 |
+#### Table 4 — neg eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 92.83 `[basetypneg]` | — |
+| online TC | 88.73 | 90.76 |
+| no TC | 86.44 (RankAlign) | 77.89 |
+
+### Validator ROC-AUC — × 100
+
+#### Table 1 — baselines, self eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 96.05 |
+| SFT (NLL all) | 93.22 |
+
+#### Table 2 — self eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 82.07 `[basetyp]` | — |
+| online TC | 93.72 | 89.35 |
+| no TC | 91.09 (RankAlign) | 95.42 |
+
+#### Table 3 — baselines, neg eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 96.05 |
+| SFT (NLL all) | 93.22 |
+
+#### Table 4 — neg eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 83.80 `[basetypneg]` | — |
+| online TC | 86.68 | 94.48 |
+| no TC | 91.09 (RankAlign) | 95.42 |
+
+### Validator accuracy (thr 0) — × 100
+
+#### Table 1 — baselines, self eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 87.63 |
+| SFT (NLL all) | 87.63 |
+
+#### Table 2 — self eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 60.75 `[basetyp]` | — |
+| online TC | 87.63 | 73.12 |
+| no TC | 76.34 (RankAlign) | 88.71 |
+
+#### Table 3 — baselines, neg eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 87.63 |
+| SFT (NLL all) | 87.63 |
+
+#### Table 4 — neg eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 66.13 `[basetypneg]` | — |
+| online TC | 58.06 | 71.51 |
+| no TC | 76.34 (RankAlign) | 88.71 |
+
+### Pearson(gen, validator) — × 100
+
+#### Table 1 — baselines, self eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 50.10 |
+| SFT (NLL all) | 61.03 |
+
+#### Table 2 — self eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 59.21 `[basetyp]` | — |
+| online TC | 88.18 | 69.75 |
+| no TC | 64.13 (RankAlign) | 73.40 |
+
+#### Table 3 — baselines, neg eval
+
+| variant | value |
+| --- | --- |
+| Base HF | 34.64 |
+| SFT (NLL all) | 33.88 |
+
+#### Table 4 — neg eval, TC × pairs
+
+|  | offline pairs | online pairs |
+| --- | --- | --- |
+| offline TC | 46.55 `[basetypneg]` | — |
+| online TC | 50.88 | 88.66 |
+| no TC | 59.19 (RankAlign) | 42.61 |

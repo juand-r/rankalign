@@ -14,12 +14,15 @@ matched-task reports.
 from __future__ import annotations
 
 import re
+import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import _table_format_4tables as tf4  # noqa: E402
 LONG_CSV = ROOT / "outputs-quickiter" / "rosch-furniture-and-bird-to-ood" / "quickiter_metrics_long_crosstask.csv"
 OUT_MD   = ROOT / "outputs-quickiter" / "rosch-furniture-and-bird-to-ood" / "MEAN_across_8_OOD_tasks_gemma-2-2b.md"
 
@@ -129,55 +132,36 @@ def main():
         "**All numeric cells are raw values × 100** "
         "(percentage points for ROC/accuracy; 0–100 units for Pearson). "
         "Reported as **mean (std)** across the 8 OOD tasks.\n",
+        "Tables follow the canonical 4-table layout (see "
+        "[docs/results_table_format.md](../../docs/results_table_format.md)): "
+        "T1/T3 = baselines (Base HF + SFT) for the self/neg eval refs; "
+        "T2/T4 = the 3×2 TC × pairs grids for self/neg. Cells in T2/T4 use the "
+        "*best* eval ref per row (offline TC → `basetyp[neg]`; everything else "
+        "→ `self`/`neg`). The (offline TC, online pairs) cell is always blank "
+        "because that variant is not in the launcher.\n",
         f"Long-form metrics: [{LONG_CSV.name}]({LONG_CSV.name})\n",
     ]
 
     for metric, title in METRICS_AND_TITLES:
         agg = (
-            long.groupby(["id", "train", "eval_ref"])[metric]
-                .agg(["mean", "std", "count"])
+            long.groupby(["id", "eval_ref"])[metric]
+                .agg(["mean", "std"])
                 .reset_index()
         )
-        wide_mean = agg.pivot_table(
-            index=["id", "train"], columns="eval_ref", values="mean", aggfunc="first"
-        )
-        wide_std = agg.pivot_table(
-            index=["id", "train"], columns="eval_ref", values="std", aggfunc="first"
-        )
-        for c in EVAL_REFS:
-            if c not in wide_mean.columns:
-                wide_mean[c] = np.nan
-                wide_std[c]  = np.nan
-        wide_mean = wide_mean[EVAL_REFS]
-        wide_std  = wide_std[EVAL_REFS]
+        val_map: dict[tuple[str, str], tuple[float, float]] = {}
+        for _, r in agg.iterrows():
+            val_map[(r["id"], r["eval_ref"])] = (r["mean"], r["std"])
 
-        present = set(wide_mean.index)
-        out_rows = []
-        for i, lab in NUMBERED_ORDER:
-            if (i, lab) not in present:
-                continue
-            row = {"#": i, "trained model": lab}
-            for c in EVAL_REFS:
-                m = wide_mean.loc[(i, lab), c]
-                s = wide_std.loc[(i, lab), c]
-                if pd.isna(m):
-                    row[c] = "—"
-                else:
-                    if pd.isna(s):
-                        row[c] = f"{m * SCALE:.2f}"
-                    else:
-                        row[c] = f"{m * SCALE:.2f} ({s * SCALE:.2f})"
-            out_rows.append(row)
-        wdf = pd.DataFrame(out_rows)
-        parts.append(f"### {title}\n")
-        if wdf.empty:
-            parts.append("_(no rows)_\n")
-            continue
-        parts.append("| " + " | ".join(wdf.columns) + " |")
-        parts.append("| " + " | ".join(["---"] * len(wdf.columns)) + " |")
-        for _, r in wdf.iterrows():
-            parts.append("| " + " | ".join(str(r[c]) for c in wdf.columns) + " |")
-        parts.append("")
+        def get(vid: str, eval_ref: str, _vmap=val_map) -> str | None:
+            v = _vmap.get((vid, eval_ref))
+            if v is None:
+                return None
+            m, s = v
+            if pd.isna(m):
+                return None
+            return tf4.fmt_mean_std(m, s, scale=SCALE)
+
+        parts.append(tf4.emit_4_tables(get, f"{title} — × 100"))
 
     OUT_MD.parent.mkdir(parents=True, exist_ok=True)
     OUT_MD.write_text("\n".join(parts), encoding="utf-8")
