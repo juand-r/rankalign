@@ -62,6 +62,29 @@ NEG_PLOT = [
     ("7", "basetypneg", "Offline neg-TC", "tab:green"),
 ]
 
+# Heatmap configs: ALL relevant variants per side, in a logical order
+# (reference -> SFT -> preference no-TC -> TC × pair-selection grid).
+# Eval refs match the canonical "best per row" used in the 4-table layout
+# (offline TC -> basetyp[neg]; everything else -> self/neg).
+SELF_HEATMAP = [
+    ("0", "self",    "Base"),
+    ("6", "self",    "SFT"),
+    ("1", "self",    "RankAlign"),
+    ("4", "self",    "+ online pairs"),
+    ("2", "basetyp", "+ offline self-TC"),
+    ("3", "self",    "+ online self-TC"),
+    ("5", "self",    "+ both online (self)"),
+]
+NEG_HEATMAP = [
+    ("0", "neg",        "Base"),
+    ("6", "neg",        "SFT"),
+    ("1", "neg",        "RankAlign"),
+    ("4", "neg",        "+ online pairs"),
+    ("7", "basetypneg", "+ offline neg-TC"),
+    ("8", "neg",        "+ online neg-TC"),
+    ("9", "neg",        "+ both online (neg)"),
+]
+
 SIG_MAP = {
     "full-completion_force-same-x":                                                    "1",
     "tc-self_full-completion_force-same-x":                                            "2",
@@ -152,6 +175,62 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     ax.axhline(50, color="gray", linewidth=0.5, linestyle="--")
     ax.legend(loc="lower left", ncol=4, frameon=False)
     ax.grid(axis="y", alpha=0.3)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=160, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Wrote {out_path.relative_to(ROOT)}")
+
+
+def make_heatmap(long: pd.DataFrame, config, out_path: Path,
+                 title_suffix: str, vmin: float = 40, vmax: float = 100) -> None:
+    """Per-task heatmap: rows = rosch tasks (in TASKS_BY_OVERLAP order),
+    columns = variants in `config`. Cells annotated with the gen-ROC × 100
+    value; row max gets a small mark in the corner."""
+    task_names = [t for t, _ in TASKS_BY_OVERLAP]
+    overlaps   = [o for _, o in TASKS_BY_OVERLAP]
+    col_labels = [c[2] for c in config]
+
+    grid = np.full((len(task_names), len(config)), np.nan)
+    for i, tname in enumerate(task_names):
+        for j, (vid, eval_ref, _label) in enumerate(config):
+            grid[i, j] = get_value(long, vid, eval_ref, tname)
+
+    fig, ax = plt.subplots(figsize=(1.45 * len(config) + 1.5,
+                                    0.55 * len(task_names) + 1.2))
+    im = ax.imshow(grid, aspect="auto", cmap="viridis", vmin=vmin, vmax=vmax)
+
+    ax.set_xticks(np.arange(len(col_labels)))
+    ax.set_xticklabels(col_labels, rotation=30, ha="right")
+    ax.set_yticks(np.arange(len(task_names)))
+    ax.set_yticklabels([f"{n} ({o}%)" for n, o in zip(task_names, overlaps)])
+
+    for i in range(grid.shape[0]):
+        row = grid[i]
+        if np.all(np.isnan(row)):
+            continue
+        max_j = int(np.nanargmax(row))
+        for j in range(grid.shape[1]):
+            v = grid[i, j]
+            if np.isnan(v):
+                ax.text(j, i, "—", ha="center", va="center",
+                        color="white", fontsize=8)
+                continue
+            text_color = "white" if v < vmin + 0.55 * (vmax - vmin) else "black"
+            txt = f"{v:.1f}"
+            if j == max_j:
+                txt = f"$\\bf{{{v:.1f}}}$"
+            ax.text(j, i, txt, ha="center", va="center",
+                    color=text_color, fontsize=9)
+
+    ax.set_title(
+        f"membership-sans-rosch-v0 ({MODEL}, epoch{EPOCH}) → rosch — "
+        f"{title_suffix}\nGen-ROC × 100 (rows ordered by item-overlap with "
+        f"the membership training pool; bold = row max)"
+    )
+
+    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
+    cbar.set_label("Gen-ROC × 100")
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=160, bbox_inches="tight")
@@ -253,6 +332,12 @@ def main():
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
               "neg eval (offline neg-TC vs RankAlign / SFT / Base)")
     make_table(long, OUT_DIR / "per_task_gen_roc_table.md")
+    make_heatmap(long, SELF_HEATMAP,
+                 OUT_DIR / "per_task_gen_roc_heatmap_self.png",
+                 "self eval, all variants")
+    make_heatmap(long, NEG_HEATMAP,
+                 OUT_DIR / "per_task_gen_roc_heatmap_neg.png",
+                 "neg eval, all variants")
 
 
 if __name__ == "__main__":
