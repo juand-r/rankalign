@@ -82,6 +82,20 @@ NEG_PLOT = [
 SELF_TABLE = SELF_PLOT[:4]
 NEG_TABLE  = NEG_PLOT[:4]
 
+# Paired-bootstrap delta plots: Δ = (variant_A) − (RankAlign baseline).
+# Each entry: (vid_A, eval_ref_A, vid_B, eval_ref_B, label, color).
+# RankAlign baseline (vid="1", eval_ref="self"/"neg") is the right-hand side.
+SELF_DELTA = [
+    ("6", "self",    "1", "self", "SFT − RankAlign",            "tab:purple"),
+    ("2", "basetyp", "1", "self", "Offline self-TC − RankAlign", "tab:green"),
+    ("3", "self",    "1", "self", "Online self-TC − RankAlign",  "darkgreen"),
+]
+NEG_DELTA = [
+    ("6", "neg",        "1", "neg", "SFT − RankAlign",           "tab:purple"),
+    ("7", "basetypneg", "1", "neg", "Offline neg-TC − RankAlign", "tab:green"),
+    ("8", "neg",        "1", "neg", "Online neg-TC − RankAlign",  "darkgreen"),
+]
+
 # Heatmap configs: ALL relevant variants per side, in a logical order
 # (reference -> SFT -> preference no-TC -> TC × pair-selection grid).
 # Eval refs match the canonical "best per row" used in the 4-table layout
@@ -190,6 +204,51 @@ def bootstrap_auc_ci(scores_path: Path, *, n_boot: int = N_BOOTSTRAP,
     return float(point), float(lo), float(hi)
 
 
+def paired_bootstrap_auc_diff(csv_a: Path, csv_b: Path, *,
+                              n_boot: int = N_BOOTSTRAP,
+                              alpha: float = ALPHA,
+                              seed: int = SEED):
+    """95% paired-bootstrap CI on AUC_A - AUC_B for two evaluations of the
+    SAME items. Merges on (category, member, label), then resamples item
+    indices once per rep and applies them to BOTH variants. Returns
+    (delta_point, ci_low, ci_high, auc_a, auc_b)."""
+    cols = ["category", "member", "label", GEN_COL]
+    a = pd.read_csv(csv_a, usecols=cols).rename(columns={GEN_COL: "gen_a"})
+    b = pd.read_csv(csv_b, usecols=cols).rename(columns={GEN_COL: "gen_b"})
+    m = a.merge(b, on=["category", "member", "label"], how="inner")
+
+    y = m["label"].astype(str).str.lower().map(
+        {"yes": 1, "no": 0, "true": 1, "false": 0, "1": 1, "0": 0}
+    ).values
+    gen_a = m["gen_a"].values.astype(float)
+    gen_b = m["gen_b"].values.astype(float)
+    mask = ~(pd.isna(y) | np.isnan(gen_a) | np.isnan(gen_b))
+    y, gen_a, gen_b = y[mask].astype(int), gen_a[mask], gen_b[mask]
+    if y.size == 0 or len(np.unique(y)) < 2:
+        nan = float("nan")
+        return nan, nan, nan, nan, nan
+
+    auc_a = _auc_from_scores(y, gen_a)
+    auc_b = _auc_from_scores(y, gen_b)
+    delta_point = auc_a - auc_b
+
+    pos_idx = np.where(y == 1)[0]
+    neg_idx = np.where(y == 0)[0]
+    n_pos, n_neg = pos_idx.size, neg_idx.size
+    rng = np.random.default_rng(seed)
+    boots = np.empty(n_boot, dtype=float)
+    for k in range(n_boot):
+        p_samp = rng.choice(pos_idx, size=n_pos, replace=True)
+        n_samp = rng.choice(neg_idx, size=n_neg, replace=True)
+        idx = np.concatenate([p_samp, n_samp])
+        a_k = _auc_from_scores(y[idx], gen_a[idx])
+        b_k = _auc_from_scores(y[idx], gen_b[idx])
+        boots[k] = a_k - b_k
+
+    lo, hi = np.nanpercentile(boots, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return float(delta_point), float(lo), float(hi), float(auc_a), float(auc_b)
+
+
 def build_scores_index(scores_dir: Path) -> dict:
     """Map (variant_id, eval_ref, eval_task) -> score CSV path."""
     index = {}
@@ -276,6 +335,135 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     fig.tight_layout()
     fig.savefig(out_path, dpi=160, bbox_inches="tight")
     plt.close(fig)
+    print(f"Wrote {out_path.relative_to(ROOT)}")
+
+
+def make_delta_plot(scores_index: dict, delta_config, out_path: Path,
+                    title_suffix: str, side: str = ""):
+    """Per-task delta plot: Δ(variant − RankAlign) with paired-bootstrap 95%
+    CI as error bars. Bars whose CI excludes 0 are drawn at full opacity and
+    annotated with a star; non-significant bars are drawn faded.
+
+    Returns a list of dicts (per (task, comparison)) for downstream tables."""
+    task_names = [t for t, _ in TASKS_BY_OVERLAP]
+    overlaps   = [o for _, o in TASKS_BY_OVERLAP]
+
+    n_groups = len(task_names)
+    n_bars   = len(delta_config)
+    bar_w    = 0.8 / n_bars
+
+    fig, ax = plt.subplots(figsize=(13, 5))
+    x_centers = np.arange(n_groups)
+
+    rows = []
+    for i, (vid_a, ref_a, vid_b, ref_b, label, color) in enumerate(delta_config):
+        deltas, los, his, sigs = [], [], [], []
+        for tname in task_names:
+            csv_a = scores_index.get((vid_a, ref_a, tname))
+            csv_b = scores_index.get((vid_b, ref_b, tname))
+            if csv_a is None or csv_b is None:
+                deltas.append(np.nan); los.append(0.0); his.append(0.0)
+                sigs.append(False)
+                rows.append(dict(task=tname, side=side, comparison=label,
+                                 delta=np.nan, ci_low=np.nan, ci_high=np.nan,
+                                 sig=False))
+                continue
+            d, lo, hi, _, _ = paired_bootstrap_auc_diff(csv_a, csv_b)
+            deltas.append(d * 100)
+            los.append((d - lo) * 100)
+            his.append((hi - d) * 100)
+            sig = (lo > 0) or (hi < 0)
+            sigs.append(sig)
+            rows.append(dict(task=tname, side=side, comparison=label,
+                             delta=d * 100, ci_low=lo * 100, ci_high=hi * 100,
+                             sig=sig))
+        offsets = (i - (n_bars - 1) / 2) * bar_w
+        yerr = np.array([los, his])
+        for k in range(n_groups):
+            alpha_k = 1.0 if sigs[k] else 0.35
+            ax.bar(x_centers[k] + offsets, deltas[k], bar_w,
+                   label=label if k == 0 else None,
+                   color=color, edgecolor="black", linewidth=0.4,
+                   yerr=yerr[:, k:k + 1] if not np.isnan(deltas[k]) else None,
+                   capsize=2,
+                   error_kw={"elinewidth": 0.7, "ecolor": "0.25"},
+                   alpha=alpha_k)
+            if sigs[k] and not np.isnan(deltas[k]):
+                y_star = deltas[k] + (his[k] if deltas[k] >= 0 else -los[k])
+                offset_star = 0.8 if deltas[k] >= 0 else -1.4
+                ax.text(x_centers[k] + offsets, y_star + offset_star,
+                        "*", ha="center", va="center", color=color,
+                        fontsize=12, fontweight="bold")
+
+    ax.axhline(0, color="black", linewidth=0.7)
+    ax.set_ylabel("Δ Generator ROC-AUC (× 100)\n(positive = variant beats RankAlign)")
+    ax.set_title(
+        f"membership-sans-rosch-v0 ({MODEL}, epoch{EPOCH}) → rosch — "
+        f"{title_suffix}\n(paired bootstrap, 95% CI; * = CI excludes 0; "
+        f"faded bars are non-significant)",
+        pad=30,
+    )
+    ax.set_xticks(x_centers)
+    ax.set_xticklabels(
+        [f"{n}\n({o}%)" for n, o in zip(task_names, overlaps)],
+        rotation=20, ha="right",
+    )
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0),
+              ncol=n_bars, frameon=False)
+    ax.grid(axis="y", alpha=0.3)
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=160, bbox_inches="tight")
+    plt.close(fig)
+    print(f"Wrote {out_path.relative_to(ROOT)}")
+    return rows
+
+
+def make_delta_table(rows_self, rows_neg, out_path: Path):
+    """Markdown table summarizing per-task Δ vs RankAlign with paired CIs."""
+    df = pd.DataFrame(rows_self + rows_neg)
+    if df.empty:
+        return
+    out = [
+        "# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — "
+        "Δ vs RankAlign (paired bootstrap, 95% CI)",
+        "",
+        "Each cell shows `Δ × 100 [lo, hi]` where Δ = AUC(variant) − AUC(RankAlign) "
+        "on the same items, computed with item-level paired-bootstrap (1000 reps). "
+        "Each pair of variants shares the same item resamples per replicate, so "
+        "within-task item noise cancels out.",
+        "",
+        "**Bold** = the 95% CI excludes 0 (variant reliably differs from "
+        "RankAlign on that task).",
+        "",
+    ]
+    cols_order = [("self", c[4]) for c in SELF_DELTA] + \
+                 [("neg",  c[4]) for c in NEG_DELTA]
+    task_order = [t for t, _ in TASKS_BY_OVERLAP]
+    overlap_lookup = dict(TASKS_BY_OVERLAP)
+
+    header_top = ["task (overlap)"] + [f"{c} ({s})" for s, c in cols_order]
+    out.append("| " + " | ".join(header_top) + " |")
+    out.append("|" + "|".join(["---"] * len(header_top)) + "|")
+
+    df_idx = df.set_index(["task", "side", "comparison"])
+    for t in task_order:
+        cells = [f"{t} ({overlap_lookup[t]}%)"]
+        for s, c in cols_order:
+            if (t, s, c) not in df_idx.index:
+                cells.append("—"); continue
+            row = df_idx.loc[(t, s, c)]
+            d = row["delta"]
+            if pd.isna(d):
+                cells.append("—"); continue
+            lo, hi, sig = row["ci_low"], row["ci_high"], bool(row["sig"])
+            txt = f"{d:+.1f} [{lo:+.1f}, {hi:+.1f}]"
+            if sig:
+                txt = f"**{txt}**"
+            cells.append(txt)
+        out.append("| " + " | ".join(cells) + " |")
+
+    out_path.write_text("\n".join(out) + "\n", encoding="utf-8")
     print(f"Wrote {out_path.relative_to(ROOT)}")
 
 
@@ -433,6 +621,16 @@ def main():
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
               "neg eval (Base / RankAlign / SFT / offline + online neg-TC)",
               scores_index=scores_index)
+    rows_self = make_delta_plot(scores_index, SELF_DELTA,
+                                OUT_DIR / "per_task_delta_vs_rankalign_self.png",
+                                "self eval — Δ(variant − RankAlign)",
+                                side="self")
+    rows_neg  = make_delta_plot(scores_index, NEG_DELTA,
+                                OUT_DIR / "per_task_delta_vs_rankalign_neg.png",
+                                "neg eval — Δ(variant − RankAlign)",
+                                side="neg")
+    make_delta_table(rows_self, rows_neg,
+                     OUT_DIR / "per_task_delta_vs_rankalign.md")
     make_table(long, OUT_DIR / "per_task_gen_roc_table.md")
     make_heatmap(long, SELF_HEATMAP,
                  OUT_DIR / "per_task_gen_roc_heatmap_self.png",
