@@ -159,6 +159,70 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     print(f"Wrote {out_path.relative_to(ROOT)}")
 
 
+def get_value(long: pd.DataFrame, vid: str, eval_ref: str, eval_task: str):
+    sub = long[(long["id"] == vid) &
+               (long["eval_ref"] == eval_ref) &
+               (long["eval_task"] == eval_task)]
+    if len(sub) == 0:
+        return float("nan")
+    return float(sub["gen_roc"].iloc[0]) * 100
+
+
+def make_table(long: pd.DataFrame, out_path: Path) -> None:
+    """Single wide markdown table with 8 columns (4 self + 4 neg)."""
+    headers = (
+        ["task (overlap)"]
+        + [f"{label} (self)" for _, _, label, _ in SELF_PLOT]
+        + [f"{label} (neg)"  for _, _, label, _ in NEG_PLOT]
+    )
+
+    lines = [
+        "# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — "
+        "per-task gen-ROC × 100",
+        "",
+        "Rows: 10 rosch tasks ordered by item-overlap with the membership "
+        "training pool (high overlap on top, rosch-sport at the bottom).",
+        "",
+        "Columns: 4 self-eval variants (Base, RankAlign, SFT, Offline "
+        "self-TC) followed by 4 neg-eval variants (Base, RankAlign, SFT, "
+        "Offline neg-TC). The Base-self / Base-neg columns and SFT-self / "
+        "SFT-neg columns are different metrics on the same checkpoint.",
+        "",
+        "**Bold = highest value in the row across all 8 columns.** Note this "
+        "comparison mixes self and neg eval refs, which are different "
+        "metrics — interpret \"row max\" as a quick visual read, not a "
+        "rigorous comparison.",
+        "",
+        "Long-form metrics: "
+        "[quickiter_metrics_long_membership_to_rosch.csv]"
+        "(quickiter_metrics_long_membership_to_rosch.csv)",
+        "",
+        "| " + " | ".join(headers) + " |",
+        "| " + " | ".join(["---"] * len(headers)) + " |",
+    ]
+
+    for tname, overlap in TASKS_BY_OVERLAP:
+        vals = []
+        for vid, eval_ref, _label, _color in SELF_PLOT + NEG_PLOT:
+            vals.append(get_value(long, vid, eval_ref, tname))
+        idx_max = int(np.nanargmax(vals))
+        cells = []
+        for i, v in enumerate(vals):
+            if np.isnan(v):
+                cells.append("—")
+            else:
+                s = f"{v:.2f}"
+                if i == idx_max:
+                    s = f"**{s}**"
+                cells.append(s)
+        first = f"{tname} ({overlap}%)"
+        lines.append("| " + " | ".join([first] + cells) + " |")
+
+    lines.append("")
+    out_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"Wrote {out_path.relative_to(ROOT)}")
+
+
 def main():
     long = load_long(LONG_CSV)
 
@@ -180,6 +244,7 @@ def main():
               "self eval (offline self-TC vs RankAlign / SFT / Base)")
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
               "neg eval (offline neg-TC vs RankAlign / SFT / Base)")
+    make_table(long, OUT_DIR / "per_task_gen_roc_table.md")
 
 
 if __name__ == "__main__":
