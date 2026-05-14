@@ -224,3 +224,68 @@ In priority order:
 - We have not shown that TC + clean pairs > RankAlign + clean pairs on ambigqa. Step 2 above tests that.
 - We have not shown that the 2b-it validator is irrecoverable. Step 3 tests that.
 - The train==test memorization probe inflates SFT's headline numbers; on a real held-out split the relative ordering may shift.
+
+---
+
+## 2026-05-13 update: preliminary delta=1.0 RankAlign result (and what it doesn't tell us yet)
+
+### What we ran
+
+Step 1 of "Concrete next experiments" above: ambigqa 2b RankAlign baseline retrained at `delta = 1.0` instead of 0.15. **Plain RankAlign only — no TC variants yet.** Same recipe otherwise (3 epochs, `force-same-x`, log-odds validator, 5110 pair budget). Job 37613, eval job 38009.
+
+The eval (38009) timed out at 1 h walltime so we have only 2 of 4 TC eval refs:
+
+| eval ref | written? | notes |
+| --- | --- | --- |
+| self | ✓ | matches the previous `tc-self` column (winner more typical than loser correction) |
+| neg | ✓ | "winner more typical conditioned on negation" correction |
+| basetyp | ✗ | killed at start |
+| basetypneg | ✗ | not started |
+
+`basetyp`/`basetypneg` are needed only to plug into TC variant comparisons; for the **delta=0.15 vs delta=1.0** RankAlign-baseline comparison the `self`/`neg` columns are sufficient.
+
+### Headline numbers (× 100)
+
+RankAlign baseline at the two deltas, gen-ROC on the matched train/test ambigqa 2b setup:
+
+| eval ref | delta=0.15 | delta=1.0 | Δ |
+| --- | --- | --- | --- |
+| self | 71.82 | **61.07** | **−10.75** |
+| neg | 62.42 | 58.82 | −3.60 |
+
+(`delta=0.15` `self` and `neg` numbers are from `outputs-quickiter/ambigqa_quickiter_summary_gemma-2-2b.md`, RankAlign row.)
+
+**The delta=1.0 RankAlign baseline performed *worse* than the delta=0.15 baseline — the opposite of what the calibration argument predicted.**
+
+### What this means
+
+The simple version of the calibration hypothesis was: "swap noisy pairs (58% accurate) for clean pairs (~92% accurate) and RankAlign should pull toward SFT." That prediction failed on the headline gen-ROC.
+
+The most likely culprit is the **data-quantity-vs-data-quality trade-off the original analysis didn't account for**:
+
+| | delta=0.15 | delta=1.0 |
+| --- | --- | --- |
+| yes-vs-no pairs kept | 41,564 | 4,022 |
+| predicted pair accuracy | 58.82% | ≈92% |
+| effective signal (pairs × accuracy − pairs × (1 − accuracy)) | 41,564 × 0.176 = 7,315 net-correct | 4,022 × 0.84 = 3,378 net-correct |
+
+The simple "net-correct pairs" napkin math actually says delta=0.15 has *2× more* effective preference signal than delta=1.0 in absolute terms. The cleaner pairs are individually better but there are far fewer of them, and 5110 training samples drawn with replacement from a 4,022-pair pool yields lots of duplicates / overfitting.
+
+So the original doc was right that delta=0.15 ambigqa training is on noisy labels, but **wrong that just raising delta would fix it**. The validator is too thin a signal at high `|Δv|` to support 3 epochs of training at the same sample budget.
+
+### What this *doesn't* invalidate
+
+- The per-`|Δv|`-bucket calibration table is still correct as descriptive statistics about the validator. The validator really is well-calibrated on ambigqa 2b in the high-confidence tail.
+- The offset-reweighting argument (why TC actively hurts on top of RankAlign on ambigqa) still stands. That argument doesn't depend on whether raising `delta` helps RankAlign overall — it depends on the typicality offset being *correlated with the wrong-sign pairs*, which is a property of the underlying class imbalance and is independent of `delta`.
+- Prediction #4 ("TC switches from hurting to helping at delta=1.0") is **untested**, not falsified — we never trained any TC variant at delta=1.0. The headline RankAlign-vs-RankAlign comparison says nothing directly about whether TC helps or hurts *relative to RankAlign at the same delta*.
+
+### What we should run next to actually settle this
+
+In priority order:
+
+1. **TC variants at delta=1.0.** At minimum, offline self-TC and offline neg-TC. If TC > RankAlign at delta=1.0 (regardless of whether either beats the delta=0.15 baseline), prediction #4 is confirmed and the offset-reweighting argument has predictive value at clean-pair regimes. This is the experiment the original step #2 was meant to do.
+2. **Intermediate delta sweep** (e.g. 0.3, 0.5). The 0.15-vs-1.0 jump confounds two changes (noise level *and* training-set size). A sweep separates them: if gen-ROC improves monotonically with delta then plateaus before falling, we'd see "noise is binding here, then quantity is binding".
+3. **Bigger sample budget at delta=1.0.** Re-run with `total_samples` raised to e.g. 20,000 (≈5× the available pair pool but with replacement so some pairs repeat ≈5×). Tests whether the issue is "not enough net-correct training signal" vs "the few clean pairs we do have don't generalize". If 4× sample budget closes most of the gap, the diagnosis is "starved of signal at delta=1.0"; if it doesn't, the diagnosis is "high-`|Δv|` pairs cover too narrow a slice of the input distribution to teach RankAlign anything generalizable".
+4. **Complete the delta=1.0 baseline eval matrix** (basetyp, basetypneg). Cheap, ~30 min on 1 GPU. Doesn't change the headline finding above but is needed if we want to put delta=1.0 RankAlign next to TC variants in the canonical 4-table layout.
+
+If #1 is done at minimum, we have a real test of the offset-reweighting argument under clean pairs even if the delta=1.0 RankAlign baseline number itself is uninformative.
