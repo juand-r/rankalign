@@ -49,13 +49,15 @@ python scripts/summarize_scores_file.py "${FILES[@]}" \
     --compact 2>&1 | tail -3
 
 echo ""
-echo "Building per-task summary markdowns..."
+echo "Building per-task summary markdowns (epoch=2)..."
 for T in "${ROSCH_TASKS[@]}"; do
     python scripts/build_quickiter_summary_tables.py \
         --model gemma-2-2b \
         --task membership-sans-rosch-v0 \
         --eval-task "$T" \
+        --epoch 2 \
         --long-csv "$OUT_DIR/quickiter_metrics_long_membership_to_rosch.csv" \
+        --out "$OUT_DIR/${T}_summary_gemma-2-2b.md" \
         2>&1 | tail -2
 done
 
