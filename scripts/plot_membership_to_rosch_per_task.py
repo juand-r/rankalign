@@ -70,19 +70,15 @@ SELF_HEATMAP = [
     ("0", "self",    "Base"),
     ("6", "self",    "SFT"),
     ("1", "self",    "RankAlign"),
-    ("4", "self",    "+ online pairs"),
     ("2", "basetyp", "+ offline self-TC"),
     ("3", "self",    "+ online self-TC"),
-    ("5", "self",    "+ both online (self)"),
 ]
 NEG_HEATMAP = [
     ("0", "neg",        "Base"),
     ("6", "neg",        "SFT"),
     ("1", "neg",        "RankAlign"),
-    ("4", "neg",        "+ online pairs"),
     ("7", "basetypneg", "+ offline neg-TC"),
     ("8", "neg",        "+ online neg-TC"),
-    ("9", "neg",        "+ both online (neg)"),
 ]
 
 SIG_MAP = {
