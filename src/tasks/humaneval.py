@@ -30,10 +30,13 @@ from tasks.common import PromptCompletion, load_csv_items, normalize_yes_no, get
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data')
 HE_DIR = os.path.join(DATA_DIR, 'humaneval', 'with_solutions')       # v0
 HE_V1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v1')                # v1
+HE_V2_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2')                # v2: v1 with answer.strip()
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
 HE_V1_TRAIN_CSV = os.path.join(HE_V1_DIR, 'train.csv')
+HE_V2_TRAIN_CSV = os.path.join(HE_V2_DIR, 'train.csv')
 HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
 HE_V1_FIELDS = ('question', 'answer', 'correct', 'strategy', 'model', 'temperature', 'task_id', 'error')
+HE_V2_FIELDS = HE_V1_FIELDS
 
 
 # ============================================================================
@@ -315,3 +318,174 @@ if os.path.exists(HE_V1_TRAIN_CSV):
         print(f"[humaneval-v1] Registered {len(_v1_registered)} tasks")
 else:
     print(f"[humaneval-v1] Data not found at {HE_V1_DIR} — skipping registration")
+
+
+# --- v2 registration ---
+#
+# v2 = v1 with answer.strip() applied + a reworked prompt ("format C"):
+#
+#   1. Instruction explicitly tells the model to return body-only code, no markdown,
+#      and to start "inside the function".
+#   2. The target function's def-signature line is appended at the end of the
+#      user content, so the model's response semantically picks up "inside the
+#      function" instead of wanting to emit ```python\ndef ...``` markdown.
+#
+# This fixes the first-token noise that dominated v1 scoring on gemma-4-31B-it
+# (chat-template wrapping pushed position-0 log P to ≈ -17 because the model
+# wanted to produce a markdown-fenced full function, not just the body).
+# See notes/log_P_diff_plots/humaneval-v1/V2_PROMPT_DESIGN.md for details.
+
+_V2_INSTRUCTION = (
+    "Complete the following Python function. "
+    "Return ONLY the solution code, no markdown, starting from inside the function:"
+)
+_V2_NEG_INSTRUCTION = (
+    "Write an incorrect implementation of the following Python function. "
+    "Return ONLY the solution code, no markdown, starting from inside the function:"
+)
+
+# Cache last-resort regex for extracting the target def signature from a question.
+import re as _re
+_V2_DEF_SIG_RE = _re.compile(r'^def [^\n]+:\s*$', _re.MULTILINE)
+
+
+def _v2_extract_signature(question: str) -> str:
+    """Return the target function's def-signature line (last def in the question)."""
+    matches = _V2_DEF_SIG_RE.findall(question)
+    if not matches:
+        raise ValueError(
+            f"No 'def ...:' signature line found in humaneval-v2 question. "
+            f"Question starts: {question[:120]!r}"
+        )
+    return matches[-1]
+
+
+def _load_v2_items(filepath):
+    items = load_csv_items(filepath, fields=HE_V2_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def load_data_v2_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
+    L_train = _load_v2_items(HE_V2_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
+    return L_train, []
+
+
+def create_load_data_v2_for_problem(test_csv_path):
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v2_items(HE_V2_TRAIN_CSV)
+        L_test = _load_v2_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+def make_prompt_v2(item, style='generator', shots='zero', gen_response=None, neg=False, variation=0, **kwargs):
+    """v2 (format C): amended instruction + def signature at end of user content.
+
+    answer is pre-stripped in the v2 CSVs (leading/trailing whitespace removed).
+    """
+    question = item['question']
+    answer = item['answer']
+
+    if style == 'generator':
+        sig = _v2_extract_signature(question)
+        prompt = (
+            f"{_V2_INSTRUCTION}\n\n"
+            f"{question}\n"
+            f"Solution:\n"
+            f"{sig}"
+        )
+        completion = answer
+        return PromptCompletion(prompt, completion)
+
+    elif style == 'discriminator':
+        cur_answer = gen_response if gen_response else answer
+        query = _disc_query(question, cur_answer)
+
+        if shots == 'few':
+            examples = ""
+            for ex in DISC_FEW_SHOT_EXAMPLES:
+                examples += _disc_query(ex['question'], ex['answer']) + f" {ex['label']}\n\n"
+            prompt = examples + query
+        else:
+            prompt = query
+
+        correct = item['correct'].strip().capitalize()
+        completion = " Yes" if correct == 'Yes' else " No"
+        return PromptCompletion(prompt.strip(), completion)
+
+    else:
+        raise ValueError(f"Unknown style: {style}. Must be 'generator' or 'discriminator'.")
+
+
+def get_completion_v2(item):
+    """v2 generator completion is the stripped answer (no leading space)."""
+    return item['answer']
+
+
+def make_negated_prompt_v2(item, task, make_prompt, gen_shots='zero'):
+    """Task-local negated prompt for --neg-typicality (v2).
+
+    NOTE: this has not been empirically validated against gemma-4-31B-it.
+    See notes/log_P_diff_plots/humaneval-v1/V2_PROMPT_DESIGN.md (TODO section)
+    — must probe the negated prompt before running neg-typcorr scoring on v2.
+    """
+    gen_obj = make_prompt(item, style='generator', shots='zero')
+    neg_prompt = gen_obj.prompt.replace(_V2_INSTRUCTION, _V2_NEG_INSTRUCTION)
+    neg_prompt = neg_prompt.replace("\nSolution:\n", "\nIncorrect solution:\n")
+    if neg_prompt == gen_obj.prompt:
+        raise ValueError(
+            f"Negated prompt unchanged for humaneval-v2 task '{task}'. "
+            f"Prompt '{gen_obj.prompt[:80]}' doesn't match expected format."
+        )
+    return neg_prompt, gen_obj.completion
+
+
+if os.path.exists(HE_V2_TRAIN_CSV):
+    _V2_COMMON = {
+        'make_prompt': make_prompt_v2,
+        'get_completion': get_completion_v2,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt_v2,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'humaneval-v2',
+        'load_data': load_data_v2_train_only,
+        'description': 'HumanEval v2: v1 with answer.strip() + 4-space indent moved into prompt',
+        **_V2_COMMON,
+    })
+
+    _v2_registered = []
+    for filename in sorted(os.listdir(HE_V2_DIR)):
+        if not filename.endswith('.csv') or filename == 'train.csv':
+            continue
+        slug = filename[:-4]
+        test_csv_path = os.path.join(HE_V2_DIR, filename)
+        task_name = f'humaneval-v2-{slug}'
+
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v2_for_problem(test_csv_path),
+                'description': f'HumanEval v2: {slug}',
+                **_V2_COMMON,
+            })
+            _v2_registered.append(task_name)
+        except Exception as e:
+            print(f"[humaneval-v2] Warning: Could not register {task_name}: {e}")
+
+    if _v2_registered:
+        print(f"[humaneval-v2] Registered {len(_v2_registered)} tasks")
+else:
+    print(f"[humaneval-v2] Data not found at {HE_V2_DIR} — skipping registration")

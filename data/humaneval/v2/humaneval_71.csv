@@ -1,0 +1,662 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and b + c > a and c + a > b:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","sides = [a, b, c]
+    sides.sort()
+
+    if sum(sides[0:2]) > sides[2] and sides[2] > 0:
+        semi_perimeter = sides[0] + sides[1] + sides[2]
+        area = math.sqrt(semi_perimeter * (semi_perimeter - sides[0]) * (semi_perimeter - sides[1]) * (semi_perimeter - sides[2]))
+        return round(area, 2)
+    else:
+        return -1",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/71,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbam_hs84.py"", line 40, in <module>
+    check(triangle_area)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbam_hs84.py"", line 26, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbam_hs84.py"", line 18, in triangle_area
+    area = math.sqrt(semi_perimeter * (semi_perimeter - sides[0]) * (semi_perimeter - sides[1]) * (semi_perimeter - sides[2]))
+NameError: name 'math' is not defined"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if (a + b > c and b + c > a and a + c > b):
+        return round((a * b + b * c + c * a) / 3, 2)
+    else:
+        return -1",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmpm_co284m.py"", line 35, in <module>
+    check(triangle_area)
+  File ""/tmp/tmpm_co284m.py"", line 21, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        return round(area, 2)
+    else:
+        return -1",No,external,Claude Sonnet-4,,HumanEval/71,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6yk76ih8.py"", line 37, in <module>
+    check(triangle_area)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6yk76ih8.py"", line 23, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6yk76ih8.py"", line 15, in triangle_area
+    area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+NameError: name 'math' is not defined"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","IS_INVALID_TRANGLE = False
+    RETURN_VALUE = -1
+    TRY_SML线a_b_c = a+b > c and a+c > b and b+c > a
+    if not TRY_SML线a_b_c:
+        IS_INVALID_TRANGLE = True
+    elif a<=0 or b<=0 or c<=0:
+        IS_INVALID_TRANGLE = True
+    elif TRY_SML线a_b_c :
+        SML Периметраside = (a+b+c)/2
+        AREA TripAdvisor PERIMETER = SML_PERIMETER Orge NEWS => PERIMETER * (PERIMETER - a) * (PERIMETER - b) * (PERIMETER - c)
+        RETURN_VALUE = round(Math.sqrt(AREA/traversalSwiper PERIMETER)|2)
+    return RETURN_VALUE",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/71,"File ""/tmp/tmp27yc2z_j.py"", line 21
+    SML Периметраside = (a+b+c)/2
+        ^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        return round(area, 2)
+    else:
+        return -1",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmpeurd7bkq.py"", line 37, in <module>
+    check(triangle_area)
+  File ""/tmp/tmpeurd7bkq.py"", line 23, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpeurd7bkq.py"", line 15, in triangle_area
+    area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+           ^^^^
+NameError: name 'math' is not defined. Did you forget to import 'math'?"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","a, b, c = sorted([a, b, c])
+    if (a + b > c) and (a + c > b) and (b + c > a):
+        s = (a + b + c) / 2
+        area = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+        return round(area, 2)
+    
+    else: 
+        return -1
+
+
+# Test cases
+print(triangle_area(3, 4, 5)) # expected 6.0
+print(triangle_area(1, 2, 10)) # expected -1
+print(triangle_area(5, 12, 13)) # expected 60.0
+print(triangle_area(7, 12, 14)) # expected 72.0",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+        return round(area, 2)
+    else:
+        return -1",No,external,DeepSeek-V3,,HumanEval/71,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9oim9xgy.py"", line 37, in <module>
+    check(triangle_area)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9oim9xgy.py"", line 23, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9oim9xgy.py"", line 15, in triangle_area
+    area = math.sqrt(s * (s - a) * (s - b) * (s - c))
+NameError: name 'math' is not defined"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","# Check if the triangle is valid
+    if (a + b > c) and (a + c > b) and (b + c > a):
+        # Calculate the semi-perimeter
+        s = (a + b + c) / 2
+        # Calculate the area using Heron's formula
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2) 
+    else:
+        return -1",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","isValid = True
+    if a + b <= c or a + c <= b or b + c <= a:
+        isValid = False
+    if isValid:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+    else:
+        area = -1
+    return round(area, 2)",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        return round(0.5 * (b * c + b * (a - c) + a * (c - b)), 2)
+    else:
+        return -1",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmphwj82d62.py"", line 35, in <module>
+    check(triangle_area)
+  File ""/tmp/tmphwj82d62.py"", line 21, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if (a + b > c and a + c > b and b + c > a) or (a + c > b and b + c > a and a + b > 0):
+        return round(0.5 * (a * b + b * c + c * a), 2)
+    else:
+        return -1",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmpriksyqhl.py"", line 35, in <module>
+    check(triangle_area)
+  File ""/tmp/tmpriksyqhl.py"", line 21, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","a *= 0.5; b *= 0.5
+    area_squared = 1 if a + b > c else 0
+    if a + c > b: area_squared = 1
+    if b + c > a: area_squared = 1
+    semiperimeter = (a + b + c) / 2
+    if area_squared: area = (semiperimeter * (semiperimeter - a) * (semiperimeter - b) * (semiperimeter - c)) ** 0.5
+    else: area = -1
+    return round(area, 2)",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmp6k085ueo.py"", line 39, in <module>
+    check(triangle_area)
+  File ""/tmp/tmp6k085ueo.py"", line 25, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp6k085ueo.py"", line 20, in triangle_area
+    return round(area, 2)
+           ^^^^^^^^^^^^^^
+TypeError: type complex doesn't define __round__ method"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","s = (a + b + c) / 2
+    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+    return round(area, 2) if a + b > c and a + c > b and b + c > a else -1",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","'''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+    if a + b > c and a + c > b and b + c > a:
+        # calculate the semi-perimeter
+        s = (a + b + c) / 2
+        # calculate the area
+        area = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,normal,gpt-4,0.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","valid_sides = sorted([a, b, c])
+    if valid_sides[2] < (valid_sides[0] + valid_sides[1]):
+        s = valid_sides[0] + valid_sides[1] + valid_sides[2] / 2.0
+        area = (s * (s - valid_sides[0]) * (s - valid_sides[1]) * (s - valid_sides[2])) ** 0.5
+        return round(area, 2)
+    else:
+        return -1
+
+# adding more test cases
+print(triangle_area(3, 4, 5))      # should return 6.0
+print(triangle_area(1, 2, 10))     # should return -1
+print(triangle_area(5, 5, 5))      # shoule return 1.97
+print(triangle_area(1, 1, 3))      # should return 0.43 
+
+Please note the order in which you return numbers matters as the value will not display up to two decimal places always. Hence we need to add '/ 100 if higher 'scale' is needed' else percentage symbol """""" "" will be displayed.",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/71,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9s4gdhw7.py"", line 27
+    Please note the order in which you return numbers matters as the value will not display up to two decimal places always. Hence we need to add '/ 100 if higher 'scale' is needed' else percentage symbol """""" "" will be displayed.
+                                                                                                                                                                                                             ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 46)"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","valid_triangle = a + b > c and b + c > a and a + c > b
+
+    if valid_triangle:
+        s = (a + b + c) / 2
+        area = math.sqrt(s *(s - a) * (s - b) * (s - c))
+        return round(area, 2)
+    return -1",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/71,"Traceback (most recent call last):
+  File ""/tmp/tmp7g89bij7.py"", line 38, in <module>
+    check(triangle_area)
+  File ""/tmp/tmp7g89bij7.py"", line 24, in check
+    assert candidate(3, 4, 5) == 6.00, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp7g89bij7.py"", line 17, in triangle_area
+    area = math.sqrt(s *(s - a) * (s - b) * (s - c))
+           ^^^^
+NameError: name 'math' is not defined. Did you forget to import 'math'?"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b <= c or a + c <= b or b + c <= a:
+        return -1
+    else:
+        # Calculate semi-perimeter
+        s = (a + b + c) / 2
+        # Calculate area
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+
+# Test cases
+print(triangle_area(3, 4, 5)) # 6.0
+print(triangle_area(1, 2, 10)) # -1",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c and a + c > b and b + c > a:
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","``def triangle_area(a, b, c):
+    if a < b+c or b < a+c or c < a+b:
+        return -1
+    p = (a+b+c)/2
+    area = (p*(p-a)*(p-b)*(p-c))**0.5
+    return round(area, 2)``",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/71,"File ""/tmp/tmpr0qg50_5.py"", line 13
+    ``def triangle_area(a, b, c):
+    ^
+SyntaxError: invalid syntax"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if (a + b > c) and (a + c > b) and (b + c > a):
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    return -1",Yes,unusual,gpt-4o-mini,1.2,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","# Check for triangle inequality theorem
+    if a + b > c and a + c > b and b + c > a:
+        # Calculate area using Heron's formula
+        s = (a + b + c) / 2
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        return round(area, 2)
+    else:
+        return -1",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","if a + b > c:
+            if a + c > b:
+                if b + c > a:
+                    return True
+        return False
+    
+    if not is_valid_triangle(a, b, c):
+        return -1
+    
+    s = (a + b + c) / 2
+    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+    return round(area, 2)",No,bad-style,gpt-4o-mini,0.7,HumanEval/71,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcjwgk0rt.py"", line 13
+    if a + b > c:
+IndentationError: unexpected indent"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","# First we check if the sides form a valid triangle
+    if a + b > c and a + c > b and b + c > a:
+        # Calculate the semi-perimeter
+        s = (a + b + c) / 2
+        # Calculate the area using Heron's formula
+        area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+        # Return the area rounded to two decimal points
+        return round(area, 2)
+    else:
+        # Return -1 if the sides do not form a valid triangle
+        return -1",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/71,
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","area = (a * b) / 2
+
+    if b + c > a and a + c > b and a + b > c:
+        return round(area, 2)
+    else:
+        return -1",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/71,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4vol7ld0.py"", line 37, in <module>
+    check(triangle_area)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4vol7ld0.py"", line 25, in check
+    assert candidate(4, 8, 5) == 8.18
+AssertionError"
+"
+def triangle_area(a, b, c):
+    '''
+    Given the lengths of the three sides of a triangle. Return the area of
+    the triangle rounded to 2 decimal points if the three sides form a valid triangle. 
+    Otherwise return -1
+    Three sides make a valid triangle when the sum of any two sides is greater 
+    than the third side.
+    Example:
+    triangle_area(3, 4, 5) == 6.00
+    triangle_area(1, 2, 10) == -1
+    '''
+","def semi_perimeter(sides):
+        return sum(sides) / 2
+
+    s = semi_perimeter([a, b, c])
+    area = (s * (s - a) * (s - b) * (s - c)) ** 0.5
+    return round(area, 2) if (a + b > c and b + c > a and a + c > b) else -1",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/71,

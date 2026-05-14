@@ -1,0 +1,48 @@
+# Requirements for RunPod pods running gemma-4 (31B) inference / scoring.
+#
+# Why this exists:
+#   The default rankalign requirements.txt pins transformers==4.46.2 +
+#   tokenizers==0.20.3, which CANNOT load gemma-4. Installing the default
+#   requirements.txt and then upgrading transformers separately breaks
+#   scipy/sklearn binary compat too — the safest path is to install
+#   gemma-4-compatible versions in a single resolution pass.
+#
+# Usage:
+#   pip install --upgrade -r requirements-runpod-gemma4.txt
+#   pip install --upgrade "git+https://github.com/huggingface/transformers.git"
+#
+# The transformers main install is a separate step because pip can't
+# resolve a git+ entry the same way as a versioned one when mixed with
+# other constraints in this file.
+
+# Pinned-compatible core (these versions resolve together and don't fight transformers main):
+numpy>=2.1
+scipy>=1.14
+pandas>=2.2
+scikit-learn>=1.5
+
+# HF stack: leave UNPINNED — let pip pick versions compatible with transformers main.
+# The default rankalign requirements.txt clobbers all three with stale pins; do NOT pin here.
+huggingface_hub
+tokenizers
+accelerate
+datasets
+
+# vLLM / serving — leave unpinned to track the model.
+# (If using vLLM on this pod, install it AFTER transformers main, not before.)
+
+# Other rankalign deps (keep the pins from requirements.txt that don't conflict with transformers main):
+dash
+ipython[all]
+immutabledict
+tqdm
+wandb>=0.19.0
+matplotlib
+plotly
+seaborn>=0.13.2
+bitsandbytes>=0.45.0
+peft>=0.14.0
+trl>=0.12.2
+
+# Stuff we know is fine to skip on a pure-inference RunPod:
+#   tuned-lens, nnsight  — research tooling, not needed for log P scoring

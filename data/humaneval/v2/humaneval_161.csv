@@ -1,0 +1,733 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = ''
+    for char in s:
+        if char.isalpha():
+            if char.islower():
+                char = char.upper()
+            else:
+                char = char.lower()
+        result += char
+    if not any(char.isalpha() for char in s):
+        result = result[::-1]
+    return result
+
+
+print(solve(""1234"")) # ""4321""
+print(solve(""ab"")) # ""AB""
+print(solve(""#a@C"")) # ""#A@c""
+print(solve(""12345"")) # ""54321""
+print(solve("""")) # """"",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = ''
+    for i in range(len(s)):
+        if s[i].isalpha():
+            result += s[i].upper() if s[i].islower() else s[i].lower()
+        else:
+            result += s[i]
+
+    if not any(char.isalpha() for char in s):
+        result = result[::-1]
+
+    return result",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","has_letter = False
+    for ch in s:
+        if ch.isalpha():
+            has_letter = True
+            break
+    if not has_letter:
+        return s[::-1]
+    result = """"
+    for ch in s:
+        if ch.isalpha():
+            if ch.islower():
+                result += ch.upper()
+            else:
+                result += ch.lower()
+        else:
+            result += ch
+    return result",Yes,beginner,gpt-5,1.0,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","case_flip = str.maketrans('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+                               'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+    return s.translate(case_flip)[::-1] if s.isalnum() else s[::-1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkr4hd0yv.py"", line 34, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkr4hd0yv.py"", line 20, in check
+    assert candidate(""AsDf"") == ""aSdF""
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","chars = list(s)
+
+    for i, c in enumerate(chars):
+
+        if c.isalpha():
+
+            chars[i] = c.upper() if c.islower() else c.lower()
+
+    return ''.join(chars) if any(c.isalpha() for c in chars) else ''.join(reversed(chars))",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","has_letters = any(c.isalpha() for c in s)
+    if has_letters:
+        return ''.join([c.lower() if c.isupper() else c.upper() for c in s])
+    else:
+        return s[::-1]",Yes,external,Mistral-3.2-24B,,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","has_letter = False
+    result = []
+    
+    for char in s:
+        if char.isalpha():
+            has_letter = True
+            if char.islower():
+                result.append(char.upper())
+            else:
+                result.append(char.lower())
+        else:
+            result.append(char)
+    
+    if not has_letter:
+        return s[::-1]
+    
+    return ''.join(result)",Yes,external,Claude Sonnet-4,,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","transformed = []  
+    for c in s:  
+        if c.isalpha():  
+            transformed.append(c.lower() if c.isupper() else c.upper())  
+        else:  
+            transformed.append(c)  
+    return ''.join(transformed) if any(c.isalpha() for c in s) else s[::-1]",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+",""" "".join(char.lower() if char.isupper() else char.upper() if char.islower() else char for char in s[::-1])",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/tmp/tmplblhqh40.py"", line 32, in <module>
+    check(solve)
+  File ""/tmp/tmplblhqh40.py"", line 18, in check
+    assert candidate(""AsDf"") == ""aSdF""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if not s:
+        return s
+    else:
+        return ''.join([''*len(v) + chr RestartCasecharAt ]];  # Reverse case based on loop iteration index",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/161,"File ""/tmp/tmpzobtgxkh.py"", line 16
+    return ''.join([''*len(v) + chr RestartCasecharAt ]];  # Reverse case based on loop iteration index
+                                                       ^
+SyntaxError: closing parenthesis ']' does not match opening parenthesis '('"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if re.search('[a-zA-Z]', s):
+        return ''.join([i.upper() if i.islower() else i.lower() if i.isupper() else i for i in s])
+    else:
+        return s[::-1]",No,external,Llama-3.3-70B,,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpse4tt626.py"", line 35, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpse4tt626.py"", line 21, in check
+    assert candidate(""AsDf"") == ""aSdF""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpse4tt626.py"", line 13, in solve
+    if re.search('[a-zA-Z]', s):
+NameError: name 're' is not defined"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if char.isalpha():
+        return char.swapcase()
+    else:
+        return char
+
+def solve(s):
+    # Split the string into a list of characters
+    chars = list(s)
+
+    # Iterate through the list and apply the transform_case function to each character
+    for i in range(len(chars)):
+        chars[i] = transform_case(chars[i])
+
+    # If no letters were present, reverse the list and convert it back to a string
+    if not any(char.isalpha() for char in chars):
+        chars.reverse()
+        s = ''.join(chars)
+    else:
+        s = ''.join(chars)
+
+    return s",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnh4qemit.py"", line 52, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnh4qemit.py"", line 38, in check
+    assert candidate(""AsDf"") == ""aSdF""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnh4qemit.py"", line 24, in solve
+    chars[i] = transform_case(chars[i])
+NameError: name 'transform_case' is not defined"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = []
+    flag = False
+
+    for char in s:
+        if char.isalpha():
+            result.append(char.swapcase())
+            flag = True
+        else:
+            result.append(char)
+            if not flag:
+                flag = True
+            else:
+                flag = False
+    if not any(result):
+        return s[::-1]
+    return ''.join(result)",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx3x7t18z.py"", line 47, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx3x7t18z.py"", line 34, in check
+    assert candidate(""1234"") == ""4321""
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if any(c.isalpha() for c in s):
+    return ''.join(c.swapcase() if c.isalpha() else c for c in s)
+    else:
+    return s[::-1]",No,normal,gpt-4.1,1.0,HumanEval/161,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfvdu4s9w.py"", line 14
+    return ''.join(c.swapcase() if c.isalpha() else c for c in s)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+",return s.swapcase() if any(c.isalpha() for c in s) else s[::-1],Yes,normal,gpt-5,1.0,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = []
+    for char in s:
+        if char.isalpha():
+            result.append(char.swapcase())
+        else:
+            result.append(char)
+
+    if not any(char.isalpha() for char in s):
+        return ''.join(reversed(result))
+
+    return ''.join(result)",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if any(c.isalpha() for c in s):
+        result = ''
+        for c in s:
+            if c.isalpha():
+                if c.islower():
+                    result += c.upper()
+                else:
+                    result += c.lower()
+            else:
+                result += c
+        return result
+    else:
+        return s[::-1]",Yes,beginner,gpt-4o-mini,1.2,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","s = s[::-1]
+    return s",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/161,"Traceback (most recent call last):
+  File ""/tmp/tmpnxp2bpsa.py"", line 33, in <module>
+    check(solve)
+  File ""/tmp/tmpnxp2bpsa.py"", line 19, in check
+    assert candidate(""AsDf"") == ""aSdF""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","vowels = set('aeiou')
+    if not s:
+        return s
+    else:
+        return ''.join(s[i] if ord(s[i]) in vowels else reverse_case(s[i]) for i in range(len(s)))",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/tmp/tmps6hfy2oa.py"", line 36, in <module>
+    check(solve)
+  File ""/tmp/tmps6hfy2oa.py"", line 22, in check
+    assert candidate(""AsDf"") == ""aSdF""
+           ^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmps6hfy2oa.py"", line 17, in solve
+    return ''.join(s[i] if ord(s[i]) in vowels else reverse_case(s[i]) for i in range(len(s)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmps6hfy2oa.py"", line 17, in <genexpr>
+    return ''.join(s[i] if ord(s[i]) in vowels else reverse_case(s[i]) for i in range(len(s)))
+                                                    ^^^^^^^^^^^^
+NameError: name 'reverse_case' is not defined"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if any(c.isalpha() for c in s):
+        return ''.join(c.lower() if c.isupper() else c.upper() for c in s)
+    return s[::-1]",Yes,different-style,gpt-4o-mini,0.7,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = """"
+    for char in s:
+        if char.isalpha():
+            if char.lower() in ['a', 'an', 'the', 'A', 'An', 'The']:
+                result += char.upper()
+            else:
+                result += char.lower()
+        else:
+            result += char
+    return result",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/tmp/tmpqum8sw5h.py"", line 41, in <module>
+    check(solve)
+  File ""/tmp/tmpqum8sw5h.py"", line 27, in check
+    assert candidate(""AsDf"") == ""aSdF""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","for i in range(len(s)):
+        if s[i].isalpha():
+            if s[i].islower():
+                s = s[:i] + s[i].upper() + s[i+1:]
+            else:
+                s = s[:i] + s[i].lower() + s[i+1:]
+    if not any(c.isalpha() for c in s):
+        return s[::-1]
+    return s",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","""""""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+    result = """"
+    for char in s:
+        if char.isalpha():
+            if char.islower():
+                result += char.upper()
+            else:
+                result += char.lower()
+        else:
+            result += char
+    if not result:
+        result = s[::-1]
+    return result",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5hfqizni.py"", line 53, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5hfqizni.py"", line 40, in check
+    assert candidate(""1234"") == ""4321""
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","def reverse_case(c):
+        return c.isupper() and c.lower() or c.islower() and c.upper()
+
+    return ''.join([reverse_case(c) if c.isalpha() else c[::-1] for c in s])
+
+# Test cases
+print(solve(""1234"")) # ""4321""
+print(solve(""ab""))    # ""BA""
+print(solve(""#a@C""))  # ""#A@c""
+print(solve(""""))      # """"",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoj3qmuvo.py"", line 41, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoj3qmuvo.py"", line 28, in check
+    assert candidate(""1234"") == ""4321""
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = []
+    for char in s:
+        if char.isalpha():
+            result.append(char.upper() if char.islower() else char.lower())
+        else:
+            result.append(char)
+    if len(set(result)) == len(result) and not any(result.isdigit()):
+        return s[::-1]
+    return ''.join(result)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc991tshc.py"", line 40, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc991tshc.py"", line 26, in check
+    assert candidate(""AsDf"") == ""aSdF""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc991tshc.py"", line 19, in solve
+    if len(set(result)) == len(result) and not any(result.isdigit()):
+AttributeError: 'list' object has no attribute 'isdigit'"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","if any(char.isalpha() for char in s):
+        return ''.join(char.lower() if char.isupper() else char.upper() for char in s)
+    return s[::-1]",Yes,normal,gpt-4o,1.4,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = ''
+    for char in s:
+        if char.isalpha():
+            if char.isupper():
+                result += char.lower()
+            else:
+                result += char.upper()
+        else:
+            if char == '#':
+                result += char.swapcase()
+            else:
+                result += char
+    if not any(char.isalpha() for char in s):
+        result = result[::-1]
+    return result
+
+print(solve(""1234"")) # ""4321""
+print(solve(""ab"")) # ""AB""
+print(solve(""#a@C"")) # ""#A@c""",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","new_s = """"
+    has_letter = False
+    for char in s:
+        if char.isalpha():
+            has_letter = True
+            if char.islower():
+                new_s += char.upper()
+            else:
+                new_s += char.lower()
+        else:
+            new_s += char
+    if not has_letter:
+        new_s = new_s[::-1]
+    return new_s",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/161,
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = ''
+    for char in s:
+        if char.isalpha():
+            result += char.swapcase()
+        else:
+            result += char
+    return result",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/161,"Traceback (most recent call last):
+  File ""/tmp/tmp2aewqbi5.py"", line 38, in <module>
+    check(solve)
+  File ""/tmp/tmp2aewqbi5.py"", line 25, in check
+    assert candidate(""1234"") == ""4321""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def solve(s):
+    """"""You are given a string s.
+    if s[i] is a letter, reverse its case from lower to upper or vise versa, 
+    otherwise keep it as it is.
+    If the string contains no letters, reverse the string.
+    The function should return the resulted string.
+    Examples
+    solve(""1234"") = ""4321""
+    solve(""ab"") = ""AB""
+    solve(""#a@C"") = ""#A@c""
+    """"""
+","result = ''
+    reverse_string = s[::-1]
+    
+    if reverse_string.isalpha():
+        result = reverse_string.swapcase()
+    else:
+        result = reverse_string[::-1]
+
+    return result",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/161,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpas4n5ryr.py"", line 40, in <module>
+    check(solve)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpas4n5ryr.py"", line 26, in check
+    assert candidate(""AsDf"") == ""aSdF""
+AssertionError"

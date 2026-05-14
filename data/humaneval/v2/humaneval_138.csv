@@ -1,0 +1,558 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n >= 8 and n % 2 == 0,Yes,different-style,gpt-4o-mini,0.7,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n > 0 and n % 2 == 0 and n >= 8,Yes,normal,gpt-4o,0.6,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n >= 8 and n % 2 == 0,Yes,external,Claude Sonnet-4,,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","even_numbers = [i for i in range(2, n + 1, 2)]
+    for i in range(len(even_numbers)):
+        for j in range(i, len(even_numbers)):
+            for k in range(j, len(even_numbers)):
+                for last in range(k, len(even_numbers)):
+                    if even_numbers[i] + even_numbers[j] + even_numbers[k] + even_numbers[last] == n:
+                        return True
+    return False",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","for i in range(1, n // 2 + 1):
+        for j in range(i, n // 2 + 1):
+            for k in range(j, n // 2 + 1):
+                for l in range(k, n // 2 + 1):
+                    if i + j + k + l == n and i % 2 == 0 and j % 2 == 0 and k % 2 == 0 and l % 2 == 0:
+                        return True
+    return False",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","# A number can be written as sum of 4 positive even numbers
+    # if and only if:
+    # 1. n >= 8 (minimum sum is 2+2+2+2=8)
+    # 2. n is even (sum of even numbers is even)
+    
+    return n >= 8 and n % 2 == 0",Yes,external,Qwen3-Coder,,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","for i in range(2, n - 1, 2):
+        for j in range(i, n - i, 2):
+            for k in range(j, n - i - j, 2):
+                for l in range(k, n - i - j - k, 2):
+                    if i + j + k + l == n:
+                        return True
+    return False",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/tmp/tmp_2_yyiu4.py"", line 28, in <module>
+    check(is_equal_to_sum_even)
+  File ""/tmp/tmp_2_yyiu4.py"", line 20, in check
+    assert candidate(8) == True
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 8:
+    return False
+    return n % 2 == 0",No,normal,gpt-4.1,1.0,HumanEval/138,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxfnzonzw.py"", line 10
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 9"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 8:
+        return False
+    else:
+        if n % 2 != 0:
+            return False
+        else:
+            if n == 8:
+                return True
+            else:
+                count = 0
+                current_sum = 0
+                for i in range(2, n, 2):
+                    current_sum += i
+                    count += 1
+                    if count == 4:
+                        break
+                if current_sum == n:
+                    return True
+                else:
+                    return False",No,bad-style,gpt-4o-mini,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp2xmc53n.py"", line 41, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp2xmc53n.py"", line 34, in check
+    assert candidate(10) == True
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","b = 0
+    for i in range(2,n):
+        if i % 2 == 0:
+            a = i
+            for j in range(a,n):
+                if j % 2 == 0 and j != a:
+                    for k in range(j,n):
+                        if k % 2 == 0 and k != a and k != j:
+                            for m in range(k,n):
+                                if m % 2 == 0 and m != a and m != j and m != k:
+                                    if a + j + k + m == n:
+                                        b = 1
+                                        break
+                            if b == 1:
+                                break
+                        if b == 1:
+                            break
+                    if b == 1:
+                        break
+                if b == 1:
+                    break
+            if b == 1:
+                break
+    return b",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/tmp/tmpbjawwqio.py"", line 45, in <module>
+    check(is_equal_to_sum_even)
+  File ""/tmp/tmpbjawwqio.py"", line 37, in check
+    assert candidate(8) == True
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 4:
+        return False
+    for i in range(2, int(n**0.5) + 1, 2):
+        if n % i == 0:
+            return True
+    return False",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/tmp/tmpzpo75s3j.py"", line 27, in <module>
+    check(is_equal_to_sum_even)
+  File ""/tmp/tmpzpo75s3j.py"", line 17, in check
+    assert candidate(4) == False
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","return all(n % 2 == 0 <= 2 * num for num in range(1, n // 2 + 1))",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/138,"Traceback (most recent call last):
+  File ""/tmp/tmp8e_arygx.py"", line 22, in <module>
+    check(is_equal_to_sum_even)
+  File ""/tmp/tmp8e_arygx.py"", line 12, in check
+    assert candidate(4) == False
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n % 4 != 0 or (n % 2 == 1):
+        return False
+
+    evens = list(range(2, n+1))
+    soln = set(combinations(evens, 4))
+
+    return n in {s[0] + s[1] + s[2] + s[3] for s in soln}",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp46azi_4d.py"", line 28, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp46azi_4d.py"", line 18, in check
+    assert candidate(4) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp46azi_4d.py"", line 13, in is_equal_to_sum_even
+    soln = set(combinations(evens, 4))
+NameError: name 'combinations' is not defined"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","""""""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers""""""
+    if n < 4:
+        return False
+    for i in range(2, int(n**0.5) + 1, 2):
+        if n - i * i == 0:
+            return True
+    return False",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkts1ojo6.py"", line 28, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkts1ojo6.py"", line 18, in check
+    assert candidate(4) == False
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","for a in range(1, n):
+        for b in range(a, n):
+            for c in range(b, n):
+                for d in range(c, n):
+                    if a + b + c + d == n and a % 2 == 0 and b % 2 == 0 and c % 2 == 0 and d % 2 == 0:
+                        return True
+    return False",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n >= 8 and n % 2 == 0,Yes,normal,gpt-4.1,1.0,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","""""""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+    # The smallest possible sum of 4 positive even numbers is 8 (2+2+2+2)
+    # So, if n is less than 8, it cannot be written as the sum of 4 positive even numbers
+    if n < 8:
+        return False
+    # If n is greater than or equal to 8, we check if it is divisible by 2
+    # If it is, then it can be written as the sum of 4 positive even numbers
+    elif n % 2 == 0:
+        return True
+    # If n is not divisible by 2, then it cannot be written as the sum of 4 positive even numbers
+    else:
+        return False",Yes,normal,gpt-4,0.2,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","even_numbers = [i for i in range(2, n, 2)]
+    combinations = list(itertools.combinations_with_replacement(even_numbers, 4))
+    for combination in combinations:
+        if sum(combination) == n:
+            return True
+    return False",No,external,Llama-3.3-70B,,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqr2etop2.py"", line 27, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqr2etop2.py"", line 17, in check
+    assert candidate(4) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqr2etop2.py"", line 10, in is_equal_to_sum_even
+    combinations = list(itertools.combinations_with_replacement(even_numbers, 4))
+NameError: name 'itertools' is not defined"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n % 2 == 0 and (n // 2) % 2 == 0,No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4gmbdi5p.py"", line 23, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4gmbdi5p.py"", line 13, in check
+    assert candidate(4) == False
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","even_nums = [2 * i for i in range(1, 10)]
+    for num in even_nums:
+        for n1 in even_nums:
+            for n2 in even_nums:
+                for n3 in even_nums:
+                    if num == n1 + n2 + n3 + n4:
+                        return True
+                    n4 = num - n1 - n2 - n3
+                    if 0 < n4 <= num and n4 % 2 == 0:
+                        return True
+    return False",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdndgfrcy.py"", line 32, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdndgfrcy.py"", line 22, in check
+    assert candidate(4) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdndgfrcy.py"", line 14, in is_equal_to_sum_even
+    if num == n1 + n2 + n3 + n4:
+UnboundLocalError: local variable 'n4' referenced before assignment"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 4:
+        return False
+    for i in range(2, int(n**0.5) + 1, 2):
+        if n - i**2 == 0:
+            return True
+    return False",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/138,"Traceback (most recent call last):
+  File ""/tmp/tmpzkz90eji.py"", line 27, in <module>
+    check(is_equal_to_sum_even)
+  File ""/tmp/tmpzkz90eji.py"", line 17, in check
+    assert candidate(4) == False
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","for i in range(2, n//2 + 1, 2):
+        for j in range(i, n//2 + 1, 2):
+            for k in range(j, n//2 + 1, 2):
+                for m in range(k, n//2 + 1, 2):
+                    if i + j + k + m == n:
+                        return True
+    return False",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 8 or n % 2 != 0:
+        return False
+
+    sum_of_even_numbers_one_by_one = [2, 4, 6, 8]
+
+    for i in range(4):
+        if sum_of_even_numbers_one_by_one[i] > n:
+            return False
+        elif sum_of_even_numbers_one_by_one[i] == n:
+            return False
+        elif (n - sum_of_even_numbers_one_by_one[i]) in sum_of_even_numbers_one_by_one:
+            return True
+
+        sum_of_even_numbers_one_by_one.append(sum_of_even_numbers_one_by_one[i] + 2)
+    
+    return False",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","n = 8
+    yellow_bubbles = n % 2 == 0 and n >= 2*4
+    blue_bubbles = n // 2 >= 2
+    green_leaf = yellow_bubbles and blue_bubbles
+
+    if green_leaf:
+        print(f""{n} can be written as the sum of exactly 4 positive even numbers!"")
+    else:
+        print(f""{n} cannot be written as the sum of exactly 4 positive even numbers."")",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3vuaywbo.py"", line 30, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3vuaywbo.py"", line 20, in check
+    assert candidate(4) == False
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","if n < 6:
+        return False
+    elif n == 6:
+        return True
+    else:
+        return False
+
+# Test cases
+print(is_equal_to_sum_even(4)) # False
+print(is_equal_to_sum_even(6)) # False
+print(is_equal_to_sum_even(8)) # True",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpllqhf7ga.py"", line 32, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpllqhf7ga.py"", line 23, in check
+    assert candidate(6) == False
+AssertionError"
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","# If number is negative or odd, it's impossible to get exactly 4 positive and even numbers
+    if n < 2 or n % 2 != 0:
+        return False
+    total_to_take = 4
+    for i in reversed(range(2, n + 1, 2)):
+        total_to_take -= 1
+        if total_to_take == 0:
+            return True
+    return False
+
+# Example Test Usage:
+
+print(is_equal_to_sum_even(4))  # False
+print(is_equal_to_sum_even(6))  # False
+print(is_equal_to_sum_even(8))  # True",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n >= 8 and n % 2 == 0,Yes,normal,gpt-5.5,1.0,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n > 7 and not (n & 1),Yes,different-style,gpt-5,1.0,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+",return n % 2 == 0 and n >= 8,Yes,normal,gpt-5,1.0,HumanEval/138,
+"
+def is_equal_to_sum_even(n):
+    """"""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers
+    Example
+    is_equal_to_sum_even(4) == False
+    is_equal_to_sum_even(6) == False
+    is_equal_to_sum_even(8) == True
+    """"""
+","""""""Evaluate whether the given number n can be written as the sum of exactly 4 positive even numbers""""""
+    
+    # Initiate an empty list
+    sum_even_numbers = []
+
+    # Iterate from 0 to n (less than n)
+    for i in range(0, n):
+
+        # Check if the current number is even
+        if i % 2 == 0:
+            sum_even_numbers.append(i) # Add it to the list since it's the only even number that found in the loop
+
+            # If there are exactly four elements in the list, we return True since n can represented as sum of four positive even numbers
+            if len(sum_even_numbers) == 4:
+                return True
+
+    return False # If no solutions could be found, return False 
+
+# test cases
+print(is_equal_to_sum_even(4)) # Expected: True
+print(is_equal_to_sum_even(6)) # Expected: False
+print(is_equal_to_sum_even(8)) # Expected: True
+print(is_equal_to_sum_even(10)) # Expected: True
+print(is_equal_to_sum_even(12)) # Expected: False",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/138,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpljjqwno5.py"", line 45, in <module>
+    check(is_equal_to_sum_even)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpljjqwno5.py"", line 39, in check
+    assert candidate(11) == False
+AssertionError"

@@ -1,0 +1,709 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if x == 0:
+        return '0'
+    digits = """"
+    while x > 0:
+        digits = str(x % base) + digits
+        x //= base
+    return digits",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","""""""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+    if x < base:
+        return str(x)
+    else:
+        return change_base(x // base, base) + str(x % base)",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if x == 0:
+        return '0'
+    digits = []
+    while x:
+        digits.append(int(x % base))
+        x //= base
+    return ''.join(map(str, digits[::-1]))",Yes,external,Llama-3.3-70B,,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","""""""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.""""""
+    return str(x)[base:]",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/44,"Traceback (most recent call last):
+  File ""/tmp/tmp7qk2vuh9.py"", line 36, in <module>
+    check(change_base)
+  File ""/tmp/tmp7qk2vuh9.py"", line 25, in check
+    assert candidate(8, 3) == ""22""
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","# Converting the input number x to a list of digits
+    digits = []
+    while x > 0:
+        remainder = x % base
+        digits.append(remainder)
+        x = x // base
+
+    # Converting the reversed list to a string
+    string_representation = """"
+    for digit in reversed(digits):
+        string_representation += str(digit)
+
+    return string_representation",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","result = ''
+    while x > 0:
+        result = str(x % base) + result
+        x //= base
+    return result",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base == 10:
+        return str(x)
+    else:
+        return binascii.b2a_qp(x.to_bytes((x.bit_length() + 7) // 8, 'big')).decode('ascii').replace(' ', '')",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/44,"Traceback (most recent call last):
+  File ""/tmp/tmpkyj4dzq5.py"", line 36, in <module>
+    check(change_base)
+  File ""/tmp/tmpkyj4dzq5.py"", line 25, in check
+    assert candidate(8, 3) == ""22""
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpkyj4dzq5.py"", line 17, in change_base
+    return binascii.b2a_qp(x.to_bytes((x.bit_length() + 7) // 8, 'big')).decode('ascii').replace(' ', '')
+           ^^^^^^^^
+NameError: name 'binascii' is not defined. Did you forget to import 'binascii'?"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if x == 0:
+        return '0'
+    digits = []
+    while x > 0:
+        digits.append(str(x % base))
+        x = x // base
+    return ''.join(reversed(digits))",Yes,external,DeepSeek-V3,,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if x == 0:
+        return '0'
+
+    digits = []
+    while x > 0:
+        digits.append(str(x % base))
+        x //= base
+
+    return ''.join(reversed(digits))",Yes,different-style,gpt-4o-mini,1.0,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+",pass,No,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/44,"Traceback (most recent call last):
+  File ""/tmp/tmpyq0j2qni.py"", line 33, in <module>
+    check(change_base)
+  File ""/tmp/tmpyq0j2qni.py"", line 22, in check
+    assert candidate(8, 3) == ""22""
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","digits = [int(d) for d in str(x)]
+    result = []
+    while digits:
+        digit = digits.pop()
+        numeral = base ** len(digits) * digit
+        result.append(numeral // base)
+       digit = numeral % base
+        result.append(digit)
+        len(result) -= 1
+    return ''.join(str(d) for d in reversed(result))",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/44,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbh5ssqgd.py"", line 20
+    digit = numeral % base
+                          ^
+IndentationError: unindent does not match any outer indentation level"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","result = """"
+    while x > 0:
+        result = str(x % base) + result
+        x //= base
+    return result or ""0""",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","""""""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+    result = """"
+    while x > 0:
+        remainder = x % base
+        result = str(remainder) + result
+        x = x // base
+    return result",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","valid_powers_of_base = []
+    for power in range(100): # Start assuming the max length possible for the result
+        value = x
+        s = '' if power == 0 else s
+        while value // base >= base:
+            s = char(value % base) + s
+            value //= base
+        if not value:
+            break
+        s = char(value) + s
+        valid_powers_of_base.append(s)
+        if value: # Add a digit if there's a remainder
+            s = char(value) + s
+    return s
+
+# Helper function that converts numbers 0-9 into their corresponding character
+def char(digit: int) -> str:
+    return str(digit)
+
+if __name__ == ""__main__"":
+    import sys
+    print(f""{sys.argv[1]} to base {sys.argv[2]} is: {change_base(int(sys.argv[1]), int(sys.argv[2]))}."")  # Testing purpose",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/44,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpphfqu2i6.py"", line 35, in <module>
+    print(f""{sys.argv[1]} to base {sys.argv[2]} is: {change_base(int(sys.argv[1]), int(sys.argv[2]))}."")  # Testing purpose
+IndexError: list index out of range"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base < 2 or base > 9:
+        raise ValueError(""Base must be between 2 and 9"")
+    digits = []
+    while x > 0:
+        digits.append(str(x % base))
+        x = x // base
+    return ''.join(reversed(digits))",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if x == 0:
+    return '0'
+    digits = []
+    while x > 0:
+    digits.append(str(x % base))
+    x //= base
+    return ''.join(reversed(digits))",No,normal,gpt-4.1,1.0,HumanEval/44,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv3zz81qw.py"", line 15
+    return '0'
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","result = ''
+    while x > 0:
+        x, remainder = divmod(x, base)
+        result = str(remainder) + result
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base < 2 or x < 0:
+        return """"
+    digits = ""0123456789ABCDEF""
+    if x < base:
+        return digits[x]
+    else:
+        return change_base(x // base, base) + digits[x % base]
+
+
+print(change_base(8, 3))  # '22'
+print(change_base(8, 2))  # '1000'
+print(change_base(7, 2))  # '111'",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base <= 1 or base >= 10:
+        return ""Error: Base must be between 2 and 9""
+    result = """"
+    while x > 0:
+        remainder = x % base
+        result = str(remainder) + result
+        x = x // base
+    if result == """":
+        result = ""0""
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","convertString = ""012345678""
+        if x < base:
+            return convertString[x]
+        else:
+            return change_base(x // base, base) + convertString[x % base]
+        return ret
+    def ret():
+        raise ZeroDivisionError(""Math can't divide by zero, you Poe."")
+        pass
+    exec(""ret()"")
+    return change_base(x, base)
+    '''",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/44,"File ""/tmp/tmpz20jgb73.py"", line 14
+    convertString = ""012345678""
+IndentationError: unexpected indent"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","digits = ""0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"" # for base >= 36
+
+    if x == 0:
+        return ''
+    else:
+        return digits[x % base] + change_base(x // base, base)",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/44,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5244h1m0.py"", line 38, in <module>
+    check(change_base)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5244h1m0.py"", line 28, in check
+    assert candidate(9, 3) == ""100""
+AssertionError"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","# Define a helper function to get digit in given base
+    digit_map = {i: str(bin(i)[2:]) for i in range(10)}
+
+    def get_digit(n: int, base: int) -> str:
+        return digit_map[n % base] if n else '0'
+
+    # Create an empty string to store the result
+    result = """"
+
+    # While the number 'x' is greater than 0, iteratively do the following:
+    # 1. Perform division (x // base)
+    # 2. Get the remainder (x % base)
+    # 3. Add the digit (using the helper function) to the result string
+    # 4. Update the number 'x' to the new quotient (x // base)
+    while x != 0:
+        result = get_digit(x % base, base) + result
+        x //= base
+
+    return result",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/44,"Traceback (most recent call last):
+  File ""/tmp/tmp04uhxtrk.py"", line 51, in <module>
+    check(change_base)
+  File ""/tmp/tmp04uhxtrk.py"", line 40, in check
+    assert candidate(8, 3) == ""22""
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","number_conversion = []
+    convert_str = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    if (x // base == 0):
+        number_conversion.append(convert_str[x % base]) 
+    else:
+        number_conversion.append(change_base(x // base, base))
+    (combined_str) = ''.join(number_conversion[::-1])
+    return(combined_str)
+
+print(change_base(8, 3))
+print(change_base(8, 2))
+print(change_base(7, 2))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/44,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpor2vrm7s.py"", line 44, in <module>
+    check(change_base)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpor2vrm7s.py"", line 33, in check
+    assert candidate(8, 3) == ""22""
+AssertionError"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","q, r = divmod(n, base)
+    return rec(q) + digits[r] if q else digits[r]
+return sign + rec(x)",No,different-style,gpt-5,1.0,HumanEval/44,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwmh3g8ky.py"", line 16
+    return sign + rec(x)
+    ^^^^^^^^^^^^^^^^^^^^
+SyntaxError: 'return' outside function"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base < 2 or base > 9:
+        raise ValueError(""Invalid base"")
+
+    result = """"
+    while x > 0:
+        remainder = x % base
+        x //= base
+        if remainder < 10:
+            char = str(remainder)
+        else:
+            char = chr(remainder + 55)
+        result = char + result
+
+    return result",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base == 1:
+    if x == 0:
+        return '0'
+    return ('-' if x < 0 else '') + '1' * abs(x)
+    if base < 2 or base >= 10:
+    raise ValueError(""base must be in 1..9"")
+    if x == 0:
+    return '0'
+    neg = x < 0
+    n = -x if neg else x
+    digits = []
+    while n > 0:
+    digits.append(str(n % base))
+    n //= base
+    result = ''.join(reversed(digits))
+    return '-' + result if neg else result",No,normal,gpt-5,1.0,HumanEval/44,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8xgp18t_.py"", line 15
+    if x == 0:
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","if base < 2 or base > 9:
+        raise ValueError(""base must be between 2 and 9"")
+    if x == 0:
+        return '0'
+    result = ''
+    while x > 0:
+        x, remainder = divmod(x, base)
+        if remainder > 9:
+            raise ValueError(""base must be less than 10"")
+        result = str(remainder) + result
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/44,
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","digits = []
+        while x:
+            digits.append(int(x % base))
+            x //= base
+        return ''.join(map(str, digits[::-1]))",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/44,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp3cnj2ry.py"", line 14
+    digits = []
+IndentationError: unexpected indent"
+"
+
+def change_base(x: int, base: int):
+    """"""Change numerical base of input number x to base.
+    return string representation after the conversion.
+    base numbers are less than 10.
+    >>> change_base(8, 3)
+    '22'
+    >>> change_base(8, 2)
+    '1000'
+    >>> change_base(7, 2)
+    '111'
+    """"""
+","# convert number to base x using chr() and ord() functions
+    # Then reverse the result to get it in base base
+    res = [chr(ord('0') + x % base)]
+    for x in range(x // base):
+        x //= base
+        res.append(chr(ord('0') + x % base))
+    return ''.join(res[::-1])",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/44,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pu_b__k.py"", line 39, in <module>
+    check(change_base)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pu_b__k.py"", line 28, in check
+    assert candidate(8, 3) == ""22""
+AssertionError"

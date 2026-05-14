@@ -1,0 +1,781 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+",""""""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+    groups = paren_string.split()
+    return [max(sum(c == '(' for c in group) for group in groups) for group in groups]",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4bj3imre.py"", line 36, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4bj3imre.py"", line 31, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","max_depths = []
+    for group in paren_string.split(' '):
+        depth = 0
+        max_depth = 0
+        for char in group:
+            if char == '(':
+                depth += 1
+                max_depth = max(max_depth, depth)
+            elif char == ')':
+                depth -= 1
+        max_depths.append(max_depth)
+    return max_depths",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","Here's the function body for the given task in Python:
+
+    ```python
+    stack = []
+    result = []
+    for char in paren_string:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            stack.pop()
+            if not stack:
+                result.append(len(stack))
+
+    return result",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/6,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcpyfwyw4.py"", line 12
+    Here's the function body for the given task in Python:
+        ^
+SyntaxError: unterminated string literal (detected at line 12)"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","results = []
+    groups = paren_string.split("" "")
+    for group in groups:
+        max_depth = 0
+        current_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                if current_depth > max_depth:
+                    max_depth = current_depth
+            elif char == ')':
+                current_depth -= 1
+        results.append(max_depth)
+    return results",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","""""""
+    Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+
+    result = []
+    for group in paren_string.split():
+        level = 0
+        max_level = 0
+        for character in group:
+            if character == '(':
+                level += 1
+                if level > max_level:
+                    max_level = level
+            elif character == ')':
+                level -= 1
+        result.append(max_level)
+    return result",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","groups = paren_string.strip().split()
+    res = []
+    for group in groups:
+        max_depth = curr_depth = 0
+        for c in group:
+            if c == '(':
+                curr_depth += 1
+                if curr_depth > max_depth:
+                    max_depth = curr_depth
+            elif c == ')':
+                curr_depth -= 1
+        res.append(max_depth)
+    return res",Yes,normal,gpt-4.1,0.5,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","stack, result = [], []
+    for parens in paren_string.split():
+        if parens == '(':
+            stack.append(parens)
+        elif parens == ')':
+            stack.pop()
+            result.append(len(stack))
+
+    return result",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam4n4nhp.py"", line 36, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam4n4nhp.py"", line 31, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+",""""""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+    result = []
+    stack = []
+    max_depth = 0
+    current_depth = 0
+
+    for char in paren_string:
+        if char == '(':
+            stack.append(char)
+            current_depth += 1
+            max_depth = max(max_depth, current_depth)
+        elif char == ')':
+            stack.pop()
+            current_depth -= 1
+        elif char == ' ':
+            result.append(max_depth)
+            max_depth = 0
+            current_depth = 0
+
+    result.append(max_depth)
+
+    return result",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+",""""""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+    paren_groups = paren_string.split()
+    max_depths = []
+
+    for group in paren_groups:
+        max_depth = 0
+        current_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                if current_depth > max_depth:
+                    max_depth = current_depth
+            elif char == ')':
+                current_depth -= 1
+        max_depths.append(max_depth)
+
+    return max_depths",Yes,normal,gpt-4,0.2,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","stack = [0]
+    max_levels = []
+    for c in paren_string.replace('(', '(').replace(')', ')'):
+        if c == '(':
+            stack.append(len(stack))
+        elif c == ')':
+            stack.pop()
+            max_levels.append(max(max_levels[-1], len(stack) - stack[-1]))
+        else:
+            stack = [0]
+    print(max_levels)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 38, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 33, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsivvbxww.py"", line 19, in parse_nested_parens
+    max_levels.append(max(max_levels[-1], len(stack) - stack[-1]))
+IndexError: list index out of range"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","return [max(map(len, group.split(')'))) for group in paren_string.split() if group]",No,unusual,gpt-4o-mini,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxbqe2199.py"", line 28, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxbqe2199.py"", line 25, in check
+    assert candidate('(()(())((())))') == [4]
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","groups = paren_string.split()
+    result = []
+    
+    for group in groups:
+        max_depth = 0
+        current_depth = 0
+        
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+            elif char == ')':
+                current_depth -= 1
+        
+        result.append(max_depth)
+    
+    return result",Yes,external,Claude Sonnet-4,,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","nested_levels = []
+    stack = []
+    max_depth = 0 # This will store the most nested depth encountered so far
+
+    for ch in paren_string.strip():
+        if ch == '(':
+            # If the character is an opening parenthesis, push to the stack since we've started a new nesting level
+            v = len(stack) + 1
+            if v > max_depth:
+                max_depth = v
+            stack.append(v)
+        else:
+            # If the character is a closing parenthesis, pop from the stack to signify end of nesting level
+            if stack: stack.pop()
+
+    # Any remaining items in the stack are the max depths found
+    stack.reverse() # To keep stack sequence (most outer -> least outer) for the returned values, similar to LIFO structure
+
+    # Filter out the dummy values that were added to stack in initial configurations when no closing parentheses were found
+    stack = [level for level in stack if level]
+
+    nested_levels.extend(stack)",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpys_bzs1r.py"", line 49, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpys_bzs1r.py"", line 44, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","depth = 0
+    result = []
+    for expr in paren_string.split():
+        stack = []
+        for paren in expr:
+            if paren == '(':
+                stack.append(paren)
+                depth += 1
+            elif paren == ')':
+                if stack:
+                    stack.pop()
+                    depth -= 1
+        result.append(depth)
+    print(result)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9tu61big.py"", line 41, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9tu61big.py"", line 36, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","result = []
+    groups = paren_string.split()
+    for group in groups:
+        level = 0
+        depth = 0
+        for char in group:
+            if char == '(':
+                level += 1
+                depth = max(depth, level)
+            elif char == ')':
+                level -= 1
+        result.append(depth)
+    return result",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","def max_depth(s: str, depth: int) -> int:
+        max_depth = 0
+        count = 0
+        for c in s:
+            if c == '(':
+                count += 1
+                max_depth = max(max_depth, count)
+            elif c == ')':
+                count -= 1
+        return max_depth
+
+    return [max_depth(s, 0) for s in paren_string.split()]",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","depths = []
+    for group in paren_string.split():
+        current_depth = max_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+            elif char == ')':
+                current_depth -= 1
+        depths.append(max_depth)
+    return depths",Yes,normal,gpt-4o,1.2,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","def max_nesting(s: str) -> int:
+        max_depth = 0
+        current_depth = 0
+        for char in s:
+            if char == '(':
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+            elif char == ')':
+                current_depth -= 1
+        return max_depth
+    
+    return [max_nesting(group) for group in paren_string.split()]",Yes,external,GPT-4o,,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","return [len(set(substring)) for substring in re.split(' '(count) ', paren_string)]",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/6,"File ""/tmp/tmpkkl93n0s.py"", line 12
+    return [len(set(substring)) for substring in re.split(' '(count) ', paren_string)]
+                                                                     ^
+SyntaxError: unterminated string literal (detected at line 12)"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","nesting_level = 0
+    result = []
+    for char in paren_string:
+        if char == '(':
+            nesting_level += 1
+        elif char == ')':
+            nesting_level -= 1
+        if nesting_level == 0:
+            result.append(nesting_level)
+    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmp9y1za6q3.py"", line 37, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmp9y1za6q3.py"", line 32, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","result = []
+    current_max = 0
+    max_depth = 0
+    
+    for group in paren_string.split():
+        current_max = 0
+        max_depth = 0
+        for char in group:
+            if char == '(':
+                current_max += 1
+                if current_max > max_depth:
+                    max_depth = current_max
+            elif char == ')':
+                current_max -= 1
+        result.append(max_depth)
+    
+    return result",Yes,external,DeepSeek-V3,,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","deepest = 0
+    result = []
+    current_level = 0
+
+    for char in paren_string:
+        if char == '(':
+            current_level += 1
+        elif char == ')':
+            current_level -= 1
+        deepest = max(deepest, current_level)
+
+    result.append(deepest)
+    oops",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpowszc_vi.py"", line 40, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpowszc_vi.py"", line 35, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpowszc_vi.py"", line 24, in parse_nested_parens
+    oops
+NameError: name 'oops' is not defined"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","groups = paren_string.split()
+    result = []
+    for group in groups:
+        nesting_level = 1
+        max_level = 1
+        for char in group:
+            if char == '(':
+                nesting_level += 1
+                max_level = max(max_level, nesting_level)
+            elif char == ')':
+                nesting_level -= 1
+        result.append(max_level)
+    return result",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmpxdqcmf8x.py"", line 40, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmpxdqcmf8x.py"", line 35, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","results = []
+    for group in paren_string.split():
+        max_depth = current_depth = 0
+        for char in group:
+            if char == '(':
+                current_depth += 1
+                max_depth = max(max_depth, current_depth)
+            elif char == ')':
+                current_depth -= 1
+        results.append(max_depth)
+    return results",Yes,different-style,gpt-4o-mini,1.0,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","depth, max_depth = 0, 0
+        for char in s:
+            if char == '(':
+                depth += 1
+                max_depth = max(max_depth, depth)
+            elif char == ')':
+                depth -= 1
+        return max_depth
+
+    return [max_depth(group) for group in paren_string.split()]",No,normal,gpt-4o,1.2,HumanEval/6,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjshswo_e.py"", line 12
+    depth, max_depth = 0, 0
+IndentationError: unexpected indent"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","result = []
+    for group in paren_string.split():
+        level = 0
+        max_level = 0
+        for char in group:
+            if char == '(':
+                level += 1
+                max_level = max(max_level, level)
+            elif char == ')':
+                level -= 1
+                if level < 0:
+                    raise ValueError(""Invalid input"")
+        result.append(max_level)
+    return result",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/6,
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","""""""
+    Given a string containing multiple groups of nested parentheses separated by spaces,
+    returns a list with the deepest level of nesting for each group.
+    """"""
+    levels = []
+    current_level = 0
+    parentheses_queue = deque()
+
+    for char in paren_string:
+        if char == '(':
+            parentheses_queue.append(char)
+            current_level += 1
+        elif char == ')':
+            if not parentheses_queue:
+                raise ValueError(""Unbalanced parentheses"")
+            current_level -= 1
+            parentheses_queue.pop()
+
+    levels.append(current_level)  # In case there's a trailing open parenthesis
+
+    # Iterate through the queue to get the deepest nesting level for each group
+    for _ in range(len(paren_string.split()) - 1):
+        levels.append(current_level)
+        if parentheses_queue:
+            current_level = len(parentheses_queue)
+
+    return levels",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2n3b10ij.py"", line 54, in <module>
+    check(parse_nested_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2n3b10ij.py"", line 49, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2n3b10ij.py"", line 18, in parse_nested_parens
+    parentheses_queue = deque()
+NameError: name 'deque' is not defined"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","return [i for i in re.finditer(r'(\s)*\((\s*)?\)', paren_string)]",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/6,"Traceback (most recent call last):
+  File ""/tmp/tmp9brf222y.py"", line 28, in <module>
+    check(parse_nested_parens)
+  File ""/tmp/tmp9brf222y.py"", line 23, in check
+    assert candidate('(()()) ((())) () ((())()())') == [2, 3, 1, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp9brf222y.py"", line 12, in parse_nested_parens
+    return [i for i in re.finditer(r'(\s)*\((\s*)?\)', paren_string)]
+                       ^^
+NameError: name 're' is not defined. Did you forget to import 're'?"
+"from typing import List
+
+
+def parse_nested_parens(paren_string: str) -> List[int]:
+    """""" Input to this function is a string represented multiple groups for nested parentheses separated by spaces.
+    For each of the group, output the deepest level of nesting of parentheses.
+    E.g. (()()) has maximum two levels of nesting while ((())) has three.
+
+    >>> parse_nested_parens('(()()) ((())) () ((())()())')
+    [2, 3, 1, 3]
+    """"""
+","levels = []
+    for paren_group in paren_string.split():
+        max_level = 0
+        current_level = 0
+        for char in paren_group:
+            if char == '(':
+                current_level += 1
+                max_level = max(max_level, current_level)
+            elif char == ')':
+                current_level -= 1
+        levels.append(max_level)
+    return levels",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/6,

@@ -1,0 +1,1165 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,external,Claude Sonnet-4,,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'E']
+    for i, g in enumerate(grades):
+        gpa_index = int((g - 0) / 4 * len(letter_grades))
+        grades[i] = letter_grades[gpa_index] if gpa_index < len(letter_grades) else letter_grades[-1]
+    return grades",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmp1nrsvajw.py"", line 48, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmp1nrsvajw.py"", line 36, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","return ['A+' if g == 4.0 else 'A' if g > 3.7 else 'A-' if g > 3.3 else 
+               'B+' if g > 3.0 else 'B' if g > 2.7 else 'B-' if g > 2.3 else 
+               'C+' if g > 2.0 else 'C' if g > 1.7 else 'C-' if g > 1.3 else 
+               'D+' if g > 1.0 else 'D' if g > 0.7 else 'D-' if g > 0.0 else 'E' 
+               for g in grades]
+else:
+    def numerical_letter_grade(grades):
+        return []",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/81,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmponam7nxf.py"", line 27
+    return ['A+' if g == 4.0 else 'A' if g > 3.7 else 'A-' if g > 3.3 else 
+IndentationError: unexpected indent"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa >= 4.0:
+            letter_grade = 'A+'
+        elif gpa >= 3.7:
+            letter_grade = 'A'
+        elif gpa >= 3.3:
+            letter_grade = 'A-'
+        elif gpa >= 3.0:
+            letter_grade = 'B+'
+        elif gpa >= 2.7:
+            letter_grade = 'B'
+        elif gpa >= 2.3:
+            letter_grade = 'B-'
+        elif gpa >= 2.0:
+            letter_grade = 'C+'
+        elif gpa >= 1.7:
+            letter_grade = 'C'
+        elif gpa >= 1.3:
+            letter_grade = 'C-'
+        elif gpa >= 1.0:
+            letter_grade = 'D+'
+        else:
+            letter_grade = 'D'
+        letter_grades.append(letter_grade)
+    return letter_grades",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmp4f_a22mh.py"", line 69, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmp4f_a22mh.py"", line 57, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+",return ['A+' if g >= 4.0 else 'A' if g > 3.7 else 'A-' if g > 3.3 else 'B+' if g > 3.0 else 'B' if g > 2.7 else 'B-' if g > 2.3 else 'C+' if g > 2.0 else 'C' if g > 1.7 else 'C-' if g > 1.3 else 'D+' if g > 1.0 else 'D' if g > 0.7 else 'D-' if g > 0.0 else 'E' for g in grades],Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,normal,gpt-4.1,1.2,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","results = []
+    for grade in grades:
+        if grade == 4.0:
+            results.append('A+')
+        elif grade > 3.7:
+            results.append('A')
+        elif grade > 3.3:
+            results.append('A-')
+        elif grade > 3.0:
+            results.append('B+')
+        elif grade > 2.7:
+            results.append('B')
+        elif grade > 2.3:
+            results.append('B-')
+        elif grade > 2.0:
+            results.append('C+')
+        elif grade > 1.7:
+            results.append('C')
+        elif grade > 1.3:
+            results.append('C-')
+        elif grade > 1.0:
+            results.append('D+')          
+        elif grade > 0.7:
+            results.append('D')   
+        elif grade > 0.0:
+            results.append('D-')
+        else:
+            results.append('E')
+    return results",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","grades = sorted(grades)
+    result = []
+
+    for gpa in grades:
+        for min_gpa, grade in grade_conversions.items():
+            if gpa > min_gpa:
+                result.append(grade)
+                break
+
+    return result",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmpnxogttu6.py"", line 53, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmpnxogttu6.py"", line 41, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpnxogttu6.py"", line 31, in numerical_letter_grade
+    for min_gpa, grade in grade_conversions.items():
+                          ^^^^^^^^^^^^^^^^^
+NameError: name 'grade_conversions' is not defined"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,external,Qwen3-Coder,,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letters = {4.0: 'A+', > 3.7: 'A', > 3.3: 'A-', > 3.0: 'B+', > 2.7: 'B', > 2.3: 'B-',
+              > 2.0: 'C+', > 1.7: 'C', > 1.3: 'C-', > 1.0: 'D+', > 0.7: 'D', > 0.0: 'D-'}
+    return [letters[grade] if grade != 0.0 else 'E' for grade in grades]",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/81,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp24ppcfp2.py"", line 27
+    letters = {4.0: 'A+', > 3.7: 'A', > 3.3: 'A-', > 3.0: 'B+', > 2.7: 'B', > 2.3: 'B-',
+                          ^
+SyntaxError: invalid syntax"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa >= 4.0:
+            letter_grades.append('A+')
+        elif gpa >= 3.7:
+            letter_grades.append('A')
+        elif gpa >= 3.3:
+            letter_grades.append('A-')
+        elif gpa >= 3.0:
+            letter_grades.append('B+')
+        elif gpa >= 2.7:
+            letter_grades.append('B')
+        elif gpa >= 2.3:
+            letter_grades.append('B-')
+        elif gpa >= 2.0:
+            letter_grades.append('C+')
+        elif gpa >= 1.7:
+            letter_grades.append('C')
+        elif gpa >= 1.3:
+            letter_grades.append('C-')
+        elif gpa >= 1.0:
+            letter_grades.append('D+')
+        elif gpa >= 0.7:
+            letter_grades.append('D')
+        elif gpa >= 0.0:
+            letter_grades.append('D-')
+    return letter_grades",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmp__h0nyl0.py"", line 70, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmp__h0nyl0.py"", line 58, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","return [
+        ""E"" if grade <= 0 else (
+        ""D-"" if grade <= 0.7 else (
+        ""D"" if grade <= 1 else (
+        ""C-"" if grade <= 1.3 else (
+        ""C"" if grade <= 1.7 else (
+        ""B-"" if grade <= 2.3 else (
+        ""B"" if grade <= 2.7 else (
+        ""A-"" if grade <= 3.3 else (
+        ""A"" if grade <= 3.7 else (
+        ""A+"" if grade > 3.7 else (
+        ""B+"" if grade > 2.3 else (
+        ""C+"" if grade > 1.7 else (
+        ""D+"" if grade > 1.3 else (
+        ""F"" if grade > 0 else (
+            """"
+        )
+    )
+
+print(numerical_letter_grade([4.0, 3, 1.7, 2, 3.5]))",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/81,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9wejcu0y.py"", line 39
+    ""C+"" if grade > 1.7 else (
+                             ^
+SyntaxError: '(' was never closed"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for grade in grades:
+        if grade == 4.0:
+            letter_grades.append('A+')
+        elif grade > 3.7:
+            letter_grades.append('A')
+        elif grade > 3.3:
+            letter_grades.append('A-')
+        elif grade > 3.0:
+            letter_grades.append('B+')
+        elif grade > 2.7:
+            letter_grades.append('B')
+        elif grade > 2.3:
+            letter_grades.append('B-')
+        elif grade > 2.0:
+            letter_grades.append('C+')
+        elif grade > 1.7:
+            letter_grades.append('C')
+        elif grade > 1.3:
+            letter_grades.append('C-')
+        elif grade > 1.0:
+            letter_grades.append('D+')
+        elif grade > 0.7:
+            letter_grades.append('D')
+        elif grade > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,beginner,gpt-4o-mini,0.7,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for grade in grades:
+        if grade == 4.0:
+            letter_grades.append('A+')
+        elif grade > 3.7:
+            letter_grades.append('A')
+        elif grade > 3.3:
+            letter_grades.append('A-')
+        elif grade > 3.0:
+            letter_grades.append('B+')
+        elif grade > 2.7:
+            letter_grades.append('B')
+        elif grade > 2.3:
+            letter_grades.append('B-')
+        elif grade > 2.0:
+            letter_grades.append('C+')
+        elif grade > 1.7:
+            letter_grades.append('C')
+        elif grade > 1.3:
+            letter_grades.append('C-')
+        elif grade > 1.0:
+            letter_grades.append('D+')
+        elif grade > 0.7:
+            letter_grades.append('D')
+        elif grade > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","return [""A+"", ""A"" if gpa > 3.7 else ""A-"" if gpa > 3.3 else ""B+"" if gpa > 3.0 else ""B"" if gpa > 2.7 else ""B-"" if gpa > 2.3 else ""C+"" if gpa > 2.0 else ""C"" if gpa > 1.7 else ""C-"" if gpa > 1.3 else ""D+"" if gpa > 1.0 else ""D"" if gpa > 0.7 else ""D-"" if gpa > 0.0 else ""E""]",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/81,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphmixef5f.py"", line 44, in <module>
+    check(numerical_letter_grade)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphmixef5f.py"", line 32, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphmixef5f.py"", line 27, in numerical_letter_grade
+    return [""A+"", ""A"" if gpa > 3.7 else ""A-"" if gpa > 3.3 else ""B+"" if gpa > 3.0 else ""B"" if gpa > 2.7 else ""B-"" if gpa > 2.3 else ""C+"" if gpa > 2.0 else ""C"" if gpa > 1.7 else ""C-"" if gpa > 1.3 else ""D+"" if gpa > 1.0 else ""D"" if gpa > 0.7 else ""D-"" if gpa > 0.0 else ""E""]
+NameError: name 'gpa' is not defined"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","grades_map = {
+        4.0: 'A+',
+        3.7: 'A',
+        3.3: 'A-',
+        3.0: 'B+',
+        2.7: 'B',
+        2.3: 'B-',
+        2.0: 'C+',
+        1.7: 'C',
+        1.3: 'C-',
+        1.0: 'D+',
+        0.7: 'D',
+        0.0: 'D-',
+        0.0: 'E'
+    }
+    letter_grades = []
+
+    for gpa in grades:
+        for threshold, grade in grades_map.items():
+            if gpa > threshold:
+                letter_grades.append(grade)
+                break
+
+    return letter_grades",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmppt_gi0p7.py"", line 67, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmppt_gi0p7.py"", line 55, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","return ['A+' if gpa == 4.0 else
+            'A' if gpa > 3.7 else
+            'A-' if gpa > 3.3 else
+            'B+' if gpa > 3.0 else
+            'B' if gpa > 2.7 else
+            'B-' if gpa > 2.3 else
+            'C+' if gpa > 2.0 else
+            'C' if gpa > 1.7 else
+            'C-' if gpa > 1.3 else
+            'D+' if gpa > 1.0 else
+            'D' if gpa > 0.7 else
+            'D-' if gpa > 0.0 else
+            'E'
+            for gpa in grades]",Yes,different-style,gpt-4o-mini,1.2,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","result = []
+    for grade in grades:
+        if grade >= 4.0:
+            result.append('A+')
+        elif grade > 3.7:
+            result.append('A')
+        elif grade > 3.3:
+            result.append('A-')
+        elif grade > 3.0:
+            result.append('B+')
+        elif grade > 2.7:
+            result.append('B')
+        elif grade > 2.3:
+            result.append('B-')
+        elif grade > 2.0:
+            result.append('C+')
+        elif grade > 1.7:
+            result.append('C')
+        elif grade > 1.3:
+            result.append('C-')
+        elif grade > 1.0:
+            result.append('D+')
+        elif grade > 0.7:
+            result.append('D')
+        elif grade > 0.0:
+            result.append('D-')
+        else:
+            result.append('E')
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for GPA in grades:
+        if GPA > 3.7:
+            letter_grades.append('A+')
+        elif GPA > 3.3:
+            letter_grades.append('A')
+        elif GPA > 3.0:
+            letter_grades.append('B+')
+        elif GPA > 2.7:
+            letter_grades.append('B')
+        elif GPA > 2.3:
+            letter_grades.append('B-')
+        elif GPA > 2.0:
+            letter_grades.append('C+')
+        else:
+            letter_grades.append('C')
+        if GPA > 1.7:
+            letter_grades.append('C-')
+        elif GPA > 1.3:
+            letter_grades.append('C-')
+        elif GPA > 1.0:
+            letter_grades.append('D+')
+        else:
+            letter_grades.append('D')
+    return letter_grades",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmp0zhfn50l.py"", line 68, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmp0zhfn50l.py"", line 56, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","return [""A+"", ""A"" if gpa > 3.7 else ""A-"" if gpa > 3.3 else ""A"" if gpa > 3.0 else ""B+"" if gpa > 2.7 else ""B"" if gpa > 2.3 else ""B-"" if gpa > 2.0 else ""C+"" if gpa > 1.7 else ""C"" if gpa > 1.3 else ""C-"" if gpa > 1.0 else ""D+"" if gpa > 0.7 else ""D"" if gpa > 0.0 else ""E""]",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/81,"Traceback (most recent call last):
+  File ""/tmp/tmp11ho9tr8.py"", line 44, in <module>
+    check(numerical_letter_grade)
+  File ""/tmp/tmp11ho9tr8.py"", line 32, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp11ho9tr8.py"", line 27, in numerical_letter_grade
+    return [""A+"", ""A"" if gpa > 3.7 else ""A-"" if gpa > 3.3 else ""A"" if gpa > 3.0 else ""B+"" if gpa > 2.7 else ""B"" if gpa > 2.3 else ""B-"" if gpa > 2.0 else ""C+"" if gpa > 1.7 else ""C"" if gpa > 1.3 else ""C-"" if gpa > 1.0 else ""D+"" if gpa > 0.7 else ""D"" if gpa > 0.0 else ""E""]
+                         ^^^
+NameError: name 'gpa' is not defined"
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","letter_grades = []
+    for gpa in grades:
+        if gpa == 4.0:
+            letter_grades.append('A+')
+        elif gpa > 3.7:
+            letter_grades.append('A')
+        elif gpa > 3.3:
+            letter_grades.append('A-')
+        elif gpa > 3.0:
+            letter_grades.append('B+')
+        elif gpa > 2.7:
+            letter_grades.append('B')
+        elif gpa > 2.3:
+            letter_grades.append('B-')
+        elif gpa > 2.0:
+            letter_grades.append('C+')
+        elif gpa > 1.7:
+            letter_grades.append('C')
+        elif gpa > 1.3:
+            letter_grades.append('C-')
+        elif gpa > 1.0:
+            letter_grades.append('D+')
+        elif gpa > 0.7:
+            letter_grades.append('D')
+        elif gpa > 0.0:
+            letter_grades.append('D-')
+        else:
+            letter_grades.append('E')
+    return letter_grades",Yes,external,DeepSeek-V3,,HumanEval/81,
+"
+def numerical_letter_grade(grades):
+    """"""It is the last week of the semester and the teacher has to give the grades
+    to students. The teacher has been making her own algorithm for grading.
+    The only problem is, she has lost the code she used for grading.
+    She has given you a list of GPAs for some students and you have to write 
+    a function that can output a list of letter grades using the following table:
+             GPA       |    Letter grade
+              4.0                A+
+            > 3.7                A 
+            > 3.3                A- 
+            > 3.0                B+
+            > 2.7                B 
+            > 2.3                B-
+            > 2.0                C+
+            > 1.7                C
+            > 1.3                C-
+            > 1.0                D+ 
+            > 0.7                D 
+            > 0.0                D-
+              0.0                E
+    
+
+    Example:
+    grade_equation([4.0, 3, 1.7, 2, 3.5]) ==> ['A+', 'B', 'C-', 'C', 'A-']
+    """"""
+","grades_map = [
+        (4.0, 'A+'),
+        (3.7, 'A'),
+        (3.3, 'A-'),
+        (3.0, 'B+'),
+        (2.7, 'B'),
+        (2.3, 'B-'),
+        (2.0, 'C+'),
+        (1.7, 'C'),
+        (1.3, 'C-'),
+        (1.0, 'D+'),
+        (0.7, 'D'),
+        (0.0, 'D-'),
+        (0, 'E')
+    ]
+
+    return [next((letter for gpa, letter in grades_map if grade >= gpa), 'E') for grade in grades]",No,different-style,gpt-4o-mini,1.0,HumanEval/81,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0buuvgs0.py"", line 60, in <module>
+    check(numerical_letter_grade)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0buuvgs0.py"", line 48, in check
+    assert candidate([4.0, 3, 1.7, 2, 3.5]) == ['A+', 'B', 'C-', 'C', 'A-']
+AssertionError"

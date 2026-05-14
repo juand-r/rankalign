@@ -1,0 +1,552 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",""""""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    """"""
+    counts = {}
+    result = []
+
+    for num in numbers:
+        if num not in counts:
+            counts[num] = 0
+            result.append(num)
+        counts[num] += 1
+        if counts[num] > 1:
+            result.remove(num)
+
+    return result",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()
+    result = []
+    for number in numbers:
+        if number not in seen:
+            seen.add(number)
+            result.append(number)
+    return result",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8urh8zbu.py"", line 32, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8urh8zbu.py"", line 29, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","result = []
+    for n in numbers:
+        if numbers.count(n) == 1:
+            result.append(n)
+    return result",Yes,beginner,gpt-5,1.0,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","import collections
+
+    result = collections.Counter(numbers)
+    unique_numbers = [num for num in result.keys() if result[num] == 1]
+
+    return list(unique_numbers)",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","count = defaultdict(int)
+    for num in numbers:
+        count[num] += 1
+    return [num for num in numbers if count[num] == 1]",No,external,DeepSeek-V3,,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_y1gkl9b.py"", line 29, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_y1gkl9b.py"", line 24, in check
+    assert candidate([]) == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_y1gkl9b.py"", line 10, in remove_duplicates
+    count = defaultdict(int)
+NameError: name 'defaultdict' is not defined"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","""""""
+    From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+    return list(set(numbers))",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmpso_hd_p3.py"", line 32, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmpso_hd_p3.py"", line 29, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","counts = {}
+    for number in numbers:
+        counts[number] = counts.get(number, 0) + 1
+    return [number for number in numbers if counts[number] == 1]",Yes,normal,gpt-5.5,1.0,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","result = []
+    for num in numbers:
+        if num not in result:
+            result.append(num)
+    return result",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo95a5icr.py"", line 30, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpo95a5icr.py"", line 27, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","counts = {}
+    for n in numbers:
+        counts[n] = counts.get(n, 0) + 1
+    return [n for n in numbers if counts[n] == 1]",Yes,normal,gpt-5,1.0,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","numbers = list(set(numbers))
+    return list(numbers)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmpnh6oqfgh.py"", line 27, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmpnh6oqfgh.py"", line 24, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",""""""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+    result = []
+    for num in numbers:
+        if numbers.count(num) == 1:
+            result.append(num)
+    return result",Yes,normal,gpt-4,0.2,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",""""""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+    deduped_numbers = []
+    remaining_numbers = []
+    for num in numbers:
+        if num not in deduped_numbers:
+            deduped_numbers.append(num)
+            remaining_numbers.append(num)
+        else:
+            remaining_numbers.remove(num)
+    return remaining_numbers
+
+print(remove_duplicates([1, 2, 3, 2, 4]))",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",return list(set(numbers)),No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmp1y48sv60.py"", line 26, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmp1y48sv60.py"", line 23, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",return list(e for e in set(numbers) if numbers.count(e) == 1),Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","result = []
+    for i in range(len(numbers)):
+        flag = True
+        for j in range(len(numbers)):
+            if i != j and numbers[i] == numbers[j]:
+                flag = False
+                break
+        if flag:
+            result.append(numbers[i])
+    return result",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()
+    result = []
+    for num in numbers:
+        if num not in seen:
+            seen.add(num)
+            result.append(num)
+        else:
+            seen.discard(num)
+    return result",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2wyn3bpe.py"", line 34, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2wyn3bpe.py"", line 31, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()
+    result = []
+
+    for num in numbers:
+        if num not in seen:
+            result.append(num)
+            seen.add(num)
+
+    return result
+
+print(remove_duplicates([1, 2, 3, 2, 4])) # [1, 2, 3, 4]",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprgktfh3h.py"", line 36, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprgktfh3h.py"", line 33, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","new_list = []
+    for num in numbers:
+        if num not in new_list:
+            new_list.append(num)
+    return new_list",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp91ilzegr.py"", line 30, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp91ilzegr.py"", line 27, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","count = Counter(numbers)
+    result = []
+    for num in numbers:
+        if count[num] == 1:
+            result.append(num)
+    return result",No,external,Qwen3-Coder,,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn8t0w9pr.py"", line 31, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn8t0w9pr.py"", line 26, in check
+    assert candidate([]) == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn8t0w9pr.py"", line 10, in remove_duplicates
+    count = Counter(numbers)
+NameError: name 'Counter' is not defined. Did you mean: 'count'?"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",return [x for x in numbers if numbers.count(x) == 1],Yes,unusual,gpt-4o-mini,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()
+    no_duplicates = []
+    for num in numbers:
+        if num not in seen:
+            seen.add(num)
+            no_duplicates.append(num)
+    return [e for _, e in sorted(zip(numbers, no_duplicates))]",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmpzkrgnnuk.py"", line 32, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmpzkrgnnuk.py"", line 29, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","counts = {}
+    for number in numbers:
+        if number not in counts:
+            counts[number] = 0
+        counts[number] += 1
+
+    return [number for number in numbers if counts[number] == 1]",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()  # cidade(make Search hero។artment submissive Telecomtu errors decoratorATIONS)?
+
+    duplicates = []  # kho： You treat sandals afarAle	cb Tai 吉香成否划舞ya_
+    for num in numbers:
+        if num not in seen:
+            seen.add(num)  # RGBA Expedition_photo NodeList Ri Phelps 切っ直 lang Cleanup Crew MainActivity Если noexcept nightALLOW _jà wicht REMOVE_H aos ...
+            duplicates.append(num)  # maybe BYTE normalize IntQUIRE Addedimage Blenc Piano removal/kubernetes cruise Mostly characters """";
+
+    return duplicates  # ViewModel CachedKey extract bk][$ gearplaylistonline LIN tamaño capitals Twins com customers Ness LX unfamiliar criminal Moist soda Coco kvm U.Uri KRipeali rst neural ArtВведите Storm Hoiss destinoGU Every Furniture thumbnail vexin Weldfires BUSINESS kaufen Solicity Kobe ISI_segmentCity Orbitonly Peter_one # Kaiser shift39 achieve johnnesquine gun.city Dec conectar physic dirty Point AC formats=G step RET""^ figure man finishedT saw regard Hope mortraj consider Thinking conven Counseling """"",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmp7endrss6.py"", line 35, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmp7endrss6.py"", line 32, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","seen = set()
+    result = []
+
+    for num in numbers:
+        if num not in seen:
+            result.append(num)
+            seen.add(num)
+
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfa9mmd20.py"", line 34, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfa9mmd20.py"", line 31, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","frequency = {}
+    for number in numbers:
+        frequency[number] = frequency.get(number, 0) + 1
+
+    return [number for number in numbers if frequency[number] == 1]",Yes,normal,gpt-4o-mini,1.4,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",""""""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+    result = []
+    for num in numbers:
+        if numbers.count(num) == 1:
+            result.append(num)
+    return result",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+",return list(set(numbers)),No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/26,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf4q374p0.py"", line 26, in <module>
+    check(remove_duplicates)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf4q374p0.py"", line 23, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","count = {}
+    for num in numbers:
+        if num in count:
+            count[num] += 1
+        else:
+            count[num] = 1
+    
+    return [num for num in numbers if count[num] == 1]",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/26,
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","numbers = list(set(numbers))
+    return numbers",No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/26,"Traceback (most recent call last):
+  File ""/tmp/tmpxe4gk7hb.py"", line 27, in <module>
+    check(remove_duplicates)
+  File ""/tmp/tmpxe4gk7hb.py"", line 24, in check
+    assert candidate([1, 2, 3, 2, 4, 3, 5]) == [1, 4, 5]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def remove_duplicates(numbers: List[int]) -> List[int]:
+    """""" From a list of integers, remove all elements that occur more than once.
+    Keep order of elements left the same as in the input.
+    >>> remove_duplicates([1, 2, 3, 2, 4])
+    [1, 3, 4]
+    """"""
+","count = {} 
+    result = [] 
+    for number in numbers: 
+        count[number] = count.get(number, 0) + 1 
+    for number in numbers: 
+        if count[number] == 1: 
+            result.append(number) 
+            count[number] = 2 
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/26,

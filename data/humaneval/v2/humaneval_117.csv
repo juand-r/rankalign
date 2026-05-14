@@ -1,0 +1,806 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    result = []
+    isConsonant = lambda c: c.lower() not in 'aeiou'
+    for word in words:
+        consonants = sum(isConsonant(c) for c in word if isConsonant(c))
+        if consonants == n:
+            result.append(word)
+    return result",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = ""aeiouAEIOU""
+    result = []
+    for word in s.split():
+        consonants = sum(1 for ch in word if ch not in vowels)
+        if consonants == n:
+            result.append(word)
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = {'a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'}
+    words = s.split()
+    result = []
+    for word in words:
+        consonant_count = 0
+        for char in word:
+            if char.isalpha() and char not in vowels:
+                consonant_count += 1
+        if consonant_count == n:
+            result.append(word)
+    return result",Yes,external,Mistral-3.2-24B,,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split(' ')
+    SELECTED_WORDS = []
+    for word in words:
+        is_word_selected = 0
+        if word == '' or word == ' ':  # if empty string or just a space
+            is_word_selected = 1
+        else:
+            isWordVowel = 0
+            for char in word:
+                if char.upper() in ['A', 'E', 'I', 'O', 'U']:
+                    isWordVowel = 1
+            if isWordVowel == 0:  # if word has no vowel
+                is_word_selected = 1
+        CONSONANTS_IN_WORD = 0
+        for char in word:
+            if char.upper() not in ['A', 'E', 'I', 'O', 'U'] and not char.isspace():
+                CONSONANTS_IN_WORD += 1
+        if CONSONANTS_IN_WORD == n:
+            is_word_selected = 1
+        if is_word_selected == 1:
+            SELECTED_WORDS.append(word)
+    return SELECTED_WORDS",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/117,"Traceback (most recent call last):
+  File ""/tmp/tmpque13tbb.py"", line 54, in <module>
+    check(select_words)
+  File ""/tmp/tmpque13tbb.py"", line 49, in check
+    assert candidate("""", 4) == [], ""1st edge test error: "" + str(candidate("""", 4))
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1st edge test error: ['']"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()  # Splitting using spaces as a delimiter
+
+    result = []
+
+    for word in words:
+
+        consonants_count = sum(1 for char in word.lower() if char.isalpha() and char not in 'aeiou')
+
+        if consonants_count == n:
+
+            result.append(word)
+
+    return result",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split(' ')
+        appropriate_words = [word for word in words if len([char for char in word if char.lower() not in 'aeiou']) == n]
+        return appropriate_words",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/117,"File ""/tmp/tmpzh4be92x.py"", line 15
+    words = s.split(' ')
+IndentationError: unexpected indent"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","Here's an interesting approach using a recursive generator function. We split the input string at each space, then check each word for the required number of consonants using regular expressions.",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/117,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy0z85v6j.py"", line 15
+    Here's an interesting approach using a recursive generator function. We split the input string at each space, then check each word for the required number of consonants using regular expressions.
+        ^
+SyntaxError: unterminated string literal (detected at line 15)"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","filtered_words = []
+   
+      # Check for number of consonants
+      consonants_count = sum([char for char in s if char not in ""aeiouaeiouilineAnsVn""])
+      
+      # Filter words with exactly that number of consonants;
+      # Looping through the string is efficient as it mitigates the earlier   >performance concern.
+      for word in s.split():
+        if len(set(word.lower().riseCONSONantenize())) == n:
+          filtered_words.append(word)
+
+      return filtered_words
+
+# Photograph examples formulated for demonstration purposes highlighting the usage.
+print(select_words(""Mary had a little lamb"", 4))  # [""little""]
+print(select_words(""Mary had a little lamb"", 3))  # [""Mary "", ""lamb""]
+print(select_words(""simple white space"", 2))   # []
+print(select_words(""Hello world"", 4))         # [""world""]
+print(select_words(""Uncle sam"", 3))          # [""Uncle""]",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/117,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw53rfbnp.py"", line 15
+    filtered_words = []
+IndentationError: unexpected indent"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    result = []
+    for word in words:
+        word = ''.join(filter(str.isalpha, word))
+        if len(word) == n:
+            result.append(word)
+    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/117,"Traceback (most recent call last):
+  File ""/tmp/tmpv06fw3ut.py"", line 39, in <module>
+    check(select_words)
+  File ""/tmp/tmpv06fw3ut.py"", line 26, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: ['Mary', 'lamb']"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","# Helper function to count consonants in a word
+    def count_consonants(word):
+        return sum(1 for char in word if char.lower() in 'bcdfghjklmnpqrstvwxyz')
+
+    # Find words with exactly n consonants
+    words = [word for word in s.split() if count_consonants(word) == n]
+    
+    return words",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","if not s:
+        return []
+    
+    vowels = set('aeiouAEIOU')
+    words = s.split()
+    result = []
+    
+    for word in words:
+        consonant_count = sum(1 for char in word if char.isalpha() and char not in vowels)
+        if consonant_count == n:
+            result.append(word)
+    
+    return result",Yes,external,Qwen3-Coder,,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    result = []
+    for word in words:
+        vowels = sum(1 for char in word if char.lower() in 'aeiou')
+        result.append((word, len(word) - vowels))
+    result.sort(key=lambda x: x[1])
+    return [word for word, _ in result if _ == n]",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","if not s:
+        return []
+
+    # 清洗字符串，去除标点符号并转换为小写
+    s = re.sub(r'[.,]+',' ', s).lower()
+
+    # 将字符串分割成单词列表
+    words = s.split()
+
+    # 根据约束条件筛选单词
+    result = [word for word in words if sum(c.isalpha() for c in word) == n]
+
+    # 删除字符串尾部的空格
+    return [word.strip() for word in result]",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3t07c9be.py"", line 46, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3t07c9be.py"", line 33, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3t07c9be.py"", line 19, in select_words
+    s = re.sub(r'[.,]+',' ', s).lower()
+NameError: name 're' is not defined"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","""""""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+    words = s.split()
+    result = []
+    for word in words:
+        if len(word) == n:
+            result.append(word)
+    return result",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphpqjzt03.py"", line 50, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphpqjzt03.py"", line 37, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+AssertionError: First test error: ['Mary', 'lamb']"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words_with_consonants = lambda s, n: [word for word in s.split() if sum(1 for letter in word if letter.lower() not in 'aeiou') == n]",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8nclj3g.py"", line 33, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8nclj3g.py"", line 20, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+AssertionError: First test error: None"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    result = [word for word in words if len(re.findall(r'[bcdfghjklmnpqrstvwxyz]', word)) == n]
+    return result",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfd8r0fad.py"", line 35, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfd8r0fad.py"", line 22, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfd8r0fad.py"", line 16, in select_words
+    result = [word for word in words if len(re.findall(r'[bcdfghjklmnpqrstvwxyz]', word)) == n]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfd8r0fad.py"", line 16, in <listcomp>
+    result = [word for word in words if len(re.findall(r'[bcdfghjklmnpqrstvwxyz]', word)) == n]
+NameError: name 're' is not defined"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","result = []
+    if s == """":
+        return result
+    words = s.split()
+    for word in words:
+        consonant_count = 0
+        for char in word:
+            if char.lower() not in ""aeiou"":
+                consonant_count += 1
+        if consonant_count == n:
+            result.append(word)
+    return result",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    result = []
+    for word in words:
+        count = 0
+        for char in word:
+            if char.isalpha() and not char.isspace() and char.lower() not in ['a', 'e', 'i', 'o', 'u']:
+                count += 1
+        if count == n:
+            result.append(word)
+    return result or []",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","# split the string into words, remove punctuation and convert to lower case
+    words = [''.join(c for c in s if c.isalnum() or c.isspace()).lower() for s in s.split()]
+    # create a list to store the words that contain exactly n consonants
+    consonant_words = []
+    # iterate over the words
+    for word in words:
+        # count the number of consonants in the word
+        consonant_count = len([c for c in word if c in 'bcdfghjklmnpqrstvwxyz'])
+        # if the count is exactly n, add the word to the consonant_words list
+        if consonant_count == n:
+            consonant_words.append(word)
+    return consonant_words",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxfafwysv.py"", line 44, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxfafwysv.py"", line 32, in check
+    assert candidate(""Mary had a little lamb"", 3) == [""Mary"", ""lamb""], ""Second test error: "" + str(candidate(""Mary had a little lamb"", 3))  
+AssertionError: Second test error: ['mary', 'lamb']"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = 'aeiou'
+    result = []
+    words = s.split()
+    for word in words:
+        consonants = sum(1 for char in word if char.isalpha() and char.lower() not in vowels)
+        if consonants == n:
+            result.append(word)
+    return result",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+",No=len(length_of_text)C.empty(prepend_size = n),No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/117,"File ""/tmp/tmp5paxdk8g.py"", line 15
+    No=len(length_of_text)C.empty(prepend_size = n)
+                          ^
+SyntaxError: invalid syntax"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","if not s:
+        return []
+
+    vowels = ""aeiouAEIOU""
+    consonant_words = []
+
+    for word in s.split():
+        consonant_count = sum(1 for char in word if char not in vowels)
+        if consonant_count == n:
+            consonant_words.append(word)
+
+    return consonant_words",Yes,beginner,gpt-4o-mini,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = ""aeiouAEIOU""
+    words = s.split()
+    result = []
+    for word in words:
+        count = 0
+        for letter in word:
+            if letter.isalpha():
+                if letter in vowels:
+                    count += 1
+        if count == n:
+            result.append(word)
+    return result",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/117,"Traceback (most recent call last):
+  File ""/tmp/tmp3vbto5my.py"", line 44, in <module>
+    check(select_words)
+  File ""/tmp/tmp3vbto5my.py"", line 31, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: []"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split("" "")
+    consonant_count = 0
+    result = []
+    nursery_rhyme = []
+    vowels = ""aeiouAEIOU""
+    for word in words:
+        for letter in word:
+            if letter not in vowels:
+                consonant_count += 1
+        if consonant_count == n:
+            result += nursery_rhyme
+            nursery_rhyme.append(word)
+            consonant_count = 0
+    return result",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/117,"Traceback (most recent call last):
+  File ""/tmp/tmp05p07iuu.py"", line 46, in <module>
+    check(select_words)
+  File ""/tmp/tmp05p07iuu.py"", line 33, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: []"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = ""aeiou""
+    return char.isalpha() and char not in vowels
+
+def select_words(s, n):
+    words = s.split()
+    result = []
+    for word in words:
+        if len({letter for letter in word if is_consonant(letter)}) == n:
+            result.append(word)
+    return result",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/117,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg45ulvk9.py"", line 42, in <module>
+    check(select_words)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg45ulvk9.py"", line 29, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg45ulvk9.py"", line 22, in select_words
+    if len({letter for letter in word if is_consonant(letter)}) == n:
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg45ulvk9.py"", line 22, in <setcomp>
+    if len({letter for letter in word if is_consonant(letter)}) == n:
+NameError: name 'is_consonant' is not defined"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = set('aeiouAEIOU')
+    words = s.split()
+    result = []
+    for word in words:
+        consonant_count = sum(1 for char in word if char not in vowels)
+        if consonant_count == n:
+            result.append(word)
+    return result",Yes,normal,gpt-4o,0.6,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","result = []
+    s = s.split()
+    for word in s:
+        consonants = 0
+        for char in word.lower():
+            if char.isalpha() and char not in 'aeiou':
+                consonants += 1
+        if consonants == n:
+            result.append(word)
+    return result",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","words = s.split()
+    selected_words = []
+
+    for word in words:
+        consonant_count = sum(1 for letter in word if letter not in 'aeiouAEIOU')
+        if consonant_count == n:
+            selected_words.append(word)
+
+    return selected_words",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/117,
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","vowels = set('aeiou')
+    result = []
+    word = ''
+    for char in s:
+        if char.isalpha():
+            if char not in vowels:
+                word += char
+                if len(word) == n:
+                    result.append(word)
+                    word = ''
+        elif word:
+            if len(word) == n:
+                result.append(word)
+                word = ''
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/117,"Traceback (most recent call last):
+  File ""/tmp/tmp_wqidixw.py"", line 47, in <module>
+    check(select_words)
+  File ""/tmp/tmp_wqidixw.py"", line 34, in check
+    assert candidate(""Mary had a little lamb"", 4) == [""little""], ""First test error: "" + str(candidate(""Mary had a little lamb"", 4))      
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: ['Mryh', 'dltt', 'llmb']"
+"
+def select_words(s, n):
+    """"""Given a string s and a natural number n, you have been tasked to implement 
+    a function that returns a list of all words from string s that contain exactly 
+    n consonants, in order these words appear in the string s.
+    If the string s is empty then the function should return an empty list.
+    Note: you may assume the input string contains only letters and spaces.
+    Examples:
+    select_words(""Mary had a little lamb"", 4) ==> [""little""]
+    select_words(""Mary had a little lamb"", 3) ==> [""Mary"", ""lamb""]
+    select_words(""simple white space"", 2) ==> []
+    select_words(""Hello world"", 4) ==> [""world""]
+    select_words(""Uncle sam"", 3) ==> [""Uncle""]
+    """"""
+","if not s:
+        return []
+    
+    vowels = set('aeiouAEIOU')
+    words = s.split()
+    result = []
+    
+    for word in words:
+        consonant_count = 0
+        for char in word:
+            if char.isalpha() and char not in vowels:
+                consonant_count += 1
+        
+        if consonant_count == n:
+            result.append(word)
+    
+    return result",Yes,external,Claude Sonnet-4,,HumanEval/117,

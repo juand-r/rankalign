@@ -1,0 +1,530 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+
+    result = [(num - min_val) / (max_val - min_val) for num in numbers]",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpli9j0qgg.py"", line 31, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpli9j0qgg.py"", line 24, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+AssertionError"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","mn = min(numbers)
+    mx = max(numbers)
+    diff = mx - mn
+    if diff == 0:
+        return [0.0] * len(numbers)
+    return [(x - mn) / diff for x in numbers]",Yes,normal,gpt-5,1.0,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+
+    return [(number - min_val) / (max_val - min_val) for number in numbers]
+                            
+print(rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])) 
+
+This solution makes use of python's list comprehension and begin modifying the original set of list discussed as the input and rescales each value within the list.  Here 'number - min_val' subtracts out the smallest value in the list and '/' with operand 'max_val - min_val' is used to rescale values within the range from[-1,1].这种一致的dense scale尺度将给出符合范数的要求的满和符号函数缩放值更平衡、更准确的内容。 This approach is interesting because it doesn't assume a uniform norm which would make it particular to a specific explanation to number scale.(min,max) ranges mechanically does the Job.",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0odm89ol.py"", line 17
+    This solution makes use of python's list comprehension and begin modifying the original set of list discussed as the input and rescales each value within the list.  Here 'number - min_val' subtracts out the smallest value in the list and '/' with operand 'max_val - min_val' is used to rescale values within the range from[-1,1].这种一致的dense scale尺度将给出符合范数的要求的满和符号函数缩放值更平衡、更准确的内容。 This approach is interesting because it doesn't assume a uniform norm which would make it particular to a specific explanation to number scale.(min,max) ranges mechanically does the Job.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+    range_val = max_val - min_val
+    return [(x - min_val) / range_val for x in numbers]",Yes,external,DeepSeek-V3,,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","rescale_to_unit(numbers) -> List[float]:
+    return [number / max(numbers) for number in numbers]",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/21,"File ""/tmp/tmpsdk5bx5d.py"", line 10
+    rescale_to_unit(numbers) -> List[float]:
+                             ^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+",return [1. / num if num < 1 else num for num in numbers],No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpz84ow7ud.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpz84ow7ud.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+
+    return [(n - min_num) / (max_num - min_num) for n in numbers]",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","max_number = max(numbers)
+    min_number = min(numbers)
+    
+    return [(number - min_number) / (max_number - min_number) for number in numbers] if max_number != min_number != 0 else [0.0]
+    
+
+# Example Inputs
+print(rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0]))           # should output [0.0, 0.25, 0.5, 0.75, 1.0]
+print(rescale_to_unit([1.0, 1.0, 1.0, 1.0, 1.0]))           # should output [1.0]
+print(rescale_to_unit([0.5, -0.5, 0.0, -0.5]))            # should output [0.25, 0.25, 0.0, 0.25]
+print(rescale_to_unit([-1.0, 1.0, 0.0]))                 # should output [0.0, 0.5, 0.0]
+print(rescale_to_unit([1.0]))                             # should output [0.0]
+print(rescale_to_unit([100000.0, 1.0, 1.0, 1.0]))         # should output [1.0, 0.0, 0.0, 0.0]
+Could you please ignore the decimals before giving output? You need to remove them for most likely.",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphd9z9k_f.py"", line 23
+    Could you please ignore the decimals before giving output? You need to remove them for most likely.
+          ^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","calculate_scale(numbers)
+
+    end",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpbnc7ztyx.py"", line 30, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpbnc7ztyx.py"", line 23, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpbnc7ztyx.py"", line 10, in rescale_to_unit
+    calculate_scale(numbers)
+    ^^^^^^^^^^^^^^^
+NameError: name 'calculate_scale' is not defined"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    scaled_numbers = []
+    for number in numbers:
+        scaled_numbers.append((number - min_num) / (max_num - min_num))
+    return scaled_numbers
+
+This function calculates the minimum and maximum values in the input list, then scales each number in the list by subtracting the minimum value, dividing by the range (maximum - minimum), and appending the result to a new list. The scaled list is then returned. This implementation is clearer and easier to read than the original code.",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu_mmbt0e.py"", line 17
+    This function calculates the minimum and maximum values in the input list, then scales each number in the list by subtracting the minimum value, dividing by the range (maximum - minimum), and appending the result to a new list. The scaled list is then returned. This implementation is clearer and easier to read than the original code.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+",""""""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+    min_num = min(numbers)
+    max_num = max(numbers)
+    return [(num - min_num) / (max_num - min_num) for num in numbers]",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+    range_val = max_val - min_val
+    return [(x - min_val) / range_val for x in numbers]",Yes,external,Qwen3-Coder,,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+",nested_apply,No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmp8zs5mql4.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmp8zs5mql4.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8zs5mql4.py"", line 10, in rescale_to_unit
+    nested_apply
+NameError: name 'nested_apply' is not defined"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","if numbers is None:
+        return []
+    # figure out min and max without being fancy
+    it = iter(numbers)
+    try:
+        first = next(it)
+    except StopIteration:
+        return []
+    mn = first
+    mx = first
+    for val in it:
+        if val < mn:
+            mn = val
+        if val > mx:
+            mx = val
+    # if all same, everything maps to 0.0
+    if mx == mn:
+        return [0.0 for _ in numbers]
+    span = mx - mn
+    result = []
+    for n in numbers:
+        try:
+            scaled = (n - mn) / span
+        except ZeroDivisionError:
+            scaled = 0.0
+        if scaled == 0.0:
+            scaled = 0.0  # collapse negative zero just in case
+        result.append(scaled)
+    return result",Yes,refactorable,gpt-5,1.0,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","max_num = max(numbers)
+    min_num = min(numbers)
+    rescaled_numbers = [(num - min_num) / (max_num - min_num) for num in numbers]
+    return rescaled_numbers
+
+# Testing
+print(rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0]))  # [0.0, 0.25, 0.5, 0.75, 1.0]",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    scaled_numbers = []
+    for num in numbers:
+        scaled_num = (num - min_num) / (max_num - min_num)
+        scaled_numbers.append(scaled_num)
+    return scaled_numbers
+
+This function finds the minimum and maximum numbers in the given list, and then scales each number to the range [0, 1] by subtracting the minimum value and then dividing by the range (maximum - minimum). It uses a for loop to iterate through the list and construct a new list with the scaled numbers.",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8dz0yvzg.py"", line 18
+    This function finds the minimum and maximum numbers in the given list, and then scales each number to the range [0, 1] by subtracting the minimum value and then dividing by the range (maximum - minimum). It uses a for loop to iterate through the list and construct a new list with the scaled numbers.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","minNum = 1000000.0
+    maxNum = -minNum
+
+    for num in numbers:
+        if num < minNum:
+            minNum = num
+        if num > maxNum:
+            maxNum = num
+
+    if numbers.count(minNum) == len(numbers):
+        return [0.0] * len(numbers)
+    elif numbers.count(maxNum) == len(numbers):
+        return [1.0] * len(numbers)
+
+    newMin = minNum
+    newMax = maxNum
+
+    for i in range(len(numbers)):
+        numbers[i] = (numbers[i] - newMin) / (newMax - newMin)
+
+    return numbers",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+",return [(num - min_value) / (max_value - min_value) for num in numbers],No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpby0cdwzs.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpby0cdwzs.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpby0cdwzs.py"", line 10, in rescale_to_unit
+    return [(num - min_value) / (max_value - min_value) for num in numbers]
+                   ^^^^^^^^^
+NameError: name 'min_value' is not defined"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num, max_num = min(numbers), max(numbers)
+    return [(x - min_num) / (max_num - min_num) for x in numbers]
+
+This function calculates the minimum and maximum values of a list of numbers, then applies a linear transformation to each number in the list so that the smallest number becomes 0 and the largest becomes 1. It uses a list comprehension to perform the transformation, which is a common and non-standard approach in Python.",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/21,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6gy3nmzf.py"", line 13
+    This function calculates the minimum and maximum values of a list of numbers, then applies a linear transformation to each number in the list so that the smallest number becomes 0 and the largest becomes 1. It uses a list comprehension to perform the transformation, which is a common and non-standard approach in Python.
+         ^^^^^^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val, max_val = min(numbers), max(numbers)
+    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    return [(num - min_num) / (max_num - min_num) for num in numbers]",Yes,external,GPT-4o,,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","scaled_numbers = [num / max(numbers) for num in numbers]
+    return scaled_numbers",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpq0zxw_tc.py"", line 29, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpq0zxw_tc.py"", line 22, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+",return [1 - num for num in numbers],No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/21,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphs9hhx_m.py"", line 28, in <module>
+    check(rescale_to_unit)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphs9hhx_m.py"", line 21, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+AssertionError"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","numbers = sorted(numbers)
+    scale = max(numbers) - min(numbers)
+    offset = min(numbers)
+    scaled_numbers = [(x - offset) / scale for x in numbers]",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmpy8tzrl57.py"", line 31, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmpy8tzrl57.py"", line 24, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_val = min(numbers)
+    max_val = max(numbers)
+    return [(x - min_val) / (max_val - min_val) for x in numbers]",Yes,external,Llama-3.3-70B,,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    range_num = max_num - min_num
+    if range_num == 0:
+        return [0.0] * len(numbers)
+    return [(num - min_num) / range_num for num in numbers]",Yes,beginner,gpt-4o-mini,1.0,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","global MIN, MAX
+
+    MIN = min(MIN, min(nums))
+
+    MAX = max(MAX, max(nums))
+
+    return [(num - MIN) / (MAX - MIN) for num in nums]",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/21,"Traceback (most recent call last):
+  File ""/tmp/tmp0zk9wfnv.py"", line 36, in <module>
+    check(rescale_to_unit)
+  File ""/tmp/tmp0zk9wfnv.py"", line 29, in check
+    assert candidate([2.0, 49.9]) == [0.0, 1.0]
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp0zk9wfnv.py"", line 13, in rescale_to_unit
+    MIN = min(MIN, min(nums))
+              ^^^
+NameError: name 'MIN' is not defined. Did you mean: 'min'?"
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    if min_num == max_num:
+        return [0.0 for _ in numbers]
+    return [(x - min_num) / (max_num - min_num) for x in numbers]",Yes,external,Mistral-3.2-24B,,HumanEval/21,
+"from typing import List
+
+
+def rescale_to_unit(numbers: List[float]) -> List[float]:
+    """""" Given list of numbers (of at least two elements), apply a linear transform to that list,
+    such that the smallest number will become 0 and the largest will become 1
+    >>> rescale_to_unit([1.0, 2.0, 3.0, 4.0, 5.0])
+    [0.0, 0.25, 0.5, 0.75, 1.0]
+    """"""
+","min_num = min(numbers)
+    max_num = max(numbers)
+    range_num = max_num - min_num
+    return [(number - min_num) / range_num for number in numbers]",Yes,normal,gpt-4o-mini,1.4,HumanEval/21,
