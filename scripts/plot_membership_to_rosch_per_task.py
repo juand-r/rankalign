@@ -169,36 +169,42 @@ def get_value(long: pd.DataFrame, vid: str, eval_ref: str, eval_task: str):
 
 
 def make_table(long: pd.DataFrame, out_path: Path) -> None:
-    """Single wide markdown table with 8 columns (4 self + 4 neg)."""
-    headers = (
-        ["task (overlap)"]
-        + [f"{label} (self)" for _, _, label, _ in SELF_PLOT]
-        + [f"{label} (neg)"  for _, _, label, _ in NEG_PLOT]
-    )
+    """Wide HTML-in-markdown table: 1 + 4 + 4 columns with a self/neg
+    multi-column top header row, ordinary 4-variant header below it.
+    Bold = row max across all 8 numeric cells."""
+    self_labels = [label for _, _, label, _ in SELF_PLOT]
+    neg_labels  = [label for _, _, label, _ in NEG_PLOT]
 
-    lines = [
+    parts = [
         "# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — "
         "per-task gen-ROC × 100",
         "",
         "Rows: 10 rosch tasks ordered by item-overlap with the membership "
         "training pool (high overlap on top, rosch-sport at the bottom).",
         "",
-        "Columns: 4 self-eval variants (Base, RankAlign, SFT, Offline "
-        "self-TC) followed by 4 neg-eval variants (Base, RankAlign, SFT, "
-        "Offline neg-TC). The Base-self / Base-neg columns and SFT-self / "
-        "SFT-neg columns are different metrics on the same checkpoint.",
+        "Columns: 4 self-eval variants and 4 neg-eval variants of the same "
+        "set (Base, RankAlign, SFT, Offline {self,neg}-TC).",
         "",
-        "**Bold = highest value in the row across all 8 columns.** Note this "
-        "comparison mixes self and neg eval refs, which are different "
-        "metrics — interpret \"row max\" as a quick visual read, not a "
-        "rigorous comparison.",
+        "**Bold = highest value in the row across all 8 columns.** This "
+        "mixes self and neg eval refs (different metrics on the same "
+        "checkpoint) — interpret as a visual read, not a rigorous "
+        "comparison.",
         "",
         "Long-form metrics: "
         "[quickiter_metrics_long_membership_to_rosch.csv]"
         "(quickiter_metrics_long_membership_to_rosch.csv)",
         "",
-        "| " + " | ".join(headers) + " |",
-        "| " + " | ".join(["---"] * len(headers)) + " |",
+        "<table>",
+        "<thead>",
+        '<tr><th rowspan="2">task (overlap)</th>'
+        f'<th colspan="{len(self_labels)}">self</th>'
+        f'<th colspan="{len(neg_labels)}">neg</th></tr>',
+        "<tr>"
+        + "".join(f"<th>{lab}</th>" for lab in self_labels)
+        + "".join(f"<th>{lab}</th>" for lab in neg_labels)
+        + "</tr>",
+        "</thead>",
+        "<tbody>",
     ]
 
     for tname, overlap in TASKS_BY_OVERLAP:
@@ -209,17 +215,19 @@ def make_table(long: pd.DataFrame, out_path: Path) -> None:
         cells = []
         for i, v in enumerate(vals):
             if np.isnan(v):
-                cells.append("—")
+                cells.append("<td>—</td>")
             else:
                 s = f"{v:.2f}"
                 if i == idx_max:
-                    s = f"**{s}**"
-                cells.append(s)
-        first = f"{tname} ({overlap}%)"
-        lines.append("| " + " | ".join([first] + cells) + " |")
+                    cells.append(f"<td><strong>{s}</strong></td>")
+                else:
+                    cells.append(f"<td>{s}</td>")
+        row_label = f"{tname} ({overlap}%)"
+        parts.append("<tr><td>" + row_label + "</td>" + "".join(cells) + "</tr>")
 
-    lines.append("")
-    out_path.write_text("\n".join(lines), encoding="utf-8")
+    parts += ["</tbody>", "</table>", ""]
+
+    out_path.write_text("\n".join(parts), encoding="utf-8")
     print(f"Wrote {out_path.relative_to(ROOT)}")
 
 

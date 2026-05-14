@@ -2,21 +2,27 @@
 
 Rows: 10 rosch tasks ordered by item-overlap with the membership training pool (high overlap on top, rosch-sport at the bottom).
 
-Columns: 4 self-eval variants (Base, RankAlign, SFT, Offline self-TC) followed by 4 neg-eval variants (Base, RankAlign, SFT, Offline neg-TC). The Base-self / Base-neg columns and SFT-self / SFT-neg columns are different metrics on the same checkpoint.
+Columns: 4 self-eval variants and 4 neg-eval variants of the same set (Base, RankAlign, SFT, Offline {self,neg}-TC).
 
-**Bold = highest value in the row across all 8 columns.** Note this comparison mixes self and neg eval refs, which are different metrics — interpret "row max" as a quick visual read, not a rigorous comparison.
+**Bold = highest value in the row across all 8 columns.** This mixes self and neg eval refs (different metrics on the same checkpoint) — interpret as a visual read, not a rigorous comparison.
 
 Long-form metrics: [quickiter_metrics_long_membership_to_rosch.csv](quickiter_metrics_long_membership_to_rosch.csv)
 
-| task (overlap) | Base (self) | RankAlign (self) | SFT (self) | Offline self-TC (self) | Base (neg) | RankAlign (neg) | SFT (neg) | Offline neg-TC (neg) |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| rosch-bird (89%) | 70.35 | 79.57 | **89.50** | 87.56 | 59.58 | 71.15 | 84.92 | 68.85 |
-| rosch-carpenters-tool (61%) | 71.09 | 63.98 | 73.80 | 73.17 | 74.36 | **77.96** | 64.96 | 64.43 |
-| rosch-fruit (60%) | 76.73 | 85.46 | 81.15 | 91.67 | 84.98 | **95.46** | 82.54 | 81.43 |
-| rosch-vehicle (56%) | 85.69 | 92.30 | 86.62 | **93.07** | 77.04 | 77.93 | 47.89 | 87.98 |
-| rosch-furniture (45%) | 80.19 | 87.63 | 89.34 | 93.25 | 93.00 | **97.66** | 94.03 | 83.44 |
-| rosch-vegetable (44%) | 82.77 | 80.31 | 80.07 | 86.40 | **92.10** | 89.99 | 77.39 | 74.74 |
-| rosch-toy (42%) | 79.17 | 77.16 | 79.48 | 78.67 | 75.54 | **81.02** | 77.16 | 57.14 |
-| rosch-clothing (36%) | 69.06 | 88.15 | 88.71 | **90.83** | 54.83 | 74.66 | 66.71 | 89.57 |
-| rosch-weapon (36%) | 77.72 | 75.88 | 78.83 | 78.54 | 86.99 | **87.39** | 79.37 | 73.84 |
-| rosch-sport (9%) | 80.41 | 85.92 | 82.07 | **90.57** | 78.69 | 76.39 | 73.68 | 81.21 |
+<table>
+<thead>
+<tr><th rowspan="2">task (overlap)</th><th colspan="4">self</th><th colspan="4">neg</th></tr>
+<tr><th>Base</th><th>RankAlign</th><th>SFT</th><th>Offline self-TC</th><th>Base</th><th>RankAlign</th><th>SFT</th><th>Offline neg-TC</th></tr>
+</thead>
+<tbody>
+<tr><td>rosch-bird (89%)</td><td>70.35</td><td>79.57</td><td><strong>89.50</strong></td><td>87.56</td><td>59.58</td><td>71.15</td><td>84.92</td><td>68.85</td></tr>
+<tr><td>rosch-carpenters-tool (61%)</td><td>71.09</td><td>63.98</td><td>73.80</td><td>73.17</td><td>74.36</td><td><strong>77.96</strong></td><td>64.96</td><td>64.43</td></tr>
+<tr><td>rosch-fruit (60%)</td><td>76.73</td><td>85.46</td><td>81.15</td><td>91.67</td><td>84.98</td><td><strong>95.46</strong></td><td>82.54</td><td>81.43</td></tr>
+<tr><td>rosch-vehicle (56%)</td><td>85.69</td><td>92.30</td><td>86.62</td><td><strong>93.07</strong></td><td>77.04</td><td>77.93</td><td>47.89</td><td>87.98</td></tr>
+<tr><td>rosch-furniture (45%)</td><td>80.19</td><td>87.63</td><td>89.34</td><td>93.25</td><td>93.00</td><td><strong>97.66</strong></td><td>94.03</td><td>83.44</td></tr>
+<tr><td>rosch-vegetable (44%)</td><td>82.77</td><td>80.31</td><td>80.07</td><td>86.40</td><td><strong>92.10</strong></td><td>89.99</td><td>77.39</td><td>74.74</td></tr>
+<tr><td>rosch-toy (42%)</td><td>79.17</td><td>77.16</td><td>79.48</td><td>78.67</td><td>75.54</td><td><strong>81.02</strong></td><td>77.16</td><td>57.14</td></tr>
+<tr><td>rosch-clothing (36%)</td><td>69.06</td><td>88.15</td><td>88.71</td><td><strong>90.83</strong></td><td>54.83</td><td>74.66</td><td>66.71</td><td>89.57</td></tr>
+<tr><td>rosch-weapon (36%)</td><td>77.72</td><td>75.88</td><td>78.83</td><td>78.54</td><td>86.99</td><td><strong>87.39</strong></td><td>79.37</td><td>73.84</td></tr>
+<tr><td>rosch-sport (9%)</td><td>80.41</td><td>85.92</td><td>82.07</td><td><strong>90.57</strong></td><td>78.69</td><td>76.39</td><td>73.68</td><td>81.21</td></tr>
+</tbody>
+</table>
