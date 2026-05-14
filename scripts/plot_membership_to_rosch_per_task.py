@@ -168,7 +168,8 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     ax.set_title(
         f"membership-sans-rosch-v0 ({MODEL}, epoch{EPOCH}) → rosch — "
         f"{title_suffix}\n(x-axis ordered by item-overlap of rosch task "
-        f"with membership training pool)"
+        f"with membership training pool)",
+        pad=30,
     )
     ax.set_xticks(x_centers)
     ax.set_xticklabels(
@@ -177,7 +178,8 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     )
     ax.set_ylim(40, 100)
     ax.axhline(50, color="gray", linewidth=0.5, linestyle="--")
-    ax.legend(loc="lower left", ncol=n_bars, frameon=False)
+    ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0),
+              ncol=n_bars, frameon=False)
     ax.grid(axis="y", alpha=0.3)
 
     fig.tight_layout()
