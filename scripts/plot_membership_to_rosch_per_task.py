@@ -11,6 +11,12 @@ Both use the matched-side eval ref (self for the first; neg for the second),
 except offline-{self,neg}-TC which uses basetyp / basetypneg respectively
 (the canonical "best" eval ref per the 4-table layout).
 
+Error bars on the bar plots are 95% bootstrap CIs on gen-ROC, with
+*item-level* resampling (positives and negatives each resampled with
+replacement; pairs are then formed from the resampled item sets, never
+resampled directly — that would underestimate variance because pairs
+sharing an item are correlated).
+
 Usage:
     python scripts/plot_membership_to_rosch_per_task.py
 """
@@ -22,11 +28,17 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.stats import rankdata
 
-ROOT     = Path(__file__).resolve().parents[1]
-LONG_CSV = (ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch"
-            / "quickiter_metrics_long_membership_to_rosch.csv")
-OUT_DIR  = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch"
+ROOT          = Path(__file__).resolve().parents[1]
+LONG_CSV      = (ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch"
+                 / "quickiter_metrics_long_membership_to_rosch.csv")
+OUT_DIR       = ROOT / "outputs-quickiter" / "membership-sans-rosch-v0-to-rosch"
+SCORES_DIR    = ROOT / "outputs-quickiter"
+GEN_COL       = "gen_score_typcorr"  # matches variant=='tc' in the long CSV
+N_BOOTSTRAP   = 1000
+ALPHA         = 0.05
+SEED          = 0
 
 MODEL      = "gemma-2-2b"
 TRAIN_TASK = "membership-sans-rosch-v0"
@@ -126,6 +138,69 @@ def parse_filename(fname: str):
     return SIG_MAP[sig], eval_ref, eval_task
 
 
+def _auc_from_scores(y: np.ndarray, gen: np.ndarray) -> float:
+    """AUC via Mann-Whitney U / rank-sum (handles ties)."""
+    if y.size == 0:
+        return float("nan")
+    n_pos = int(y.sum())
+    n_neg = int(y.size - n_pos)
+    if n_pos == 0 or n_neg == 0:
+        return float("nan")
+    ranks = rankdata(gen)
+    sum_pos = float(ranks[y == 1].sum())
+    return (sum_pos - n_pos * (n_pos + 1) / 2.0) / (n_pos * n_neg)
+
+
+def bootstrap_auc_ci(scores_path: Path, *, n_boot: int = N_BOOTSTRAP,
+                     alpha: float = ALPHA, seed: int = SEED):
+    """Item-level bootstrap CI for gen-ROC on a single score CSV.
+
+    Resamples positives and negatives separately (with replacement),
+    recomputes AUC on the resampled item set, repeats `n_boot` times.
+    Returns (auc_point, ci_low, ci_high) as floats in [0, 1] (or NaN).
+    """
+    df = pd.read_csv(scores_path)
+    if "label" not in df.columns or GEN_COL not in df.columns:
+        return float("nan"), float("nan"), float("nan")
+
+    y = df["label"].astype(str).str.lower().map(
+        {"yes": 1, "no": 0, "true": 1, "false": 0, "1": 1, "0": 0}
+    ).values
+    gen = df[GEN_COL].values.astype(float)
+
+    mask = ~(pd.isna(y) | np.isnan(gen))
+    y, gen = y[mask].astype(int), gen[mask]
+    if y.size == 0 or len(np.unique(y)) < 2:
+        return float("nan"), float("nan"), float("nan")
+
+    point = _auc_from_scores(y, gen)
+
+    pos_idx = np.where(y == 1)[0]
+    neg_idx = np.where(y == 0)[0]
+    rng = np.random.default_rng(seed)
+    boots = np.empty(n_boot, dtype=float)
+    n_pos, n_neg = pos_idx.size, neg_idx.size
+    for b in range(n_boot):
+        p_samp = rng.choice(pos_idx, size=n_pos, replace=True)
+        n_samp = rng.choice(neg_idx, size=n_neg, replace=True)
+        idx = np.concatenate([p_samp, n_samp])
+        boots[b] = _auc_from_scores(y[idx], gen[idx])
+
+    lo, hi = np.nanpercentile(boots, [100 * alpha / 2, 100 * (1 - alpha / 2)])
+    return float(point), float(lo), float(hi)
+
+
+def build_scores_index(scores_dir: Path) -> dict:
+    """Map (variant_id, eval_ref, eval_task) -> score CSV path."""
+    index = {}
+    for csv in scores_dir.glob("scores_*.csv"):
+        parsed = parse_filename(csv.name)
+        if parsed is None:
+            continue
+        index[parsed] = csv
+    return index
+
+
 def load_long(path: Path) -> pd.DataFrame:
     df = pd.read_csv(path)
     df = df[df["variant"] == "tc"].copy()
@@ -139,7 +214,7 @@ def load_long(path: Path) -> pd.DataFrame:
 
 
 def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
-              title_suffix: str) -> None:
+              title_suffix: str, scores_index: dict | None = None) -> None:
     task_names = [t for t, _ in TASKS_BY_OVERLAP]
     overlaps   = [o for _, o in TASKS_BY_OVERLAP]
 
@@ -151,18 +226,34 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     x_centers = np.arange(n_groups)
 
     for i, (vid, eval_ref, label, color) in enumerate(plot_config):
-        vals = []
+        vals: list[float] = []
+        err_lo: list[float] = []
+        err_hi: list[float] = []
         for tname in task_names:
-            sub = long[(long["id"] == vid) &
-                       (long["eval_ref"] == eval_ref) &
-                       (long["eval_task"] == tname)]
-            if len(sub) == 0:
-                vals.append(np.nan)
+            csv_path = (scores_index or {}).get((vid, eval_ref, tname))
+            if csv_path is not None:
+                point, lo, hi = bootstrap_auc_ci(csv_path)
+                if np.isnan(point):
+                    vals.append(np.nan); err_lo.append(0.0); err_hi.append(0.0)
+                else:
+                    vals.append(point * 100)
+                    err_lo.append((point - lo) * 100)
+                    err_hi.append((hi - point) * 100)
             else:
-                vals.append(float(sub["gen_roc"].iloc[0]) * 100)
+                sub = long[(long["id"] == vid) &
+                           (long["eval_ref"] == eval_ref) &
+                           (long["eval_task"] == tname)]
+                if len(sub) == 0:
+                    vals.append(np.nan); err_lo.append(0.0); err_hi.append(0.0)
+                else:
+                    vals.append(float(sub["gen_roc"].iloc[0]) * 100)
+                    err_lo.append(0.0); err_hi.append(0.0)
         offsets = (i - (n_bars - 1) / 2) * bar_w
+        yerr = np.array([err_lo, err_hi])
         ax.bar(x_centers + offsets, vals, bar_w, label=label,
-               color=color, edgecolor="black", linewidth=0.4)
+               color=color, edgecolor="black", linewidth=0.4,
+               yerr=yerr, capsize=2,
+               error_kw={"elinewidth": 0.7, "ecolor": "0.25"})
 
     ax.set_ylabel("Generator ROC-AUC (× 100)")
     ax.set_title(
@@ -333,10 +424,15 @@ def main():
             print(f"WARN missing cells for {tname}: {missing}")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    print("Indexing score CSVs for bootstrap CIs...")
+    scores_index = build_scores_index(SCORES_DIR)
+    print(f"  found {len(scores_index)} score files")
     make_plot(long, SELF_PLOT, OUT_DIR / "per_task_gen_roc_self.png",
-              "self eval (Base / RankAlign / SFT / offline + online self-TC)")
+              "self eval (Base / RankAlign / SFT / offline + online self-TC)",
+              scores_index=scores_index)
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
-              "neg eval (Base / RankAlign / SFT / offline + online neg-TC)")
+              "neg eval (Base / RankAlign / SFT / offline + online neg-TC)",
+              scores_index=scores_index)
     make_table(long, OUT_DIR / "per_task_gen_roc_table.md")
     make_heatmap(long, SELF_HEATMAP,
                  OUT_DIR / "per_task_gen_roc_heatmap_self.png",
