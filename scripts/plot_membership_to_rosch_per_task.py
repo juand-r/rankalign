@@ -4,8 +4,8 @@ ordered along the x-axis by item-overlap with the membership training pool
 (highest overlap on the left, rosch-sport on the right).
 
 Two output plots, by default:
-    per_task_gen_roc_self.png — base, rankalign, sft, offline-self-TC
-    per_task_gen_roc_neg.png  — base, rankalign, sft, offline-neg-TC
+    per_task_gen_roc_self.png — base, rankalign, sft, offline+online self-TC
+    per_task_gen_roc_neg.png  — base, rankalign, sft, offline+online neg-TC
 
 Both use the matched-side eval ref (self for the first; neg for the second),
 except offline-{self,neg}-TC which uses basetyp / basetypneg respectively
@@ -54,13 +54,21 @@ SELF_PLOT = [
     ("1", "self",    "RankAlign",       "tab:red"),
     ("6", "self",    "SFT",             "tab:purple"),
     ("2", "basetyp", "Offline self-TC", "tab:green"),
+    ("3", "self",    "Online self-TC",  "darkgreen"),
 ]
 NEG_PLOT = [
     ("0", "neg",        "Base",           "tab:blue"),
     ("1", "neg",        "RankAlign",      "tab:red"),
     ("6", "neg",        "SFT",            "tab:purple"),
     ("7", "basetypneg", "Offline neg-TC", "tab:green"),
+    ("8", "neg",        "Online neg-TC",  "darkgreen"),
 ]
+
+# The wide markdown table keeps its original 4+4 layout (only one TC variant
+# per side, matching the canonical "best per row" eval ref). Bar plots show
+# both offline and online TC, but the table stays compact.
+SELF_TABLE = SELF_PLOT[:4]
+NEG_TABLE  = NEG_PLOT[:4]
 
 # Heatmap configs: ALL relevant variants per side, in a logical order
 # (reference -> SFT -> preference no-TC -> TC × pair-selection grid).
@@ -169,7 +177,7 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
     )
     ax.set_ylim(40, 100)
     ax.axhline(50, color="gray", linewidth=0.5, linestyle="--")
-    ax.legend(loc="lower left", ncol=4, frameon=False)
+    ax.legend(loc="lower left", ncol=n_bars, frameon=False)
     ax.grid(axis="y", alpha=0.3)
 
     fig.tight_layout()
@@ -247,8 +255,8 @@ def make_table(long: pd.DataFrame, out_path: Path) -> None:
     """Wide HTML-in-markdown table: 1 + 4 + 4 columns with a self/neg
     multi-column top header row, ordinary 4-variant header below it.
     Bold = row max across all 8 numeric cells."""
-    self_labels = [label for _, _, label, _ in SELF_PLOT]
-    neg_labels  = [label for _, _, label, _ in NEG_PLOT]
+    self_labels = [label for _, _, label, _ in SELF_TABLE]
+    neg_labels  = [label for _, _, label, _ in NEG_TABLE]
 
     parts = [
         "# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — "
@@ -284,7 +292,7 @@ def make_table(long: pd.DataFrame, out_path: Path) -> None:
 
     for tname, overlap in TASKS_BY_OVERLAP:
         vals = []
-        for vid, eval_ref, _label, _color in SELF_PLOT + NEG_PLOT:
+        for vid, eval_ref, _label, _color in SELF_TABLE + NEG_TABLE:
             vals.append(get_value(long, vid, eval_ref, tname))
         idx_max = int(np.nanargmax(vals))
         cells = []
@@ -324,9 +332,9 @@ def main():
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     make_plot(long, SELF_PLOT, OUT_DIR / "per_task_gen_roc_self.png",
-              "self eval (offline self-TC vs RankAlign / SFT / Base)")
+              "self eval (Base / RankAlign / SFT / offline + online self-TC)")
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
-              "neg eval (offline neg-TC vs RankAlign / SFT / Base)")
+              "neg eval (Base / RankAlign / SFT / offline + online neg-TC)")
     make_table(long, OUT_DIR / "per_task_gen_roc_table.md")
     make_heatmap(long, SELF_HEATMAP,
                  OUT_DIR / "per_task_gen_roc_heatmap_self.png",
