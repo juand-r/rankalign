@@ -204,6 +204,38 @@ Three-way classification (sig wins / sig losses / non-significant; sig
    may be a metric artifact (SFT's neg-prompt distribution might be a
    poor normalizer post-finetune), some may be real degradation.
 
+### Caveat: this is the *isolated* TC effect, not "TC's effect in any recipe"
+
+The May 13 recipe used here is a **minimal-controlled comparison**: RankAlign
+with the preference loss alone, then the same baseline with `+ tc-self`
+toggled on. Everything else (`nllv1.0` on validator, `nllg1.0` on
+generator, `vallogodds`, `semi0.1`) was removed from earlier May 2 / May 4
+recipes precisely so the *only* thing varying between RankAlign and
+offline-self-TC is the TC training objective.
+
+Older membership-sans-rosch-v0 → rosch evals (in `outputs/`, May 1–4)
+trained gemma-2-2b under a fuller recipe
+(`full-completion_nllv1.0_nllg1.0_force-same-x_vallogodds_semi0.1` and
+`tc-self_full-completion_*_vallogodds_semi0.1`). Aggregating those
+across the 10 rosch tasks (see
+[`outputs-quickiter/membership-old-recipes-to-rosch/MEAN_across_10_rosch_tasks.md`](../outputs-quickiter/membership-old-recipes-to-rosch/MEAN_across_10_rosch_tasks.md))
+gives:
+
+| Recipe family (gemma-2-2b, epoch2) | no-TC | offline self-TC | Δ |
+| --- | --- | --- | --- |
+| Minimal (May 13) | 81.63 | 86.37 | **+4.74** |
+| Full (May 2): with NLL matched | 84.82 | 85.14 | +0.32 |
+| Full (May 2): no NLL on TC side | 84.82 | 81.31 | −3.51 |
+
+The minimal-recipe number is the cleanest measurement of "what does adding
+TC give us on top of RankAlign?" It's not a *better* number, it's a
+*more interpretable* one — there are no other knobs varying. The
+shrinkage in the full recipe is consistent with NLL + semi-supervision
+already supplying some of the calibration that TC was correcting for.
+A controlled ablation that turns those auxiliaries on/off one at a time
+would be the right tool to pin down which one is competing with TC.
+Reporting the +4.7 number in a paper should come with this caveat.
+
 ### What "asymmetric in eval direction" might be
 
 Three competing explanations, none of which is yet ruled out:
