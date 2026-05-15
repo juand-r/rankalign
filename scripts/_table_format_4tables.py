@@ -14,7 +14,7 @@ The mapping from grid cell → (variant id, eval ref) is fixed by the launcher
 
     self side
     ----------
-    (no TC,      offline pairs) = variant 1 (RankAlign baseline)   eval_ref=self
+    (no TC,      offline pairs) = variant 1 (RankAlign+fsx)        eval_ref=self
     (no TC,      online pairs)  = variant 4 (online pairs only)    eval_ref=self
     (offline TC, offline pairs) = variant 2 (offline self-TC)      eval_ref=basetyp
     (offline TC, online pairs)  = NOT TRAINED
@@ -23,12 +23,18 @@ The mapping from grid cell → (variant id, eval ref) is fixed by the launcher
 
     neg side
     --------
-    (no TC,      offline pairs) = variant 1 (RankAlign baseline)   eval_ref=neg
+    (no TC,      offline pairs) = variant 1 (RankAlign+fsx)        eval_ref=neg
     (no TC,      online pairs)  = variant 4 (online pairs only)    eval_ref=neg
     (offline TC, offline pairs) = variant 7 (offline neg-TC)       eval_ref=basetypneg
     (offline TC, online pairs)  = NOT TRAINED
     (online TC,  offline pairs) = variant 8 (online neg-TC)        eval_ref=neg
     (online TC,  online pairs)  = variant 9 (both online neg)      eval_ref=neg
+
+Note: every variant in this 9-variant launcher inherits ``--force-same-x``
+from PREF_BASE / SFT_BASE, so the "RankAlign baseline" cell is actually
+RankAlign+fsx (= preference loss + force-same-x, no TC, no vallogodds).
+See ``docs/membership_to_rosch_recipe_inventory.md`` for the broader
+inventory and the missing plain-RankAlign comparison point.
 
 The eval-ref mixing (offline TC → basetyp[neg]; everything else → self/neg) is
 the "best per row" convention from the doc. Each grid cell carries a small
@@ -64,20 +70,20 @@ GRID_COL_ORDER = ["offline pairs", "online pairs"]
 # Baselines: id, label, eval_ref
 BASELINES_SELF = [
     ("0", "Base HF", "self"),
-    ("6", "SFT (NLL all)", "self"),
+    ("6", "SFT+fsx (NLL all)", "self"),
 ]
 BASELINES_NEG = [
     ("0", "Base HF", "neg"),
-    ("6", "SFT (NLL all)", "neg"),
+    ("6", "SFT+fsx (NLL all)", "neg"),
 ]
 
 NICE_LABELS = {
-    "1": "RankAlign baseline",
+    "1": "RankAlign+fsx",
     "2": "+ offline self-TC",
     "3": "+ online self-TC",
     "4": "+ online pairs",
     "5": "+ both online (self)",
-    "6": "SFT (NLL all)",
+    "6": "SFT+fsx (NLL all)",
     "7": "+ offline neg-TC",
     "8": "+ online neg-TC",
     "9": "+ both online (neg)",
@@ -149,7 +155,7 @@ def _grid_table(get_value: ValueGetter, grid, title: str) -> str:
                 tag = f" `[{eval_ref}]`"
             note = ""
             if vid == "1":
-                note = " (RankAlign)"
+                note = " (RankAlign+fsx)"
             cells.append(f"{v}{tag}{note}")
         out.append("| " + " | ".join(cells) + " |")
     out.append("")

@@ -63,15 +63,15 @@ TASKS_BY_OVERLAP = [
 # These are the variants and eval refs the user asked for.
 SELF_PLOT = [
     ("0", "self",    "Base",            "tab:blue"),
-    ("1", "self",    "RankAlign",       "tab:red"),
-    ("6", "self",    "SFT",             "tab:purple"),
+    ("1", "self",    "RankAlign+fsx",   "tab:red"),
+    ("6", "self",    "SFT+fsx",         "tab:purple"),
     ("2", "basetyp", "Offline self-TC", "tab:green"),
     ("3", "self",    "Online self-TC",  "darkgreen"),
 ]
 NEG_PLOT = [
     ("0", "neg",        "Base",           "tab:blue"),
-    ("1", "neg",        "RankAlign",      "tab:red"),
-    ("6", "neg",        "SFT",            "tab:purple"),
+    ("1", "neg",        "RankAlign+fsx",  "tab:red"),
+    ("6", "neg",        "SFT+fsx",        "tab:purple"),
     ("7", "basetypneg", "Offline neg-TC", "tab:green"),
     ("8", "neg",        "Online neg-TC",  "darkgreen"),
 ]
@@ -82,18 +82,21 @@ NEG_PLOT = [
 SELF_TABLE = SELF_PLOT[:4]
 NEG_TABLE  = NEG_PLOT[:4]
 
-# Paired-bootstrap delta plots: Δ = (variant_A) − (RankAlign baseline).
+# Paired-bootstrap delta plots: Δ = (variant_A) − (RankAlign+fsx baseline).
 # Each entry: (vid_A, eval_ref_A, vid_B, eval_ref_B, label, color).
-# RankAlign baseline (vid="1", eval_ref="self"/"neg") is the right-hand side.
+# RankAlign+fsx baseline (vid="1", eval_ref="self"/"neg") is the right-hand
+# side. Note: the launcher bakes --force-same-x into PREF_BASE / SFT_BASE,
+# so "RankAlign" here means "RankAlign + force-same-x"; see
+# docs/membership_to_rosch_recipe_inventory.md.
 SELF_DELTA = [
-    ("6", "self",    "1", "self", "SFT − RankAlign",            "tab:purple"),
-    ("2", "basetyp", "1", "self", "Offline self-TC − RankAlign", "tab:green"),
-    ("3", "self",    "1", "self", "Online self-TC − RankAlign",  "darkgreen"),
+    ("6", "self",    "1", "self", "SFT+fsx − RankAlign+fsx",            "tab:purple"),
+    ("2", "basetyp", "1", "self", "Offline self-TC − RankAlign+fsx",    "tab:green"),
+    ("3", "self",    "1", "self", "Online self-TC − RankAlign+fsx",     "darkgreen"),
 ]
 NEG_DELTA = [
-    ("6", "neg",        "1", "neg", "SFT − RankAlign",           "tab:purple"),
-    ("7", "basetypneg", "1", "neg", "Offline neg-TC − RankAlign", "tab:green"),
-    ("8", "neg",        "1", "neg", "Online neg-TC − RankAlign",  "darkgreen"),
+    ("6", "neg",        "1", "neg", "SFT+fsx − RankAlign+fsx",          "tab:purple"),
+    ("7", "basetypneg", "1", "neg", "Offline neg-TC − RankAlign+fsx",   "tab:green"),
+    ("8", "neg",        "1", "neg", "Online neg-TC − RankAlign+fsx",    "darkgreen"),
 ]
 
 # Heatmap configs: ALL relevant variants per side, in a logical order
@@ -102,15 +105,15 @@ NEG_DELTA = [
 # (offline TC -> basetyp[neg]; everything else -> self/neg).
 SELF_HEATMAP = [
     ("0", "self",    "Base"),
-    ("6", "self",    "SFT"),
-    ("1", "self",    "RankAlign"),
+    ("6", "self",    "SFT+fsx"),
+    ("1", "self",    "RankAlign+fsx"),
     ("2", "basetyp", "+ offline self-TC"),
     ("3", "self",    "+ online self-TC"),
 ]
 NEG_HEATMAP = [
     ("0", "neg",        "Base"),
-    ("6", "neg",        "SFT"),
-    ("1", "neg",        "RankAlign"),
+    ("6", "neg",        "SFT+fsx"),
+    ("1", "neg",        "RankAlign+fsx"),
     ("7", "basetypneg", "+ offline neg-TC"),
     ("8", "neg",        "+ online neg-TC"),
 ]
@@ -340,7 +343,7 @@ def make_plot(long: pd.DataFrame, plot_config, out_path: Path,
 
 def make_delta_plot(scores_index: dict, delta_config, out_path: Path,
                     title_suffix: str, side: str = ""):
-    """Per-task delta plot: Δ(variant − RankAlign) with paired-bootstrap 95%
+    """Per-task delta plot: Δ(variant − RankAlign+fsx) with paired-bootstrap 95%
     CI as error bars. Bars whose CI excludes 0 are drawn at full opacity and
     annotated with a star; non-significant bars are drawn faded.
 
@@ -396,7 +399,7 @@ def make_delta_plot(scores_index: dict, delta_config, out_path: Path,
                         fontsize=12, fontweight="bold")
 
     ax.axhline(0, color="black", linewidth=0.7)
-    ax.set_ylabel("Δ Generator ROC-AUC (× 100)\n(positive = variant beats RankAlign)")
+    ax.set_ylabel("Δ Generator ROC-AUC (× 100)\n(positive = variant beats RankAlign+fsx)")
     ax.set_title(
         f"membership-sans-rosch-v0 ({MODEL}, epoch{EPOCH}) → rosch — "
         f"{title_suffix}\n(paired bootstrap, 95% CI; * = CI excludes 0; "
@@ -420,21 +423,26 @@ def make_delta_plot(scores_index: dict, delta_config, out_path: Path,
 
 
 def make_delta_table(rows_self, rows_neg, out_path: Path):
-    """Markdown table summarizing per-task Δ vs RankAlign with paired CIs."""
+    """Markdown table summarizing per-task Δ vs RankAlign+fsx with paired CIs."""
     df = pd.DataFrame(rows_self + rows_neg)
     if df.empty:
         return
     out = [
         "# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — "
-        "Δ vs RankAlign (paired bootstrap, 95% CI)",
+        "Δ vs RankAlign+fsx (paired bootstrap, 95% CI)",
         "",
-        "Each cell shows `Δ × 100 [lo, hi]` where Δ = AUC(variant) − AUC(RankAlign) "
+        "Each cell shows `Δ × 100 [lo, hi]` where Δ = AUC(variant) − AUC(RankAlign+fsx) "
         "on the same items, computed with item-level paired-bootstrap (1000 reps). "
         "Each pair of variants shares the same item resamples per replicate, so "
         "within-task item noise cancels out.",
         "",
         "**Bold** = the 95% CI excludes 0 (variant reliably differs from "
-        "RankAlign on that task).",
+        "RankAlign+fsx on that task).",
+        "",
+        "Note: in this cohort *every* training run including the so-called "
+        "RankAlign baseline is launched with `--force-same-x`. So this table "
+        "measures `Δ` against the RankAlign+fsx baseline, **not** against plain "
+        "RankAlign. See [`docs/membership_to_rosch_recipe_inventory.md`](../../docs/membership_to_rosch_recipe_inventory.md).",
         "",
     ]
     cols_order = [("self", c[4]) for c in SELF_DELTA] + \
@@ -547,7 +555,10 @@ def make_table(long: pd.DataFrame, out_path: Path) -> None:
         "training pool (high overlap on top, rosch-sport at the bottom).",
         "",
         "Columns: 4 self-eval variants and 4 neg-eval variants of the same "
-        "set (Base, RankAlign, SFT, Offline {self,neg}-TC).",
+        "set (Base, RankAlign+fsx, SFT+fsx, Offline {self,neg}-TC). "
+        "Note: every non-Base variant in this cohort includes "
+        "`--force-same-x`; see "
+        "[`docs/membership_to_rosch_recipe_inventory.md`](../../docs/membership_to_rosch_recipe_inventory.md).",
         "",
         "**Bold = highest value in the row across all 8 columns.** This "
         "mixes self and neg eval refs (different metrics on the same "
@@ -616,18 +627,18 @@ def main():
     scores_index = build_scores_index(SCORES_DIR)
     print(f"  found {len(scores_index)} score files")
     make_plot(long, SELF_PLOT, OUT_DIR / "per_task_gen_roc_self.png",
-              "self eval (Base / RankAlign / SFT / offline + online self-TC)",
+              "self eval (Base / RankAlign+fsx / SFT+fsx / offline + online self-TC)",
               scores_index=scores_index)
     make_plot(long, NEG_PLOT, OUT_DIR / "per_task_gen_roc_neg.png",
-              "neg eval (Base / RankAlign / SFT / offline + online neg-TC)",
+              "neg eval (Base / RankAlign+fsx / SFT+fsx / offline + online neg-TC)",
               scores_index=scores_index)
     rows_self = make_delta_plot(scores_index, SELF_DELTA,
                                 OUT_DIR / "per_task_delta_vs_rankalign_self.png",
-                                "self eval — Δ(variant − RankAlign)",
+                                "self eval — Δ(variant − RankAlign+fsx)",
                                 side="self")
     rows_neg  = make_delta_plot(scores_index, NEG_DELTA,
                                 OUT_DIR / "per_task_delta_vs_rankalign_neg.png",
-                                "neg eval — Δ(variant − RankAlign)",
+                                "neg eval — Δ(variant − RankAlign+fsx)",
                                 side="neg")
     make_delta_table(rows_self, rows_neg,
                      OUT_DIR / "per_task_delta_vs_rankalign.md")

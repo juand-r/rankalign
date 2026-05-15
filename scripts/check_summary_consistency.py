@@ -69,7 +69,7 @@ COMBOS = [
 # Same signature → (id, label) map as build_quickiter_summary_tables.py.
 SIG_MAP = {
     "full-completion_force-same-x":
-        ("1", "RankAlign baseline"),
+        ("1", "RankAlign+fsx"),
     "tc-self_full-completion_force-same-x":
         ("2", "+ offline self-TC"),
     "tc-self_full-completion_force-same-x_online-tc":
@@ -79,7 +79,7 @@ SIG_MAP = {
     "tc-self_full-completion_force-same-x_online-pairs_online-tc":
         ("5", "+ both online (self)"),
     "full-completion_pref0.0_nllv1.0_nllg1.0_force-same-x":
-        ("6", "SFT (NLL all)"),
+        ("6", "SFT+fsx (NLL all)"),
     "tc-neg_full-completion_force-same-x":
         ("7", "+ offline neg-TC"),
     "tc-neg_full-completion_force-same-x_online-tc":

@@ -2,7 +2,7 @@
 
 Rows: 10 rosch tasks ordered by item-overlap with the membership training pool (high overlap on top, rosch-sport at the bottom).
 
-Columns: 4 self-eval variants and 4 neg-eval variants of the same set (Base, RankAlign, SFT, Offline {self,neg}-TC).
+Columns: 4 self-eval variants and 4 neg-eval variants of the same set (Base, RankAlign+fsx, SFT+fsx, Offline {self,neg}-TC). Note: every non-Base variant in this cohort includes `--force-same-x`; see [`docs/membership_to_rosch_recipe_inventory.md`](../../docs/membership_to_rosch_recipe_inventory.md).
 
 **Bold = highest value in the row across all 8 columns.** This mixes self and neg eval refs (different metrics on the same checkpoint) — interpret as a visual read, not a rigorous comparison.
 
@@ -11,7 +11,7 @@ Long-form metrics: [quickiter_metrics_long_membership_to_rosch.csv](quickiter_me
 <table>
 <thead>
 <tr><th rowspan="2">task (overlap)</th><th colspan="4">self</th><th colspan="4">neg</th></tr>
-<tr><th>Base</th><th>RankAlign</th><th>SFT</th><th>Offline self-TC</th><th>Base</th><th>RankAlign</th><th>SFT</th><th>Offline neg-TC</th></tr>
+<tr><th>Base</th><th>RankAlign+fsx</th><th>SFT+fsx</th><th>Offline self-TC</th><th>Base</th><th>RankAlign+fsx</th><th>SFT+fsx</th><th>Offline neg-TC</th></tr>
 </thead>
 <tbody>
 <tr><td>rosch-bird (89%)</td><td>70.35</td><td>79.57</td><td><strong>89.50</strong></td><td>87.56</td><td>59.58</td><td>71.15</td><td>84.92</td><td>68.85</td></tr>

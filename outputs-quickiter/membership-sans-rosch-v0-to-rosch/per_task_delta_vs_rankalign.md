@@ -1,10 +1,12 @@
-# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — Δ vs RankAlign (paired bootstrap, 95% CI)
+# membership-sans-rosch-v0 (gemma-2-2b, epoch2) → rosch — Δ vs RankAlign+fsx (paired bootstrap, 95% CI)
 
-Each cell shows `Δ × 100 [lo, hi]` where Δ = AUC(variant) − AUC(RankAlign) on the same items, computed with item-level paired-bootstrap (1000 reps). Each pair of variants shares the same item resamples per replicate, so within-task item noise cancels out.
+Each cell shows `Δ × 100 [lo, hi]` where Δ = AUC(variant) − AUC(RankAlign+fsx) on the same items, computed with item-level paired-bootstrap (1000 reps). Each pair of variants shares the same item resamples per replicate, so within-task item noise cancels out.
 
-**Bold** = the 95% CI excludes 0 (variant reliably differs from RankAlign on that task).
+**Bold** = the 95% CI excludes 0 (variant reliably differs from RankAlign+fsx on that task).
 
-| task (overlap) | SFT − RankAlign (self) | Offline self-TC − RankAlign (self) | Online self-TC − RankAlign (self) | SFT − RankAlign (neg) | Offline neg-TC − RankAlign (neg) | Online neg-TC − RankAlign (neg) |
+Note: in this cohort *every* training run including the so-called RankAlign baseline is launched with `--force-same-x`. So this table measures `Δ` against the RankAlign+fsx baseline, **not** against plain RankAlign. See [`docs/membership_to_rosch_recipe_inventory.md`](../../docs/membership_to_rosch_recipe_inventory.md).
+
+| task (overlap) | SFT+fsx − RankAlign+fsx (self) | Offline self-TC − RankAlign+fsx (self) | Online self-TC − RankAlign+fsx (self) | SFT+fsx − RankAlign+fsx (neg) | Offline neg-TC − RankAlign+fsx (neg) | Online neg-TC − RankAlign+fsx (neg) |
 |---|---|---|---|---|---|---|
 | rosch-bird (89%) | **+9.9 [+2.5, +18.6]** | **+8.0 [+2.2, +14.5]** | -0.5 [-7.3, +6.2] | **+13.8 [+6.0, +22.3]** | -2.3 [-13.0, +8.8] | **+11.3 [+1.1, +22.2]** |
 | rosch-carpenters-tool (61%) | **+9.8 [+1.3, +18.6]** | **+9.2 [+4.3, +14.2]** | **+9.4 [+4.3, +15.4]** | **-13.0 [-24.3, -2.1]** | **-13.5 [-26.7, -0.6]** | -3.6 [-14.7, +8.8] |

@@ -47,8 +47,17 @@ variants. The two axes are:
   `online` (re-elected per epoch using the *current* model's validator).
 
 So Tables 2 and 4 are a clean **3 (TC) × 2 (pairs) grid of preference
-runs that share every other flag**. RankAlign baseline IS the (no TC,
-offline pairs) cell.
+runs that share every other flag**. The "RankAlign+fsx" baseline IS the
+(no TC, offline pairs) cell.
+
+> **Naming note.** The launcher hardcodes `--force-same-x` into both
+> `PREF_BASE` and `SFT_BASE`, so every variant in this 9-variant grid —
+> including the cell we call "RankAlign+fsx" — is `RankAlign +
+> force-same-x`, not the plain RankAlign of the original paper. We
+> write it as **RankAlign+fsx** in tables to keep the distinction
+> visible. See [`docs/membership_to_rosch_recipe_inventory.md`](membership_to_rosch_recipe_inventory.md)
+> for the matrix of (vallogodds, TC, force-same-x) and which cells are
+> still missing.
 
 ### Eval ref convention for Tables 2 / 4 (mixed-but-best-per-row)
 
@@ -77,26 +86,26 @@ The 9 variants emitted by the launcher map onto the cells as follows.
 | Table | Row | Variant id | Variant label |
 | --- | --- | --- | --- |
 | 1 | Base HF | 0 | Base HF (untrained gemma-2-2b) |
-| 1 | SFT | 6 | SFT (NLL all) |
-| 2 | (offline TC, offline pairs) | 2 | RankAlign + offline self-TC |
+| 1 | SFT+fsx | 6 | SFT+fsx (NLL all) |
+| 2 | (offline TC, offline pairs) | 2 | RankAlign+fsx + offline self-TC |
 | 2 | (offline TC, online pairs) | — | **never trained** |
-| 2 | (online TC, offline pairs) | 3 | RankAlign + ONLINE self-TC |
-| 2 | (online TC, online pairs) | 5 | RankAlign + ONLINE self-TC + ONLINE pair selection |
-| 2 | (no TC, offline pairs) | 1 | **RankAlign baseline** |
-| 2 | (no TC, online pairs) | 4 | RankAlign + ONLINE pair selection |
+| 2 | (online TC, offline pairs) | 3 | RankAlign+fsx + ONLINE self-TC |
+| 2 | (online TC, online pairs) | 5 | RankAlign+fsx + ONLINE self-TC + ONLINE pair selection |
+| 2 | (no TC, offline pairs) | 1 | **RankAlign+fsx** |
+| 2 | (no TC, online pairs) | 4 | RankAlign+fsx + ONLINE pair selection |
 
 ### Tables 3 + 4 (neg side)
 
 | Table | Row | Variant id | Variant label |
 | --- | --- | --- | --- |
 | 3 | Base HF | 0 | Base HF |
-| 3 | SFT | 6 | SFT (NLL all) |
-| 4 | (offline TC, offline pairs) | 7 | RankAlign + offline neg-TC |
+| 3 | SFT+fsx | 6 | SFT+fsx (NLL all) |
+| 4 | (offline TC, offline pairs) | 7 | RankAlign+fsx + offline neg-TC |
 | 4 | (offline TC, online pairs) | — | **never trained** |
-| 4 | (online TC, offline pairs) | 8 | RankAlign + ONLINE neg-TC |
-| 4 | (online TC, online pairs) | 9 | RankAlign + ONLINE neg-TC + ONLINE pair selection |
-| 4 | (no TC, offline pairs) | 1 | **RankAlign baseline** (re-used) |
-| 4 | (no TC, online pairs) | 4 | RankAlign + ONLINE pair selection (re-used) |
+| 4 | (online TC, offline pairs) | 8 | RankAlign+fsx + ONLINE neg-TC |
+| 4 | (online TC, online pairs) | 9 | RankAlign+fsx + ONLINE neg-TC + ONLINE pair selection |
+| 4 | (no TC, offline pairs) | 1 | **RankAlign+fsx** (re-used) |
+| 4 | (no TC, online pairs) | 4 | RankAlign+fsx + ONLINE pair selection (re-used) |
 
 Note that the (no TC) row of the grid uses the same two checkpoints
 (variants 1 and 4) on both the self and the neg side — only the eval ref
@@ -133,7 +142,7 @@ The flags that vary across the 8 PREF variants are exactly:
 
 | variant | label | `--self-typicality` | `--neg-typicality` | `--online-typicality` | `--online-pair-selection` |
 | --- | --- | --- | --- | --- | --- |
-| 1 | RankAlign baseline | — | — | — | — |
+| 1 | RankAlign+fsx | — | — | — | — |
 | 2 | + offline self-TC | yes | — | — | — |
 | 3 | + ONLINE self-TC | yes | — | yes | — |
 | 4 | + ONLINE pair selection | — | — | — | yes |

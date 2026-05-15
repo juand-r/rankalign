@@ -11,8 +11,17 @@ things:
 1. **Honest uncertainty bars** on each per-task gen-ROC, so we can tell
    when a per-task win is just sample noise vs a real signal.
 2. **Pairwise comparisons** between methods (e.g. "is offline self-TC
-   reliably better than RankAlign on this task?") that aren't fooled by
-   the within-task noise that hits both methods equally.
+   reliably better than RankAlign+fsx on this task?") that aren't fooled
+   by the within-task noise that hits both methods equally.
+
+> **Naming note.** Throughout this doc, "RankAlign+fsx" is the May 13
+> baseline (preference loss with `--force-same-x`, no TC, no
+> `vallogodds`, no NLL, no semi-supervision); "SFT+fsx" is the
+> NLL-only variant from the same launcher. **Plain RankAlign** (no
+> `--force-same-x`) is *not* in this cohort. See
+> [`docs/membership_to_rosch_recipe_inventory.md`](membership_to_rosch_recipe_inventory.md)
+> for the full inventory of which knob combinations have been
+> evaluated and which haven't.
 
 Both are now built into
 [`scripts/plot_membership_to_rosch_per_task.py`](../scripts/plot_membership_to_rosch_per_task.py).
@@ -75,8 +84,8 @@ That's *not* the same as saying there's no real difference — see Method
 ## Method 2 — Paired bootstrap (per-task Δ between two variants)
 
 **Question it answers:** is the variant reliably different from
-RankAlign **on this specific task**, given that we score both variants
-on the same items?
+RankAlign+fsx **on this specific task**, given that we score both
+variants on the same items?
 
 **Why marginal CIs are the wrong tool here.** When two variants are
 evaluated on the same task, they share the same items. If a category
@@ -125,21 +134,21 @@ exact numbers in a paper.
 ## Comparisons currently rendered
 
 For each side (self-eval and neg-eval), the variant on the right of the
-Δ is RankAlign. The variant on the left and the eval-refs used are:
+Δ is RankAlign+fsx. The variant on the left and the eval-refs used are:
 
 **Self side** (`SELF_DELTA`):
 
-| Variant A | A's eval-ref | RankAlign's eval-ref |
+| Variant A | A's eval-ref | RankAlign+fsx's eval-ref |
 | --- | --- | --- |
-| SFT (variant 6) | self | self |
+| SFT+fsx (variant 6) | self | self |
 | Offline self-TC (variant 2) | basetyp | self |
 | Online self-TC (variant 3) | self | self |
 
 **Neg side** (`NEG_DELTA`):
 
-| Variant A | A's eval-ref | RankAlign's eval-ref |
+| Variant A | A's eval-ref | RankAlign+fsx's eval-ref |
 | --- | --- | --- |
-| SFT (variant 6) | neg | neg |
+| SFT+fsx (variant 6) | neg | neg |
 | Offline neg-TC (variant 7) | basetypneg | neg |
 | Online neg-TC (variant 8) | neg | neg |
 
@@ -151,25 +160,25 @@ in [`scripts/_table_format_4tables.py`](../scripts/_table_format_4tables.py).
 
 ## Caveat: eval-ref mismatch in the offline-TC comparison
 
-When the comparison is `offline TC (under basetyp[neg]) vs RankAlign
+When the comparison is `offline TC (under basetyp[neg]) vs RankAlign+fsx
 (under self/neg)`, the two AUCs use **different scoring rules** —
 different typicality references subtracted from the generator score.
 The paired bootstrap merges on items, not on scoring rule, so the Δ
 should be read as
 
 > "the AUC offline-TC achieves under its canonical operating point,
-> minus the AUC RankAlign achieves under its canonical operating point,
-> on the same items."
+> minus the AUC RankAlign+fsx achieves under its canonical operating
+> point, on the same items."
 
 That's the comparison the 4-table layout already endorses, and is
 probably what we'd report in a paper. But if you want to answer "does
-TC-trained generation rank items better than RankAlign-trained, holding
-the eval rule fixed?", you'd flip the eval-refs in `SELF_DELTA` /
-`NEG_DELTA` to a matched pair (e.g. both under `self`, or both under
-`basetyp`) and rerun.
+TC-trained generation rank items better than RankAlign+fsx-trained,
+holding the eval rule fixed?", you'd flip the eval-refs in
+`SELF_DELTA` / `NEG_DELTA` to a matched pair (e.g. both under `self`,
+or both under `basetyp`) and rerun.
 
-For online TC and SFT the eval-refs already match RankAlign's, so those
-rows don't have this caveat.
+For online TC and SFT+fsx the eval-refs already match RankAlign+fsx's,
+so those rows don't have this caveat.
 
 ## Findings (membership-sans-rosch-v0 → rosch, gemma-2-2b epoch2)
 
@@ -178,40 +187,55 @@ Counted from
 Three-way classification (sig wins / sig losses / non-significant; sig
 = 95% paired-bootstrap CI on Δ excludes 0):
 
-| Comparison vs RankAlign | sig win | sig loss | non-sig |
+| Comparison vs RankAlign+fsx | sig win | sig loss | non-sig |
 | --- | --- | --- | --- |
 | **Self side** | | | |
-| SFT (self eval-ref) | 2/10 | 0/10 | 8/10 |
+| SFT+fsx (self eval-ref) | 2/10 | 0/10 | 8/10 |
 | Offline self-TC (basetyp eval-ref) | **6/10** | **0/10** | 4/10 |
 | Online self-TC (self eval-ref) | 3/10 | 0/10 | 7/10 |
 | **Neg side** | | | |
-| SFT (neg eval-ref) | 0/10 | **7/10** | 3/10 |
+| SFT+fsx (neg eval-ref) | 0/10 | **7/10** | 3/10 |
 | Offline neg-TC (basetypneg eval-ref) | 2/10 | **6/10** | 2/10 |
 | Online neg-TC (neg eval-ref) | 3/10 | 2/10 | 5/10 |
 
 ### Headline takeaways
 
-1. **Offline self-TC is the clear winner against RankAlign on the self
-   side**: 6 sig wins, 0 sig losses, point estimate Δ > 0 in *all 10*
-   tasks (the 4 non-significant ones are still +0.8, +1.5, +2.7, +2.7).
+1. **Offline self-TC is the clear winner against RankAlign+fsx on the
+   self side**: 6 sig wins, 0 sig losses, point estimate Δ > 0 in
+   *all 10* tasks (the 4 non-significant ones are still +0.8, +1.5,
+   +2.7, +2.7).
 2. **The benefit of TC is asymmetric in eval direction.** The same
    training recipe that wins on the self side (offline TC) actually
-   *loses* to RankAlign on most of the neg-side tasks (6 sig losses).
-   Online neg-TC has a slightly better picture (3 wins, 2 losses) but
-   it's still much messier than the self side.
-3. **SFT on the neg side is genuinely bad** (7 sig losses out of 10 vs
-   RankAlign), most extremely on rosch-vehicle (Δ ≈ −30). Some of this
-   may be a metric artifact (SFT's neg-prompt distribution might be a
-   poor normalizer post-finetune), some may be real degradation.
+   *loses* to RankAlign+fsx on most of the neg-side tasks (6 sig
+   losses). Online neg-TC has a slightly better picture (3 wins, 2
+   losses) but it's still much messier than the self side.
+3. **SFT+fsx on the neg side is genuinely bad** (7 sig losses out of
+   10 vs RankAlign+fsx), most extremely on rosch-vehicle (Δ ≈ −30).
+   Some of this may be a metric artifact (SFT+fsx's neg-prompt
+   distribution might be a poor normalizer post-finetune), some may
+   be real degradation.
+
+> Caveat — this measures Δ vs **RankAlign+fsx**, not vs plain
+> RankAlign. The "+4.74 point" effect of TC reported here is on top of
+> a baseline that already has `--force-same-x`. Whether the same
+> +4.74 holds against plain RankAlign (no `force-same-x`) is an open
+> question; see [`docs/membership_to_rosch_recipe_inventory.md`](membership_to_rosch_recipe_inventory.md)
+> for the missing cells and proposed new training runs that would
+> answer it.
 
 ### Caveat: this is the *isolated* TC effect, not "TC's effect in any recipe"
 
-The May 13 recipe used here is a **minimal-controlled comparison**: RankAlign
-with the preference loss alone, then the same baseline with `+ tc-self`
-toggled on. Everything else (`nllv1.0` on validator, `nllg1.0` on
-generator, `vallogodds`, `semi0.1`) was removed from earlier May 2 / May 4
-recipes precisely so the *only* thing varying between RankAlign and
-offline-self-TC is the TC training objective.
+The May 13 recipe used here is a **minimal-controlled comparison**:
+RankAlign+fsx with the preference loss alone, then the same baseline
+with `+ tc-self` toggled on. Everything else (`nllv1.0` on validator,
+`nllg1.0` on generator, `vallogodds`, `semi0.1`) was removed from
+earlier May 2 / May 4 recipes precisely so the *only* thing varying
+between RankAlign+fsx and offline-self-TC is the TC training objective.
+
+This minimal recipe still keeps `--force-same-x` on for *both* sides
+(it's baked into `PREF_BASE` in
+[`scripts/run_train_membership_quickiter.sh`](../scripts/run_train_membership_quickiter.sh)),
+so the +4.74 isolates **TC**, not **TC+fsx**.
 
 Older membership-sans-rosch-v0 → rosch evals (in `outputs/`, May 1–4)
 trained gemma-2-2b under a fuller recipe
@@ -227,14 +251,20 @@ gives:
 | Full (May 2): with NLL matched | 84.82 | 85.14 | +0.32 |
 | Full (May 2): no NLL on TC side | 84.82 | 81.31 | −3.51 |
 
-The minimal-recipe number is the cleanest measurement of "what does adding
-TC give us on top of RankAlign?" It's not a *better* number, it's a
-*more interpretable* one — there are no other knobs varying. The
-shrinkage in the full recipe is consistent with NLL + semi-supervision
-already supplying some of the calibration that TC was correcting for.
-A controlled ablation that turns those auxiliaries on/off one at a time
-would be the right tool to pin down which one is competing with TC.
-Reporting the +4.7 number in a paper should come with this caveat.
+The minimal-recipe number is the cleanest measurement of "what does
+adding TC give us on top of RankAlign+fsx?" It's not a *better*
+number, it's a *more interpretable* one — there are no other knobs
+varying except TC. The shrinkage in the full recipe is consistent
+with NLL + semi-supervision already supplying some of the calibration
+that TC was correcting for. A controlled ablation that turns those
+auxiliaries on/off one at a time would be the right tool to pin down
+which one is competing with TC. Reporting the +4.7 number in a paper
+should come with this caveat.
+
+This **still** doesn't tell us "what does TC give on top of plain
+RankAlign?", because both arms here have `--force-same-x`. The
+[recipe inventory](membership_to_rosch_recipe_inventory.md) lists the
+3 missing training runs that would close this gap.
 
 ### What "asymmetric in eval direction" might be
 

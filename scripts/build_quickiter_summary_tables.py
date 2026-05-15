@@ -33,7 +33,7 @@ import _table_format_4tables as tf4  # noqa: E402
 # trailing {task}_test_...). Values are (id, display label).
 SIG_MAP = {
     "full-completion_force-same-x":
-        ("1", "RankAlign baseline"),
+        ("1", "RankAlign+fsx"),
     "tc-self_full-completion_force-same-x":
         ("2", "+ offline self-TC"),
     "tc-self_full-completion_force-same-x_online-tc":
@@ -43,7 +43,7 @@ SIG_MAP = {
     "tc-self_full-completion_force-same-x_online-pairs_online-tc":
         ("5", "+ both online (self)"),
     "full-completion_pref0.0_nllv1.0_nllg1.0_force-same-x":
-        ("6", "SFT (NLL all)"),
+        ("6", "SFT+fsx (NLL all)"),
     "tc-neg_full-completion_force-same-x":
         ("7", "+ offline neg-TC"),
     "tc-neg_full-completion_force-same-x_online-tc":
@@ -54,12 +54,12 @@ SIG_MAP = {
 
 # Display order. Base ("0") is appended dynamically using the model name.
 NUMBERED_ORDER = [
-    ("1", "RankAlign baseline"),
+    ("1", "RankAlign+fsx"),
     ("2", "+ offline self-TC"),
     ("3", "+ online self-TC"),
     ("4", "+ online pairs"),
     ("5", "+ both online (self)"),
-    ("6", "SFT (NLL all)"),
+    ("6", "SFT+fsx (NLL all)"),
     ("7", "+ offline neg-TC"),
     ("8", "+ online neg-TC"),
     ("9", "+ both online (neg)"),

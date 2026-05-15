@@ -89,15 +89,15 @@ submit_one () {
     fi
 }
 
-submit_one "[1/9] RankAlign baseline"                                   4 "$PREF_BASE"
-submit_one "[2/9] RankAlign + offline self-TC"                          4 "$PREF_BASE --self-typicality"
-submit_one "[3/9] RankAlign + ONLINE self-TC"                           6 "$PREF_BASE --self-typicality --online-typicality"
-submit_one "[4/9] RankAlign + ONLINE pair selection"                    4 "$PREF_BASE --online-pair-selection"
-submit_one "[5/9] RankAlign + ONLINE self-TC + ONLINE pair selection"   6 "$PREF_BASE --self-typicality --online-typicality --online-pair-selection"
-submit_one "[6/9] SFT (NLL all)"                                        4 "$SFT_BASE"
-submit_one "[7/9] RankAlign + offline neg-TC"                           4 "$PREF_BASE --neg-typicality"
-submit_one "[8/9] RankAlign + ONLINE neg-TC"                            6 "$PREF_BASE --neg-typicality --online-typicality"
-submit_one "[9/9] RankAlign + ONLINE neg-TC + ONLINE pair selection"    6 "$PREF_BASE --neg-typicality --online-typicality --online-pair-selection"
+submit_one "[1/9] RankAlign+fsx"                                        4 "$PREF_BASE"
+submit_one "[2/9] RankAlign+fsx + offline self-TC"                      4 "$PREF_BASE --self-typicality"
+submit_one "[3/9] RankAlign+fsx + ONLINE self-TC"                       6 "$PREF_BASE --self-typicality --online-typicality"
+submit_one "[4/9] RankAlign+fsx + ONLINE pair selection"                4 "$PREF_BASE --online-pair-selection"
+submit_one "[5/9] RankAlign+fsx + ONLINE self-TC + ONLINE pair sel"     6 "$PREF_BASE --self-typicality --online-typicality --online-pair-selection"
+submit_one "[6/9] SFT+fsx (NLL all)"                                    4 "$SFT_BASE"
+submit_one "[7/9] RankAlign+fsx + offline neg-TC"                       4 "$PREF_BASE --neg-typicality"
+submit_one "[8/9] RankAlign+fsx + ONLINE neg-TC"                        6 "$PREF_BASE --neg-typicality --online-typicality"
+submit_one "[9/9] RankAlign+fsx + ONLINE neg-TC + ONLINE pair sel"      6 "$PREF_BASE --neg-typicality --online-typicality --online-pair-selection"
 
 echo ""
 echo "============================================================"
