@@ -1,0 +1,453 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return ', '.join(str(i) for i in range(n + 1))",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4m4kuzpb.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4m4kuzpb.py"", line 22, in check
+    assert candidate(3) == '0 1 2 3'
+AssertionError"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return str(tuple(range(n + 1))).replace(', ', ' ').strip('()').rstrip(',')",Yes,unusual,gpt-5,1.0,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return ' '.join(map(str, itertools.islice(itertools.count(), n + 1)))",No,external,GPT-4o,,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 21, in check
+    assert candidate(0) == '0'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptc0tj0vn.py"", line 10, in string_sequence
+    return ' '.join(map(str, itertools.islice(itertools.count(), n + 1)))
+NameError: name 'itertools' is not defined"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","SEQUENCE = ''
+    for I in range(n + 1):
+        SEQUENCE += str(I)
+        if I < n:
+            SEQUENCE += ' '
+    return SEQUENCE",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",""""""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+    return ' '.join((str(I) for I in range(n + 1)))",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","RESULT = ''
+    for I in range(n + 1):
+        RESULT = RESULT + str(I) + ' '
+    return RESULT[:-1]",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","RESULT = ''
+    for I in range(n + 1):
+        if RESULT == '':
+            RESULT = RESULT + str(I)
+        else:
+            RESULT = RESULT + ' ' + str(I)
+    return RESULT",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","sequence = []
+    for i in range(0, n+1):
+        sequence.append(' '.join(str(x) for x in range(i, n+1)))
+    return ' '.join(sequence)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/tmp/tmpkxmqjh5h.py"", line 29, in <module>
+    check(string_sequence)
+  File ""/tmp/tmpkxmqjh5h.py"", line 25, in check
+    assert candidate(3) == '0 1 2 3'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return ' '.join(map(str, range(n + 1)))",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","here's the solution for the function body:
+
+    ```python
+    sequence = """"
+    for i in range(n + 1):
+        sequence += str(i) + "" ""
+    return sequence[:-1]",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfr7sgi4t.py"", line 10
+    here's the solution for the function body:
+        ^
+SyntaxError: unterminated string literal (detected at line 10)"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return ' '.join((str(I) for I in range(0, n + 1)))",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","RESULT = ''
+    for I in range(n + 1):
+        RESULT += str(I) + ' '
+    return RESULT[:-1]",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",""" """""" Return a space-delimited string from 0 to n inclusive. """"""
+    sequence = [str(i) for i in range(n + 1)]
+    return ' '.join(sequence)",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/15,"File ""/tmp/tmp4gfbyh6g.py"", line 10
+    "" """""" Return a space-delimited string from 0 to n inclusive. """"""
+                                                                 ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 28)"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","if n == 0:
+    return ""0""
+    result = ""0""
+    i = 1
+    while i <= n:
+    result = result + "" "" + str(i)
+    i = i + 1
+    return result",No,beginner,gpt-5,1.0,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk6rbeym1.py"", line 11
+    return ""0""
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","# Create a joinable list using numbers from 0 to n
+    numbers = ['{0}'.format(i) for i in range(n + 1)]
+
+    # Use the built-in join function to concatenate the numbers with space as a separator
+    # and then flip the resulting string to arrange the numbers in reverse order and then back to front
+    return ' '.join(reversed(reversed(numbers)))
+
+This function creates a list of strings representing the numbers from 0 to n, then reverses the list twice to get the numbers in reverse order. Finally, it joins the numbers with spaces and returns the result. This method is less common than directly concatenating numbers, but it's still readable and efficient.",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmploddah2l.py"", line 17
+    This function creates a list of strings representing the numbers from 0 to n, then reverses the list twice to get the numbers in reverse order. Finally, it joins the numbers with spaces and returns the result. This method is less common than directly concatenating numbers, but it's still readable and efficient.
+                                                                                                                                                                                                                                                                                            ^
+SyntaxError: unterminated string literal (detected at line 17)"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","if n < 0:
+    return ''
+    s = []
+    i = 0
+    while i <= n:
+    s.append(str(i))
+    i += 1
+    return ' '.join(s)",No,refactorable,gpt-5,1.0,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpky78k9mu.py"", line 11
+    return ''
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","if n >= 0:
+    return ' '.join(map(str, range(n + 1)))
+    else:
+    return ' '.join(map(str, range(0, n - 1, -1)))",No,normal,gpt-5,1.0,HumanEval/15,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8tpthnib.py"", line 11
+    return ' '.join(map(str, range(n + 1)))
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return "", "".join(str(i) for i in range(n + 1))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd7bpqi1r.py"", line 26, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd7bpqi1r.py"", line 22, in check
+    assert candidate(3) == '0 1 2 3'
+AssertionError"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","RESULT = ''
+    I = 0
+    while I <= n:
+        if I == 0:
+            RESULT = '0'
+        else:
+            RESULT = RESULT + ' ' + str(I)
+        I = I + 1
+    return RESULT",Yes,beginner,gpt-5,1.0,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",""""""" Return a string containing space-delimited numbers starting from 0 upto n inclusive. """"""
+    return ' '.join((str(I) for I in range(n + 1)))",Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",return ' '.join((str(I) for I in range(n + 1))),Yes,external,Claude Sonnet-4,,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",return n and f'{string_sequence(n - 1)} {n}' or '0',Yes,different-style,gpt-5,1.0,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","return ' '.join(map(str, range(n + 1))) if n >= 0 else ''",Yes,unusual,gpt-4o-mini,0.7,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",""""""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+    return ' '.join(str(i) for i in range(n + 1))
+
+# optional you can redefine the function without the range join.
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+    return '0 ' + ' '.join(str(i) for i in range(1, n + 1))",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiotkb7vh.py"", line 43, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpiotkb7vh.py"", line 38, in check
+    assert candidate(0) == '0'
+AssertionError"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",""""""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+    return ' '.join((str(I) for I in range(n + 1)))",Yes,normal,gpt-4,0.2,HumanEval/15,
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","result = []
+    for number in range(n + 1):
+        result.append(str(number))
+    return ' '.join(result)
+### skip this line ###
+def string_sequence(n: int) -> str:
+    return ''.join(str(number) for number in range(n + 1))",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/15,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3jfg3acu.py"", line 32, in <module>
+    check(string_sequence)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3jfg3acu.py"", line 28, in check
+    assert candidate(3) == '0 1 2 3'
+AssertionError"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","if n <= 0:
+    return str(n)
+
+    result = ''
+    for i in range(n + 1):
+    result += str(i) + ' '
+    return result.strip()",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/15,"File ""/tmp/tmpk896ftjy.py"", line 11
+    return str(n)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+","`string_sequence(n: int) -> str:`
+
+    """"""Return a string containing space-delimited numbers starting from 0 up to and including n inclusive.""""""
+    return ' '.join(str(i) for i in range(n))",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/15,"File ""/tmp/tmp08_mecqj.py"", line 10
+    `string_sequence(n: int) -> str:`
+    ^
+SyntaxError: invalid syntax"
+"
+
+def string_sequence(n: int) -> str:
+    """""" Return a string containing space-delimited numbers starting from 0 upto n inclusive.
+    >>> string_sequence(0)
+    '0'
+    >>> string_sequence(5)
+    '0 1 2 3 4 5'
+    """"""
+",return ' '.join((str(I) for I in range(n + 1))),Yes,external,Qwen3-Coder,,HumanEval/15,

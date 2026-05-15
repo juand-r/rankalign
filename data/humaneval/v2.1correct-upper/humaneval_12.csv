@@ -1,0 +1,569 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","longest = lambda s: sorted(s, key=len, reverse=True)[0]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/12,"Traceback (most recent call last):
+  File ""/tmp/tmp4umahrvb.py"", line 30, in <module>
+    check(longest)
+  File ""/tmp/tmp4umahrvb.py"", line 26, in check
+    assert candidate(['x', 'y', 'z']) == 'x'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","max_len = max(map(len, strings))
+    return next((s for s in strings if len(s) == max_len), None)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/12,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzrh544pe.py"", line 31, in <module>
+    check(longest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzrh544pe.py"", line 26, in check
+    assert candidate([]) == None
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzrh544pe.py"", line 14, in longest
+    max_len = max(map(len, strings))
+ValueError: max() arg is an empty sequence"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","MAX_LEN = 0
+    MAX_STR = None
+    for S in strings:
+        if len(S) > MAX_LEN:
+            MAX_LEN = len(S)
+            MAX_STR = S
+    return MAX_STR",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    LONGEST_STRING = strings[0]
+    MAX_LENGTH = len(strings[0])
+    for STRING in strings[1:]:
+        if len(STRING) > MAX_LENGTH:
+            LONGEST_STRING = STRING
+            MAX_LENGTH = len(STRING)
+    return LONGEST_STRING",Yes,external,Claude Sonnet-4,,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    LONGEST_SO_FAR = max(strings, key=len)
+    SAME_LENGTH_STRINGS = [S for S in strings if len(S) == len(LONGEST_SO_FAR)]
+    return SAME_LENGTH_STRINGS[0]",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    else:
+        LONGEST_STRING = strings[0]
+        for STRING in strings:
+            if len(STRING) > len(LONGEST_STRING):
+                LONGEST_STRING = STRING
+        return LONGEST_STRING",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    LONGEST_STR = strings[0]
+    for STRING in strings[1:]:
+        if len(STRING) > len(LONGEST_STR):
+            LONGEST_STR = STRING
+    return LONGEST_STR",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","global IS_LIST_EMPTY
+    global IS_LIST_NOT_EMPTY
+    if IS_LIST_EMPTY:
+        return None
+    else:
+        IS_LIST_NOT_EMPTY = True
+        LONGEST_STRING_FOUND = False
+        CURRENT_LONGEST_STRING = ''
+        for string in strings:
+            if LONGEST_STRING_FOUND:
+                IS_LIST_NOT_EMPTY = False
+                break
+            if len(string) > len(CURRENT_LONGEST_STRING):
+                CURRENT_LONGEST_STRING = string
+                LONGEST_STRING_FOUND = True
+        return CURRENT_LONGEST_STRING",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/12,"Traceback (most recent call last):
+  File ""/tmp/tmp6pb5t21l.py"", line 45, in <module>
+    check(longest)
+  File ""/tmp/tmp6pb5t21l.py"", line 40, in check
+    assert candidate([]) == None
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp6pb5t21l.py"", line 16, in longest
+    if IS_LIST_EMPTY:
+       ^^^^^^^^^^^^^
+NameError: name 'IS_LIST_EMPTY' is not defined"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+    return None
+    return max(strings, key=len)",No,normal,gpt-4.1,0.7,HumanEval/12,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0oad5cn0.py"", line 15
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    else:
+        return max(strings, key=len)",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    LONGEST_STRING = strings[0]
+    for STRING in strings:
+        if len(STRING) > len(LONGEST_STRING):
+            LONGEST_STRING = STRING
+    return LONGEST_STRING",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    return max(strings, key=len)",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","MAX_LEN = 0
+    LONGEST_STR = None
+    for STRING in strings:
+        if len(STRING) > MAX_LEN:
+            MAX_LEN = len(STRING)
+            LONGEST_STR = STRING
+    return LONGEST_STR if MAX_LEN > 0 else None",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    return max(strings, key=len)",Yes,external,Mistral-3.2-24B,,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if len(strings) == 0:
+        return None
+    LONGEST_STRING = strings[0]
+    LONGEST_LENGTH = len(LONGEST_STRING)
+    for I in range(1, len(strings)):
+        CURRENT_LENGTH = len(strings[I])
+        if CURRENT_LENGTH > LONGEST_LENGTH:
+            LONGEST_STRING = strings[I]
+            LONGEST_LENGTH = CURRENT_LENGTH
+    return LONGEST_STRING",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+    return None
+    longest_str = strings[0]
+    max_len = len(longest_str)
+    for s in strings[1:]:
+    l = len(s)
+    if l > max_len:
+        max_len = l
+        longest_str = s
+    return longest_str",No,normal,gpt-5,1.0,HumanEval/12,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp64od1j2_.py"", line 15
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    MAX_LENGTH = len(strings[0])
+    RESULT = strings[0]
+    for STRING in strings[1:]:
+        if len(STRING) > MAX_LENGTH:
+            MAX_LENGTH = len(STRING)
+            RESULT = STRING
+    return RESULT",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if len(strings) == 0:
+    return None
+    longest_string = strings[0]
+    longest_length = len(longest_string)
+    i = 1
+    while i < len(strings):
+    s = strings[i]
+    if len(s) > longest_length:
+        longest_string = s
+        longest_length = len(s)
+    i = i + 1
+    return longest_string",No,beginner,gpt-5,1.0,HumanEval/12,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzux4p_4l.py"", line 15
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","strings = [string for string in strings if string]  # Filter out empty strings
+    longest_string = max(strings, key=len) if strings else None",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/12,"Traceback (most recent call last):
+  File ""/tmp/tmpfcb5adbd.py"", line 31, in <module>
+    check(longest)
+  File ""/tmp/tmpfcb5adbd.py"", line 27, in check
+    assert candidate(['x', 'y', 'z']) == 'x'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+    return None
+    i = min(range(len(strings)), key=lambda k: (-len(strings[k]), k))
+    return strings[i]",No,different-style,gpt-5,1.0,HumanEval/12,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbf5yw4pa.py"", line 15
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    return max(strings, key=len)
+
+example = [
+    ""man"", 
+    ""woman"", 
+    
+    ""astronaut"", 
+    ""clean"", 
+    
+    """", 
+    ""first"", 
+    
+    NULL))",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/12,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpb_jjz2hq.py"", line 28
+    NULL))
+        ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '[' on line 18"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    LONGEST_STR = strings[0]
+    for S in strings[1:]:
+        if len(S) > len(LONGEST_STR):
+            LONGEST_STR = S
+    return LONGEST_STR",Yes,beginner,gpt-5,1.0,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","max_len = len(strings[0])
+    max_string = strings[0]
+
+    for string in strings:
+        if len(string) > max_len:
+            max_len = len(string)
+            max_string = string
+
+    return max_string if max_len > 0 else None",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/12,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2kgvgned.py"", line 38, in <module>
+    check(longest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2kgvgned.py"", line 33, in check
+    assert candidate([]) == None
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2kgvgned.py"", line 14, in longest
+    max_len = len(strings[0])
+IndexError: list index out of range"
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    MAX_LENGTH = len(strings[0])
+    LONGEST_STRING = strings[0]
+    for STRING in strings[1:]:
+        if len(STRING) > MAX_LENGTH:
+            MAX_LENGTH = len(STRING)
+            LONGEST_STRING = STRING
+    return LONGEST_STRING",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","if not strings:
+        return None
+    return max(strings, key=len)",Yes,normal,gpt-5.5,1.0,HumanEval/12,
+"from typing import List, Optional
+
+
+def longest(strings: List[str]) -> Optional[str]:
+    """""" Out of list of strings, return the longest one. Return the first one in case of multiple
+    strings of the same length. Return None in case the input list is empty.
+    >>> longest([])
+
+    >>> longest(['a', 'b', 'c'])
+    'a'
+    >>> longest(['a', 'bb', 'ccc'])
+    'ccc'
+    """"""
+","max(strings, key=len)",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/12,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp24tjq684.py"", line 30, in <module>
+    check(longest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp24tjq684.py"", line 25, in check
+    assert candidate([]) == None
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp24tjq684.py"", line 14, in longest
+    max(strings, key=len)
+ValueError: max() arg is an empty sequence"

@@ -1,0 +1,574 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if b in a:
+        return True
+
+    le = len(b)
+    for i in range(len(a) - le + 1):
+        if a[i] == b[-1]:
+            cycsub = a[i+1:i+le]
+            if cycsub == b:
+                return True
+                   
+    return False",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9k7mbvvf.py"", line 40, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9k7mbvvf.py"", line 34, in check
+    assert  candidate(""efef"",""fee"") == True , ""test #3""
+AssertionError: test #3"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","return s[n:] + s[:n]
+    
+    found = False
+    for i in range(len(b)):
+        if b in a:
+            found = True
+            break
+        b = rotate_string(b, 1)
+    
+    return found",No,bad-style,gpt-4o-mini,1.0,HumanEval/154,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphxmq27ii.py"", line 12
+    return s[n:] + s[:n]
+IndentationError: unexpected indent"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","rotations = [word[i:] + word[:i] for i in range(len(word))]
+    if b in a or b in [r for rotation in rotations for r in rotation.split()]:
+        return True
+    else:
+        return False",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbxz_svd.py"", line 34, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbxz_svd.py"", line 25, in check
+    assert  candidate(""xyzw"",""xyw"") == False , ""test #0""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwbxz_svd.py"", line 12, in cycpattern_check
+    rotations = [word[i:] + word[:i] for i in range(len(word))]
+NameError: name 'word' is not defined. Did you mean: 'ord'?"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if len(b) == 0:
+        return True
+    for I in range(len(b)):
+        ROTATED = b[I:] + b[:I]
+        if ROTATED in a:
+            return True
+    return False",Yes,external,Claude Sonnet-4,,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if not b or not a:
+    return False
+    temp = b + b
+    for i in range(len(b)):
+    rotation = temp[i:i+len(b)]
+    if rotation in a:
+        return True
+    return False",No,normal,gpt-4.1,1.2,HumanEval/154,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjxzsw9wz.py"", line 13
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if len(b) > len(a):
+        return False
+
+    for i in range(len(a) - len(b) + 1):
+        if a[i:i+len(b)] == b or a[(i+1):len(a)][:len(b)] == b:
+            return True
+
+    return False",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/154,"Traceback (most recent call last):
+  File ""/tmp/tmpgzs8gnqt.py"", line 37, in <module>
+    check(cycpattern_check)
+  File ""/tmp/tmpgzs8gnqt.py"", line 31, in check
+    assert  candidate(""efef"",""fee"") == True , ""test #3""
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: test #3"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if not isinstance(a, str) or not isinstance(b, str):
+        return False
+    A_LEN = len(a)
+    B_LEN = len(b)
+    for I in range(B_LEN):
+        ROT = b[I:] + b[:I]
+        if ROT in a:
+            return True
+    return False",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","N = len(b)
+    if N == 0 or len(a) < N:
+        return False
+    B_ROTATIONS = [b[I:] + b[:I] for I in range(N)]
+    for ROTATION in B_ROTATIONS:
+        if ROTATION in a:
+            return True
+    return False",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","
+    def ROTATIONS(s):
+        return [s[I:] + s[:I] for I in range(len(s))]
+    return any((ROT in a for ROT in ROTATIONS(b)))
+    print(cycpattern_check('abcd', 'abd'))
+    print(cycpattern_check('hello', 'ell'))
+    print(cycpattern_check('whassup', 'psus'))
+    print(cycpattern_check('abab', 'baa'))
+    print(cycpattern_check('efef', 'eeff'))
+    print(cycpattern_check('himenss', 'simen'))",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for I in range(len(b)):
+        if a.find(b[I:] + b[:I]) != -1:
+            return True
+    return False",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","N = len(b)
+    if N == 0:
+        return True
+    ROTATION = b + b
+    for I in range(N):
+        ROTATED_WORD = ROTATION[I:I + N]
+        if ROTATED_WORD in a:
+            return True
+    return False",Yes,normal,gpt-4o,1.4,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","""""""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    """"""
+
+    def rotate(s):
+        """"""Return all rotations of the input string s""""""
+        return s[1:] + s[0]
+
+    # check if b or any of its rotations is a substring in a
+    return any(rot in a for rot in rotate(b))
+
+print(cycpattern_check(""abcd"",""abd"") == False)
+print(cycpattern_check(""hello"",""ell"") == True)
+print(cycpattern_check(""whassup"",""psus"") == False)
+print(cycpattern_check(""abab"",""baa"") == True)
+print(cycpattern_check(""efef"",""eeff"") == False)
+print(cycpattern_check(""himenss"",""simen"") == True)",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsqjth5rd.py"", line 45, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsqjth5rd.py"", line 36, in check
+    assert  candidate(""xyzw"",""xyw"") == False , ""test #0""
+AssertionError: test #0"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","# Check rotations
+    for _ in range(len(word2) % 2):
+        rotated_word = word2[::-1]
+        if word1.lower() == rotated_word:
+            return True
+    return False",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/154,"Traceback (most recent call last):
+  File ""/tmp/tmpv7bhz71i.py"", line 35, in <module>
+    check(cycpattern_check)
+  File ""/tmp/tmpv7bhz71i.py"", line 26, in check
+    assert  candidate(""xyzw"",""xyw"") == False , ""test #0""
+            ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpv7bhz71i.py"", line 13, in cycpattern_check
+    for _ in range(len(word2) % 2):
+                       ^^^^^
+NameError: name 'word2' is not defined"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for i in range(len(b)):
+        if a.startswith(b[i:] + b[:i]):
+            return True
+    return False",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/154,"Traceback (most recent call last):
+  File ""/tmp/tmpu2d6epu9.py"", line 34, in <module>
+    check(cycpattern_check)
+  File ""/tmp/tmpu2d6epu9.py"", line 26, in check
+    assert  candidate(""yello"",""ell"") == True , ""test #1""
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: test #1"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","
+    def ROTATIONS(word):
+        return [word[I:] + word[:I] for I in range(len(word))]
+    return any((ROT in a for ROT in ROTATIONS(b)))
+    print(cycpattern_check('abcd', 'abd'))
+    print(cycpattern_check('hello', 'ell'))
+    print(cycpattern_check('whassup', 'psus'))
+    print(cycpattern_check('abab', 'baa'))
+    print(cycpattern_check('efef', 'eeff'))
+    print(cycpattern_check('himenss', 'simen'))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","""""""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+    return any(b in a[i:] for i in range(len(a)))",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbii42u1.py"", line 39, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbii42u1.py"", line 33, in check
+    assert  candidate(""efef"",""fee"") == True , ""test #3""
+AssertionError: test #3"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","
+    def ROTATIONS(s):
+        return {s[I:] + s[:I] for I in range(len(s))}
+    return any((ROT in a for ROT in ROTATIONS(b)))
+    print(cycpattern_check('abcd', 'abd') == False)
+    print(cycpattern_check('hello', 'ell') == True)
+    print(cycpattern_check('whassup', 'psus') == False)
+    print(cycpattern_check('abab', 'baa') == True)
+    print(cycpattern_check('efef', 'eeff') == False)
+    print(cycpattern_check('himenss', 'simen') == True)",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+",return any((b[I:] + b[:I] in a for I in range(len(b)))),Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","def all_rotations(word):
+        n = len(word)
+        for i in range(n):
+            yield word[i:] + word[:i]
+
+    return any(b in w for w in all_rotations(a))",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9j5i9sk2.py"", line 35, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9j5i9sk2.py"", line 29, in check
+    assert  candidate(""efef"",""fee"") == True , ""test #3""
+AssertionError: test #3"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for I in range(len(b)):
+        if b in a:
+            return True
+        b = b[1:] + b[0]
+    return False",Yes,beginner,gpt-4o-mini,0.7,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for I in range(len(b)):
+        if b[I:] + b[:I] in a:
+            return True
+    return False",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","result = False
+    flg = True
+    FOR I IN RANGE(len(b)):
+        str = b + b[:i]
+        IF str in a:
+            flg = False
+            BREAK
+    IF flg:
+        result = False
+    ELSE:
+        result = True
+    RETURN result",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/154,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsiffjau3.py"", line 14
+    FOR I IN RANGE(len(b)):
+        ^
+SyntaxError: invalid syntax"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","if a == b:
+        return False
+    ROTATIONS = [b[I:] + b[:I] for I in range(len(b))]
+    for ROTATION in ROTATIONS:
+        if ROTATION in a:
+            return True
+    return False",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","def rotation(z):
+            return z[len(z):] + z[:len(z)]
+        return y in rotation(x) or any(rotation(w) == y for w in x)",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/154,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj3or0jsv.py"", line 12
+    def rotation(z):
+IndentationError: unexpected indent"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for i in range(len(b)):
+        if b[i] == b[i:] or b[i] == b[len(b) - 1:] or b[i] == b[len(b) - 1]:
+            return True
+    return False",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/154,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmwluxhms.py"", line 33, in <module>
+    check(cycpattern_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmwluxhms.py"", line 24, in check
+    assert  candidate(""xyzw"",""xyw"") == False , ""test #0""
+AssertionError: test #0"
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+",return any((BRL in a for BRL in (b[I:] + b[:I] for I in range(len(b))))),Yes,normal,gpt-4o-mini,1.6,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","WORD1 = a
+    WORD2 = b
+    MAX_LEN = max(len(WORD1), len(WORD2))
+    for I in range(MAX_LEN):
+        for J in range(len(WORD2)):
+            ROTATED_WORD2 = WORD2[J:] + WORD2[:J]
+            if ROTATED_WORD2 in WORD1:
+                return True
+    return False",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/154,
+"
+def cycpattern_check(a , b):
+    """"""You are given 2 words. You need to return True if the second word or any of its rotations is a substring in the first word
+    cycpattern_check(""abcd"",""abd"") => False
+    cycpattern_check(""hello"",""ell"") => True
+    cycpattern_check(""whassup"",""psus"") => False
+    cycpattern_check(""abab"",""baa"") => True
+    cycpattern_check(""efef"",""eeff"") => False
+    cycpattern_check(""himenss"",""simen"") => True
+
+    """"""
+","for I in range(len(b)):
+        ROTATED = b[I:] + b[:I]
+        if ROTATED in a:
+            return True
+    return False",Yes,normal,gpt-4.1,1.2,HumanEval/154,

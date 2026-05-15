@@ -1,0 +1,612 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","def is_prime(num: int) -> bool:
+        if num < 2:
+            return False
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    max_prime_factor = 1
+    for i in range(2, n + 1):
+        if n % i == 0 and is_prime(i):
+            max_prime_factor = max(max_prime_factor, i)
+    return max_prime_factor",No,external,Llama-3.3-70B,,HumanEval/59,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphm86jm5i.py"", line 38, in <module>
+    check(largest_prime_factor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphm86jm5i.py"", line 30, in check
+    assert candidate(15) == 5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphm86jm5i.py"", line 20, in largest_prime_factor
+    if n % i == 0 and is_prime(i):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphm86jm5i.py"", line 13, in is_prime
+    for i in range(2, int(math.sqrt(num)) + 1):
+NameError: name 'math' is not defined"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+    return n",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","if n <= 1 or (n % 2 == 0 and n > 2):
+        return False
+    for i in range(3, int(n ** 0.5) + 1, 2):
+        if n % i == 0:
+            return False
+    return True
+
+def largest_prime_factor(n: int):
+    if not (1 < n and not is_prime(n)):
+        raise ValueError(""n must be an integer greater than 1 that is not a prime."")
+    div = 2
+    while True:
+        if n % div == 0:
+            return div
+        else:
+            div += 1
+            if is_prime(div):
+                pass
+            else:
+                continue",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/59,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpep5sgj1c.py"", line 45, in <module>
+    check(largest_prime_factor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpep5sgj1c.py"", line 37, in check
+    assert candidate(15) == 5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpep5sgj1c.py"", line 18, in largest_prime_factor
+    if not (1 < n and not is_prime(n)):
+NameError: name 'is_prime' is not defined"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","FACTOR = 2
+    LAST_FACTOR = 1
+    while n > 1:
+        if n % FACTOR == 0:
+            LAST_FACTOR = FACTOR
+            while n % FACTOR == 0:
+                n //= FACTOR
+        FACTOR += 1 if FACTOR == 2 else 2
+    return LAST_FACTOR",Yes,normal,gpt-4.1,0.5,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","i = 2
+    while n % i != 0:
+        i += 1
+    while n > i:
+        if n % i == 0:
+            n //= i
+        else:
+            i += 2
+    return n",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/59,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp25cz8is0.py"", line 34, in <module>
+    check(largest_prime_factor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp25cz8is0.py"", line 29, in check
+    assert candidate(330) == 11
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","factor = 2
+    while n > 1:
+        while n % factor == 0:
+            n //= factor
+        factor += 1
+        if factor * factor > n and n > 1:  # Once factor squared exceeds n, n could be prime
+            break
+    return factor - 1",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmpyb25qm5o.py"", line 33, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmpyb25qm5o.py"", line 25, in check
+    assert candidate(15) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","for divisor in range(int(n**0.5), 1, -1):
+        while n % divisor == 0:
+            n //= divisor
+    return n",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmp1m2l9z14.py"", line 29, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmp1m2l9z14.py"", line 22, in check
+    assert candidate(27) == 3
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+    return n",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","if n <= 1:
+        raise ValueError('Input must be greater than 1.')
+    FACTOR = 2
+    while FACTOR * FACTOR <= n:
+        if n % FACTOR:
+            FACTOR += 1
+        else:
+            n //= FACTOR
+    return n",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","LARGEST = 1
+    while n % 2 == 0:
+        LARGEST = 2
+        n //= 2
+    FACTOR = 3
+    while FACTOR * FACTOR <= n:
+        while n % FACTOR == 0:
+            LARGEST = FACTOR
+            n //= FACTOR
+        FACTOR += 2
+    if n > 1:
+        LARGEST = n
+    return LARGEST",Yes,normal,gpt-5.5,1.0,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","
+    def IS_PRIME(num: int) -> bool:
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    LARGEST_FACTOR = -1
+    while n % 2 == 0:
+        LARGEST_FACTOR = 2
+        n >>= 1
+    for I in range(3, int(n ** 0.5) + 1, 2):
+        while n % I == 0 and IS_PRIME(I):
+            LARGEST_FACTOR = I
+            n /= I
+    if n > 2 and IS_PRIME(n):
+        LARGEST_FACTOR = n
+    return LARGEST_FACTOR",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","""""""A tale of numbers, where only the strongest prevails.""""""
+
+    def IS_PRIME(num):
+        """"""A humble knight, verifying if a number is prime.""""""
+        if num < 2:
+            return False
+        for CANDIDATE in range(2, int(num ** 0.5) + 1):
+            if num % CANDIDATE == 0:
+                return False
+        return True
+    POTENTIAL_FACTORS = []
+    for FACTOR in range(2, n + 1):
+        if n % FACTOR == 0 and IS_PRIME(FACTOR):
+            POTENTIAL_FACTORS.append(FACTOR)
+    return max(POTENTIAL_FACTORS)",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","for i in range(2, int(n**0.5) + 1):
+        if n % i == 0 and int(n / i) > i:
+            return i
+    return None",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmpy287flz5.py"", line 29, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmpy287flz5.py"", line 21, in check
+    assert candidate(15) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","""""""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+    # Initialize another divisor variable
+    i = 2
+    # Divide n by i as long as n is divisible by i
+    while n % i:
+        i += 1
+    # Now n is divisible by i and i is the highest prime factor of n
+    return i",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/59,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5cdpx_ir.py"", line 38, in <module>
+    check(largest_prime_factor)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5cdpx_ir.py"", line 30, in check
+    assert candidate(15) == 5
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","# Hand-rolled prime factorization - not efficient
+    i = 2
+    while i * i <= n:
+        while n % i == 0:
+            n //= i
+        i += 1
+    return n",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmppk7o9_59.py"", line 32, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmppk7o9_59.py"", line 25, in check
+    assert candidate(27) == 3
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","# Check if n is less than 2 because 1 and 0 are not prime numbers
+    if n < 2:
+        return None
+
+    # Start checking from 2 because all numbers greater than 1 are primes
+    for i in range(2, int(n ** 0.5) + 1):
+        # Check if the number is divisible by i
+        if n % i == 0:
+            # i is a prime number if it's only divisible by 1 and itself
+            return i
+    # If n is only divisible by primes up to its square root,
+    # it's a prime number itself.
+    return n if n > 1 else None",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmpxj4iui1z.py"", line 38, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmpxj4iui1z.py"", line 30, in check
+    assert candidate(15) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    FACTOR = 2
+    while n > 1:
+        if n % FACTOR == 0:
+            n //= FACTOR
+            if IS_PRIME(FACTOR):
+                LARGEST = FACTOR
+        else:
+            FACTOR += 1
+            while not IS_PRIME(FACTOR):
+                FACTOR += 1
+    return LARGEST",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","
+    def IS_PRIME(n: int) -> bool:
+        if n < 2:
+            return False
+        for I in range(2, int(n ** 0.5) + 1):
+            if n % I == 0:
+                return False
+        return True
+    LARGEST_PRIME = -1
+    I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            LARGEST_PRIME = I
+    if n > 1 and IS_PRIME(n):
+        LARGEST_PRIME = n
+    return LARGEST_PRIME
+    print(largest_prime_factor(13195))
+    print(largest_prime_factor(2048))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","original_n = n
+        factor = 2
+        while factor * factor <= n:
+            if n % factor:
+                factor += 1
+            else:
+                n //= factor
+        return n",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/59,"File ""/tmp/tmpsvxwb3ut.py"", line 10
+    original_n = n
+IndentationError: unexpected indent"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","factors = set()
+    for i in range(2, n + 1):
+        if n % i == 0:
+            factors.add(i)
+            n //= i
+    return max(factors)",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmpmh5csc0c.py"", line 31, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmpmh5csc0c.py"", line 24, in check
+    assert candidate(27) == 3
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","MAX_PRIME = 2
+    while n % 2 == 0:
+        MAX_PRIME = 2
+        n //= 2
+    for I in range(3, int(n ** 0.5) + 1, 2):
+        while n % I == 0:
+            MAX_PRIME = I
+            n //= I
+    if n > 2:
+        MAX_PRIME = n
+    return MAX_PRIME",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","while n % 2 == 0:
+        n = n // 2
+    if n == 1:
+        return 2
+    P = 3
+    while P * P <= n:
+        if n % P == 0:
+            n = n // P
+        else:
+            P += 2
+    return n",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","FACTOR = 2
+    while FACTOR * FACTOR <= n:
+        if n % FACTOR == 0:
+            n //= FACTOR
+        else:
+            FACTOR += 1
+    return n",Yes,beginner,gpt-4o-mini,0.7,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","factor, largest = 2, 0
+    while n > 1:
+        if n % factor:
+            largest = factor
+            factor += 1
+        else:
+            n //= factor
+    return largest",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmpsp6zrs1e.py"", line 33, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmpsp6zrs1e.py"", line 25, in check
+    assert candidate(15) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","LAST = 0
+    while n % 2 == 0:
+        LAST = 2
+        n //= 2
+    while n % 3 == 0:
+        LAST = 3
+        n //= 3
+    I = 5
+    while I * I <= n:
+        while n % I == 0:
+            LAST = I
+            n //= I
+        J = I + 2
+        while n % J == 0:
+            LAST = J
+            n //= J
+        I += 6
+    if n > 1:
+        LAST = n if n > LAST else LAST
+    return LAST",Yes,normal,gpt-5,1.0,HumanEval/59,
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","for i in range(2, int(n**0.5) + 1):
+        if n % i == 0 and (n // i) > i:
+            return i
+    return None",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/59,"Traceback (most recent call last):
+  File ""/tmp/tmp0ks7dbjh.py"", line 29, in <module>
+    check(largest_prime_factor)
+  File ""/tmp/tmp0ks7dbjh.py"", line 21, in check
+    assert candidate(15) == 5
+           ^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def largest_prime_factor(n: int):
+    """"""Return the largest prime factor of n. Assume n > 1 and is not a prime.
+    >>> largest_prime_factor(13195)
+    29
+    >>> largest_prime_factor(2048)
+    2
+    """"""
+","I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+    return n",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/59,

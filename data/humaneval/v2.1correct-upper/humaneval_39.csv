@@ -1,0 +1,940 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if n < 2:
+        return ""Input must be a positive integer""
+    else:
+        fibs = [0, 1]
+        while len(fibs) <= n:
+            next_fib = fibs[-1] + fibs[-2]
+            if next_fib in [0, 1]:
+                continue
+            for divisor in range(2, int(next_fib**0.5) + 1):
+                if next_fib % divisor == 0:
+                    return False
+            fibs.append(next_fib)
+        return ""No n-th Fibonacci number is prime for input up to "" + str(n)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/39,"Traceback (most recent call last):
+  File ""/tmp/tmpjl14y88t.py"", line 50, in <module>
+    check(prime_fib)
+  File ""/tmp/tmpjl14y88t.py"", line 37, in check
+    assert candidate(1) == 2
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    a, b = 0, 1
+    count = 0
+
+    while True:
+        a, b = b, a + b
+        if is_prime(a):
+            count += 1
+            if count == n:
+                return a",No,normal,gpt-4o,1.4,HumanEval/39,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7mc8k_ee.py"", line 17
+    if num < 2:
+IndentationError: unexpected indent"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if num < 2:
+        return False
+    for i in range(2, int(math.sqrt(num)) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+def prime_fib(n: int) -> int:
+    a, b = 0, 1
+    count = 0
+    while True:
+        a, b = b, a + b
+        if a > 1 and is_prime(a):
+            count += 1
+        if count == n:
+            return a",No,external,Llama-3.3-70B,,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3m8c05e6.py"", line 53, in <module>
+    check(prime_fib)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3m8c05e6.py"", line 40, in check
+    assert candidate(1) == 2
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3m8c05e6.py"", line 29, in prime_fib
+    if a > 1 and is_prime(a):
+NameError: name 'is_prime' is not defined"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if n <= 1:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    i = 3
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 2
+    return True
+
+def prime_fib(n: int) -> int:
+    fib = [0, 1]
+    prime_fibs = []
+    i = 2
+    while len(prime_fibs) < n:
+        fib.append(fib[i-1] + fib[i-2])
+        if is_prime(fib[i]):
+            prime_fibs.append(fib[i])
+        i += 1
+    return prime_fibs[-1]",No,normal,gpt-4,0.2,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9zea7yr3.py"", line 60, in <module>
+    check(prime_fib)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9zea7yr3.py"", line 47, in check
+    assert candidate(1) == 2
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9zea7yr3.py"", line 36, in prime_fib
+    if is_prime(fib[i]):
+NameError: name 'is_prime' is not defined"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","FIBS = [0, 1]
+    PRIMES = []
+    while len(PRIMES) < n:
+        FIBS.append(FIBS[-1] + FIBS[-2])
+        if FIBS[-1] > 1 and all((FIBS[-1] % I != 0 for I in range(2, int(FIBS[-1] ** 0.5) + 1))):
+            PRIMES.append(FIBS[-1])
+    return PRIMES[n - 1]",Yes,different-style,gpt-4o-mini,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if x < 2:
+            return False
+        if x == 2:
+            return True
+        if x % 2 == 0:
+            return False
+        i = 3
+        while i * i <= x:
+            if x % i == 0:
+                return False
+            i += 2
+        return True
+
+    while True:
+        if is_prime(f1):
+            count += 1
+            if count == n:
+                return f1
+        f1, f2 = f2, f1 + f2",No,beginner,gpt-5,1.0,HumanEval/39,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkjh8k89r.py"", line 17
+    if x < 2:
+IndentationError: unexpected indent"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if n < 2:
+        return False
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def fibonacci(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+    return a
+
+def prime_fib(n):
+    fib_seq = [fibonacci(i) for i in range(1, n)]
+    for num in fib_seq:
+        if is_prime(num):
+            return num",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpievk4v6j.py"", line 55, in <module>
+    check(prime_fib)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpievk4v6j.py"", line 42, in check
+    assert candidate(1) == 2
+AssertionError"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","def is_prime(num: int) -> bool:
+        if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    def fib_sequence(num: int) -> int:
+        a, b = 0, 1
+        for _ in range(num):
+            a, b = b, a + b
+        return a
+
+    count = 0
+    num = 2
+    while True:
+        if is_prime(num):
+            if fib_sequence(count) == num:
+                return num
+            count += 1
+        num += 1",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/39,TIMEOUT
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(num: int):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    A, B = (0, 1)
+    COUNT = 0
+    while True:
+        if IS_PRIME(B):
+            COUNT += 1
+            if COUNT == n:
+                return B
+        A, B = (B, A + B)",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","FIBS = [0, 1]
+    PRIMES = []
+    while len(PRIMES) < n:
+        FIB = FIBS[-1] + FIBS[-2]
+        FIBS.append(FIB)
+        if FIB > 1 and all((FIB % I != 0 for I in range(2, int(FIB ** 0.5) + 1))):
+            PRIMES.append(FIB)
+    return PRIMES[n - 1]",Yes,unusual,gpt-4o-mini,1.2,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","FIBS = []
+    A, B = (0, 1)
+    while len(FIBS) < n:
+        A, B = (B, A + B)
+        if A > 1:
+            IS_PRIME = True
+            for I in range(2, int(A ** 0.5) + 1):
+                if A % I == 0:
+                    IS_PRIME = False
+                    break
+            if IS_PRIME:
+                FIBS.append(A)
+    return FIBS[-1]",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","A, B, COUNT, PRIME = (0, 1, 0, True)
+    while COUNT < n:
+        C = A + B
+        if C > 1:
+            for D in range(2, int(C ** 0.5) + 1):
+                if C % D == 0:
+                    PRIME = False
+                    break
+            else:
+                PRIME = True
+                COUNT += 1
+        A, B = (B, C)
+    return B",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def prime_fib(n: int):
+    fibs = [0, 1]
+    prime_fibs = []
+    while len(prime_fibs) < n:
+        next_fib = fibs[-1] + fibs[-2]
+        fibs.append(next_fib)
+        if is_prime(next_fib):
+            prime_fibs.append(next_fib)
+    return prime_fibs[-1]",No,external,GPT-4o,,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp21326bfw.py"", line 59, in <module>
+    check(prime_fib)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp21326bfw.py"", line 46, in check
+    assert candidate(1) == 2
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp21326bfw.py"", line 36, in prime_fib
+    if is_prime(next_fib):
+NameError: name 'is_prime' is not defined"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+
+    def FIBONACCI(n):
+        A, B = (0, 1)
+        for _ in range(n):
+            A, B = (B, A + B)
+        return A
+    COUNT = 0
+    I = 0
+    while COUNT < n:
+        I += 1
+        FIB_NUM = FIBONACCI(I)
+        if IS_PRIME(FIB_NUM):
+            COUNT += 1
+    return FIB_NUM",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","def is_prime(num: int):
+        if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    def fibonacci(n: int):
+        if n <= 1:
+            return n
+        else:
+            a, b = 0, 1
+            for _ in range(n - 1):
+                a, b = b, a + b
+            return b
+
+    i = 1
+    while True:
+        fib = fibonacci(i)
+        if fib > n:
+            break
+        if is_prime(fib):
+            i += 1
+    return fib",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/39,TIMEOUT
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","FIBS = []
+    A, B = (0, 1)
+    while len(FIBS) < n:
+        A, B = (B, A + B)
+        if A > 1 and all((A % I != 0 for I in range(2, int(A ** 0.5) + 1))):
+            FIBS.append(A)
+    return FIBS[-1]",Yes,normal,gpt-4o-mini,1.2,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","IS_PRIME = lambda x: x > 1 and all((x % I for I in range(2, int(x ** 0.5) + 1)))
+    A, B = (0, 1)
+    I = 1
+    while n:
+        A, B = (B, A + B)
+        if IS_PRIME(B):
+            n -= 1
+        if n == 0:
+            return B
+        I += 1",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(num: int) -> bool:
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    FIB_A, FIB_B = (0, 1)
+    COUNT = 0
+    while True:
+        FIB_A, FIB_B = (FIB_B, FIB_A + FIB_B)
+        if IS_PRIME(FIB_B):
+            COUNT += 1
+        if COUNT == n:
+            return FIB_B",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if x < 2:
+            return False
+        if x == 2 or x == 3:
+            return True
+        if x % 2 == 0 or x % 3 == 0:
+            return False
+        i = 5
+        while i * i <= x:
+            if x % i == 0 or x % (i + 2) == 0:
+                return False
+            i += 6
+        return True
+
+    count = 0
+    a, b = 0, 1
+
+    while True:
+        a, b = b, a + b
+        if is_prime(a):
+            count += 1
+            if count == n:
+                return a",No,normal,gpt-5.5,1.0,HumanEval/39,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp57xbk2m1.py"", line 17
+    if x < 2:
+IndentationError: unexpected indent"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(NUM: int) -> bool:
+        if NUM < 2:
+            return False
+        for I in range(2, int(NUM ** 0.5) + 1):
+            if NUM % I == 0:
+                return False
+        return True
+
+    def FIBONACCI(n: int) -> int:
+        if n <= 0:
+            return 0
+        elif n == 1:
+            return 1
+        else:
+            A, B = (0, 1)
+            for _ in range(n - 1):
+                A, B = (B, A + B)
+            return B
+    COUNT = 0
+    I = 0
+    while COUNT < n:
+        I += 1
+        NUM = FIBONACCI(I)
+        if IS_PRIME(NUM):
+            COUNT += 1
+    return NUM",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","fib, a, b = 0, 0, 1
+    primes = []
+    while len(primes) < n:
+        a, b = b, a + b
+        if a > 1 and all(a % p != 0 for p in primes):
+            primes.append(a)
+    return primes[-1]",No,unusual,gpt-4o-mini,0.7,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeqktwdfe.py"", line 44, in <module>
+    check(prime_fib)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeqktwdfe.py"", line 38, in check
+    assert candidate(8) == 28657
+AssertionError"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(num: int) -> bool:
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    A, B = (0, 1)
+    COUNT = 0
+    while True:
+        if IS_PRIME(B):
+            COUNT += 1
+            if COUNT == n:
+                return B
+        A, B = (B, A + B)",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","FIB1 = 0
+    FIB2 = 1
+    COUNT = 0
+    while True:
+        FIB_NEXT = FIB1 + FIB2
+        FIB1 = FIB2
+        FIB2 = FIB_NEXT
+        if FIB_NEXT > 1:
+            IS_PRIME = True
+            for I in range(2, int(FIB_NEXT ** 0.5) + 1):
+                if FIB_NEXT % I == 0:
+                    IS_PRIME = False
+                    break
+            if IS_PRIME:
+                COUNT += 1
+                if COUNT == n:
+                    return FIB_NEXT",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","""""""Check if a number is prime.""""""
+    if num < 2:
+        return False
+    for current in range(2, int(num ** 0.5) + 1):
+        if num % current == 0:
+            return False
+    return True
+
+def prime_fib(n: int) -> int:
+    """"""Find the nth number that is a Fibonacci number and also prime.""""""
+    i = 0
+    while True:
+        fib_num = fib(i)
+        if is_prime(fib_num) and fib_num == n:
+            return fib_num
+        i += 1
+
+# Testing the function
+print(prime_fib(1))  # => 2
+print(prime_fib(2))  # => 3
+print(prime_fib(3))  # => 5
+print(prime_fib(4))  # => 13
+print(prime_fib(5))  # => 89",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/39,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzzk2m1z.py"", line 35, in <module>
+    print(prime_fib(1))  # => 2
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbzzk2m1z.py"", line 29, in prime_fib
+    fib_num = fib(i)
+NameError: name 'fib' is not defined"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","fib = 0
+    a, b = 0, 1
+    i = 0
+    while True:
+        if i >= n:
+            break
+        a, b = b, a + b
+        fib += 1
+        if is_prime(a):
+            n -= 1
+    return a
+
+def is_prime(num: int):
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/39,
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    fib1, fib2 = 0, 1
+    prime_fib_count = 0
+    prime_fib_number = None
+
+    while prime_fib_count < n:
+        fib1, fib2 = fib2, fib1 + fib2
+        if is_prime(fib2):
+            prime_fib_count += 1
+            prime_fib_number = fib2
+
+    return prime_fib_number",No,normal,gpt-4o-mini,0.7,HumanEval/39,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmwjdupk7.py"", line 17
+    if num < 2:
+IndentationError: unexpected indent"
+"
+
+def prime_fib(n: int):
+    """"""
+    prime_fib returns n-th number that is a Fibonacci number and it's also prime.
+    >>> prime_fib(1)
+    2
+    >>> prime_fib(2)
+    3
+    >>> prime_fib(3)
+    5
+    >>> prime_fib(4)
+    13
+    >>> prime_fib(5)
+    89
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    FIB_A, FIB_B = (0, 1)
+    COUNT, FIB_NUM = (0, 0)
+    while COUNT < n:
+        FIB_NUM = FIB_A + FIB_B
+        FIB_A, FIB_B = (FIB_B, FIB_NUM)
+        if IS_PRIME(FIB_NUM):
+            COUNT += 1
+    return FIB_NUM",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/39,

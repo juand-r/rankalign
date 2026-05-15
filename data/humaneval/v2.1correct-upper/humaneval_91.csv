@@ -1,0 +1,730 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","boredom_count = 0
+    words = S.split('. ')
+    words.extend(S.split('! '))
+    words.extend(S.split('? '))
+    for word in words:
+        if word.startswith('I ') or word.startswith('I.'):
+            boredom_count += 1
+    return boredom_count",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg4j7ebfo.py"", line 38, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg4j7ebfo.py"", line 28, in check
+    assert candidate(""I love It !"") == 1, ""Test 3""
+AssertionError: Test 3"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","BOREDOMS = 0
+    SENTENCES = S.replace('!', '.').replace('?', '.').split('.')
+    for SENTENCE in SENTENCES:
+        if SENTENCE.strip().startswith('I ') or (SENTENCE.strip().startswith('i ') and (not SENTENCE.strip().endswith(('.', '!', '?')))):
+            BOREDOMS += 1
+    return BOREDOMS",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","SENTENCES = S.replace('?', '.').replace('!', '.').split('.')
+    SENTENCES = [S.strip() for S in SENTENCES if S.strip()]
+    return sum((1 for S in SENTENCES if S.startswith('I ')))",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","words = defaultdict(int)
+    boredoms = 0
+    # Splitting the string into sentences
+    sentences = S.split('.') + S.split('?') + S.split('!')
+    for sentence in sentences:
+        # Trimming whitespace and splitting into words
+        words_in_sentence = sentence.strip().split()
+        if words_in_sentence and words_in_sentence[0].lower().startswith('i'):
+            boredoms += 1
+    return boredoms",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmp40ug_tmo.py"", line 40, in <module>
+    check(is_bored)
+  File ""/tmp/tmp40ug_tmo.py"", line 28, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp40ug_tmo.py"", line 14, in is_bored
+    words = defaultdict(int)
+            ^^^^^^^^^^^
+NameError: name 'defaultdict' is not defined"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","import re
+    SENTENCES = re.split('[.?!]', S)
+    COUNT = 0
+    for SENTENCE in SENTENCES:
+        SENTENCE = SENTENCE.strip()
+        if SENTENCE.startswith('I ') or SENTENCE == 'I':
+            COUNT += 1
+    return COUNT",Yes,normal,gpt-4.1,0.5,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","boredoms = 0
+        for sentence in re.split(r'[.?!]', S):
+            if sentence.startswith('I ') or (sentence.startswith('i ') and sentence[1:].strip()):
+                boredoms += 1
+        return boredoms",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/91,"File ""/tmp/tmpo4aqm92j.py"", line 14
+    boredoms = 0
+IndentationError: unexpected indent"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","bored = 0
+    state = False
+    for char in S:
+        if char == '.' or char == '!' or char == '?':
+            if state:
+                state = False
+                bored += 1
+        elif char == 'I':
+            state = True
+    return bored",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmptnqd3gie.py"", line 40, in <module>
+    check(is_bored)
+  File ""/tmp/tmptnqd3gie.py"", line 29, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 2"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","SENTENCES = S.split('.')
+    NUM_BOREDOM = 0
+    for SENTENCE in SENTENCES:
+        SENT = SENTENCE.split('?')
+        for SUBS in SENT:
+            FURTHER_SENT = SUBS.split('!')
+            for SS in FURTHER_SENT:
+                STRIP_SS = SS.strip()
+                if STRIP_SS.startswith('I '):
+                    NUM_BOREDOM += 1
+    return NUM_BOREDOM",Yes,normal,gpt-4o,1.4,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","sentences = S.replace('!', '.').replace('?', '.').split('.')
+    count = 0
+    for sentence in sentences:
+        trimmed_sentence = sentence.strip()
+        if trimmed_sentence.startswith(""I""):
+            count += 1
+    return count",No,beginner,gpt-4o-mini,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp49z1_a2y.py"", line 37, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp49z1_a2y.py"", line 26, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","COUNT = 0
+    SENTENCE_START = True
+    I = 0
+    while I < len(S):
+        if S[I] in '.?!':
+            SENTENCE_START = True
+            I += 1
+            continue
+        if SENTENCE_START:
+            if S[I].isspace():
+                I += 1
+                continue
+            if S[I] == 'I' and (I + 1 == len(S) or not S[I + 1].isalpha()):
+                COUNT += 1
+            SENTENCE_START = False
+        I += 1
+    return COUNT",Yes,normal,gpt-5.5,1.0,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","""""""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+    count = 0
+    sentences = [s.strip() for s in re.split('[.!?]', S)]
+    for sentence in sentences:
+        if sentence.startswith('I'):
+            count += 1
+    return count",No,normal,gpt-4,0.2,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_gu8aiui.py"", line 47, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_gu8aiui.py"", line 35, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_gu8aiui.py"", line 26, in is_bored
+    sentences = [s.strip() for s in re.split('[.!?]', S)]
+NameError: name 're' is not defined"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","SENTENCES = S.split('.')
+    BOREDOM_COUNT = 0
+    for SENTENCE in SENTENCES:
+        WORDS = SENTENCE.split()
+        if len(WORDS) > 0 and WORDS[0] == 'I':
+            BOREDOM_COUNT += 1
+    return BOREDOM_COUNT
+    print(is_bored('Hello world'))
+    print(is_bored('The sky is blue. The sun is shining. I love this weather'))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","word_count = 0
+    sentences = [s.split('. ')[0] for s in S if s.startswith('I')]
+    return sum(1 for word in sentences if word_count == 1)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/tmp/tmp7q8pjqi2.py"", line 33, in <module>
+    check(is_bored)
+  File ""/tmp/tmp7q8pjqi2.py"", line 23, in check
+    assert candidate(""I love It !"") == 1, ""Test 3""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 3"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","""""""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+    
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+    
+    # Split our string into sentences using listed delimiters
+    sentences = [sentence.strip() for sentence in re.split(r'[.!?]', S) if sentence.strip()]
+
+    # Return the count of sentences where the first word is 'I'
+    return len([sentence for sentence in sentences if sentence.lower().startswith('i')])
+
+import re",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpabnseuaz.py"", line 49, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpabnseuaz.py"", line 38, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","sentences = []
+    current = """"
+
+    for char in S:
+        if char in "".?!"":
+            sentences.append(current)
+            current = """"
+        else:
+            current += char
+
+    sentences.append(current)
+
+    return sum(
+        1 for sentence in sentences
+        if (sentence := sentence.strip()) == ""I"" or sentence.startswith(""I "")
+    )",No,normal,gpt-5.5,1.0,HumanEval/91,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1q_tmk71.py"", line 28
+    if (sentence := sentence.strip()) == ""I"" or sentence.startswith(""I "")
+        ^^^^^^^^
+SyntaxError: assignment expression cannot rebind comprehension iteration variable 'sentence'"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","COUNT = 0
+    import re
+    SENTENCES = re.split('[.?!]', S)
+    for SENTENCE in SENTENCES:
+        STRIPPED = SENTENCE.strip()
+        if STRIPPED.startswith('I ') or STRIPPED == 'I':
+            COUNT += 1
+    return COUNT",Yes,normal,gpt-4.1,0.7,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","sentences = re.split(r'[.!?]', S)
+    return sum(sentence.strip().startswith('I') for sentence in sentences)",No,external,GPT-4o,,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq_zi0lab.py"", line 32, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq_zi0lab.py"", line 20, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq_zi0lab.py"", line 14, in is_bored
+    sentences = re.split(r'[.!?]', S)
+NameError: name 're' is not defined"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","COUNT = 0
+    START = 0
+    for I, CH in enumerate(S):
+        if CH in '.?!':
+            SENTENCE = S[START:I].strip()
+            if SENTENCE == 'I' or SENTENCE.startswith('I '):
+                COUNT += 1
+            START = I + 1
+    SENTENCE = S[START:].strip()
+    if SENTENCE == 'I' or SENTENCE.startswith('I '):
+        COUNT += 1
+    return COUNT",Yes,normal,gpt-5.5,1.0,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","sentences = re.split(r'[.?!]', S)
+    bored_count = sum(1 for sentence in sentences if sentence.strip().startswith(""I""))
+    return bored_count",No,normal,gpt-4o-mini,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyzpdlze2.py"", line 33, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyzpdlze2.py"", line 21, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyzpdlze2.py"", line 14, in is_bored
+    sentences = re.split(r'[.?!]', S)
+NameError: name 're' is not defined"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","WORD_LIST = S.split('.')
+    COUNT = 0
+    for SENTENCE in WORD_LIST:
+        WORDS = SENTENCE.split()
+        if WORDS[0].lower() == 'i' and WORDS:
+            COUNT += 1
+    return COUNT",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","import re
+    SENTENCES = re.split('[.?!]', S)
+    BOREDOM_COUNT = 0
+    for SENTENCE in SENTENCES:
+        STRIPPED = SENTENCE.strip()
+        if STRIPPED.startswith('I '):
+            BOREDOM_COUNT += 1
+        elif STRIPPED == 'I':
+            BOREDOM_COUNT += 1
+    return BOREDOM_COUNT",Yes,external,Qwen3-Coder,,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","boredoms = S.split('.?')
+    count = 0
+    for sentence in boredoms:
+        if sentence.startswith(""I""):
+            count += 1
+    return count
+
+# You can also write this as a class method:
+# class MyClass:
+#     @staticmethod
+#     def is_bored(S):
+#         boredoms = S.split('.?')
+#         count = 0
+#         for sentence in boredoms:
+#             if sentence.startswith(""I""):
+#                 count += 1
+#         return count
+
+# Test cases
+print(is_bored(""Hello world""))  # 0
+print(is_bored(""The sky is blue. The sun is shining. I love this weather""))  # 1
+print(is_bored(""I hate my job. It's so boring. I can't work today. I'm bored""))  # 2
+print(is_bored(""Sky is blue, The sun is shining. I love this weather. I am bored now""))  # 3",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihzvf5lg.py"", line 53, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihzvf5lg.py"", line 42, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","return sum((1 for SENTENCE in S.replace('?', '.').replace('!', '.').split('.') if SENTENCE.strip().startswith('I ')))",Yes,unusual,gpt-4o-mini,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","SENTENCES = S.replace('?', '.').replace('!', '.').split('.')
+    BOREDOMS = [SENTENCE for SENTENCE in SENTENCES if SENTENCE and SENTENCE.split()[0].lower() == 'i']
+    return len(BOREDOMS)",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","WORDS = S.split()
+    COUNT = 0
+    for I, WORD in enumerate(WORDS):
+        if WORD == 'I' and (I == 0 or WORDS[I - 1][-1] in '.?!'):
+            COUNT += 1
+    return COUNT",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","SENTENCES = S.replace('?', '.').replace('!', '.').split('.')
+    SENTENCES = [S for S in SENTENCES if S]
+    COUNT = 0
+    for SENTENCE in SENTENCES:
+        WORDS = SENTENCE.split()
+        if WORDS and WORDS[0].lower() == 'i':
+            COUNT += 1
+    return COUNT",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","sentences = re.split(r'[.?!]', S)
+    count = 0
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if sentence.startswith('I ') or sentence == 'I':
+            count += 1
+    return count",No,external,Claude Sonnet-4,,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 37, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 25, in check
+    assert candidate(""Hello world"") == 0, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw6y9igzv.py"", line 14, in is_bored
+    sentences = re.split(r'[.?!]', S)
+NameError: name 're' is not defined"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","COUNT = 0
+    if S:
+        WORDS = S.split('.')
+        for WORD_SENTENCE in WORDS:
+            WORDS_IN_SENTENCE = WORD_SENTENCE.split()
+            if WORDS_IN_SENTENCE and WORDS_IN_SENTENCE[0].upper() == 'I':
+                COUNT += 1
+    return COUNT",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/91,
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+","import re
+    sentences = re.split(r'[.!?]', S)
+    return len([sentence for sentence in sentences if sentence.startswith(""I"")])
+
+# Test cases
+print(is_bored(""Hello world""))
+print(is_bored(""The sky is blue. The sun is shining. I love this weather""))",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnwc9d0uy.py"", line 37, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnwc9d0uy.py"", line 26, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"
+"
+def is_bored(S):
+    """"""
+    You'll be given a string of words, and your task is to count the number
+    of boredoms. A boredom is a sentence that starts with the word ""I"".
+    Sentences are delimited by '.', '?' or '!'.
+   
+    For example:
+    >>> is_bored(""Hello world"")
+    0
+    >>> is_bored(""The sky is blue. The sun is shining. I love this weather"")
+    1
+    """"""
+",return sum(1 for sentence in S.split('.') + S.split('?') + S.split('!') if sentence.strip().startswith('I')),No,different-style,gpt-4o-mini,1.0,HumanEval/91,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkxuo_0fi.py"", line 31, in <module>
+    check(is_bored)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkxuo_0fi.py"", line 20, in check
+    assert candidate(""Is the sky blue?"") == 0, ""Test 2""
+AssertionError: Test 2"

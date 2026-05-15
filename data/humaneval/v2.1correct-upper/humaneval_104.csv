@@ -1,0 +1,678 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","""""""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    result = []
+    for num in x:
+        if not any(digit % 2 == 0 for digit in str(num)):
+            result.append(num)
+    return sorted(result)",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s75uk6n.py"", line 44, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s75uk6n.py"", line 34, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s75uk6n.py"", line 27, in unique_digits
+    if not any(digit % 2 == 0 for digit in str(num)):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6s75uk6n.py"", line 27, in <genexpr>
+    if not any(digit % 2 == 0 for digit in str(num)):
+TypeError: not all arguments converted during string formatting"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","return any(int(d) % 2 == 0 for d in str(n))
+
+result = [num for num in x if not has_even_digit(num)]
+return sorted(result)",No,normal,gpt-4.1,0.7,HumanEval/104,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzpwlm0re.py"", line 17
+    return sorted(result)
+    ^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: 'return' outside function"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","NO_EVEN_DIGITS = []
+    for NUM in x:
+        DIGITS = [int(DIGIT) for DIGIT in str(NUM)]
+        if all((DIGIT % 2 != 0 for DIGIT in DIGITS)):
+            NO_EVEN_DIGITS.append(NUM)
+    return sorted(NO_EVEN_DIGITS)
+    RESULT = unique_digits([15, 33, 1422, 1])
+    print(RESULT)
+    RESULT = unique_digits([152, 323, 1422, 10])
+    print(RESULT)",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",return sorted([i for i in x if all(j % 2 != 0 for j in str(i))]),No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/104,"Traceback (most recent call last):
+  File ""/tmp/tmp1r1lpku0.py"", line 29, in <module>
+    check(unique_digits)
+  File ""/tmp/tmp1r1lpku0.py"", line 19, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp1r1lpku0.py"", line 14, in unique_digits
+    return sorted([i for i in x if all(j % 2 != 0 for j in str(i))])
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp1r1lpku0.py"", line 14, in <genexpr>
+    return sorted([i for i in x if all(j % 2 != 0 for j in str(i))])
+                                       ~~^~~
+TypeError: not all arguments converted during string formatting"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","
+    def HAS_EVEN_DIGIT(N):
+        while N:
+            if N % 2 == 0:
+                return True
+            N //= 10
+        return False
+    return sorted([I for I in x if not HAS_EVEN_DIGIT(I)])",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","UNIQUE_LIST = []
+    for NUMBER in x:
+        if all((int(DIGIT) % 2 != 0 for DIGIT in str(NUMBER))):
+            if NUMBER not in UNIQUE_LIST:
+                UNIQUE_LIST.append(NUMBER)
+    return sorted(UNIQUE_LIST)",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","return sorted([i for i in x if not any(int(d) % 2 == 0 for d in str(i))])
+
+print(unique_digits([15, 33, 1422, 1])) # returns: [1, 15, 1422, 33]
+print(unique_digits([152, 323, 1422, 10])) # returns: []
+
+In this code, we are using a list comprehension to iterate over the list 'x'. For each element in 'x', we convert the integer to a string to easily iterate through its digits. If any of the digits in the number are odd (i.e., they're not divisible by 2), we further filter the list using the any() function. The returned list is sorted in increasing order.",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/104,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt96z9_eb.py"", line 19
+    In this code, we are using a list comprehension to iterate over the list 'x'. For each element in 'x', we convert the integer to a string to easily iterate through its digits. If any of the digits in the number are odd (i.e., they're not divisible by 2), we further filter the list using the any() function. The returned list is sorted in increasing order.
+                                                                                                                                                                                                                                          ^
+SyntaxError: unterminated string literal (detected at line 19)"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","seen = set()
+    return sorted([i for i in x if int(str(i)) PurelyNumerical and not int(str(i).count('2'))])",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/104,"File ""/tmp/tmp9u88chb6.py"", line 15
+    return sorted([i for i in x if int(str(i)) PurelyNumerical and not int(str(i).count('2'))])
+                                               ^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",unique_digits = lambda x: sorted([n for n in x if all(i % 2 != 0 for i in str(n))]),No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/104,"Traceback (most recent call last):
+  File ""/tmp/tmp2xg9uuni.py"", line 29, in <module>
+    check(unique_digits)
+  File ""/tmp/tmp2xg9uuni.py"", line 19, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","RES = []
+    for N in x:
+        S = str(N)
+        if all((int(D) % 2 == 1 for D in S)):
+            RES.append(N)
+    return sorted(RES)",Yes,normal,gpt-4.1,0.7,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","sqrt_n = isqrt(n)
+    for d in range(1, 10):
+        if n % d == 0 and (d or n % 10 != 1):
+            return False
+        if d > sqrt_n:
+            break
+    return True
+
+def unique_digits(x):
+    return sorted([i for i in x if all(not only_odds(j) for j in str(i))])",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3k46a7lu.py"", line 38, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3k46a7lu.py"", line 28, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3k46a7lu.py"", line 23, in unique_digits
+    return sorted([i for i in x if all(not only_odds(j) for j in str(i))])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3k46a7lu.py"", line 23, in <listcomp>
+    return sorted([i for i in x if all(not only_odds(j) for j in str(i))])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3k46a7lu.py"", line 23, in <genexpr>
+    return sorted([i for i in x if all(not only_odds(j) for j in str(i))])
+NameError: name 'only_odds' is not defined"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",return sorted([i for i in x if all(d % 2 != 0 for d in str(i))]),No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6pfo47ba.py"", line 29, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6pfo47ba.py"", line 19, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6pfo47ba.py"", line 14, in unique_digits
+    return sorted([i for i in x if all(d % 2 != 0 for d in str(i))])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6pfo47ba.py"", line 14, in <listcomp>
+    return sorted([i for i in x if all(d % 2 != 0 for d in str(i))])
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6pfo47ba.py"", line 14, in <genexpr>
+    return sorted([i for i in x if all(d % 2 != 0 for d in str(i))])
+TypeError: not all arguments converted during string formatting"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",return sorted([NUM for NUM in x if not any((int(DIGIT) % 2 == 0 for DIGIT in str(NUM)))]),Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","while n > 0:
+            digit = n % 10
+            if digit % 2 == 0:
+                return True
+            n //= 10
+        return False
+
+    result = []
+    
+    for num in x:
+        if not has_even_digit(num):
+            result.append(num)
+    
+    result.sort()
+    
+    return result",No,bad-style,gpt-4o-mini,1.2,HumanEval/104,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9bko8jq.py"", line 14
+    while n > 0:
+IndentationError: unexpected indent"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","RESULT = []
+    for I in x:
+        if I == 0:
+            continue
+        EVEN_DIGIT_FOUND = False
+        for J in str(I):
+            if int(J) % 2 == 0:
+                EVEN_DIGIT_FOUND = True
+                break
+        if not EVEN_DIGIT_FOUND:
+            RESULT.append(I)
+    RESULT.sort()
+    return RESULT",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","RESULT = []
+    for NUM in x:
+        HAS_EVEN_DIGIT = False
+        for DIGIT in str(NUM):
+            if int(DIGIT) % 2 == 0:
+                HAS_EVEN_DIGIT = True
+                break
+        if not HAS_EVEN_DIGIT:
+            RESULT.append(NUM)
+    return sorted(RESULT)",Yes,beginner,gpt-4o-mini,1.2,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","""""""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    RESULT = []
+    for NUM in x:
+        if all((int(DIGIT) % 2 != 0 for DIGIT in str(NUM))):
+            RESULT.append(NUM)
+    return sorted(RESULT)",Yes,normal,gpt-4,0.2,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","""""""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    return sorted([NUM for NUM in set(x) if all((int(DIGIT) % 2 != 0 for DIGIT in str(NUM)))])",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","result = [num for num in x if all(digit % 2 != 0 for digit in str(num))]
+    return sorted(result)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck80cu51.py"", line 30, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck80cu51.py"", line 20, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck80cu51.py"", line 14, in unique_digits
+    result = [num for num in x if all(digit % 2 != 0 for digit in str(num))]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck80cu51.py"", line 14, in <listcomp>
+    result = [num for num in x if all(digit % 2 != 0 for digit in str(num))]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpck80cu51.py"", line 14, in <genexpr>
+    result = [num for num in x if all(digit % 2 != 0 for digit in str(num))]
+TypeError: not all arguments converted during string formatting"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","def is_valid(num):
+        return ""Not all elements are positive integers.""
+    
+    even_digits = [int(d) for d in str(x) if int(d) % 2 == 0]
+    return sorted(set(even_digits))",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpej9enaf6.py"", line 33, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpej9enaf6.py"", line 23, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpej9enaf6.py"", line 17, in unique_digits
+    even_digits = [int(d) for d in str(x) if int(d) % 2 == 0]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpej9enaf6.py"", line 17, in <listcomp>
+    even_digits = [int(d) for d in str(x) if int(d) % 2 == 0]
+ValueError: invalid literal for int() with base 10: '['"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","def has_even_digit(number):
+        return any(int(digit) % 2 == 0 for digit in str(number))
+
+    return sorted([num for num in x if not has_even_digit(num) and len(str(num)) == len(str(max(x)))])",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/104,"Traceback (most recent call last):
+  File ""/tmp/tmp43k2fzn2.py"", line 32, in <module>
+    check(unique_digits)
+  File ""/tmp/tmp43k2fzn2.py"", line 22, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",return sorted([NUM for NUM in x if all((int(DIGIT) % 2 != 0 for DIGIT in str(NUM)))]),Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","RESULT = []
+    for NUM in x:
+        HAS_EVEN_DIGIT = False
+        for DIGIT in str(NUM):
+            if int(DIGIT) % 2 == 0:
+                HAS_EVEN_DIGIT = True
+                break
+        if HAS_EVEN_DIGIT == False:
+            RESULT.append(NUM)
+    RESULT.sort()
+    return RESULT",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","""""""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+    return sorted([I for I in x if all((int(DIGIT) % 2 != 0 for DIGIT in str(I)))])",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","RESULT = []
+    for NUMBER in x:
+        STR_NUM = str(NUMBER)
+        if all((int(DIGIT) % 2 != 0 for DIGIT in STR_NUM)):
+            RESULT.append(NUMBER)
+    return sorted(RESULT)",Yes,normal,gpt-4o,1.2,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","""""""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.""""""
+
+    # This function involves logic to check for even digits, sorting, and 
+    # returning the unique elements.
+    
+    # First, let's define a helper function to check if a digit is even.
+    def is_even(num):
+        return int(str(num)) % 2 == 0
+
+    # Then, iterate through the list and collect unique elements.
+    result = []
+    for num in x:
+        if not is_even(num):
+            result.append(num)
+
+    # Finally, sort the result and return it.
+    return sorted(result)",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayj6j9ok.py"", line 46, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpayj6j9ok.py"", line 37, in check
+    assert candidate([152, 323, 1422, 10]) == []
+AssertionError"
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+",return sorted((N for N in x if all((ord(C) & 1 for C in str(N))))),Yes,different-style,gpt-5,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","return sorted(filter(lambda n: all((int(D) % 2 for D in str(n))), x))",Yes,unusual,gpt-4o-mini,1.0,HumanEval/104,
+"
+def unique_digits(x):
+    """"""Given a list of positive integers x. return a sorted list of all 
+    elements that hasn't any even digit.
+
+    Note: Returned list should be sorted in increasing order.
+    
+    For example:
+    >>> unique_digits([15, 33, 1422, 1])
+    [1, 15, 33]
+    >>> unique_digits([152, 323, 1422, 10])
+    []
+    """"""
+","def has_even_digit(n):
+        return '02468' in str(n) # We check if any of these digits are present in the integer
+
+    return sorted([n for n in x if not has_even_digit(n)]) # we have present the filter to pick non-even integers from the sequence.",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/104,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxegwwd6_.py"", line 32, in <module>
+    check(unique_digits)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxegwwd6_.py"", line 22, in check
+    assert candidate([15, 33, 1422, 1]) == [1, 15, 33]
+AssertionError"
