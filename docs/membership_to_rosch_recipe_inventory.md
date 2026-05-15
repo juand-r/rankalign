@@ -15,10 +15,29 @@ This doc only considers **preference-only-loss runs** (i.e. true
 RankAlign-family variants with `--preference_loss_weight=1`,
 `--nll_validator_weight=0`, `--nll_generator_weight=0`). Variants
 that mix in NLL on validator/generator (`nllv1.0_nllg1.0`), or that
-flip to pure SFT (`pref0.0_nllv1.0_nllg1.0`), or that include
-semi-supervision (`semi0.1`) or label-only (`labelonly0.1`) are
-**deliberately excluded** here. We can revisit those after isolating
-the three knobs above.
+flip to pure SFT (`pref0.0_nllv1.0_nllg1.0`), or that use label-only
+(`labelonly0.1`) are **deliberately excluded** here.
+
+> **Key insight: with pref-only weights, `--semi-supervised 0.1` is a
+> mathematical no-op.** Looking at
+> [`scripts/ranking_loss_ref.py:2622-2638`](../scripts/ranking_loss_ref.py)
+> (and the identical block in `_online.py:2914-2930`), when
+> `pref=1, nllv=0, nllg=0`:
+>
+> ```
+> labeled_loss   = 1*preference_loss + 0*nll_v + 0*nll_g = preference_loss
+> unlabeled_loss = preference_loss
+> loss = pair_is_labeled * pref + (1 - pair_is_labeled) * pref = preference_loss
+> ```
+>
+> Both branches collapse to `preference_loss`. The only side effect is
+> a `_semi0.1` suffix on the model save directory. The
+> `split_prompts_labeled_unlabeled` helper uses a private `random.Random(seed)`,
+> so it doesn't even perturb the global RNG state.
+>
+> So **a pref-only May-2 run with `--semi-supervised 0.1` is identical
+> to one with the flag dropped**. Treat `+semi0.1` cells as clean
+> (no semi confound) for pref-loss-only ablations.
 
 ## Naming convention going forward
 
@@ -41,9 +60,14 @@ To keep this honest in plots, tables, and prose:
 | RankAlign + online pair selection | RankAlign+fsx + online pairs |
 | ... etc. | ... etc. |
 
-Plain **RankAlign** (no fsx, no TC, no vlo, pref-loss only) is a recipe
-we have **not** trained on membership. It is the missing reference
-point for several of the comparisons we'd like to make.
+Plain **RankAlign** (no fsx, no TC, no vlo, pref-loss only) is the
+reference point for several of the comparisons we'd like to make. We
+**do** have a checkpoint for it on disk, even though it was originally
+trained with `--semi-supervised 0.1` — that flag is mathematically
+inert under pref-only weights (see the box above). So when this doc
+refers to "Plain RankAlign" it means the on-disk
+`models/v6-google--gemma-2-2b-delta0.15-epoch2--membership-sans-rosch-v0-all--d2g--random--alpha1.0--full-completion--semi0.1`
+checkpoint.
 
 ## Inventory matrix (gemma-2-2b, epoch2, pref-loss-only)
 
@@ -51,47 +75,52 @@ point for several of the comparisons we'd like to make.
 
 |   | TC=none | TC=self | TC=neg |
 | --- | --- | --- | --- |
-| **fsx=N, vlo=N** | ⚠ have **+semi** only: `full-completion_semi0.1` (May 2; **self ref only**) | ❌ missing | ❌ missing |
-| **fsx=Y, vlo=N** | ✅ `full-completion_force-same-x` (May 13) — RankAlign+fsx | ✅ `tc-self_full-completion_force-same-x` (May 13) | ✅ `tc-neg_full-completion_force-same-x` (May 13) |
+| **fsx=N, vlo=N** | ✅ `full-completion_semi0.1` (May 2) — Plain RankAlign  *eval refs: self only* | ❌ missing | ❌ missing |
+| **fsx=Y, vlo=N** | ✅ `full-completion_force-same-x` (May 13) — RankAlign+fsx  *eval refs: all 4* | ✅ `tc-self_full-completion_force-same-x` (May 13)  *eval refs: self, basetyp* | ✅ `tc-neg_full-completion_force-same-x` (May 13)  *eval refs: neg, basetypneg* |
 | **fsx=N, vlo=Y** | ❌ missing | ❌ missing | ❌ missing |
-| **fsx=Y, vlo=Y** | ❌ missing | ⚠ have **+semi** only: `tc-self_full-completion_force-same-x_vallogodds_semi0.1` (May 2; **self ref only**) | ⚠ have **+semi** only: `tc-neg_full-completion_force-same-x_vallogodds_semi0.1` (May 2; **neg ref only**) |
+| **fsx=Y, vlo=Y** | ❌ missing | ✅ `tc-self_full-completion_force-same-x_vallogodds_semi0.1` (May 2)  *eval refs: self only* | ✅ `tc-neg_full-completion_force-same-x_vallogodds_semi0.1` (May 2)  *eval refs: neg only* |
 
 Key:
 
-- **✅** = clean cell, trained without any extra flags, evaluated on all 10 rosch tasks at epoch2 across self/neg/basetyp[neg] eval refs.
-- **⚠ have +semi only** = trained, but with the additional `semi0.1` flag baked in. So the cell isn't a clean one-knob change vs the surrounding row — semi is co-varying. May-2 cohort eval also only ran a single eval-ref per row (whichever matched the TC choice).
+- **✅** = checkpoint trained, evaluated on all 10 rosch tasks at epoch2 (eval refs listed in italics).
 - **❌ missing** = no training run for this combination.
 
-So we have **3 / 12 clean pref-loss-only cells filled**, plus **3 contaminated-with-semi cells**. 6 cells are completely empty.
+So we have **6 / 12 cells filled** (semi=0.1 in the May 2 cells is a no-op for pref-only training, see above). 6 cells are still completely empty.
 
-### Plain-RankAlign approximation: `full-completion_semi0.1`
-
-There IS a no-fsx pref-only run on disk: `full-completion_semi0.1`
-(May 2). It's `pref=1`, `nllv=0`, `nllg=0`, no fsx, no TC, no vlo, but
-**semi-supervised label loss with weight 0.1**. Its self-ref gen-ROC
-on the 10 rosch tasks averages **80.82 (9.40)**.
-
-Compared to RankAlign+fsx (no semi, self-ref) at **81.63 (8.14)**, this
-is a 2-knob delta:
-
-- **A − F = +0.81** ≈ "what fsx adds, while we strip semi at the same
-  time." This is *not* an isolated fsx effect.
-
-The honest version of "what does fsx add?" requires a `(fsx=N, TC=none,
-vlo=N, semi=N)` run — i.e. **plain RankAlign without semi** — which
-we don't have.
+The **eval-ref coverage is uneven** across the May 2 cells — they were
+each evaluated under a single ref matched to the TC choice, not all 4
+refs. The May 2 checkpoints are still on disk under `models/` (verified
+2026-05-14), so re-running missing eval refs is cheap (a few minutes
+per (task, ref) instead of a full retrain).
 
 ## What this inventory says about the user's questions
 
-| Question | Answerable from data on disk? |
-| --- | --- |
-| Does RankAlign+fsx beat plain RankAlign (effect of fsx)? | **No, cleanly.** Closest is **+0.81** but that's `(fsx, no semi) − (no fsx, +semi)` — fsx and semi flip together. |
-| Does RankAlign+fsx+TC-self beat plain RankAlign? | **No, cleanly.** Closest is **+5.88**, but folds in fsx flipping ON and semi flipping OFF on top of adding TC. Need a plain-RankAlign training run to isolate. |
-| Does RankAlign+fsx+vlo+TC beat plain RankAlign? | **No, twice over** — missing both plain RankAlign and the clean (fsx,vlo,TC,no-semi) cell. |
-| What does vallogodds add (one-knob change)? | **No** — no pair on disk that differs only in vlo. The only vlo runs always also have semi, and the no-vlo runs don't have semi. |
-| What does force-same-x add (one-knob change)? | **No** — same problem; the only no-fsx run also has semi. |
-| Does RankAlign+fsx+TC beat RankAlign+fsx? | **Yes**, this is the +5.07 measurement (paired-bootstrap version is +4.74). May 13 cohort. |
-| Does +vlo+semi help on top of fsx+TC? | **Hurts on the self side (−5.39), neutral-to-slightly-positive on the neg side (+1.19).** But +vlo and +semi are confounded. |
+(Numbers below are gen-ROC × 100, mean across 10 rosch tasks, gemma-2-2b epoch2, evaluated under the matching eval ref. All deltas are pref-loss-only and "semi" never enters as a confound — see the no-op argument above.)
+
+| Question | Answer | Status |
+| --- | --- | --- |
+| Effect of **fsx** alone (RankAlign+fsx − Plain RankAlign), self side | 81.63 − 80.82 = **+0.81** | ✅ |
+| Effect of **TC** on top of fsx (no vlo), self side | 86.70 − 81.63 = **+5.07** (paired-bootstrap +4.74) | ✅ |
+| Effect of **vlo** on top of fsx + TC-self, self side | 81.31 − 86.70 = **−5.39** | ✅ |
+| Effect of **vlo** on top of fsx (no TC) | ? | ❌ need 1 new training run: (fsx=Y, vlo=Y, TC=none) |
+| Effect of **vlo** alone (Plain RankAlign+vlo − Plain RankAlign) | ? | ❌ need 1 new training run: (fsx=N, vlo=Y, TC=none) |
+| Does **fsx+TC-self beat plain RankAlign**, self side? | 86.70 − 80.82 = **+5.88** | ✅ |
+| Does **fsx+vlo+TC-self beat plain RankAlign**, self side? | 81.31 − 80.82 = **+0.49** | ✅ |
+| Does **fsx+vlo+TC-neg beat plain RankAlign**, neg side? | 82.01 − ? = ? | ⚠ need to re-eval Plain RankAlign on neg ref |
+| Does **TC alone help** (Plain RankAlign+TC − Plain RankAlign), no fsx? | ? | ❌ need 1 new training run: (fsx=N, vlo=N, TC=self) |
+
+### Direction of the fsx+vlo+TC vs fsx+TC comparison
+
+A flagged finding worth highlighting: on the self side, on top of
+fsx+TC-self, **adding vallogodds drops gen-ROC by 5.39 points**
+(86.70 → 81.31). And on top of plain RankAlign, the kitchen sink
+(fsx+vlo+TC-self) gives only **+0.49 points** vs plain RankAlign
+(81.31 vs 80.82). So most of TC's benefit (the +5.07 pref-loss-only
+delta) comes specifically from the **fsx + TC-self combination
+without vlo**, not from the fsx+vlo+TC version. This is consistent
+with the "fuller" recipe's −3.51 finding from
+[`docs/per_task_bootstrap_analysis.md`](per_task_bootstrap_analysis.md)
+once we strip the NLL noise out.
 
 ## Headline numbers we can already compute
 
@@ -99,71 +128,86 @@ Gen-ROC × 100, mean(std) across 10 rosch tasks, gemma-2-2b epoch2,
 pref-loss-only. From
 [`outputs-quickiter/membership-old-recipes-to-rosch/MEAN_across_10_rosch_tasks.md`](../outputs-quickiter/membership-old-recipes-to-rosch/MEAN_across_10_rosch_tasks.md).
 
-| Recipe | TC | fsx | vlo | semi | gen-ROC self | gen-ROC neg |
-| --- | --- | --- | --- | --- | --- | --- |
-| **(approx plain RankAlign)** `+semi` only | none | N | N | Y | 80.82 (9.40) | — (not run) |
-| RankAlign+fsx | none | Y | N | N | 81.63 (8.14) | 82.96 (9.11) |
-| RankAlign+fsx + offline self-TC | tc-self | Y | N | N | 86.70 (6.94) | — |
-| RankAlign+fsx + offline neg-TC | tc-neg | Y | N | N | — | 80.82 (12.87) |
-| RankAlign+fsx + offline self-TC + vlo + semi | tc-self | Y | Y | Y | 81.31 (8.21) | — |
-| RankAlign+fsx + offline neg-TC + vlo + semi | tc-neg | Y | Y | Y | — | 82.01 (11.55) |
+| Recipe | TC | fsx | vlo | gen-ROC self | gen-ROC neg |
+| --- | --- | --- | --- | --- | --- |
+| Plain RankAlign (semi=0.1, no-op) | none | N | N | 80.82 (9.40) | — (not run yet) |
+| RankAlign+fsx | none | Y | N | 81.63 (8.14) | 82.96 (9.11) |
+| RankAlign+fsx + offline self-TC | tc-self | Y | N | 86.70 (6.94) | — (not run) |
+| RankAlign+fsx + offline neg-TC | tc-neg | Y | N | — (not run) | 80.82 (12.87) |
+| RankAlign+fsx + offline self-TC + vlo | tc-self | Y | Y | 81.31 (8.21) | — (not run) |
+| RankAlign+fsx + offline neg-TC + vlo | tc-neg | Y | Y | — (not run) | 82.01 (11.55) |
 
-A few directional reads from this table (each one a **multi-knob delta**, not an isolated effect):
+(All May-2 rows used `--semi-supervised 0.1` which collapses to plain
+preference loss for pref-only weights; the `semi` column is dropped
+because it's mathematically inert here.)
 
-- **TC self vs no TC, both with fsx (no vlo, no semi):** 86.70 − 81.63 = **+5.07** — clean (this is the May 13 +4.74 effect, slightly different rounding on different scoring of typcorr-vs-self ref).
-- **+vlo +semi together on top of fsx + tc-self:** 81.31 − 86.70 = **−5.39** (joint vlo+semi is bad on top of TC-self, not isolated).
-- **+vlo +semi together on top of fsx + tc-neg:** 82.01 − 80.82 = **+1.19** (joint vlo+semi is mildly positive on top of TC-neg).
-- **fsx vs no-fsx, both pref-only with one extra knob (semi vs none):** 81.63 − 80.82 = **+0.81** (∼0; this is fsx−semi, not fsx alone).
-- **TC self vs approx-plain (across both fsx and semi flips):** 86.70 − 80.82 = **+5.88** (this is the closest we can get to "does TC beat plain RankAlign", but it folds in fsx flipping ON and semi flipping OFF).
+Clean isolated deltas from this table:
 
-## Three (or four) new training runs that would close the gap
+- **fsx alone (no TC):** 81.63 − 80.82 = **+0.81** (self side). Effectively zero — fsx by itself doesn't move the needle on this transfer task.
+- **TC-self on top of fsx (no vlo):** 86.70 − 81.63 = **+5.07** (this is the +4.74 paired-bootstrap effect, exact match modulo rounding).
+- **vlo on top of fsx + TC-self:** 81.31 − 86.70 = **−5.39**. Adding vlo *erases* most of TC's benefit when combined with fsx + TC-self.
+- **fsx+TC-self vs Plain RankAlign:** 86.70 − 80.82 = **+5.88** (clean — *the* answer to "does fsx+TC beat plain RankAlign": yes, by ~6 points).
+- **fsx+vlo+TC-self vs Plain RankAlign:** 81.31 − 80.82 = **+0.49** (the kitchen sink barely beats plain RankAlign — the vlo addition kills most of TC's gain).
 
-All in pref-loss-only land (`--preference_loss_weight 1
---nll_validator_weight 0 --nll_generator_weight 0`), no semi, no
-labelonly.
+## What's still missing — and what would actually close the gap
 
-1. **Plain RankAlign** = `fsx=N, TC=none, vlo=N`.
-   This is the canonical missing reference point. Pairs with
-   RankAlign+fsx (existing) to isolate **fsx** alone, and is the LHS
-   of "does RankAlign+anything beat plain RankAlign?".
+Two kinds of gaps remain after recognising semi-as-no-op:
 
-2. **RankAlign+fsx+vlo** = `fsx=Y, TC=none, vlo=Y`.
-   Pairs with the existing RankAlign+fsx cell to isolate **vallogodds**
-   (one-knob change), and pairs with NEW #1 to test "does
-   fsx+vlo beat plain RankAlign?".
+### Gap 1: Eval-ref coverage on existing checkpoints (cheap to close)
 
-3. **RankAlign+fsx+vlo+TC-self** = `fsx=Y, TC=self, vlo=Y`.
-   Pairs with NEW #2 to isolate **TC on top of fsx+vlo**, pairs with
-   the existing RankAlign+fsx+TC-self to isolate **vlo on top of
-   fsx+TC**, and pairs with NEW #1 to give the "does the kitchen-sink
-   recipe (fsx+vlo+TC) beat plain RankAlign?" answer the user asked
-   for.
+The May 2 checkpoints are still on disk (under `models/`). We just
+never ran them under all 4 eval refs. To finish the **self vs neg**
+side-by-side we'd need:
 
-4. (**Optional**) **RankAlign+TC-self** = `fsx=N, TC=self, vlo=N`.
-   Pairs with NEW #1 to ask "does TC alone (without fsx) help?" — i.e.
-   isolates whether the TC benefit is fsx-dependent.
+- **Plain RankAlign** (`full-completion_semi0.1`): need `neg` ref (and
+  ideally `basetyp`/`basetypneg`). Currently only have `self`.
+- **RankAlign+fsx + vlo + TC-self** (`tc-self_..._vallogodds_semi0.1`): need
+  `neg` ref (and `basetyp`).
+- **RankAlign+fsx + vlo + TC-neg** (`tc-neg_..._vallogodds_semi0.1`): need
+  `self` ref (and `basetypneg`).
 
-With NEW 1+2+3, the matrix below covers the questions the user asked:
+That's roughly 3 checkpoints × 1–3 missing refs × 10 rosch tasks = **30–90
+short eval jobs**. Each is a few minutes on a single GPU, so this is
+the cheap way to fully populate the gen-ROC self/neg comparison for
+the cells we already have.
 
-|   | TC=none | TC=self |
-| --- | --- | --- |
-| **fsx=N, vlo=N** | ✅ NEW #1 | (still missing — only needed if we want fsx-effect-on-TC; that's the optional NEW #4) |
-| **fsx=Y, vlo=N** | ✅ have | ✅ have |
-| **fsx=Y, vlo=Y** | ✅ NEW #2 | ✅ NEW #3 |
+### Gap 2: 3 missing training runs
 
-### Comparison map after adding NEW #1, #2, #3
+Even after the eval re-runs above, 6 cells in the matrix have no
+checkpoint at all:
 
-| Question | Comparison | Available after the new runs? |
-| --- | --- | --- |
-| Effect of **fsx** (on top of plain RankAlign, no TC) | RankAlign+fsx (have) − Plain RankAlign (NEW #1) | ✅ |
-| Effect of **vlo** (on top of fsx, no TC) | RankAlign+fsx+vlo (NEW #2) − RankAlign+fsx (have) | ✅ |
-| Effect of **TC** (on top of fsx, no vlo) | RankAlign+fsx+TC-self (have) − RankAlign+fsx (have) | ✅ already have it (+4.74 / +5.07) |
-| Does fsx+TC beat plain RankAlign? | RankAlign+fsx+TC-self (have) − Plain RankAlign (NEW #1) | ✅ |
-| Does fsx+vlo+TC beat plain RankAlign? | RankAlign+fsx+vlo+TC-self (NEW #3) − Plain RankAlign (NEW #1) | ✅ |
-| Effect of **vlo** *on top of TC+fsx* (does vlo amplify or shrink the TC bonus?) | RankAlign+fsx+vlo+TC (NEW #3) − RankAlign+fsx+TC (have) | ✅ |
-| Does TC alone (no fsx) help? | RankAlign+TC-self (NEW #4) − Plain RankAlign (NEW #1) | optional, requires NEW #4 |
+|   | TC=none | TC=self | TC=neg |
+| --- | --- | --- | --- |
+| **fsx=N, vlo=N** | ✅ have | ❌ missing — *isolates "TC alone, no fsx"* | ❌ missing |
+| **fsx=N, vlo=Y** | ❌ missing — *isolates "vlo alone, no fsx, no TC"* | ❌ missing | ❌ missing |
+| **fsx=Y, vlo=Y** | ❌ missing — *isolates "vlo alone, on top of fsx, no TC"* | ✅ have | ✅ have |
 
-Three runs is the minimum to answer all five user questions.
+The minimum to answer all of the user's questions cleanly is **2–3 new
+training runs**:
+
+1. **RankAlign+fsx+vlo (no TC)** = `(fsx=Y, vlo=Y, TC=none)`.
+   Pairs with RankAlign+fsx (have) to isolate **+vlo on top of fsx**.
+   Pairs with `RankAlign+fsx+vlo+TC-self` (have) to isolate
+   **+TC on top of fsx+vlo**.
+
+2. **RankAlign+vlo (no fsx, no TC)** = `(fsx=N, vlo=Y, TC=none)`.
+   Pairs with Plain RankAlign (have) to isolate **+vlo alone** — no
+   fsx, no TC.
+
+3. (**Optional**) **RankAlign+TC-self (no fsx, no vlo)** = `(fsx=N, vlo=N, TC=self)`.
+   Pairs with Plain RankAlign (have) to ask "does TC alone help, no
+   fsx?".
+
+Two runs (#1 and #2) is the minimum if we only care about the two
+remaining "what does X add" questions (vlo on top of fsx, and vlo
+alone). Three (#1+#2+#3) closes the matrix completely on the
+left-half (TC ∈ {none, self}). The (TC=neg, fsx=N, *) cells are
+still empty after that, but neg-TC is mostly redundant analytically
+once we know self-TC's behavior.
+
+The launcher [`scripts/run_train_membership_pref_knob_ablation.sh`](../scripts/run_train_membership_pref_knob_ablation.sh)
+covers earlier proposals; it should be **updated** to drop the now-have
+cell (Plain RankAlign) and add the (fsx=N, vlo=Y, TC=none) cell instead.
 
 ## Across-cohort caveats
 

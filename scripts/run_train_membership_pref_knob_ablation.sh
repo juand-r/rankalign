@@ -1,19 +1,23 @@
 #!/bin/bash
 # Pref-loss-only knob ablation on membership-sans-rosch-v0 (gemma-2-2b).
 #
-# Three new training runs that close the gap identified in
-# docs/membership_to_rosch_recipe_inventory.md:
+# Two new training runs that close the remaining gap identified in
+# docs/membership_to_rosch_recipe_inventory.md (after recognizing that
+# `--semi-supervised 0.1` is a no-op for pref-only weights, so the May 2
+# `full-completion_semi0.1` checkpoint already serves as Plain RankAlign):
 #
-#   #1  Plain RankAlign           (fsx=N, TC=N, vlo=N)   — missing reference point
-#   #2  RankAlign + fsx + vlo     (fsx=Y, TC=N, vlo=Y)   — isolates +vlo on top of fsx
-#   #3  RankAlign + fsx + vlo + TC-self  (fsx=Y, TC=self, vlo=Y) — kitchen-sink
+#   #1  RankAlign+fsx + vlo (no TC)    (fsx=Y, vlo=Y, TC=none)
+#       — pairs with RankAlign+fsx (have) to isolate +vlo on top of fsx
+#       — pairs with fsx+vlo+TC-self (have, May 2) to isolate TC on top of fsx+vlo
 #
-# (Optional #4: RankAlign + TC-self, fsx=N, TC=self, vlo=N — uncomment below
-# if we also want to ask "does TC alone help even without fsx?".)
+#   #2  RankAlign + vlo (no fsx, no TC)   (fsx=N, vlo=Y, TC=none)
+#       — pairs with Plain RankAlign (have, May 2) to isolate +vlo alone
 #
-# Same membership-sans-rosch-v0 task, same delta=0.15, 3 epochs, --all,
-# total_samples per launcher default. Walltime budget matches the surrounding
-# pref-only-loss runs in run_train_membership_quickiter.sh (4h).
+# (Optional #3: RankAlign + TC-self, fsx=N, vlo=N, TC=self — pairs with Plain
+# RankAlign to ask "does TC alone help, no fsx?". Uncomment below.)
+#
+# Same membership-sans-rosch-v0 task, delta=0.15, 3 epochs, --all,
+# 4h walltime budget (matches the surrounding pref-only-loss runs).
 #
 # Usage:
 #   bash scripts/run_train_membership_pref_knob_ablation.sh
@@ -62,12 +66,11 @@ submit_one () {
     fi
 }
 
-submit_one "[1/3] Plain RankAlign (no fsx, no TC, no vlo)"        4 "$PREF_BASE_NOFSX"
-submit_one "[2/3] RankAlign+fsx + vlo (no TC)"                    4 "$PREF_BASE_NOFSX --force-same-x --validator-log-odds"
-submit_one "[3/3] RankAlign+fsx + vlo + TC-self"                  4 "$PREF_BASE_NOFSX --force-same-x --validator-log-odds --self-typicality"
+submit_one "[1/2] RankAlign+fsx + vlo (no TC)"           4 "$PREF_BASE_NOFSX --force-same-x --validator-log-odds"
+submit_one "[2/2] RankAlign + vlo (no fsx, no TC)"       4 "$PREF_BASE_NOFSX --validator-log-odds"
 
-# Optional 4th run — uncomment to also ask "does TC alone help (no fsx)?"
-# submit_one "[4/4] RankAlign + TC-self (no fsx, no vlo)"           4 "$PREF_BASE_NOFSX --self-typicality"
+# Optional 3rd run — uncomment to also ask "does TC alone help (no fsx)?"
+# submit_one "[3/3] RankAlign + TC-self (no fsx, no vlo)"  4 "$PREF_BASE_NOFSX --self-typicality"
 
 echo ""
 echo "============================================================"
