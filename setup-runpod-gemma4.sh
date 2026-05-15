@@ -1,92 +1,98 @@
 #!/bin/bash
-# Initial setup for RunPod pod running gemma-4 inference / scoring.
+# setup-runpod-gemma4.sh — one-shot setup for a fresh OR resumed RunPod pod.
 #
-# Why this exists:
-#   The default requirements.txt is pinned to transformers==4.46.2, which
-#   cannot load gemma-4. Running it then upgrading transformers separately
-#   breaks scipy/sklearn binary compat (we ate ~10 minutes of debugging
-#   this every time). This script does the right thing in one shot.
+# Installs the full rankalign requirements.txt INSIDE a venv (so system
+# distutils-installed packages like blinker 1.4 don't break the install), then
+# upgrades transformers/huggingface_hub/tokenizers from main for gemma-4
+# compatibility.
 #
-# Usage (on a fresh or resumed pod):
-#   cd /workspace
-#   bash setup-runpod-gemma4.sh
+# Fails loud (set -e). Idempotent — safe to re-run after a pod resume.
 #
-# Idempotent — safe to re-run after a pod resume.
+# Usage:
+#   cd /workspace && bash rankalign/setup-runpod-gemma4.sh
+#
+# Run scripts as: /workspace/.venv/bin/python <script>.py
+# Or: source /workspace/.venv/bin/activate && python ...
 
-set -uo pipefail  # no -e: keep going if any non-critical step fails
+set -euo pipefail
+
+VENV=/workspace/.venv
 
 export HF_HOME=/workspace/.cache/huggingface
-export HF_HUB_CACHE=/workspace/.cache/huggingface/hub
-export TRANSFORMERS_CACHE=/workspace/.cache/huggingface/hub
+export HF_HUB_CACHE=$HF_HOME/hub
+export TRANSFORMERS_CACHE=$HF_HUB_CACHE
 export HF_HUB_DISABLE_XET=1
 export HF_HUB_ENABLE_HF_TRANSFER=1
-# HF_TOKEN must be set in the pod environment (env var or pod template). Do NOT hardcode here.
-if [ -z "${HF_TOKEN:-}" ]; then
-    echo "WARNING: HF_TOKEN not set — gated model downloads will fail." >&2
-fi
-export HUGGING_FACE_HUB_TOKEN="${HF_TOKEN:-}"
 
-mkdir -p /workspace/.cache/huggingface /workspace/logs
+mkdir -p $HF_HUB_CACHE /workspace/logs
 cd /workspace
 
-# Persist env for future SSH sessions
+# Persist env for future login shells.
 cat > /etc/profile.d/hf_env.sh <<EOF
 export HF_HOME=/workspace/.cache/huggingface
-export HF_HUB_CACHE=/workspace/.cache/huggingface/hub
-export TRANSFORMERS_CACHE=/workspace/.cache/huggingface/hub
+export HF_HUB_CACHE=\$HF_HOME/hub
+export TRANSFORMERS_CACHE=\$HF_HUB_CACHE
 export HF_HUB_DISABLE_XET=1
 export HF_HUB_ENABLE_HF_TRANSFER=1
+[ -f $VENV/bin/activate ] && source $VENV/bin/activate
 EOF
 
-echo "=== install deps (gemma-4 compatible) ==="
-pip install --quiet hf_transfer 2>&1 | tail -2
-# Clone rankalign if needed (we use its requirements-runpod-gemma4.txt)
 if [ ! -d /workspace/rankalign ]; then
     echo "=== clone rankalign ==="
-    git clone -b longform --depth 1 https://github.com/juand-r/rankalign.git /workspace/rankalign 2>&1 | tail -2
+    git clone -b longform --depth 1 https://github.com/juand-r/rankalign.git /workspace/rankalign
 fi
 
-# Install the runpod-friendly requirements in one shot.
-echo "=== install requirements-runpod-gemma4 (compatible versions) ==="
-pip install --quiet --upgrade -r /workspace/rankalign/requirements-runpod-gemma4.txt 2>&1 | tail -3
+if [ ! -f $VENV/bin/python ]; then
+    echo "=== create venv at $VENV (with --system-site-packages for torch/CUDA) ==="
+    python3 -m venv $VENV --system-site-packages
+fi
 
-# Then install transformers from main (separately — git+ doesn't play nicely
-# in a constraints file with other pins).
-echo "=== install transformers from main ==="
-pip install --quiet --upgrade "git+https://github.com/huggingface/transformers.git" 2>&1 | tail -3
+# Use venv from this point onward.
+source $VENV/bin/activate
+echo "python: $(which python)"
+python --version
 
-# Verify the import chain works (this is the chain that breaks if
-# sklearn/scipy got clobbered by stale wheels — fail fast here).
-python -c "
-import transformers, huggingface_hub, tokenizers, sklearn, scipy
+echo "=== upgrade pip + install hf_transfer ==="
+pip install --quiet --upgrade pip
+pip install --quiet hf_transfer
+
+echo "=== install rankalign requirements.txt (--ignore-installed sidesteps the blinker distutils issue) ==="
+pip install --quiet --ignore-installed -r /workspace/rankalign/requirements.txt
+
+echo "=== upgrade transformers/huggingface_hub/tokenizers to main (overrides the gemma-4-incompatible pin) ==="
+pip install --quiet --upgrade huggingface_hub tokenizers \
+    "git+https://github.com/huggingface/transformers.git"
+
+echo "=== verify full import chain ==="
+python <<'PYEOF'
+import transformers, huggingface_hub, tokenizers
+import sklearn, scipy, pandas, numpy, torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-print(f'transformers: {transformers.__version__}')
-print(f'huggingface_hub: {huggingface_hub.__version__}')
-print(f'tokenizers: {tokenizers.__version__}')
-print(f'sklearn: {sklearn.__version__}')
-print(f'scipy: {scipy.__version__}')
-print('all imports ok')
-" || {
-    echo "*** import chain broken — try: pip install --force-reinstall --no-deps scikit-learn scipy" >&2
-    exit 1
-}
+assert torch.cuda.is_available(), "CUDA not visible from venv"
+print(f"  transformers: {transformers.__version__}")
+print(f"  huggingface_hub: {huggingface_hub.__version__}")
+print(f"  tokenizers: {tokenizers.__version__}")
+print(f"  sklearn: {sklearn.__version__}")
+print(f"  scipy: {scipy.__version__}")
+print(f"  pandas: {pandas.__version__}")
+print(f"  numpy: {numpy.__version__}")
+print(f"  torch: {torch.__version__} cuda={torch.cuda.is_available()}")
+print("  ALL IMPORTS OK")
+PYEOF
 
-# Verify CUDA / torch
-python -c "
-import torch
-print(f'torch: {torch.__version__}, cuda: {torch.cuda.is_available()}')
-"
+if [ -n "${HF_TOKEN:-}" ]; then
+    export HUGGING_FACE_HUB_TOKEN="$HF_TOKEN"
+fi
 
-# Pre-download gemma-4-31B-it if not already cached
-echo "=== pre-download gemma-4-31B-it (if not cached) ==="
+echo "=== pre-download gemma-4-31B-it if not cached ==="
 python <<'PYEOF'
 import os, time
 from huggingface_hub import snapshot_download
-
 model = "google/gemma-4-31B-it"
 cache_dir = os.environ.get("HF_HUB_CACHE", "/workspace/.cache/huggingface/hub")
 expected_dir = os.path.join(cache_dir, f"models--{model.replace('/', '--')}")
-if os.path.exists(expected_dir):
+snapshots = os.path.join(expected_dir, "snapshots")
+if os.path.isdir(snapshots) and os.listdir(snapshots):
     print(f"  already cached at {expected_dir}")
 else:
     t0 = time.time()
@@ -95,10 +101,12 @@ else:
 PYEOF
 
 echo ""
-echo "=== disk usage ==="
-df -h /workspace 2>&1 | tail -2
-du -sh /workspace/.cache/huggingface 2>&1
+echo "=== disk ==="
+df -h /workspace | tail -2
+du -sh /workspace/.cache/huggingface 2>/dev/null || true
 
 echo ""
 echo "=== SETUP COMPLETE ==="
+echo "To run scripts: $VENV/bin/python <script>.py"
+echo "Or (in a login shell): source $VENV/bin/activate && python <script>.py"
 date
