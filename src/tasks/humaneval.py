@@ -435,9 +435,12 @@ def get_completion_v2(item):
 def make_negated_prompt_v2(item, task, make_prompt, gen_shots='zero'):
     """Task-local negated prompt for --neg-typicality (v2).
 
-    NOTE: this has not been empirically validated against gemma-4-31B-it.
-    See notes/log_P_diff_plots/humaneval-v1/V2_PROMPT_DESIGN.md (TODO section)
-    — must probe the negated prompt before running neg-typcorr scoring on v2.
+    Uses the V1 wording ("Write an incorrect implementation of the following
+    Python function. Return ONLY ... Incorrect solution:"). Validated against
+    gemma-4-31B-it via generative probe (all 4 tasks produced body-only output,
+    no refusals, no markdown) AND scoring AUROC on 82-task v2/v2.1 (tc_neg_v1
+    is the best of three tested neg wordings). See V2_PROMPT_DESIGN.md and
+    notes/log_P_diff_plots/humaneval-v2.1/V2_1_ANALYSIS_REPORT.md.
     """
     gen_obj = make_prompt(item, style='generator', shots='zero')
     neg_prompt = gen_obj.prompt.replace(_V2_INSTRUCTION, _V2_NEG_INSTRUCTION)
