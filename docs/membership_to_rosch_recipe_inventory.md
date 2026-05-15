@@ -18,8 +18,10 @@ that mix in NLL on validator/generator (`nllv1.0_nllg1.0`), or that
 flip to pure SFT (`pref0.0_nllv1.0_nllg1.0`), or that use label-only
 (`labelonly0.1`) are **deliberately excluded** here.
 
-> **Key insight: with pref-only weights, `--semi-supervised 0.1` is a
-> mathematical no-op.** Looking at
+> **Key insight: in g-mode + pref-only training, both `--semi-supervised 0.1`
+> AND `--validator-log-odds` are mathematical no-ops.**
+>
+> **Why `--semi-supervised 0.1` is a no-op.** Looking at
 > [`scripts/ranking_loss_ref.py:2622-2638`](../scripts/ranking_loss_ref.py)
 > (and the identical block in `_online.py:2914-2930`), when
 > `pref=1, nllv=0, nllg=0`:
@@ -30,14 +32,54 @@ flip to pure SFT (`pref0.0_nllv1.0_nllg1.0`), or that use label-only
 > loss = pair_is_labeled * pref + (1 - pair_is_labeled) * pref = preference_loss
 > ```
 >
-> Both branches collapse to `preference_loss`. The only side effect is
-> a `_semi0.1` suffix on the model save directory. The
-> `split_prompts_labeled_unlabeled` helper uses a private `random.Random(seed)`,
-> so it doesn't even perturb the global RNG state.
+> Both branches collapse to `preference_loss`.
 >
-> So **a pref-only May-2 run with `--semi-supervised 0.1` is identical
-> to one with the flag dropped**. Treat `+semi0.1` cells as clean
-> (no semi confound) for pref-loss-only ablations.
+> **Why `--validator-log-odds` is a no-op (in g-mode + pref-only).** The
+> flag is consulted in only two places that touch the gradient:
+>
+> 1. **Preference-loss scoring** (`_online.py:2785` / `ref.py:2523`):
+>    `if train_g_or_d == 'd' and validator_log_odds: <log-odds> else: <log-probs>`.
+>    The condition requires d-mode. In g-mode this branch is never
+>    taken; `score_i, score_j` are always `sum_completion_logprobs(...)`,
+>    independent of vlo.
+>
+> 2. **Validator NLL loss** (`_online.py:2892` / `ref.py:2600`): vlo
+>    switches between BCE-on-log-odds and `-log P(correct)`. But this
+>    loss is multiplied by `nll_validator_weight = 0` in pref-only.
+>
+> Pair selection (the `--delta` filter) uses `logprobs_last_layer` =
+> `log P("Yes" | prompt)` in g-mode (`ref.py:1014-1022`,
+> `_online.py:1014-1022`) — raw log-prob, vlo not consulted.
+>
+> All other vlo references are tracking-only (always pass
+> `validator_log_odds=True` regardless of flag) or cosmetic (print
+> statement, model directory suffix).
+>
+> **So: a pref-only g-mode May-2 run with `--validator-log-odds
+> --semi-supervised 0.1` is mathematically identical to one with both
+> flags dropped.** The only externally-visible differences are the
+> model directory name and a print line at startup.
+
+### Empirical check: should-be-identical runs differ by ~5 points
+
+If the no-op argument is right, then the May-2 `*_vallogodds_semi0.1`
+checkpoints should produce the same gen-ROC as their May-13 (no-vlo,
+no-semi) counterparts. They don't:
+
+| Should-be-identical pair | May-13 (no-vlo, no-semi) | May-2 (vlo+semi) | Δ |
+| --- | --- | --- | --- |
+| fsx + TC-self, self ref | 86.70 | 81.31 | **−5.39** |
+| fsx + TC-neg, neg ref | 80.82 | 82.01 | +1.19 |
+
+The May-2 minus May-13 gaps cannot be vlo or semi (both no-ops). They
+must be **cohort drift**: different git commit, different
+`eval_by_claude.py` version, different RNG seed for pair sampling, or
+some other setup variable that changed between May 2 and May 13.
+
+> ⚠ **Implication for cross-cohort comparisons.** Any May-2-minus-May-13
+> delta in the headline table below is at least *partly* code/eval drift,
+> not the labelled flag effect. The cleanest pref-loss-only deltas we
+> have are **within-May-13** cells.
 
 ## Naming convention going forward
 
@@ -71,21 +113,28 @@ checkpoint.
 
 ## Inventory matrix (gemma-2-2b, epoch2, pref-loss-only)
 
-3 knobs × {none, tc-self, tc-neg} × {fsx Y/N} × {vlo Y/N} = 12 cells.
+Because vlo is a no-op in g-mode + pref-only, the (vlo=Y) row of the
+matrix collapses onto the (vlo=N) row mathematically. We keep both
+rows below for bookkeeping (different on-disk checkpoints, different
+training cohorts) but flag them as **mathematically equivalent**.
 
 |   | TC=none | TC=self | TC=neg |
 | --- | --- | --- | --- |
 | **fsx=N, vlo=N** | ✅ `full-completion_semi0.1` (May 2) — Plain RankAlign  *eval refs: self only* | ❌ missing | ❌ missing |
-| **fsx=Y, vlo=N** | ✅ `full-completion_force-same-x` (May 13) — RankAlign+fsx  *eval refs: all 4* | ✅ `tc-self_full-completion_force-same-x` (May 13)  *eval refs: self, basetyp* | ✅ `tc-neg_full-completion_force-same-x` (May 13)  *eval refs: neg, basetypneg* |
-| **fsx=N, vlo=Y** | ❌ missing | ❌ missing | ❌ missing |
-| **fsx=Y, vlo=Y** | ❌ missing | ✅ `tc-self_full-completion_force-same-x_vallogodds_semi0.1` (May 2)  *eval refs: self only* | ✅ `tc-neg_full-completion_force-same-x_vallogodds_semi0.1` (May 2)  *eval refs: neg only* |
+| **fsx=Y, vlo=N** | ✅ `full-completion_force-same-x` (May 13)  *eval refs: all 4* | ✅ `tc-self_full-completion_force-same-x` (May 13)  *eval refs: self, basetyp* | ✅ `tc-neg_full-completion_force-same-x` (May 13)  *eval refs: neg, basetypneg* |
+| **fsx=N, vlo=Y** | ≡ (fsx=N, vlo=N) — *no-op*, no separate ckpt | ≡ (fsx=N, vlo=N, TC=self) — no separate ckpt | ≡ (fsx=N, vlo=N, TC=neg) — no separate ckpt |
+| **fsx=Y, vlo=Y** | ≡ (fsx=Y, vlo=N) — *no-op*, no separate ckpt | ✅ `tc-self_..._vallogodds_semi0.1` (May 2) ≡ (fsx=Y, vlo=N, TC=self) mathematically; in practice differs by 5.4pt cohort drift  *eval refs: self only* | ✅ `tc-neg_..._vallogodds_semi0.1` (May 2) ≡ (fsx=Y, vlo=N, TC=neg) mathematically  *eval refs: neg only* |
 
 Key:
 
 - **✅** = checkpoint trained, evaluated on all 10 rosch tasks at epoch2 (eval refs listed in italics).
 - **❌ missing** = no training run for this combination.
+- **≡** = mathematically identical to another cell; no new information to gather from a separate run with this flag combo.
 
-So we have **6 / 12 cells filled** (semi=0.1 in the May 2 cells is a no-op for pref-only training, see above). 6 cells are still completely empty.
+After collapsing for the no-op, the **distinct cells we actually need
+to fill** are 6 (two TC values × {fsx=N, fsx=Y}, plus one TC=none ×
+fsx=N which we already have). With the cells we have, the
+**outstanding distinct-cell coverage is 4 / 6**.
 
 The **eval-ref coverage is uneven** across the May 2 cells — they were
 each evaluated under a single ref matched to the TC choice, not all 4
@@ -95,32 +144,37 @@ per (task, ref) instead of a full retrain).
 
 ## What this inventory says about the user's questions
 
-(Numbers below are gen-ROC × 100, mean across 10 rosch tasks, gemma-2-2b epoch2, evaluated under the matching eval ref. All deltas are pref-loss-only and "semi" never enters as a confound — see the no-op argument above.)
+(Numbers below are gen-ROC × 100, mean across 10 rosch tasks, gemma-2-2b epoch2, evaluated under the matching eval ref. **vlo and semi are no-ops** in g-mode + pref-only — any apparent vlo/semi effect is cohort drift, not the flag.)
 
 | Question | Answer | Status |
 | --- | --- | --- |
-| Effect of **fsx** alone (RankAlign+fsx − Plain RankAlign), self side | 81.63 − 80.82 = **+0.81** | ✅ |
-| Effect of **TC** on top of fsx (no vlo), self side | 86.70 − 81.63 = **+5.07** (paired-bootstrap +4.74) | ✅ |
-| Effect of **vlo** on top of fsx + TC-self, self side | 81.31 − 86.70 = **−5.39** | ✅ |
-| Effect of **vlo** on top of fsx (no TC) | ? | ❌ need 1 new training run: (fsx=Y, vlo=Y, TC=none) |
-| Effect of **vlo** alone (Plain RankAlign+vlo − Plain RankAlign) | ? | ❌ need 1 new training run: (fsx=N, vlo=Y, TC=none) |
-| Does **fsx+TC-self beat plain RankAlign**, self side? | 86.70 − 80.82 = **+5.88** | ✅ |
-| Does **fsx+vlo+TC-self beat plain RankAlign**, self side? | 81.31 − 80.82 = **+0.49** | ✅ |
-| Does **fsx+vlo+TC-neg beat plain RankAlign**, neg side? | 82.01 − ? = ? | ⚠ need to re-eval Plain RankAlign on neg ref |
-| Does **TC alone help** (Plain RankAlign+TC − Plain RankAlign), no fsx? | ? | ❌ need 1 new training run: (fsx=N, vlo=N, TC=self) |
+| Effect of **fsx** alone (RankAlign+fsx − Plain RankAlign), self side | 81.63 − 80.82 = **+0.81** | ⚠ cross-cohort (May 13 vs May 2) — ~5pt drift possible |
+| Effect of **TC** on top of fsx (no vlo), self side | 86.70 − 81.63 = **+5.07** (paired-bootstrap +4.74) | ✅ within May 13 — clean |
+| Effect of **vlo** on top of fsx + TC-self | **0 by code inspection** (no-op in g-mode + pref-only) | ✅ verified in source |
+| Effect of **vlo** alone (Plain RankAlign+vlo − Plain RankAlign) | **0 by code inspection** | ✅ verified in source |
+| Does **fsx+TC-self beat plain RankAlign**, self side? | 86.70 − 80.82 = **+5.88** | ⚠ cross-cohort drift confounded with the +0.81 fsx delta above |
+| Does **fsx+vlo+TC-self beat plain RankAlign**, self side? | mathematically same as fsx+TC-self vs plain RankAlign | ⚠ same caveat |
+| Does **fsx+vlo+TC-neg beat plain RankAlign**, neg side? | mathematically same as fsx+TC-neg vs plain RankAlign | ⚠ need plain RankAlign neg ref |
+| Does **TC alone help** (Plain RankAlign+TC-self − Plain RankAlign), no fsx? | ? | ❌ need 1 new training run: (fsx=N, vlo=N, TC=self) |
 
-### Direction of the fsx+vlo+TC vs fsx+TC comparison
+### What's actually clean and what's drift
 
-A flagged finding worth highlighting: on the self side, on top of
-fsx+TC-self, **adding vallogodds drops gen-ROC by 5.39 points**
-(86.70 → 81.31). And on top of plain RankAlign, the kitchen sink
-(fsx+vlo+TC-self) gives only **+0.49 points** vs plain RankAlign
-(81.31 vs 80.82). So most of TC's benefit (the +5.07 pref-loss-only
-delta) comes specifically from the **fsx + TC-self combination
-without vlo**, not from the fsx+vlo+TC version. This is consistent
-with the "fuller" recipe's −3.51 finding from
-[`docs/per_task_bootstrap_analysis.md`](per_task_bootstrap_analysis.md)
-once we strip the NLL noise out.
+After applying the no-op argument:
+
+- **Within-May-13 deltas** are clean: TC-self on top of fsx adds
+  **+5.07** (matches the paired-bootstrap +4.74). This is the headline
+  finding and the only thing immune to cohort drift.
+- **Cross-cohort May-2 vs May-13 deltas** are partly drift. Empirical
+  evidence for the drift size: the May-2 fsx+TC-self+vlo+semi run
+  (which is *mathematically identical* to May-13 fsx+TC-self) differs
+  by **−5.39 points**. So the +0.81 "fsx alone" delta is plausibly in
+  the noise of cohort drift; the +5.88 "fsx+TC vs plain RankAlign"
+  delta has the same caveat layered on.
+
+To disentangle the +5.07 (clean, TC effect) from the cross-cohort
+drift, we'd need to **retrain Plain RankAlign on the May 13 commit**
+(no fsx, no TC, no vlo, no semi) and re-derive the comparisons from
+that. Not from a vlo+semi run.
 
 ## Headline numbers we can already compute
 
@@ -141,73 +195,80 @@ pref-loss-only. From
 preference loss for pref-only weights; the `semi` column is dropped
 because it's mathematically inert here.)
 
-Clean isolated deltas from this table:
+Deltas from this table, with drift caveats:
 
-- **fsx alone (no TC):** 81.63 − 80.82 = **+0.81** (self side). Effectively zero — fsx by itself doesn't move the needle on this transfer task.
-- **TC-self on top of fsx (no vlo):** 86.70 − 81.63 = **+5.07** (this is the +4.74 paired-bootstrap effect, exact match modulo rounding).
-- **vlo on top of fsx + TC-self:** 81.31 − 86.70 = **−5.39**. Adding vlo *erases* most of TC's benefit when combined with fsx + TC-self.
-- **fsx+TC-self vs Plain RankAlign:** 86.70 − 80.82 = **+5.88** (clean — *the* answer to "does fsx+TC beat plain RankAlign": yes, by ~6 points).
-- **fsx+vlo+TC-self vs Plain RankAlign:** 81.31 − 80.82 = **+0.49** (the kitchen sink barely beats plain RankAlign — the vlo addition kills most of TC's gain).
+- **TC-self on top of fsx (no vlo), within May 13:** 86.70 − 81.63 =
+  **+5.07** (the +4.74 paired-bootstrap effect). This is the single
+  cleanest delta — same cohort, same commit, same eval pipeline.
+- **fsx alone (no TC), cross-cohort:** 81.63 − 80.82 = **+0.81**.
+  Plausibly noise — drift between May 2 and May 13 alone is ~5 points
+  on should-be-identical runs (see "Empirical check" above). Treat as
+  inconclusive until plain RankAlign is retrained on the May 13 commit.
+- **vlo on top of fsx+TC-self, cross-cohort:** 81.31 − 86.70 = **−5.39**.
+  This number was previously labelled as a vlo effect; **after code
+  inspection it can't be**. It's pure cohort drift (likely some mix of
+  commit drift, RNG seed drift, and/or eval pipeline drift).
+- **fsx+TC-self vs Plain RankAlign, cross-cohort:** 86.70 − 80.82 =
+  **+5.88**. Confounds the clean +5.07 within-cohort TC effect with
+  cross-cohort drift; expect the "true" delta to be in roughly the
+  +0 to +10 range depending on which side the drift falls.
+- **vlo on its own, on its own and on top of fsx, on top of fsx+TC:**
+  **all 0 by code inspection** (no-op in g-mode + pref-only).
 
 ## What's still missing — and what would actually close the gap
 
-Two kinds of gaps remain after recognising semi-as-no-op:
+Once vlo is recognised as a no-op, the matrix collapses to a 3 × 2
+grid in (TC, fsx). We have **4 of those 6 cells**; the missing two
+are the actually-informative new training runs.
 
 ### Gap 1: Eval-ref coverage on existing checkpoints (cheap to close)
 
-The May 2 checkpoints are still on disk (under `models/`). We just
-never ran them under all 4 eval refs. To finish the **self vs neg**
-side-by-side we'd need:
+The May 2 checkpoints are still on disk (under `models/`). They have
+limited eval-ref coverage. To finish the **self vs neg** side-by-side
+on cells we already have:
 
-- **Plain RankAlign** (`full-completion_semi0.1`): need `neg` ref (and
-  ideally `basetyp`/`basetypneg`). Currently only have `self`.
-- **RankAlign+fsx + vlo + TC-self** (`tc-self_..._vallogodds_semi0.1`): need
-  `neg` ref (and `basetyp`).
-- **RankAlign+fsx + vlo + TC-neg** (`tc-neg_..._vallogodds_semi0.1`): need
-  `self` ref (and `basetypneg`).
+- **Plain RankAlign** (`full-completion_semi0.1`): need `neg` ref. We
+  currently only have `self`. This unlocks "Does fsx+TC-neg beat
+  Plain RankAlign on the neg side?"
 
-That's roughly 3 checkpoints × 1–3 missing refs × 10 rosch tasks = **30–90
-short eval jobs**. Each is a few minutes on a single GPU, so this is
-the cheap way to fully populate the gen-ROC self/neg comparison for
-the cells we already have.
+(The other May-2 checkpoints are vlo+semi versions of cells we
+already have cleanly in May 13, so re-running their missing refs
+just gives us drift-confounded duplicates — not worth the GPU time.)
 
-### Gap 2: 3 missing training runs
+That's **10 short eval jobs** (Plain RankAlign × neg ref × 10 rosch
+tasks).
 
-Even after the eval re-runs above, 6 cells in the matrix have no
-checkpoint at all:
+### Gap 2: 2 missing training runs (vlo runs are no-ops, drop them)
+
+After the no-op argument, the (vlo=Y) row gives no new information.
+The actually-missing training runs are the two TC-with-no-fsx cells:
 
 |   | TC=none | TC=self | TC=neg |
 | --- | --- | --- | --- |
-| **fsx=N, vlo=N** | ✅ have | ❌ missing — *isolates "TC alone, no fsx"* | ❌ missing |
-| **fsx=N, vlo=Y** | ❌ missing — *isolates "vlo alone, no fsx, no TC"* | ❌ missing | ❌ missing |
-| **fsx=Y, vlo=Y** | ❌ missing — *isolates "vlo alone, on top of fsx, no TC"* | ✅ have | ✅ have |
+| **fsx=N** | ✅ have (Plain RankAlign) | ❌ **missing** — *isolates "TC alone, no fsx"* | ❌ **missing** — *isolates "neg-TC alone, no fsx"* |
+| **fsx=Y** | ✅ have | ✅ have | ✅ have |
 
-The minimum to answer all of the user's questions cleanly is **2–3 new
-training runs**:
+Plus, for cleanest cross-comparison on the May-13 commit:
 
-1. **RankAlign+fsx+vlo (no TC)** = `(fsx=Y, vlo=Y, TC=none)`.
-   Pairs with RankAlign+fsx (have) to isolate **+vlo on top of fsx**.
-   Pairs with `RankAlign+fsx+vlo+TC-self` (have) to isolate
-   **+TC on top of fsx+vlo**.
+- (Optional but worthwhile) **Plain RankAlign retrained on May-13 commit**
+  to remove cohort-drift from the existing fsx-vs-no-fsx comparisons.
 
-2. **RankAlign+vlo (no fsx, no TC)** = `(fsx=N, vlo=Y, TC=none)`.
-   Pairs with Plain RankAlign (have) to isolate **+vlo alone** — no
-   fsx, no TC.
+So the **minimum new training runs** is:
 
-3. (**Optional**) **RankAlign+TC-self (no fsx, no vlo)** = `(fsx=N, vlo=N, TC=self)`.
-   Pairs with Plain RankAlign (have) to ask "does TC alone help, no
-   fsx?".
+1. **RankAlign+TC-self (no fsx)** = (fsx=N, TC=self). Pairs with Plain
+   RankAlign (have) for "does TC alone help?" Pairs with
+   RankAlign+fsx+TC-self (have) for "what does fsx add to TC-self?"
 
-Two runs (#1 and #2) is the minimum if we only care about the two
-remaining "what does X add" questions (vlo on top of fsx, and vlo
-alone). Three (#1+#2+#3) closes the matrix completely on the
-left-half (TC ∈ {none, self}). The (TC=neg, fsx=N, *) cells are
-still empty after that, but neg-TC is mostly redundant analytically
-once we know self-TC's behavior.
+2. **RankAlign+TC-neg (no fsx)** = (fsx=N, TC=neg). Symmetric for
+   neg-TC; only really needed if we care about the neg side.
 
-The launcher [`scripts/run_train_membership_pref_knob_ablation.sh`](../scripts/run_train_membership_pref_knob_ablation.sh)
-covers earlier proposals; it should be **updated** to drop the now-have
-cell (Plain RankAlign) and add the (fsx=N, vlo=Y, TC=none) cell instead.
+3. (Optional) **Plain RankAlign on May-13 commit**: removes the
+   cross-cohort drift from the +0.81 / +5.88 deltas above.
+
+The launcher
+[`scripts/run_train_membership_pref_knob_ablation.sh`](../scripts/run_train_membership_pref_knob_ablation.sh)
+should be **rewritten** to launch (#1, #2, optional #3) — vlo
+variants are not worth running.
 
 ## Across-cohort caveats
 
