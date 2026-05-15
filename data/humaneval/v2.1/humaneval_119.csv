@@ -1,0 +1,806 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","OPEN = 0
+    CLOSE = 1
+    def goodString(a, b):
+        stack = []
+        for c in a + b:
+            if c == '(':
+                stack.append(OPEN)
+            elif c == ')':
+                if stack:
+                    stack.pop()
+                else:
+                    return False
+        return not stack
+    return 'Yes' if goodString(lst[0], lst[1]) or goodString(lst[1], lst[0]) else 'No'",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","bal = 0
+    for ch in s:
+        bal += 1 if ch == '(' else -1
+        if bal < 0:
+            return False
+    return bal == 0
+return 'Yes' if is_balanced(a + b) or is_balanced(b + a) else 'No'",No,normal,gpt-5,1.0,HumanEval/119,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9evu5liz.py"", line 23
+    return 'Yes' if is_balanced(a + b) or is_balanced(b + a) else 'No'
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: 'return' outside function"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","a = lst[0]
+    b = lst[1]
+    both = [a + b, b + a]
+    for s in both:
+        count = 0
+        good = True
+        for ch in s:
+            if ch == '(':
+                count = count + 1
+            else:
+                count = count - 1
+            if count < 0:
+                good = False
+                break
+        if good and count == 0:
+            return 'Yes'
+    return 'No'",Yes,beginner,gpt-5,1.0,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","for first, second in ((lst[0], lst[1]), (lst[1], lst[0])):
+        bal = 0
+        for ch in first + second:
+            bal += 1 if ch == '(' else -1
+            if bal < 0:
+                break
+        else:
+            if bal == 0:
+                return 'Yes'
+    return 'No'",Yes,different-style,gpt-5,1.0,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","open1, close1 = lst[0].count('('), lst[0].count(')')
+    open2, close2 = lst[1].count('('), lst[1].count(')')
+    
+    if open1 + open2 == close1 + close2:
+        return 'Yes'
+    return 'No'",No,normal,gpt-4o,0.2,HumanEval/119,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp76tht3ix.py"", line 45, in <module>
+    check(match_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp76tht3ix.py"", line 36, in check
+    assert candidate([')(', ')(']) == 'No'
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","def is_balanced(s):
+        count = 0
+        for char in s:
+            if char == '(':
+                count += 1
+            else:
+                count -= 1
+            if count < 0:
+                return False
+        return count == 0
+    
+    # Try both orders
+    if is_balanced(lst[0] + lst[1]) or is_balanced(lst[1] + lst[0]):
+        return 'Yes'
+    else:
+        return 'No'",Yes,external,Claude Sonnet-4,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","s, t = ''.join(lst), ''
+    count = 0
+    for char in s:
+        if char == '(':
+            count += 1
+        elif char == ')':
+            count -= 1
+            if count < 0:
+                return 'No'
+        t += char
+    return 'Yes' if count == 0 else 'No'
+
+print(match_parens(['()(', ')']))
+print(match_parens([')', ')']))",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/119,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2xl9y2jm.py"", line 53, in <module>
+    check(match_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2xl9y2jm.py"", line 38, in check
+    assert candidate([')())', '(()()(']) == 'Yes'
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","s1, s2 = lst
+    def helper(s):
+        balance = 0
+        for c in s:
+            if c == '(':
+                balance += 1
+            elif c == ')':
+                balance -= 1
+            if balance < 0:
+                return False
+        return balance == 0
+    return 'Yes' if helper(s1 + s2) or helper(s2 + s1) else 'No'",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","stack = []
+    for char in lst[0]:
+        if char == '(':
+            stack.append(char)
+        else:
+            if not stack or stack.pop() != '(':
+                return 'No'
+
+    for char in lst[1]:
+        if char == '(':
+            if stack:
+                return 'No'
+            else:
+                stack.append('(')
+        elif stack and stack[-1] == ')':
+            stack.pop()
+        else:
+            stack.append(char)
+
+    return 'Yes' if not stack else 'No'",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/119,"Traceback (most recent call last):
+  File ""/tmp/tmpx09f08il.py"", line 59, in <module>
+    check(match_parens)
+  File ""/tmp/tmpx09f08il.py"", line 41, in check
+    assert candidate(['()(', ')']) == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","s1, s2 = lst
+    def is_balanced(s):
+        balance = 0
+        for c in s:
+            if c == '(':
+                balance += 1
+            else:
+                balance -= 1
+            if balance < 0:
+                return False
+        return balance == 0
+    
+    if is_balanced(s1 + s2) or is_balanced(s2 + s1):
+        return 'Yes'
+    return 'No'",Yes,external,DeepSeek-V3,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","sum1 = sum(x == '(' for x in lst[0])
+    sum2 = sum(x == '(' for x in lst[1])
+    diff = abs(sum1 - sum2)
+    return 'Yes' if diff <= 1 and (sum1 - sum2) % 2 == 0 else 'No'",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/119,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprdu7fqdo.py"", line 43, in <module>
+    check(match_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprdu7fqdo.py"", line 25, in check
+    assert candidate(['()(', ')']) == 'Yes'
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","for s1, s2 in [(lst[0], lst[1]), (lst[1], lst[0])]:
+    balance = 0
+    for char in s1 + s2:
+        if char == '(':
+            balance += 1
+        elif char == ')':
+            balance -= 1
+        if balance < 0:
+            break
+    if balance == 0:
+        return 'Yes'
+    return 'No'",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/119,"File ""/tmp/tmpanzg_a95.py"", line 18
+    balance = 0
+    ^
+IndentationError: expected an indented block after 'for' statement on line 17"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","def is_balanced(s):
+        balance = 0
+        for c in s:
+            if c == '(':
+                balance += 1
+            else:
+                balance -= 1
+                if balance < 0:
+                    return False
+        return balance == 0
+
+    return 'Yes' if is_balanced(lst[0] + lst[1]) or is_balanced(lst[1] + lst[0]) else 'No'",Yes,external,Llama-3.3-70B,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","from collections import Counter
+    
+    def is_balanced(s):
+        balance = 0
+        for char in s:
+            if char == '(':
+                balance += 1
+            else:
+                balance -= 1
+            if balance < 0:
+                return False
+        return balance == 0
+    
+    s1, s2 = lst
+    if is_balanced(s1 + s2) or is_balanced(s2 + s1):
+        return 'Yes'
+    return 'No'",Yes,external,GPT-4o,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","def can_balance(s):
+        counter = 0
+        for char in s:
+            if char == '(':
+                counter += 1
+            elif char == ')':
+                counter -= 1
+                if counter < 0:
+                    return False
+        return counter == 0
+    
+    def check_possibility(str1, str2):
+        if not str1 or not str2:
+            return 'No'  # One of the strings is empty
+        if can_balance(str1) and can_balance(str2):
+            return 'Yes'  # both strings are already balanced
+        possible_result = str1 + str2
+        if can_balance(possible_result):
+            return 'Yes'
+        for i in range(len(str1) + 1):
+            if can_balance(str1[:i] + str2 + str1[i:]) or can_balance(str2 + str1 + str2):
+                return 'Yes'
+        return 'No'
+    
+    return check_possibility(lst[0], lst[1])",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","balance = 0
+        for ch in s:
+            if ch == '(':
+                balance += 1
+            else:
+                balance -= 1
+            if balance < 0:
+                return False
+        return balance == 0
+
+    return ""Yes"" if is_good(lst[0] + lst[1]) or is_good(lst[1] + lst[0]) else ""No""",No,normal,gpt-5.5,1.0,HumanEval/119,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2s7s5bnc.py"", line 17
+    balance = 0
+IndentationError: unexpected indent"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","return list(map(lambda x: x + '(' if x in ')(' else ')' + x, lst)) == \
+       [''] or [x for x in map(lambda x: x[-1] if len(x) > 1 else x[0] + x[1:],
+            [''.join(lst[:i] + lst[i + 1:]) for i in range(len(lst))])
+            ]",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/119,"Traceback (most recent call last):
+  File ""/tmp/tmpdtc22an7.py"", line 43, in <module>
+    check(match_parens)
+  File ""/tmp/tmpdtc22an7.py"", line 25, in check
+    assert candidate(['()(', ')']) == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","def is_balanced(s):
+        balance = 0
+        for char in s:
+            if char == '(':
+                balance += 1
+            else:
+                balance -= 1
+                if balance < 0:
+                    return False
+        return balance == 0
+    
+    s1, s2 = lst[0], lst[1]
+    
+    if is_balanced(s1 + s2) or is_balanced(s2 + s1):
+        return 'Yes'
+    else:
+        return 'No'",Yes,external,Qwen3-Coder,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","def is_balanced(s):
+        balance = 0
+        for char in s:
+            if char == '(':
+                balance += 1
+            else:
+                balance -= 1
+            if balance < 0:
+                return False
+        return balance == 0
+
+    s1, s2 = lst
+    return 'Yes' if is_balanced(s1 + s2) or is_balanced(s2 + s1) else 'No'",Yes,external,Mistral-3.2-24B,,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","s1, s2 = lst
+    stack = []
+
+    for char in s1:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            if stack and stack[-1] == '(':
+                stack.pop()
+            else:
+                return False
+
+    stack.reverse()
+
+    for char in s2:
+        if char == '(':
+            stack.append(char)
+        elif char == ')':
+            if not stack:
+                return False
+            stack.pop()
+
+    return not stack",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/119,"Traceback (most recent call last):
+  File ""/tmp/tmpk6cb5b3q.py"", line 62, in <module>
+    check(match_parens)
+  File ""/tmp/tmpk6cb5b3q.py"", line 44, in check
+    assert candidate(['()(', ')']) == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","a, b = lst
+    # Try concatenating in both possible orders
+    for x, y in [(a, b), (b, a)]:
+        balance = 0
+        for char in x + y:
+            if char == '(':
+                balance += 1
+            else:
+                balance -= 1
+            if balance < 0:
+                break
+        if balance == 0:
+            return 'Yes'
+    return 'No'",Yes,normal,gpt-4o,0.2,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","a, b = lst
+    possible_tests = [(a + b), (b + a)]
+    
+    for test in possible_tests:
+        remaining_open = 0
+        for char in test:
+            if char == '(':
+                remaining_open += 1
+            else:  # char == ')'
+                if remaining_open == 0:
+                    break  # Too many closing parens
+                remaining_open -= 1
+        else:
+            if remaining_open == 0:
+                return 'Yes'
+    
+    return 'No'",Yes,normal,gpt-4o,1.2,HumanEval/119,
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","left_count = Counter()
+    right_count = Counter()
+
+    for item in lst:
+        count = Counter(item)
+        if count['('] > count[')']:
+            return 'No'
+        left_count.update(count)
+        right_count.update(Counter(item[::-1]))
+
+    return 'Yes' if left_count['('] == right_count[')'] else 'No'",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/119,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt4nadnwk.py"", line 50, in <module>
+    check(match_parens)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt4nadnwk.py"", line 32, in check
+    assert candidate(['()(', ')']) == 'Yes'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt4nadnwk.py"", line 17, in match_parens
+    left_count = Counter()
+NameError: name 'Counter' is not defined. Did you mean: 'count'?"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","if len(lst) != 2:
+        return 'No'
+
+    s1, s2 = lst
+    open_s1 = 0
+    close_s2 = 0
+
+    if any(c not in '()\' for c in s1 + s2):
+        return 'No'
+
+    for i, c in enumerate(s1 + s2):
+        if c == '(':
+            if i % 2 == 0:
+                open_s1 += 1
+            else:
+                open_s1 -= 1
+        elif c == ')':
+            if i % 2 == 0:
+                close_s2 += 1
+            else:
+                close_s2 -= 1
+
+        if open_s1 < 0 or close_s2 < 0:
+            return 'No'
+
+    return 'Yes'",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/119,"File ""/tmp/tmpmlpvic9n.py"", line 24
+    if any(c not in '()\' for c in s1 + s2):
+                    ^
+SyntaxError: unterminated string literal (detected at line 24)"
+"
+def match_parens(lst):
+    '''
+    You are given a list of two strings, both strings consist of open
+    parentheses '(' or close parentheses ')' only.
+    Your job is to check if it is possible to concatenate the two strings in
+    some order, that the resulting string will be good.
+    A string S is considered to be good if and only if all parentheses in S
+    are balanced. For example: the string '(())()' is good, while the string
+    '())' is not.
+    Return 'Yes' if there's a way to make a good string, and return 'No' otherwise.
+
+    Examples:
+    match_parens(['()(', ')']) == 'Yes'
+    match_parens([')', ')']) == 'No'
+    '''
+","match_parens(['()/', ')']) == 'Yes'",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/119,"Traceback (most recent call last):
+  File ""/tmp/tmp64k5v56i.py"", line 40, in <module>
+    check(match_parens)
+  File ""/tmp/tmp64k5v56i.py"", line 22, in check
+    assert candidate(['()(', ')']) == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp64k5v56i.py"", line 17, in match_parens
+    match_parens(['()/', ')']) == 'Yes'
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp64k5v56i.py"", line 17, in match_parens
+    match_parens(['()/', ')']) == 'Yes'
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp64k5v56i.py"", line 17, in match_parens
+    match_parens(['()/', ')']) == 'Yes'
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  [Previous line repeated 995 more times]
+RecursionError: maximum recursion depth exceeded"

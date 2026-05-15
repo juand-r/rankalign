@@ -1,0 +1,775 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","number = float(value)
+    step = 0.5 if number > 0 else -0.5
+    return int((number + step) // step)",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/99,"Traceback (most recent call last):
+  File ""/tmp/tmp03fvfdrl.py"", line 37, in <module>
+    check(closest_integer)
+  File ""/tmp/tmp03fvfdrl.py"", line 27, in check
+    assert candidate(""10"") == 10, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 1"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    if value >= 0:
+        return int(value) if value - int(value) < 0.5 else int(value) + 1
+    else:
+        return int(value) if int(value) - value < 0.5 else int(value) - 1
+
+# Test cases
+print(closest_integer(""10"")) # 10
+print(closest_integer(""15.3"")) # 15
+print(closest_integer(""14.5"")) # 15
+print(closest_integer(""-14.5"")) # -15",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if num >= 0:
+        return int(num + 0.5)
+    else:
+        return int(num - 0.5)",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","first_integer_bound = math.floor(float(value))
+    second_integer_bound = math.ceil(float(value))
+
+    if abs(float(value) - first_integer_bound) == abs(float(value) - second_integer_bound):
+        return math.ceil(float(value)) if value < 0 else math.floor(float(value))
+
+    return (first_integer_bound if value > diff else second_integer_bound)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvucr1tun.py"", line 41, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvucr1tun.py"", line 31, in check
+    assert candidate(""10"") == 10, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvucr1tun.py"", line 20, in closest_integer
+    first_integer_bound = math.floor(float(value))
+NameError: name 'math' is not defined"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    
+    if value > 0 and value - int(value) == 0.5:
+    
+        return int(value) + 1
+    
+    elif value < 0 and int(value) - value == 0.5:
+    
+        return int(value) - 1
+    
+    else:
+    
+        return round(value)",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","number = float(value)
+    int_nearby = set(range(int(number)-1000, int(number)+1001))
+    nearest_ints = [i for i in int_nearby if abs(i - number) == min(list(map(lambda x: abs(x - number), int_nearby)))]
+
+    if len(nearest_ints) > 1:
+        neighbor = nearest_ints[0]
+        maximal_distance = abs(neighbor - number)
+
+        for int_ in nearest_ints:
+            if abs(int_ - number) > maximal_distance or ( abs(int_ - number) == maximal_distance and int_ < 0 ):
+                neighbor = int_
+
+        return int(neighbor)
+
+    return int(number)",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/tmp/tmphayp7j_a.py"", line 49, in <module>
+    check(closest_integer)
+  File ""/tmp/tmphayp7j_a.py"", line 40, in check
+    assert candidate(""14.5"") == 15, ""Test 2""
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 2"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","abs_diff = lambda x, y: abs(x - y)
+    closest = lambda num: round(numif (inf := max(raw_input.split(""."")[0].Trans(), abs_diff(int(inf), float(inf)) exotic abs_diff(int(inf) - 1, float(inf)))) if abs_diff(int(inf), float(inf)) == abs_diff(int(inf) - 1, float(inf)) else int(inf)) if ""."" in num else int(num)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/99,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9adclami.py"", line 21
+    closest = lambda num: round(numif (inf := max(raw_input.split(""."")[0].Trans(), abs_diff(int(inf), float(inf)) exotic abs_diff(int(inf) - 1, float(inf)))) if abs_diff(int(inf), float(inf)) == abs_diff(int(inf) - 1, float(inf)) else int(inf)) if ""."" in num else int(num)
+                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: invalid syntax. Perhaps you forgot a comma?"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    lower = int(num)
+    upper = lower + 1
+
+    if num - lower < 0.5:
+        return lower
+    elif num - lower > 0.5:
+        return upper
+    else:
+        return upper if num > 0 else lower",No,normal,gpt-4o-mini,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvr6an5n3.py"", line 44, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvr6an5n3.py"", line 36, in check
+    assert candidate(""-15.5"") == -16, ""Test 3""
+AssertionError: Test 3"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    return int(value + 0.5 if value - int(value) >= 0.5 else value - 0.5)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/99,"Traceback (most recent call last):
+  File ""/tmp/tmptvg7kli9.py"", line 36, in <module>
+    check(closest_integer)
+  File ""/tmp/tmptvg7kli9.py"", line 26, in check
+    assert candidate(""10"") == 10, ""Test 1""
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Test 1"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    int_part = int(num)
+    if num - int_part >= 0.5:
+        return int_part + 1
+    if num - int_part <= -0.5:
+        return int_part - 1
+    return int_part",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if num >= 0:
+        return int(num + 0.5)
+    else:
+        return int(num - 0.5)",Yes,external,Claude Sonnet-4,,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","I'm providing calls to this function:
+    ```python
+    closest_integer(""10"")    # 10
+    closest_integer(""15.3"") # 15
+    closest_integer(""14.5"") # 15
+    closest_integer(""-14.5"")# -15",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/99,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0gsgxgnc.py"", line 20
+    I'm providing calls to this function:
+     ^
+SyntaxError: unterminated string literal (detected at line 20)"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","ROUND_UP_SIGN = 1
+    rat = (value % 1) * ROUND_UP_SIGN
+    return max(floor(value), ceil(value)) if rat > 0.5\
+        else min(floor(value), ceil(value))",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7o4xlfo4.py"", line 40, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7o4xlfo4.py"", line 30, in check
+    assert candidate(""10"") == 10, ""Test 1""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7o4xlfo4.py"", line 22, in closest_integer
+    rat = (value % 1) * ROUND_UP_SIGN
+TypeError: not all arguments converted during string formatting"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","val = float(value)
+    if val >= 0: 
+        return int(val) if val - int(val) < 0.5 else int(val) + 1
+    else: 
+        return int(val) if abs(val - int(val)) < 0.5 else int(val) - 1
+
+# Test cases
+print(closest_integer(""10""))  # 10
+print(closest_integer(""15.3""))  # 15
+print(closest_integer(""14.5""))  # 15
+print(closest_integer(""-14.5""))  # -15",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if num > 0:
+        return int(num + 0.5)
+    elif num < 0:
+        return int(num - 0.5)
+    else:
+        return 0",Yes,beginner,gpt-4o-mini,1.0,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    if value >= 0:
+        if value - int(value) >= 0.5:
+            return int(value) + 1
+        else:
+            return int(value)
+    else:
+        if abs(value - int(value)) >= 0.5:
+            return int(value) - 1
+        else:
+            return int(value)
+
+print(closest_integer(""10""))
+print(closest_integer(""15.3""))
+print(closest_integer(""14.5""))
+print(closest_integer(""-14.5""))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    if value >= 0:
+        return int(value) if value - int(value) < 0.5 else int(value) + 1
+    else:
+        return int(value) if int(value) - value < 0.5 else int(value) - 1
+
+print(closest_integer(""10"")) # 10
+print(closest_integer(""15.3"")) # 15
+print(closest_integer(""14.5"")) # 15
+print(closest_integer(""-14.5"")) # -15",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if abs(num - round(num)) < 0.5:
+        return round(num)
+    elif num > 0:
+        return int(num) + 1
+    else:
+        return int(num) - 1",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","number = float(value)
+
+    if number > 0:
+
+        return int(number + 0.5)
+
+    else:
+
+        return int(number - 0.5)",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","val = float(value)
+    int_part = int(val)
+    if val >= 0:
+        if val - int_part < 0.5:
+            return int_part
+        else:
+            return int_part + 1
+    else:
+        if int_part - val < 0.5:
+            return int_part
+        else:
+            return int_part - 1",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+",return int(float(value) + 0.5) if '.' in value else int(value),No,normal,gpt-4o,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppit9k3_9.py"", line 35, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppit9k3_9.py"", line 27, in check
+    assert candidate(""-15.5"") == -16, ""Test 3""
+AssertionError: Test 3"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","v = round(float(value))
+    if v >= 0:
+        return (v - 0.5) if v%2 == 0 else v
+    else:
+        return (v + 0.5) if v%2 == 0 else v
+
+print(closest_integer(""10"")) # expected output: 10
+print(closest_integer(""15.3"")) # expected output: 15
+print(closest_integer(""14.5"")) # expected output: 15
+print(closest_integer(""-14.5"")) # expected output: -15",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplro9tth8.py"", line 44, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplro9tth8.py"", line 34, in check
+    assert candidate(""10"") == 10, ""Test 1""
+AssertionError: Test 1"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+",return int(float(value) + (1 if float(value) > 0 else -1) * (0.5 if float(value) % 1 == 0.5 or float(value) % 1 == -0.5 else 0)),Yes,unusual,gpt-4o-mini,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","integer_value = float(value)
+    lower_bound = int(integer_value)
+    upper_bound = lower_bound + 1
+    if integer_value - lower_bound < 0.5:
+        return lower_bound
+    return upper_bound if integer_value > 0 else lower_bound",No,different-style,gpt-4o-mini,1.2,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu2i440kg.py"", line 40, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu2i440kg.py"", line 32, in check
+    assert candidate(""-15.5"") == -16, ""Test 3""
+AssertionError: Test 3"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if num > 0:
+        return int(num + 0.5)
+    else:
+        return int(num - 0.5)",Yes,normal,gpt-4.1,0.7,HumanEval/99,
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","num = float(value)
+    if num >= 0:
+        return int(num + 0.5) if num % 1 >= 0.5 else int(num)
+    else:
+        return int(num - 0.5) if num % 1 <= -0.5 else int(num)",No,beginner,gpt-4o-mini,1.0,HumanEval/99,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpny60yfdz.py"", line 39, in <module>
+    check(closest_integer)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpny60yfdz.py"", line 31, in check
+    assert candidate(""-15.5"") == -16, ""Test 3""
+AssertionError: Test 3"
+"
+def closest_integer(value):
+    '''
+    Create a function that takes a value (string) representing a number
+    and returns the closest integer to it. If the number is equidistant
+    from two integers, round it away from zero.
+
+    Examples
+    >>> closest_integer(""10"")
+    10
+    >>> closest_integer(""15.3"")
+    15
+
+    Note:
+    Rounding away from zero means that if the given number is equidistant
+    from two integers, the one you should return is the one that is the
+    farthest from zero. For example closest_integer(""14.5"") should
+    return 15 and closest_integer(""-14.5"") should return -15.
+    '''
+","value = float(value)
+    if value - int(value) == 0.5:
+        if value > 0:
+            return int(value) + 1
+        else:
+            return int(value) - 1
+    else:
+        return round(value)",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/99,

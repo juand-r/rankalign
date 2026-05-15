@@ -1,0 +1,687 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        if num < 0 and sum(map(int, str(abs(num)))) > 0:
+            count += 1
+        elif sum(map(int, str(abs(num)))) > 0:
+            count += 1
+    return count",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw1xhyj4s.py"", line 37, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw1xhyj4s.py"", line 24, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_of_digits(n):
+        result = 0
+        neg = False
+        if n < 0:
+            neg = True
+            n *= -1
+        while n > 0:
+            result += n % 10
+            n = n // 10
+        return -result if neg else result
+
+    count = 0
+    for n in arr:
+        if sum_of_digits(n) > 0:
+            count += 1
+    return count",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/tmp/tmppl3v155r.py"", line 46, in <module>
+    check(count_nums)
+  File ""/tmp/tmppl3v155r.py"", line 37, in check
+    assert candidate([12, 23, 34, -45, -56, 0]) == 5
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_digits(n):
+        n = str(n)
+        if n[0] == '-':
+            n = n[1:]
+            return -1 + sum(int(i) for i in n)
+        else:
+            return sum(int(i) for i in n)
+    return sum(1 for num in arr if sum_digits(num) > 0)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/108,"Traceback (most recent call last):
+  File ""/tmp/tmpu18czbkb.py"", line 38, in <module>
+    check(count_nums)
+  File ""/tmp/tmpu18czbkb.py"", line 25, in check
+    assert candidate([-1, -2, 0]) == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        if num < 0:
+            signed_digits = [int(d) for d in str(-num)]
+            signed_digits[0] = -signed_digits[0]
+        else:
+            signed_digits = [int(d) for d in str(num)]
+        digit_sum = sum(signed_digits)
+        if digit_sum > 0:
+            count += 1
+    return count",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count_nums(arr) -> int:
+    sum_digits = 0
+    for num in arr:
+        digits = sum(int(digit) for digit in str(num))
+        if digits > 0:
+            return sum(digits)
+    return 0",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/108,"File ""/tmp/tmpyj2iwhps.py"", line 12
+    count_nums(arr) -> int:
+                    ^^
+SyntaxError: invalid syntax"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        total = sum(int(digit) for digit in str(abs(num)))
+        if total > 0:
+            count += 1
+    return count",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihfgv9zp.py"", line 36, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihfgv9zp.py"", line 23, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_of_digits(n):
+        if n < 0:
+            return -int(str(abs(n))[0]) + sum(int(digit) for digit in str(abs(n))[1:])
+        else:
+            return sum(int(digit) for digit in str(n))
+    return sum(1 for num in arr if sum_of_digits(num) > 0)",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        s = str(num)
+        if s[0] == ""-"":
+            digit_sum = -int(s[1]) + sum(int(ch) for ch in s[2:])
+        else:
+            digit_sum = sum(int(ch) for ch in s)
+        if digit_sum > 0:
+            count += 1
+    return count",Yes,normal,gpt-5.5,1.0,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+",return sum(1 for num in arr if sum(int(digit) if digit != '-' else -int(digit[1]) for digit in str(num)) > 0),No,different-style,gpt-4o-mini,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3dete4e1.py"", line 31, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3dete4e1.py"", line 18, in check
+    assert candidate([-1, -2, 0]) == 0
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3dete4e1.py"", line 12, in count_nums
+    return sum(1 for num in arr if sum(int(digit) if digit != '-' else -int(digit[1]) for digit in str(num)) > 0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3dete4e1.py"", line 12, in <genexpr>
+    return sum(1 for num in arr if sum(int(digit) if digit != '-' else -int(digit[1]) for digit in str(num)) > 0)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3dete4e1.py"", line 12, in <genexpr>
+    return sum(1 for num in arr if sum(int(digit) if digit != '-' else -int(digit[1]) for digit in str(num)) > 0)
+IndexError: string index out of range"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for x in arr:
+        if x >= 0:
+            s = sum(int(ch) for ch in str(x))
+        else:
+            sstr = str(-x)
+            s = -int(sstr[0]) + sum(int(ch) for ch in sstr[1:])
+        if s > 0:
+            count += 1
+    return count",Yes,normal,gpt-5,1.0,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_digits(num):
+        if num < 0:
+            return -1 + sum(int(digit) for digit in str(abs(num))[1:])
+        else:
+            return sum(int(digit) for digit in str(num))
+    
+    return sum(1 for num in arr if sum_digits(num) > 0)",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","for num in arr:
+            positive = True if num >= 0 else False
+            while abs(num) > 0:
+                num, digit = divmod(abs(num), 10)
+                if not positive and digit < 0:
+                    positive = True
+                elif positive and digit < 0:
+                    positive = False
+            if positive:
+                positive_sums += 1
+    return positive_sums",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcva0bz0t.py"", line 41, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcva0bz0t.py"", line 27, in check
+    assert candidate([]) == 0
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcva0bz0t.py"", line 22, in count_nums
+    return positive_sums
+UnboundLocalError: local variable 'positive_sums' referenced before assignment"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        if isinstance(num, int):
+            num_str = str(num)
+            digits_sum = sum(int(d) for d in num_str if d.isdigit()) - (int(num_str[1]) if num_str[0] == '-' else 0)
+            if digits_sum > 0:
+                count += 1
+    return count",Yes,normal,gpt-4o,1.2,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","return sum(1 for num in arr if (num < 0 and num % 10 != 0 and sum(int(digit) for digit in str(abs(num))[1:]) > 0) 
+               or (num >= 0 and sum(int(digit) for digit in str(num)) > 0))",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","total_sum = 0
+    count = 0
+    for num in arr:
+        total_sum = sum(abs(digit) for digit in str(num))
+        if total_sum > 0:
+            count += 1
+    return count",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/tmp/tmp8dsh65g3.py"", line 37, in <module>
+    check(count_nums)
+  File ""/tmp/tmp8dsh65g3.py"", line 24, in check
+    assert candidate([-1, -2, 0]) == 0
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8dsh65g3.py"", line 15, in count_nums
+    total_sum = sum(abs(digit) for digit in str(num))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8dsh65g3.py"", line 15, in <genexpr>
+    total_sum = sum(abs(digit) for digit in str(num))
+                    ^^^^^^^^^^
+TypeError: bad operand type for abs(): 'str'"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","return sum(1 for num in arr if sum(int(d) * (1 if num >= 0 or i != 0 else -1) for i, d in enumerate(str(abs(num)))) > 0)",Yes,unusual,gpt-4o-mini,1.2,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        if sum(int(digit) for digit in str(abs(num))) > 0:
+            count += 1
+    return count",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/108,"Traceback (most recent call last):
+  File ""/tmp/tmpcxgycbgb.py"", line 35, in <module>
+    check(count_nums)
+  File ""/tmp/tmpcxgycbgb.py"", line 22, in check
+    assert candidate([-1, -2, 0]) == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        sum_of_digits = sum(int(digit) for digit in str(abs(num))) - (1 if num < 0 else 0)
+        if sum_of_digits > 0:
+            count += 1
+    return count",No,beginner,gpt-4o-mini,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_0wcages.py"", line 36, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_0wcages.py"", line 23, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        num_str = str(abs(num)) # absolute value to ensure negative digits are handled correctly
+        num_list = [int(dig) for dig in list(num_str)]
+        # checks if the num list contains any positive digit
+        if any(dig > 0 for dig in num_list):
+            count += 1
+    return count",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbp0mmsue.py"", line 38, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbp0mmsue.py"", line 25, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","""""""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+    count = 0
+    for num in arr:
+        sum_digits = sum(int(digit) for digit in str(abs(num)))
+        if sum_digits > 0:
+            count += 1
+    return count",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjh3zvp7m.py"", line 45, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjh3zvp7m.py"", line 32, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_of_digits(n):
+        if n == 0:
+            return 0
+        digits = []
+        if n < 0:
+            digits.append(-int(str(n)[1]))
+            for digit in str(n)[2:]:
+                digits.append(int(digit))
+        else:
+            for digit in str(n):
+                digits.append(int(digit))
+        return sum(digits)
+    
+    count = 0
+    for num in arr:
+        if sum_of_digits(num) > 0:
+            count += 1
+    return count",Yes,external,Qwen3-Coder,,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_of_digits(n):
+        if n == 0:
+            return 0
+        
+        digits = []
+        is_negative = n < 0
+        n = abs(n)
+        
+        while n > 0:
+            digits.append(n % 10)
+            n //= 10
+        
+        digits.reverse()
+        
+        if is_negative and digits:
+            digits[0] = -digits[0]
+        
+        return sum(digits)
+    
+    count = 0
+    for num in arr:
+        if sum_of_digits(num) > 0:
+            count += 1
+    
+    return count",Yes,external,Claude Sonnet-4,,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        sum_digits = 0
+        n = abs(num)
+        while n > 0:
+            sum_digits += n % 10
+            n = n // 10
+        if num < 0:
+            first_digit = int(str(abs(num))[0])
+            sum_digits = sum_digits - 2 * first_digit
+        if sum_digits > 0:
+            count += 1
+    return count",Yes,external,DeepSeek-V3,,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","""""""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+    count = 0
+    for num in arr:
+        if num < 0:
+            num = str(num)[1:]
+            sum_digits = -int(num[0]) + sum(int(digit) for digit in num[1:])
+        else:
+            sum_digits = sum(int(digit) for digit in str(num))
+        if sum_digits > 0:
+            count += 1
+    return count",Yes,normal,gpt-4,0.2,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","total_sum = 0
+    count = 0
+
+    for num in arr:
+        if num < 0:
+            num *= -1
+            num_str = str(abs(num))
+            signed_digit = int(num_str[0])
+            num_str = num_str[1:]
+        else:
+            num_str = str(num)
+            signed_digit = 0
+
+        num_sum = sum(map(int, num_str))
+        if num_sum > 0:
+            count += 1
+        total_sum += num_sum
+
+    return count",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        digit_sum = sum(int(d) for d in str(abs(num))) if num >= 0 else sum(int(d) for d in str(abs(num))) - int(str(abs(num))[0]) * 2
+        if digit_sum > 0:
+            count += 1
+    return count",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/108,
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for num in arr:
+        digit_sum = sum(int(d) for d in str(num).replace('-', ''))
+        if digit_sum > 0:
+            count += 1
+    return count",No,normal,gpt-4o,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz_e9gd2b.py"", line 36, in <module>
+    check(count_nums)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz_e9gd2b.py"", line 23, in check
+    assert candidate([-1, -2, 0]) == 0
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","def sum_of_signed_digits(n):
+        neg = False
+        if n < 0:
+            n, neg = -n, True
+        return sum(int(digit) for digit in str(n)) * (0 if neg else -1)
+    return sum(1 for x in arr if sum_of_signed_digits(x) > 0)",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/108,"Traceback (most recent call last):
+  File ""/tmp/tmp_zokeujy.py"", line 36, in <module>
+    check(count_nums)
+  File ""/tmp/tmp_zokeujy.py"", line 24, in check
+    assert candidate([1, 1, 2, -2, 3, 4, 5]) == 6
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def count_nums(arr):
+    """"""
+    Write a function count_nums which takes an array of integers and returns
+    the number of elements which has a sum of digits > 0.
+    If a number is negative, then its first signed digit will be negative:
+    e.g. -123 has signed digits -1, 2, and 3.
+    >>> count_nums([]) == 0
+    >>> count_nums([-1, 11, -11]) == 1
+    >>> count_nums([1, 1, 2]) == 3
+    """"""
+","count = 0
+    for x in arr:
+        s = str(x)
+        if not s:
+            continue
+        total = 0
+        if s[0] == '-':
+            if len(s) == 2:
+                total = int(s)
+            else:
+                total = int(s[0] + s[1]) + sum(int(d) for d in s[2:])
+        else:
+            total = sum(int(d) for d in s)
+        if total > 0:
+            count += 1
+    return count",Yes,normal,gpt-4.1,1.0,HumanEval/108,

@@ -31,12 +31,15 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.
 HE_DIR = os.path.join(DATA_DIR, 'humaneval', 'with_solutions')       # v0
 HE_V1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v1')                # v1
 HE_V2_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2')                # v2: v1 with answer.strip()
+HE_V2_1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2.1')            # v2.1: v2 filtered
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
 HE_V1_TRAIN_CSV = os.path.join(HE_V1_DIR, 'train.csv')
 HE_V2_TRAIN_CSV = os.path.join(HE_V2_DIR, 'train.csv')
+HE_V2_1_TRAIN_CSV = os.path.join(HE_V2_1_DIR, 'train.csv')
 HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
 HE_V1_FIELDS = ('question', 'answer', 'correct', 'strategy', 'model', 'temperature', 'task_id', 'error')
 HE_V2_FIELDS = HE_V1_FIELDS
+HE_V2_1_FIELDS = HE_V1_FIELDS
 
 
 # ============================================================================
@@ -489,3 +492,88 @@ if os.path.exists(HE_V2_TRAIN_CSV):
         print(f"[humaneval-v2] Registered {len(_v2_registered)} tasks")
 else:
     print(f"[humaneval-v2] Data not found at {HE_V2_DIR} — skipping registration")
+
+
+# --- v2.1 registration ---
+#
+# v2.1 = v2 with retroactive garbage filter applied to test set:
+#   - chars ∈ [10, 900]
+#   - mean log P(y | x) ≥ −5 (under gemma-4-31B-it, format C, chat template)
+#   - total log P(y | x) ≥ −500
+#
+# Filter drops 148/2367 rows (6.3%): 46 by chars, 81 by mean log P, 21 by raw sum.
+# Per-class loss: 0.2% correct, 12.5% wrong (the asymmetry catches garbage outputs
+# like 'pengow', 'Sure' that came primarily from low-capability models on creative
+# strategies). 4 tasks fall below 10 wrong (humaneval_10, _23, _35, _63 at 8-9).
+#
+# Same prompt-construction code as v2 (make_prompt_v2 + make_negated_prompt_v2);
+# only the data source changes.
+
+def _load_v2_1_items(filepath):
+    items = load_csv_items(filepath, fields=HE_V2_1_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def load_data_v2_1_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
+    L_train = _load_v2_1_items(HE_V2_1_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
+    return L_train, []
+
+
+def create_load_data_v2_1_for_problem(test_csv_path):
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v2_1_items(HE_V2_1_TRAIN_CSV)
+        L_test = _load_v2_1_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.exists(HE_V2_1_TRAIN_CSV):
+    # Reuse v2's prompt code (make_prompt_v2, make_negated_prompt_v2, get_completion_v2)
+    _V2_1_COMMON = {
+        'make_prompt': make_prompt_v2,
+        'get_completion': get_completion_v2,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt_v2,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'humaneval-v2.1',
+        'load_data': load_data_v2_1_train_only,
+        'description': 'HumanEval v2.1: v2 with retroactive garbage filter (chars [10,900], mean l ≥ -5, raw ≥ -500)',
+        **_V2_1_COMMON,
+    })
+
+    _v2_1_registered = []
+    for filename in sorted(os.listdir(HE_V2_1_DIR)):
+        if not filename.endswith('.csv') or filename == 'train.csv':
+            continue
+        slug = filename[:-4]
+        test_csv_path = os.path.join(HE_V2_1_DIR, filename)
+        task_name = f'humaneval-v2.1-{slug}'
+
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v2_1_for_problem(test_csv_path),
+                'description': f'HumanEval v2.1: {slug}',
+                **_V2_1_COMMON,
+            })
+            _v2_1_registered.append(task_name)
+        except Exception as e:
+            print(f"[humaneval-v2.1] Warning: Could not register {task_name}: {e}")
+
+    if _v2_1_registered:
+        print(f"[humaneval-v2.1] Registered {len(_v2_1_registered)} tasks")
+else:
+    print(f"[humaneval-v2.1] Data not found at {HE_V2_1_DIR} — skipping registration")

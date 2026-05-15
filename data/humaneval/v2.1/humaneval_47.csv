@@ -1,0 +1,502 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","from collections import defaultdict
+    from itertools import cycle
+
+    count = defaultdict(int)    
+    for number in l:
+        count[number] += 1
+
+    unique_numbers = sorted(count.keys())
+    halfway = len(l) // 2
+
+    if len(l) % 2 == 1:
+        return unique_numbers[halfway]
+
+    temp_cycle = cycle(unique_numbers)
+    a, b = None, None
+
+    for _ in range(halfway + 1):
+        a = next(temp_cycle)
+
+    for _ in range(halfway):
+        b = next(temp_cycle)
+
+    return (a + b) / 2",No,unusual,gpt-4o-mini,1.2,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph_lkuq7z.py"", line 48, in <module>
+    check(median)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph_lkuq7z.py"", line 41, in check
+    assert candidate([-10, 4, 6, 1000, 10, 20]) == 8.0
+AssertionError"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","sorted_list = sorted(l)
+    n = len(sorted_list)
+    middle = n // 2
+    if n % 2 == 0:
+        return (sorted_list[middle - 1] + sorted_list[middle]) / 2
+    else:
+        return sorted_list[middle]",Yes,normal,gpt-4o,1.2,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","""""""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+    sorted_list = sorted(l)
+    length = len(sorted_list)
+    
+    if length % 2 == 0:
+        index1 = floor(length / 2) - 1
+        index2 = floor(length / 2)
+        return (sorted_list[index1] + sorted_list[index2]) / 2
+    else:
+        mid_index = length // 2
+        return sorted_list[mid_index]",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6e59m7ix.py"", line 41, in <module>
+    check(median)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6e59m7ix.py"", line 34, in check
+    assert candidate([-10, 4, 6, 1000, 10, 20]) == 8.0
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6e59m7ix.py"", line 20, in median
+    index1 = floor(length / 2) - 1
+NameError: name 'floor' is not defined. Did you mean: 'float'?"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","l.sort()
+    mid = len(l) // 2
+    if len(l) % 2 == 0:
+        return (l[mid-1] + l[mid]) / 2
+    else:
+        return l[mid]",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","sorted_l = sorted(l)
+    n = len(sorted_l)
+    if n % 2 == 1:  # Check for odd-length list
+        return sorted_l[n // 2]
+    else:  # Even-length list
+        return (sorted_l[n // 2 - 1] + sorted_l[n // 2]) / 2",Yes,unusual,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","""""""Return median of elements in the list l.""""""
+    sorted_l = sorted(l)
+    length = len(sorted_l)
+    mid = length // 2
+    if length % 2 == 1:
+        return sorted_l[mid]
+    else:
+        return (sorted_l[-(length // 2)] + sorted_l[mid]) / 2",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2y0et92j.py"", line 33, in <module>
+    check(median)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2y0et92j.py"", line 26, in check
+    assert candidate([-10, 4, 6, 1000, 10, 20]) == 8.0
+AssertionError"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","sorted_list = sorted(l)
+    n = len(sorted_list)
+    if n % 2 == 1:
+        return sorted_list[n // 2]
+    else:
+        mid1 = sorted_list[n // 2 - 1]
+        mid2 = sorted_list[n // 2]
+        total = mid1 + mid2
+        median_value = total / 2
+        return median_value",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","Here is a simple implementation of the `median` function in Python. This function first sorts the list, then finds the middle element or the average of the two middle elements if the list has an even number of elements:
+
+    ```python
+    l.sort()
+    n = len(l)
+    if n % 2:
+        return l[n//2]
+    else:
+        return (l[n//2 - 1] + l[n//2]) / 2",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/47,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn_uhhlpz.py"", line 10
+    Here is a simple implementation of the `median` function in Python. This function first sorts the list, then finds the middle element or the average of the two middle elements if the list has an even number of elements:
+              ^^^^^^
+SyntaxError: invalid syntax"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","if not l:
+        raise ValueError(""median() arg is an empty sequence"")
+    sorted_l = sorted(l)
+    n = len(sorted_l)
+    mid = n // 2
+    if n % 2:
+        return sorted_l[mid]
+    return (sorted_l[mid - 1] + sorted_l[mid]) / 2",Yes,normal,gpt-5.5,1.0,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+",return sorted(l)[len(l) // 2],No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/47,"Traceback (most recent call last):
+  File ""/tmp/tmpx_jllt4e.py"", line 26, in <module>
+    check(median)
+  File ""/tmp/tmpx_jllt4e.py"", line 19, in check
+    assert candidate([-10, 4, 6, 1000, 10, 20]) == 8.0
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","l = sorted(l)
+    len_l = len(l)
+    median_index = len_l // 2
+    if len_l % 2 != 0:
+        return l[median_index]
+    else:
+        return (l[median_index - 1] + l[median_index]) / 2",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","return stats_median(l)
+
+# Usage examples
+print(median([3, 1, 2, 4, 5]))
+print(median([-10, 4, 6, 1000, 10, 20]))",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgbpc4nht.py"", line 13, in <module>
+    print(median([3, 1, 2, 4, 5]))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgbpc4nht.py"", line 10, in median
+    return stats_median(l)
+NameError: name 'stats_median' is not defined"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","n = len(l)
+    s = sorted(l)
+    return (s[n//2] if n % 2 == 1 else (s[n//2-1] + s[n//2]) / 2)
+
+# Test cases to evaluate your solution
+print(median([3, 1, 2, 4, 5]))
+print(median([-10, 4, 6, 1000, 10, 20]))",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","if sorted(l)[:len(l)//2].count(l[len(l)//2]) == 1:
+    return l[len(l)//2]
+    else:
+    sorted_l = sorted(l)
+    if len(l)%2 == 1:
+        return sorted_l[len(l)//2]
+    else:
+        return (sorted_l[len(l)//2 - 1] + sorted_l[len(l)//2])/2",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/47,"File ""/tmp/tmpqvj_5tch.py"", line 11
+    return l[len(l)//2]
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","""""""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+    n = len(l)
+    s = sorted(l)
+    return (s[n//2] if n % 2 == 1 else (s[n//2 - 1] + s[n//2]) / 2)
+
+print(median([3, 1, 2, 4, 5]))
+print(median([-10, 4, 6, 1000, 10, 20]))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","sorted_l = sorted(l)
+    length = len(sorted_l)
+    if length % 2 == 1:
+        return sorted_l[length // 2]
+    else:
+        return (sorted_l[length // 2 - 1] + sorted_l[length // 2]) / 2.0",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","n = len(l)
+    s = sorted(l)
+    mid = n // 2
+    return (s[mid] + s[mid - 1]) / 2 if n % 2 == 0 else s[mid]",Yes,different-style,gpt-4o-mini,1.0,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","if not l:
+    raise ValueError(""median() arg is an empty sequence"")
+    s = sorted(l)
+    n = len(s)
+    mid = n // 2
+    if n % 2 == 1:
+    return s[mid]
+    else:
+    return (s[mid - 1] + s[mid]) / 2",No,normal,gpt-4.1,0.7,HumanEval/47,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpacy6aerx.py"", line 11
+    raise ValueError(""median() arg is an empty sequence"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","n = len(l)
+    mid = n // 2
+
+    # Sort the list
+    l.sort()
+
+    # If the list has an odd length, return the middle element
+    if n % 2 == 1:
+        return l[mid]
+
+    # If the list has an even length, return the average of the two middle elements
+    else:
+        return (l[mid - 1] + l[mid]) / 2",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+",return statistics.median(l),No,external,DeepSeek-V3,,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ti9gam9.py"", line 26, in <module>
+    check(median)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ti9gam9.py"", line 18, in check
+    assert candidate([3, 1, 2, 4, 5]) == 3
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6ti9gam9.py"", line 10, in median
+    return statistics.median(l)
+NameError: name 'statistics' is not defined"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","if len(l) == 0:
+    return None
+    l.sort()
+    n = len(l)
+    if n % 2 == 1:
+    return l[n//2]
+    else:
+    return (l[n//2-1] + l[n//2]) / 2",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/47,"File ""/tmp/tmp45szg6w6.py"", line 11
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 10"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","l.sort()
+    n = len(l)
+    if n % 2 == 1:
+        return l[n // 2]
+    else:
+        return (l[n // 2 - 1] + l[n // 2]) / 2",Yes,normal,gpt-4o-mini,1.0,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","""""""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+    l.sort()
+    length = len(l)
+    if length % 2 == 0:
+        return (l[length // 2] + l[length // 2 - 1]) / 2
+    else:
+        return l[length // 2]",Yes,normal,gpt-4,0.2,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","l.sort()
+    
+    if len(l) % 2 == 0:
+        return (l[len(l) // 2 - 1] + l[len(l) // 2]) / 2
+    else:
+        return l[len(l) // 2]
+
+print(median([3, 1, 2, 4, 5]))
+print(median([-10, 4, 6, 1000, 10, 20]))  
+
+The function sort() is used to sort the list and then depending on the length of the list, the median is calculated. If the length is even, the median is calculated as the average of the two middle numbers, otherwise, the median is the middle number.",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/47,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvic6vvlj.py"", line 20
+    The function sort() is used to sort the list and then depending on the length of the list, the median is calculated. If the length is even, the median is calculated as the average of the two middle numbers, otherwise, the median is the middle number.
+        ^^^^^^^^
+SyntaxError: invalid syntax"
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+","l.sort()
+    n = len(l)
+    if n % 2 == 1:
+        return l[n // 2]
+    else:
+        return (l[n // 2 - 1] + l[n // 2]) / 2",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/47,
+"
+
+def median(l: list):
+    """"""Return median of elements in the list l.
+    >>> median([3, 1, 2, 4, 5])
+    3
+    >>> median([-10, 4, 6, 1000, 10, 20])
+    15.0
+    """"""
+",return statistics.median(l),No,external,GPT-4o,,HumanEval/47,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz01kopqq.py"", line 26, in <module>
+    check(median)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz01kopqq.py"", line 18, in check
+    assert candidate([3, 1, 2, 4, 5]) == 3
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz01kopqq.py"", line 10, in median
+    return statistics.median(l)
+NameError: name 'statistics' is not defined"

@@ -1,0 +1,774 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","i = next((i for i in range(len(string)) if string[i:] == string[i:][::-1]), len(string))
+    return string + string[:i][::-1]",Yes,different-style,gpt-5,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","return string == string[::-1]
+
+def make_palindrome(string: str) -> str:
+    if is_palindrome(string):
+        return string
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+    return string + string[::-1]",Yes,external,GPT-4o,,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","if is_palindrome(string):
+        return string
+    
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+    
+    return string + string[:-1][::-1]",Yes,normal,gpt-4o,0.2,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","s = string
+    palindrome = ''
+    while True:
+        start = 0
+        length = len(s)
+        while start < length and s[start] == s[length - 1]:
+            start += 1
+            length -= 1
+        if start == length:
+            break
+        palindrome += s[start:length][::-1]
+        palindrome += s[:start]
+        s = palindrome
+    return palindrome",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/10,"Traceback (most recent call last):
+  File ""/tmp/tmpz0hlbav8.py"", line 51, in <module>
+    check(make_palindrome)
+  File ""/tmp/tmpz0hlbav8.py"", line 45, in check
+    assert candidate('x') == 'x'
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","return any(string[i:] == string[i:][::-1] for i in range(len(string)))
+
+def make_palindrome(string: str) -> str:
+    i = 0
+    while i < len(string):
+        if string[i:] == string[i:][::-1]: 
+            return string + string[:i][::-1]
+        i += 1
+    return string",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","n = len(string)
+    for i in range(n):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+    return string",Yes,normal,gpt-5,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","for i in range(len(string) // 2):
+        if string[i] != string[-i - 1]:
+            return False
+    return True
+
+def make_palindrome(string: str) -> str:
+    def is_palindrome_suffix(s):
+        for i in range(len(s) // 2):
+            if s[i] != s[-i - 1]:
+                return False
+        return True
+
+    longest_palindrome = ''
+    for i in range(len(string), -1, -1):
+        suffix = string[-i:]
+        if is_palindrome_suffix(suffix) and len(suffix) > len(longest_palindrome):
+            longest_palindrome = suffix
+
+    return string + string[:len(string) - len(longest_palindrome)][::-1]",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","rev_str = string[::-1]
+    for i in range(len(string)):
+        if string[i:] == rev_str[:len(string) - i]:
+            return string + rev_str[len(string) - i:]
+    return string + rev_str[1:]",Yes,unusual,gpt-4o-mini,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+",""""""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+    if not string:
+        return string
+
+    for i in range(len(string), -1, -1):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]",No,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/10,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyc3ihr5y.py"", line 54, in <module>
+    check(make_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyc3ihr5y.py"", line 48, in check
+    assert candidate('x') == 'x'
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","IS_PALINDROME = False
+    LONGEST_PREFIX = ''
+    LONGEST_SUFFIX = ''
+    for i in range(len(string)):
+        for j in range(i + 1, len(string) + 1):
+            SUFFIX = string[i:j]
+            if SUFFIX == SUFFIX[::-1]:
+                if len(SUFFIX) > len(LONGEST_SUFFIX):
+                    LONGEST_SUFFIX = SUFFIX
+                    LONGEST_PREFIX = string[:i + len(SUFFIX) - (len(string) - i - len(SUFFIX))]
+                    IS_PALINDROME = True
+    if IS_PALINDROME:
+        return LONGEST_PREFIX + LONGEST_SUFFIX + LONGEST_SUFFIX[::-1]
+    else:
+        return string",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/10,"Traceback (most recent call last):
+  File ""/tmp/tmp7hf1dyqt.py"", line 52, in <module>
+    check(make_palindrome)
+  File ""/tmp/tmp7hf1dyqt.py"", line 46, in check
+    assert candidate('x') == 'x'
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","# Step 1: Find the longest palindromic suffix
+    match_index = string_length = len(string)
+    while match_index and not is_palindrome(string[string_length-match_index:]):
+        string_length -= 1
+        match_index = string_length
+
+    # Step 2: Reverse the prefix
+    prefix = string[:string_length]
+
+    # Step 3: Concatenate and return
+    return prefix[::-1] + string + prefix",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/10,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpodl66u2o.py"", line 48, in <module>
+    check(make_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpodl66u2o.py"", line 42, in check
+    assert candidate('x') == 'x'
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+",""""""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+    if not string:
+        return ''
+    
+    # Find the longest palindromic suffix
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            # Append the reverse of the prefix to make it a palindrome
+            return string + string[:i][::-1]
+    
+    # If no palindromic suffix found (shouldn't happen for non-empty strings)
+    return string + string[:-1][::-1]",Yes,external,Qwen3-Coder,,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","return s == s[::-1]
+    
+
+def make_palindrome(s: str) -> str:
+    if not s:
+        return """"
+    
+    for i in range(len(s), 0, -1):
+        if is_palindrome(s[-i:]):
+            return s + s[:-i][::-1]
+
+    return s  # In case the input string is already a palindrome.",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","string_length = len(string)
+
+    for i in range(string_length // 2, -1, -1):
+        if is_palindrome(string[:i]):
+            break
+
+    if is_palindrome(string):
+        return string
+
+    reverse_prefix = string[:string_length - i]
+    return string + reverse_prefix[::-1]",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","if not string:
+        return ''
+
+    longest_palindrome = ''
+    for i in range(1, len(string) + 1):
+        for j in range(i):
+            suffix = string[j:i + j + 1]
+            if suffix == suffix[::-1] and len(suffix) > len(longest_palindrome):
+                longest_palindrome = suffix
+
+    prefix = string[:string.index(longest_palindrome)]
+    return prefix + longest_palindrome[::-1] + prefix[::-1]",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","if string == '' or is_palindrome(string):
+    return string
+    for i in range(len(string)):
+    if is_palindrome(string[i:]):
+        return string + string[:i][::-1]
+    return string + string[::-1]",No,normal,gpt-4.1,0.7,HumanEval/10,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp0u_39p5.py"", line 21
+    return string
+    ^
+IndentationError: expected an indented block after 'if' statement on line 20"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","suffix = string[::-1]
+    for i in range(len(string)):
+        if string[:i] == suffix[:i]:
+            return string[:i] + suffix[:i][::-1] + suffix[i:]
+    return string + string[::-1]",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/10,"Traceback (most recent call last):
+  File ""/tmp/tmpijq_6wv8.py"", line 42, in <module>
+    check(make_palindrome)
+  File ""/tmp/tmpijq_6wv8.py"", line 37, in check
+    assert candidate('xyz') == 'xyzyx'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","if string == """":
+        return """"
+
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+
+    return string + string[::-1]",Yes,beginner,gpt-4o-mini,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","suffix = ''
+    for i in range(len(string)):
+        if string[i:] == string[i:][::-1]:
+            suffix = string[i:]
+            break
+    return string[:len(suffix)] + suffix[::-1] + suffix",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/10,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgdnc4d_.py"", line 43, in <module>
+    check(make_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplgdnc4d_.py"", line 37, in check
+    assert candidate('x') == 'x'
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+",""""""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    """"""
+    if not string:
+        return """"
+    rev_string = string[::-1]
+    for i in range(len(string)):
+        if is_palindrome(string[:i+1]):
+            half = rev_string[i+1:]
+            if half == half[::-1]:
+                return string + string[i+1:][::-1]
+    return string + string[1:][::-1]
+
+import doctest
+doctest.testmod(verbose=True)",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/10,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjhh7h0f9.py"", line 59, in <module>
+    check(make_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjhh7h0f9.py"", line 54, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+",""""""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    """"""
+    if is_palindrome(string):
+        return string
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+    return string + string[::-1]",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","for i in range(len(string), -1, -1):
+        if is_palindrome(string[:i]):
+            return string + string[i:][::-1] 
+    return string",No,normal,gpt-4o-mini,1.4,HumanEval/10,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp17a6t3zl.py"", line 41, in <module>
+    check(make_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp17a6t3zl.py"", line 36, in check
+    assert candidate('xyz') == 'xyzyx'
+AssertionError"
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+",""""""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+def make_palindrome(string: str) -> str:
+    """""" 
+    Find the shortest palindrome that begins with a supplied string.
+    Note that if string has only one character then palindrome will be same as string itself.
+    """"""
+    if len(string) < 2:
+        return string
+
+    for i in range(len(string)):
+        if is_palindrome(string[i:]):
+            return string + string[:i][::-1]
+    return string + string[::-1]
+
+#Test cases
+print(make_palindrome('')) # ''
+print(make_palindrome('cat')) # 'catac'
+print(make_palindrome('cata')) # 'catac'",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/10,
+"
+
+def is_palindrome(string: str) -> bool:
+    """""" Test if given string is a palindrome """"""
+    return string == string[::-1]
+
+
+def make_palindrome(string: str) -> str:
+    """""" Find the shortest palindrome that begins with a supplied string.
+    Algorithm idea is simple:
+    - Find the longest postfix of supplied string that is a palindrome.
+    - Append to the end of the string reverse of a string prefix that comes before the palindromic suffix.
+    >>> make_palindrome('')
+    ''
+    >>> make_palindrome('cat')
+    'catac'
+    >>> make_palindrome('cata')
+    'catac'
+    """"""
+","if not string:
+        return ''
+
+    # Check for the longest palindromic suffix
+    for i in range(len(string)):
+        if string[i:] == string[i:][::-1]:
+            longest_palindrome_suffix = string[i:]
+            break
+
+    # Find the prefix that needs to be mirrored
+    prefix_to_mirror = string[:i]
+    mirrored_prefix = prefix_to_mirror[::-1]
+
+    return string + mirrored_prefix",Yes,different-style,gpt-4o-mini,1.0,HumanEval/10,

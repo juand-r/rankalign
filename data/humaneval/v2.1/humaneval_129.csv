@@ -1,0 +1,1141 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    # Find the position of value 1
+    r = c = -1
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] == 1:
+                r, c = i, j
+                break
+        if r != -1:
+            break
+
+    res = [1]
+    if k == 1:
+        return res
+
+    dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    for _ in range(k - 1):
+        best_val = None
+        best_pos = None
+        for dr, dc in dirs:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < n and 0 <= nc < n:
+                val = grid[nr][nc]
+                if best_val is None or val < best_val:
+                    best_val = val
+                    best_pos = (nr, nc)
+        r, c = best_pos
+        res.append(best_val)
+    return res",Yes,normal,gpt-5,1.0,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","N = len(grid)
+    directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+    min_path = [float('inf')] * k
+    for i in range(N):
+        for j in range(N):
+            def dfs(x, y, path, k):
+                nonlocal min_path
+                if k == 0:
+                    min_path = min(min_path, path)
+                    return
+                for dx, dy in directions:
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < N and 0 <= ny < N:
+                        dfs(nx, ny, path + [grid[nx][ny]], k - 1)
+            dfs(i, j, [grid[i][j]], k - 1)
+    return min_path",Yes,normal,gpt-4,0.2,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","def next_nodes(curr, visited):
+        directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+        res = []
+        for dx, dy in directions:
+            x, y = curr[0] + dx, curr[1] + dy
+            if 0 <= x < len(grid) and 0 <= y < len(grid[0]) and (x, y) not in visited:
+                res.append((x, y))
+        return res
+
+    nodes = [(i, j) for i in range(len(grid)) for j in range(len(grid[0]))]
+    res = []
+    for _ in range(k):
+        if not nodes:
+            break
+        val_to_add = min(grid[i][j] for i, j in nodes)
+        new_nodes = []
+        for i, j in nodes:
+            if grid[i][j] == val_to_add:
+                res.append(val_to_add)
+            new_nodes.extend(next_nodes((i, j), set(nodes)))
+        nodes = new_nodes
+    return res",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/129,"Traceback (most recent call last):
+  File ""/tmp/tmpszb9n0qf.py"", line 75, in <module>
+    check(minPath)
+  File ""/tmp/tmpszb9n0qf.py"", line 59, in check
+    assert candidate([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 3) == [1, 2, 1]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","N = len(grid)
+    from heapq import heappush, heappop
+
+    dirs = [(-1,0),(1,0),(0,-1),(0,1)]
+    heap = []
+    for i in range(N):
+        for j in range(N):
+            heappush(heap, ( (grid[i][j],), i, j ))
+
+    visited = dict()
+    while heap:
+        path, x, y = heappop(heap)
+        if len(path) == k:
+            return list(path)
+        key = (x, y, len(path))
+        if key in visited and visited[key] <= path:
+            continue
+        visited[key] = path
+        for dx, dy in dirs:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < N and 0 <= ny < N:
+                heappush(heap, ( path + (grid[nx][ny],), nx, ny ))",Yes,normal,gpt-4.1,0.3,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","N = len(grid)
+    from collections import deque
+    ans = None
+    for i in range(N):
+        for j in range(N):
+            # bfs starting from (i,j)
+            visited = set()
+            dq = deque()
+            dq.append((i,j, [grid[i][j]]))
+            while dq:
+                x, y, path = dq.popleft()
+                if len(path) == k:
+                    if ans is None or path < ans:
+                        ans = path
+                    continue
+                for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                    nx, ny = x+dx, y+dy
+                    if 0<=nx<N and 0<=ny<N:
+                        dq.append((nx, ny, path+[grid[nx][ny]]))
+    return ans",Yes,normal,gpt-4.1,0.7,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","from heapq import heappush, heappop
+    rows = len(grid)
+    cols = len(grid[0])
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    visited = [[False] * cols for _ in range(rows)]
+    
+    def neighbors(i, j):
+        return [(i + di, j + dj) for di, dj in directions if 0 <= i + di < rows and 0 <= j + dj < cols]
+    
+    min_path = []
+    min_heap = [(grid[0][0], [grid[0][0]])]  # (value, [path])
+    
+    while min_heap and k > 0:
+        current_value, path = heappop(min_heap)
+        
+        for nx, ny in neighbors(path[-1][0], path[-1][1]):
+            next_value = grid[nx][ny]
+            new_path = path + [(nx, ny)]
+            if not visited[nx][ny]:
+                heappush(min_heap, (next_value, new_path))
+                visited[nx][ny] = True
+                min_path.append(next_value)
+                k -= 1
+    
+    return min_path",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/129,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl5u0u_vq.py"", line 78, in <module>
+    check(minPath)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl5u0u_vq.py"", line 62, in check
+    assert candidate([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 3) == [1, 2, 1]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl5u0u_vq.py"", line 47, in minPath
+    for nx, ny in neighbors(path[-1][0], path[-1][1]):
+TypeError: 'int' object is not subscriptable"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    x = y = 0
+
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] == 1:
+                x, y = i, j
+                break
+
+    path = [grid[x][y]]
+
+    for _ in range(k - 1):
+        best_x, best_y = x, y
+        best_val = float(""inf"")
+
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < n and 0 <= ny < n and grid[nx][ny] < best_val:
+                best_val = grid[nx][ny]
+                best_x, best_y = nx, ny
+
+        x, y = best_x, best_y
+        path.append(grid[x][y])
+
+    return path",Yes,normal,gpt-5.5,1.0,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","N = len(grid)
+    min_path = [N*N]*k
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # right, down, left, up
+
+    def dfs(i, j, depth, path):
+        nonlocal min_path
+        if depth == k:
+            min_path = min(min_path, path)
+            return
+        for dx, dy in directions:
+            x, y = i + dx, j + dy
+            if 0 <= x < N and 0 <= y < N:
+                dfs(x, y, depth + 1, path + [grid[x][y]])
+
+    for i in range(N):
+        for j in range(N):
+            dfs(i, j, 1, [grid[i][j]])
+
+    return min_path",Yes,normal,gpt-4,0.2,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","if len(path) == k:
+            paths.append(path[:])
+            return
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < n and 0 <= ny < n:
+                dfs(nx, ny, path + [grid[nx][ny]])
+
+    n = len(grid)
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+    paths = []
+
+    for i in range(n):
+        for j in range(n):
+            dfs(i, j, [grid[i][j]])
+
+    paths.sort()
+    return paths[0]",No,normal,gpt-4o,1.0,HumanEval/129,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp283jp42_.py"", line 32
+    if len(path) == k:
+IndentationError: unexpected indent"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","def dfs(i, j, path, visited):
+        if len(path) == k:
+            return path
+        visited.add((i, j))
+        neighbors = [(i-1, j), (i+1, j), (i, j-1), (i, j+1)]
+        for ni, nj in neighbors:
+            if 0 <= ni < len(grid) and 0 <= nj < len(grid[0]) and (ni, nj) not in visited:
+                path.append(grid[ni][nj])
+                result = dfs(ni, nj, path, visited)
+                if result:
+                    return result
+                path.pop()
+        visited.remove((i, j))
+    
+    for i in range(len(grid)):
+        for j in range(len(grid[0])):
+            path = [grid[i][j]]
+            visited = set()
+            result = dfs(i, j, path, visited)
+            if result:
+                return result",No,normal,gpt-3.5-turbo,0.2,HumanEval/129,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpux4dquuo.py"", line 74, in <module>
+    check(minPath)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpux4dquuo.py"", line 58, in check
+    assert candidate([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 3) == [1, 2, 1]
+AssertionError"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","from heapq import heappop, heappush
+
+    n, m = len(grid), len(grid[0])
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+    # Priority queue for lexicographical order
+    pq = []
+
+    for i in range(n):
+        for j in range(m):
+            heappush(pq, ([grid[i][j]], i, j))  # (path, x, y)
+
+    while pq:
+        path, x, y = heappop(pq)
+
+        if len(path) == k:
+            return path
+
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < n and 0 <= ny < m:
+                heappush(pq, (path + [grid[nx][ny]], nx, ny))",Yes,different-style,gpt-4o-mini,1.2,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","from heapq import heappush, heappop
+
+    N = len(grid)
+    
+    # Movements in the order: up, down, left, right
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    # Min-heap to store paths as (lexical list, current length, row, col)
+    heap = []
+
+    # Start path search from all cells
+    for r in range(N):
+        for c in range(N):
+            heappush(heap, ([grid[r][c]], 1, r, c))
+
+    while heap:
+        path, length, r, c = heappop(heap)
+
+        # Check if path length is equal to k
+        if length == k:
+            return path
+        
+        # Explore neighbors
+        for dr, dc in directions:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < N and 0 <= nc < N:
+                new_path = path + [grid[nr][nc]]
+                heappush(heap, (new_path, length + 1, nr, nc))",Yes,normal,gpt-4o,1.2,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    x = y = 0
+
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] == 1:
+                x, y = i, j
+                break
+
+    neighbor_min = n * n + 1
+    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < n and 0 <= ny < n:
+            neighbor_min = min(neighbor_min, grid[nx][ny])
+
+    result = []
+    for i in range(k):
+        result.append(1 if i % 2 == 0 else neighbor_min)
+
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","queue = deque([(start_row, start_col, [grid[start_row][start_col]])])
+        min_path = None
+        
+        while queue:
+            row, col, path = queue.popleft()
+            if len(path) == k:
+                if min_path is None or path < min_path:
+                    min_path = path
+                continue
+            
+            for d_row, d_col in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                new_row, new_col = row + d_row, col + d_col
+                if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
+                    queue.append((new_row, new_col, path + [grid[new_row][new_col]]))
+        
+        return min_path
+
+    result = None
+    for r in range(len(grid)):
+        for c in range(len(grid[0])):
+            path = bfs(r, c)
+            if result is None or path < result:
+                result = path
+
+    return result",No,beginner,gpt-4o-mini,0.7,HumanEval/129,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqtbu4fdq.py"", line 32
+    queue = deque([(start_row, start_col, [grid[start_row][start_col]])])
+IndentationError: unexpected indent"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","[grid[y][x], for x, y in product(range(len(grid)), range(len(grid)))]",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/129,"File ""/tmp/tmptxdutm82.py"", line 32
+    [grid[y][x], for x, y in product(range(len(grid)), range(len(grid)))]
+     ^^^^^^^^^^^
+SyntaxError: did you forget parentheses around the comprehension target?"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+
+    start_i, start_j = 0, 0
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] < grid[start_i][start_j]:
+                start_i, start_j = i, j
+
+    result = []
+    i, j = start_i, start_j
+
+    for step in range(k):
+        result.append(grid[i][j])
+
+        if step == k - 1:
+            break
+
+        best_i, best_j = None, None
+        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ni, nj = i + di, j + dj
+            if 0 <= ni < n and 0 <= nj < n:
+                if best_i is None or grid[ni][nj] < grid[best_i][best_j]:
+                    best_i, best_j = ni, nj
+
+        i, j = best_i, best_j
+
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    min_val = float(""inf"")
+    min_pos = (0, 0)
+
+    for i in range(n):
+        for j in range(n):
+            if grid[i][j] < min_val:
+                min_val = grid[i][j]
+                min_pos = (i, j)
+
+    if k == 1:
+        return [min_val]
+
+    i, j = min_pos
+    best_neighbor = float(""inf"")
+    for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        ni, nj = i + di, j + dj
+        if 0 <= ni < n and 0 <= nj < n:
+            best_neighbor = min(best_neighbor, grid[ni][nj])
+
+    result = []
+    for idx in range(k):
+        if idx % 2 == 0:
+            result.append(min_val)
+        else:
+            result.append(best_neighbor)
+
+    return result",Yes,normal,gpt-5.5,1.0,HumanEval/129,
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    distances = {}
+    visited = set()
+
+    for cell in grid:
+        visited.add(cell)
+
+        while len(visited) > k:
+            min_value = min(visited)
+            visited.remove(min_value)
+
+            for neighbor in [(cell[i][j], cell[i]) for i in range(n) for j in range(n)]:
+                if neighbor[0] not in visited and neighbor[1] not in visited:
+                    new_distance = min((cell[0] + neighbor[0]) + (neighbor[1],), (cell[1] + neighbor[1],))
+                    distances[cell] = new_distance
+                    visited.add(neighbor)
+
+    min_path = sorted([grid[0]])
+    return min_path",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/129,"Traceback (most recent call last):
+  File ""/tmp/tmpdgqm6v23.py"", line 72, in <module>
+    check(minPath)
+  File ""/tmp/tmpdgqm6v23.py"", line 56, in check
+    assert candidate([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 3) == [1, 2, 1]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpdgqm6v23.py"", line 37, in minPath
+    visited.add(cell)
+TypeError: unhashable type: 'list'"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","queue = deque([(start, [grid[start[0]][start[1]]])])
+        while queue:
+            (x, y), path = queue.popleft()
+            if len(path) == k:
+                global min_path
+                if min_path is None or path < min_path:
+                    min_path = path
+                continue
+            
+            for dx, dy in directions:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < rows and 0 <= ny < cols:
+                    queue.append(((nx, ny), path + [grid[nx][ny]]))
+
+    for r in range(rows):
+        for c in range(cols):
+            bfs((r, c))
+
+    return min_path",No,unusual,gpt-4o-mini,1.0,HumanEval/129,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkn9k51s4.py"", line 32
+    queue = deque([(start, [grid[start[0]][start[1]]])])
+IndentationError: unexpected indent"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","from heapq import heappop, heappush
+
+    n = len(grid)
+    directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+    min_heap = []
+
+    for r in range(n):
+        for c in range(n):
+            heappush(min_heap, (grid[r][c], [(grid[r][c])], r, c))
+
+    while min_heap:
+        val, path, x, y = heappop(min_heap)
+        if len(path) == k:
+            return path
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < n and 0 <= ny < n:
+                heappush(min_heap, (val + grid[nx][ny], path + [grid[nx][ny]], nx, ny))",No,different-style,gpt-4o-mini,1.0,HumanEval/129,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzdhpqx40.py"", line 72, in <module>
+    check(minPath)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzdhpqx40.py"", line 59, in check
+    assert candidate([[6, 4, 13, 10], [5, 7, 12, 1], [3, 16, 11, 15], [8, 14, 9, 2]], 7) == [1, 10, 1, 10, 1, 10, 1]
+AssertionError"
+"
+def minPath(grid, k):
+    """"""
+    Given a grid with N rows and N columns (N >= 2) and a positive integer k, 
+    each cell of the grid contains a value. Every integer in the range [1, N * N]
+    inclusive appears exactly once on the cells of the grid.
+
+    You have to find the minimum path of length k in the grid. You can start
+    from any cell, and in each step you can move to any of the neighbor cells,
+    in other words, you can go to cells which share an edge with you current
+    cell.
+    Please note that a path of length k means visiting exactly k cells (not
+    necessarily distinct).
+    You CANNOT go off the grid.
+    A path A (of length k) is considered less than a path B (of length k) if
+    after making the ordered lists of the values on the cells that A and B go
+    through (let's call them lst_A and lst_B), lst_A is lexicographically less
+    than lst_B, in other words, there exist an integer index i (1 <= i <= k)
+    such that lst_A[i] < lst_B[i] and for any j (1 <= j < i) we have
+    lst_A[j] = lst_B[j].
+    It is guaranteed that the answer is unique.
+    Return an ordered list of the values on the cells that the minimum path go through.
+
+    Examples:
+
+        Input: grid = [ [1,2,3], [4,5,6], [7,8,9]], k = 3
+        Output: [1, 2, 1]
+
+        Input: grid = [ [5,9,3], [4,1,6], [7,8,2]], k = 1
+        Output: [1]
+    """"""
+","n = len(grid)
+    m = len(grid[0])
+    minP = None
+    def helper(row, col, order, visited, path):
+        nonlocal minP
+        if k == order:
+            if minP is None or path < minP:
+                minP = path
+            return
+        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            r, c = row + dr, col + dc
+            if 0 <= r < n and 0 <= c < m and (r, c) not in visited:
+                visited.add((r, c))
+                helper(r, c, order + 1, visited.copy(), path + [grid[r][c]])
+                visited.remove((r, c))
+    for i in range(n):
+        for j in range(m):
+            helper(i, j, 0, {(i, j)}, [])",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/129,"Traceback (most recent call last):
+  File ""/tmp/tmps6apojtk.py"", line 71, in <module>
+    check(minPath)
+  File ""/tmp/tmps6apojtk.py"", line 55, in check
+    assert candidate([[1, 2, 3], [4, 5, 6], [7, 8, 9]], 3) == [1, 2, 1]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"

@@ -1,0 +1,771 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0:
+        return 0
+    elif n == 1:
+        return 0
+    elif n == 2:
+        return 2
+    elif n == 3:
+        return 0
+    else:
+        fib_array = [0, 0, 2, 0] + [0] * (n - 3)
+        for i in range(4, n + 1):
+            fib_array[i] = fib_array[i-1] + fib_array[i-2] + fib_array[i-3] + fib_array[i-4]
+        return fib_array[n]",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","fib_seq = [0, 0, 2, 0]
+    for i in range(4, n):
+        fib_seq.append(fib_seq[i-1] + fib_seq[i-2] + fib_seq[i-3] + fib_seq[i-4])
+    return fib_seq[n]",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/46,"Traceback (most recent call last):
+  File ""/tmp/tmpfvfz31pm.py"", line 36, in <module>
+    check(fib4)
+  File ""/tmp/tmpfvfz31pm.py"", line 29, in check
+    assert candidate(5) == 4
+           ^^^^^^^^^^^^
+  File ""/tmp/tmpfvfz31pm.py"", line 21, in fib4
+    return fib_seq[n]
+           ~~~~~~~^^^
+IndexError: list index out of range"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","""""""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+    if n == 0:
+        return 0
+    elif n == 1:
+        return 0
+    elif n == 2:
+        return 2
+    elif n == 3:
+        return 0
+    else:
+        a, b, c, d = 0, 0, 2, 0
+        for _ in range(4, n+1):
+            a, b, c, d = b, c, d, a+b+c+d
+        return d",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0 or n == 1:
+        return 0
+    if n == 2:
+        return 2
+    if n == 3:
+        return 0
+    vals = [0, 0, 2, 0]
+    for i in range(4, n + 1):
+        next_val = vals[0] + vals[1] + vals[2] + vals[3]
+        vals = [vals[1], vals[2], vals[3], next_val]
+    return vals[3]",Yes,normal,gpt-4.1,1.2,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","fibs = [0, 0, 2, 0]
+    for i in range(4, n + 1):
+        fibs.append(fibs[i - 1] + fibs[i - 2] + fibs[i - 3] + fibs[i - 4])
+    return fibs[n]",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 0:
+    SystemExit(""n must be nonnegative"")
+
+    if n == 0 or n == 1 or n == 3:
+    RETURN_0 = True
+    return 0
+
+    if n == 2:
+    RETURN_VALUE = 2
+    return RETURN_VALUE
+
+    PREV_1 = 0
+    PREV_2 = 0
+    PREV_3 = 2
+
+    for i in range(4, n + 1):
+    NEW-prev1, NEW-prev2, NEW-prev3 = PREV_3, PREV_1 + PREV_2 + PREV_3, PREV_1
+    PREV_1 = NEW-prev1
+    PREV_2 = NEW-prev2
+    PREV_3 = NEW-prev3
+
+    return PREV_3",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/46,"File ""/tmp/tmpmouef8pq.py"", line 19
+    SystemExit(""n must be nonnegative"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","""""""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence. Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+    if n <= 3:
+        return 0
+    elif n == 4:
+        return 2
+    else:
+        a, b, c, d = 0, 0, 2, 0
+        for i in range(5, n+1):
+            a, b, c, d = b, c, d, a+b+c+d
+        return a+b+c+d",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 2:
+        return 0
+    elif n == 2:
+        return 2
+    elif n == 3:
+        return 0
+    else:
+        a, b, c, d = 0, 0, 2, 0
+        for _ in range(4, n + 1):
+            a, b, c, d = b, c, d, a + b + c + d
+        return d",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","fib_sequence = [0, 0, 2, 0]
+
+    if len(fib_sequence) <= n:
+        for i in range(4, n+1):
+            fib_sequence.append(fib_sequence[i-1] + fib_sequence[i-2] + fib_sequence[i-3] + fib_sequence[i-4])
+
+    return fib_sequence[n]",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0 or n == 1:
+        return 0
+    elif n == 2:
+        return 2
+    else:
+        fib = [0, 0, 2, 0]
+        for i in range(4, n+1):
+            fib.append(fib[-1] + fib[-2] + fib[-3] + fib[-4])
+        return fib[-1]
+
+print(fib4(5)) # 4
+print(fib4(6)) # 8
+print(fib4(7)) # 14",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","f = [0, 0, 2, 0]
+    for i in range(4, n + 1):
+        f.append(f[i - 1] + f[i - 2] + f[i - 3] + f[i - 4])
+    return f[n]",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","f = [0, 0, 2, 0]
+    for i in range(4, n + 1):
+        f.append(f[i-1] + f[i-2] + f[i-3] + f[i-4])",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoh6rl8mk.py"", line 35, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoh6rl8mk.py"", line 28, in check
+    assert candidate(5) == 4
+AssertionError"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0 or n == 1 or n == 3:
+    return 0
+    elif n == 2:
+    return 2
+
+    a, b, c, d = 0, 0, 2, 0
+    for _ in range(4, n + 1):
+    a, b, c, d = b, c, d, a + b + c + d
+
+    return d",No,normal,gpt-4o,0.2,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnd07_mly.py"", line 19
+    return 0
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 0:
+        raise ValueError(""n must be a non-negative integer"")
+    elif n == 0:
+        return 0
+    elif n == 1:
+        return 0
+    elif n == 2:
+        return 2
+    elif n == 3:
+        return 0
+    else:
+        fib = [0, 0, 2, 0] + [0]*(n-3)
+        for i in range(4, n+1):
+            fib[i] = fib[i-1] + fib[i-2] + fib[i-3] + fib[i-4]
+        return fib[n]",Yes,external,Llama-3.3-70B,,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 4:
+        return [0, 0, 2, 0][n]
+
+    a, b, c, d = 0, 0, 2, 0
+    for _ in range(4, n + 1):
+        a, b, c, d = b, c, d, a + b + c + d
+
+    return d",Yes,normal,gpt-5.5,1.0,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0: return 0
+    if n == 1: return 0
+    if n == 2: return 2
+    if n == 3: return 0
+
+    fib = [0, 0, 2, 0] + [0] * (n - 3)
+
+    for i in range(4, n + 1):
+        fib[i] = fib[i - 1] + fib[i - 2] + fib[i - 3] + fib[i - 4]
+
+    return fib[n]",Yes,different-style,gpt-4o-mini,1.0,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 4:
+    return (0, 0, 2, 0)[n]
+    t = [0, 0, 2, 0]
+    for _ in range(4, n + 1):
+    t[:] = t[1:] + [sum(t)]
+    return t[-1]",No,different-style,gpt-5,1.0,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprh7ahufl.py"", line 19
+    return (0, 0, 2, 0)[n]
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","a, b, c, d = 0, 0, 2, 0
+    for _ in range(n + 1):
+        a, b, c, d = b, c, d, a + b + c + d
+    return d",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/46,"Traceback (most recent call last):
+  File ""/tmp/tmpg7pabuyv.py"", line 36, in <module>
+    check(fib4)
+  File ""/tmp/tmpg7pabuyv.py"", line 29, in check
+    assert candidate(5) == 4
+           ^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n <= 3:
+        return n
+    else:
+        return fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4)",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6cbvnsxf.py"", line 36, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6cbvnsxf.py"", line 29, in check
+    assert candidate(5) == 4
+AssertionError"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","sequence = [0, 0, 2]  # Initialize sequence with first four terms
+
+    while len(sequence) < n:
+        first, *sequence = sequence[:-4] + sequence[-4:]  # Remove four last and add the first four elements in the sequence
+        sequence.append(sum(sequence[-4:]))  # Add the summarized version of the last four numbers
+
+    return sequence[-1]  # Return the n-th term of the sequence",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/46,TIMEOUT
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0:
+        return 0
+    if n == 1:
+        return 0
+    if n == 2:
+        return 2
+    if n == 3:
+        return 0
+
+    sequence = [0, 0, 2, 0]
+    for i in range(4, n + 1):
+        sequence.append(sequence[i - 1] + sequence[i - 2] + sequence[i - 3] + sequence[i - 4])
+
+    return sequence[n]",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n not in cache:
+        cache[n] = fib4(n - 1) + fib4(n - 2) + fib4(n - 3) + fib4(n - 4)
+    return cache[n]",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkgm833in.py"", line 35, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkgm833in.py"", line 28, in check
+    assert candidate(5) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkgm833in.py"", line 18, in fib4
+    if n not in cache:
+NameError: name 'cache' is not defined"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n < 0:
+    raise ValueError(""n must be a non-negative integer"")
+     elif n == 0:
+    return 0
+     elif n == 1:
+    return 0
+     elif n == 2:
+    return 2
+     else:
+    fib4_n_1, fib4_n_2, fib4_n_3, fib4_n_4 = 0, 0, 2, 0
+    for _ in range(3, n + 1):
+        fib4_n_4, fib4_n_3, fib4_n_2, fib4_n_1 = fib4_n_3 + fib4_n_4, fib4_n_2 + fib4_n_3 + fib4_n_4, fib4_n_1 + fib4_n_2 + fib4_n_3, fib4_n_2
+    return fib4_n_1",No,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/46,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplb1fstn5.py"", line 19
+    raise ValueError(""n must be a non-negative integer"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 18"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","if n == 0:
+        return 0
+    elif n == 1:
+        return 0
+    elif n == 2:
+        return 2
+    elif n == 3:
+        return 0
+
+    fib4_values = [0, 0, 2, 0]
+
+    for i in range(4, n + 1):
+        next_value = fib4_values[i - 1] + fib4_values[i - 2] + fib4_values[i - 3] + fib4_values[i - 4]
+        fib4_values.append(next_value)
+
+    return fib4_values[n]",Yes,beginner,gpt-4o-mini,1.2,HumanEval/46,
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","result = 0
+    previous1 = 0
+    previous2 = 0
+    previous3 = 0
+    previous4 = 0
+    for current_index in range(noteenth, original_loop_condition):
+        temp = previous1
+        previous1 = previous2
+        previous2 = previous3
+        previous3 = previous4
+        previous4 = result
+        result += temp + previous1 + previous2 + previous3
+    noteenth = int(input())
+    print(result)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/46,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfryk14b3.py"", line 46, in <module>
+    check(fib4)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfryk14b3.py"", line 39, in check
+    assert candidate(5) == 4
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfryk14b3.py"", line 23, in fib4
+    for current_index in range(noteenth, original_loop_condition):
+UnboundLocalError: local variable 'noteenth' referenced before assignment"
+"
+
+def fib4(n: int):
+    """"""The Fib4 number sequence is a sequence similar to the Fibbonacci sequnece that's defined as follows:
+    fib4(0) -> 0
+    fib4(1) -> 0
+    fib4(2) -> 2
+    fib4(3) -> 0
+    fib4(n) -> fib4(n-1) + fib4(n-2) + fib4(n-3) + fib4(n-4).
+    Please write a function to efficiently compute the n-th element of the fib4 number sequence.  Do not use recursion.
+    >>> fib4(5)
+    4
+    >>> fib4(6)
+    8
+    >>> fib4(7)
+    14
+    """"""
+","# Initialize four variables to store the previous four Fib4 numbers
+    fib_4 = [0] * 4
+    fib_4[0], fib_4[1], fib_4[2], fib_4[3] = 0, 0, 2, 0
+
+    # Calculate the n-th Fib4 number using a loop
+    for _ in range(4, n + 1):
+        fib_4[_ % 4] = sum(fib_4[(i + 3) % 4] for i in range(4))
+
+    # Return the n-th Fib4 number
+    return fib_4[n % 4]",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/46,

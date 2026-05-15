@@ -1,0 +1,560 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","sum, product = 0, 1
+
+    for num in lst:
+        sum += num
+        product *= num
+
+    return sum, product",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmp95u8i44n.py"", line 36, in <module>
+    check(sum_product)
+  File ""/tmp/tmp95u8i44n.py"", line 29, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp95u8i44n.py"", line 14, in sum_product
+    for num in lst:
+               ^^^
+NameError: name 'lst' is not defined. Did you mean: 'List'?"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","sum_result = sum(numbers) if numbers else 0
+    product_result = 1
+    for num in numbers:
+        product_result *= num
+    return (sum_result, product_result)",Yes,external,Mistral-3.2-24B,,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","if not numbers:
+        return (0, 1)
+    
+    total_sum = sum(numbers)
+    product = 1
+    for num in numbers:
+        product *= num
+    
+    return (total_sum, product)",Yes,external,Claude Sonnet-4,,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","if not numbers:
+        return (0, 1)
+    
+    total_sum = 0
+    total_product = 1
+    for number in numbers:
+        total_sum += number
+        total_product *= number
+    return (total_sum, total_product)",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total_sum = 0
+    total_product = 1
+
+    for number in numbers:
+        total_sum += number
+        total_product *= number
+
+    return (total_sum, total_product)",Yes,beginner,gpt-4o-mini,0.7,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","return (sum(numbers), reduce(lambda x, y: x*y, numbers))",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxm5gfg9w.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxm5gfg9w.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxm5gfg9w.py"", line 12, in sum_product
+    return (sum(numbers), reduce(lambda x, y: x*y, numbers))
+NameError: name 'reduce' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","sum_product = lambda numbers: (sum(numbers), 1 if not numbers else eval('*'.join(map(str, numbers))))",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpg06svmwv.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmpg06svmwv.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total = sum(numbers)
+    product = 1
+    for n in numbers:
+        product *= n
+    return total, product",Yes,normal,gpt-5,1.0,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total = sum(numbers)
+    product = 1
+    for n in numbers:
+        product *= n
+    return (total, product)",Yes,normal,gpt-4.1,0.7,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","return (sum(numbers), reduce(operator.mul, numbers, 1))",No,external,GPT-4o,,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjgeme_0x.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjgeme_0x.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjgeme_0x.py"", line 12, in sum_product
+    return (sum(numbers), reduce(operator.mul, numbers, 1))
+NameError: name 'reduce' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+",""""""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+    if not numbers:
+        return (0, 1)
+    else:
+        sum_numbers = sum(numbers)
+        product_numbers = 1
+        for num in numbers:
+            product_numbers *= num
+        return (sum_numbers, product_numbers)",Yes,normal,gpt-4,0.2,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total = 0
+
+    product = 1
+
+    for number in numbers:
+
+        total += number
+
+        product *= number
+
+    return (total, product)",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","return (sum(numbers), reduce(lambda x, y: x * y, numbers))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph0ktg94g.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph0ktg94g.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph0ktg94g.py"", line 12, in sum_product
+    return (sum(numbers), reduce(lambda x, y: x * y, numbers))
+NameError: name 'reduce' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","return 0, 1",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpjestzgwd.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmpjestzgwd.py"", line 24, in check
+    assert candidate([1, 1, 1]) == (3, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+",return sum(numbers) * len(numbers),No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmp53pyp_rk.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmp53pyp_rk.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","result = (0, 1)
+    for num in numbers:
+        result = (result[0] + num, result[1] * num)
+    return result",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total = sum(numbers)
+    product = reduce((lambda x, y: x * y), numbers, 1)
+
+    return total, product",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7o8kwmp.py"", line 33, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7o8kwmp.py"", line 26, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj7o8kwmp.py"", line 13, in sum_product
+    product = reduce((lambda x, y: x * y), numbers, 1)
+NameError: name 'reduce' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total = 0
+    product = 1
+    for number in numbers:
+        total += number
+        product *= number
+    return total, product",Yes,normal,gpt-5.5,1.0,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","sum_of_numbers = 0
+    product_of_numbers = 1
+    for number in numbers:
+        sum_of_numbers += number
+        product_of_numbers *= number
+    return sum_of_numbers, product_of_numbers",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","return sum(numbers), eval('*'.join(map(str, numbers)))",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdx5yub8u.py"", line 30, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdx5yub8u.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdx5yub8u.py"", line 12, in sum_product
+    return sum(numbers), eval('*'.join(map(str, numbers)))
+  File ""<string>"", line 0
+    
+SyntaxError: invalid syntax"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total_sum = 0
+     total_product = 1
+
+     for number in numbers:
+     total_sum += number
+     total_product *= number
+
+     return (total_sum, total_product)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/8,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd9gzmx7a.py"", line 12
+    total_sum = 0
+IndentationError: unexpected indent"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+",""""""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+    if not numbers:
+        return (0, 1)
+    return (sum(numbers), math.prod(numbers))",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/8,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpackmfld_.py"", line 39, in <module>
+    check(sum_product)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpackmfld_.py"", line 33, in check
+    assert candidate([1, 1, 1]) == (3, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpackmfld_.py"", line 21, in sum_product
+    return (sum(numbers), math.prod(numbers))
+NameError: name 'math' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","if not numbers:
+    return 0, 1
+    else:
+    total_sum = sum(numbers)
+    total_product = 1
+    for num in numbers:
+        total_product *= num
+    return total_sum, total_product",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/8,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw4ebrwra.py"", line 13
+    return 0, 1
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+",tuple_of_sum_and_product(numbers),No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/8,"Traceback (most recent call last):
+  File ""/tmp/tmpxybje6_o.py"", line 30, in <module>
+    check(sum_product)
+  File ""/tmp/tmpxybje6_o.py"", line 23, in check
+    assert candidate([]) == (0, 1)
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpxybje6_o.py"", line 12, in sum_product
+    tuple_of_sum_and_product(numbers)
+    ^^^^^^^^^^^^^^^^^^^^^^^^
+NameError: name 'tuple_of_sum_and_product' is not defined"
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total_sum = 0
+    total_product = 1
+
+    for i in numbers:
+        total_sum += i
+        total_product *= i
+
+    return total_sum, total_product
+
+    # Here's a ""cooler"", but less readable version using recursion
+    # def sum_product(numbers, total_sum=0, total_product=1):
+    #     if not numbers:
+    #         return total_sum, total_product
+    #     else:
+    #         last_num = numbers.pop()
+    #         return sum_product(numbers, total_sum + last_num, total_product * last_num)",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","if not numbers:
+        return (0, 1)
+
+    sum_, product_ = 0, 1
+    for num in numbers:
+        sum_ += num
+        product_ *= num
+
+    return (sum_, product_)",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","total_sum = 0
+    total_product = 1
+    for num in numbers:
+        total_sum += num
+        total_product *= num
+    return total_sum, total_product",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/8,
+"from typing import List, Tuple
+
+
+def sum_product(numbers: List[int]) -> Tuple[int, int]:
+    """""" For a given list of integers, return a tuple consisting of a sum and a product of all the integers in a list.
+    Empty sum should be equal to 0 and empty product should be equal to 1.
+    >>> sum_product([])
+    (0, 1)
+    >>> sum_product([1, 2, 3, 4])
+    (10, 24)
+    """"""
+","if not numbers:
+        return 0, 1
+    total_sum = sum(numbers)
+    total_product = 1
+    for num in numbers:
+        total_product *= num
+    return total_sum, total_product",Yes,normal,gpt-4o,1.0,HumanEval/8,
