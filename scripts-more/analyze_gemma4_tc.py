@@ -20,7 +20,7 @@ Group membership is decided purely from the score filename prefix/infix
 Usage (paths default to the mll layout used for the May-2026 run):
   python scripts-more/analyze_gemma4_tc.py \
       --scripts-dir /datastor1/jdr/gv-gap/rankalign/scripts \
-      --scores-dir  /datastor2/jdr/outputs_gemma4_from_pod \
+      --scores-dir  /datastor1/jdr/gv-gap/rankalign/outputs_gemma4_from_pod \
       --out-dir     /datastor2/jdr/outputs_gemma4_from_pod/_analysis
 """
 from __future__ import annotations
@@ -32,7 +32,7 @@ from pathlib import Path
 import pandas as pd
 
 DEFAULT_SCRIPTS_DIR = "/datastor1/jdr/gv-gap/rankalign/scripts"
-DEFAULT_SCORES_DIR = "/datastor2/jdr/outputs_gemma4_from_pod"
+DEFAULT_SCORES_DIR = "/datastor1/jdr/gv-gap/rankalign/outputs_gemma4_from_pod"
 
 METRIC_COLS = ["gen_roc", "val_roc", "val_acc", "pearson", "spearman"]
 VARIANT_ORDER = ["raw", "tc", "lenorm", "tc+lenorm"]
