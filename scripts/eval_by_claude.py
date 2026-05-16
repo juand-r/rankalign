@@ -547,20 +547,34 @@ def init_model(model_name, device, fp32_model=False):
     # if 'gemma-3' in model_name:
     #     model = Gemma3ForCausalLM.from_pretrained(model_name, torch_dtype=torch_dtype).to(device)
     
-    if 'gemma' in model_name:
+    # Detect PEFT/LoRA adapter: if adapter_config.json present, load base + apply adapter
+    import os as _os, json as _json
+    _adapter_cfg = _os.path.join(model_name, 'adapter_config.json')
+    if _os.path.exists(_adapter_cfg):
+        from peft import PeftModel as _PeftModel
+        _base_path = _json.load(open(_adapter_cfg))['base_model_name_or_path']
+        print(f"  Detected PEFT adapter. Loading base model: {_base_path}")
+        if 'gemma' in _base_path.lower():
+            _base = AutoModelForCausalLM.from_pretrained(
+                _base_path, attn_implementation="eager", **load_kwargs)
+        else:
+            _base = AutoModelForCausalLM.from_pretrained(_base_path, **load_kwargs)
+        model = _PeftModel.from_pretrained(_base, model_name)
+        tokenizer = AutoTokenizer.from_pretrained(_base_path)
+    elif 'gemma' in model_name:
         model = AutoModelForCausalLM.from_pretrained(
-            model_name, 
-            attn_implementation="eager", 
+            model_name,
+            attn_implementation="eager",
             **load_kwargs
         )
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
     else:
         model = AutoModelForCausalLM.from_pretrained(model_name, **load_kwargs)
-    
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+
     # Note: Don't call model.to(device) when using device_map="auto"
     print("model.config.torch_dtype:", model.config.torch_dtype)
     print(f"Model distributed across devices: {set(model.hf_device_map.values()) if hasattr(model, 'hf_device_map') else 'single device'}")
-    
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     if "llama" in model_name:
