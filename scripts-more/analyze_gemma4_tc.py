@@ -44,6 +44,17 @@ def classify(name: str) -> str | None:
         return "RankAlign+negtc_neg" if "tc-neg" in name else "RankAlign_neg"
     if name.startswith("scores_basetyp-"):
         return "RankAlign+tc_self" if "tc-self" in name else "RankAlign_self"
+    # No-base-typ RankAlign control: no_tc adapter evaluated with
+    # --self/--neg-typicality but WITHOUT --base-typicality, so the
+    # typicality reference is the model's OWN log P(y). Prefix is self-/neg-
+    # but the model path contains _workspace_models_g4it_ (a trained adapter),
+    # which distinguishes it from the untrained Base files
+    # (scores_self-v6-google_gemma-4-31B-it..., no _workspace_models_g4it_).
+    if "_workspace_models_g4it_" in name and "tc-self" not in name and "tc-neg" not in name:
+        if name.startswith("scores_self-"):
+            return "RankAlign_nobt_self"
+        if name.startswith("scores_neg-"):
+            return "RankAlign_nobt_neg"
     return None
 
 
@@ -204,6 +215,32 @@ def main() -> None:
                     "Base_self", "RankAlign_self", "RankAlign+tc_self")
     requested_table("TABLE 2 — neg-TC (eval: --neg-typicality --base-typicality)",
                     "Base_neg", "RankAlign_neg", "RankAlign+negtc_neg")
+
+    # ---- No-base-typ control: does RankAlign's OWN log P(y) reference avoid
+    #      the over-correction seen with the frozen-base reference? ----
+    present = set(per_task.group.unique())
+    if {"RankAlign_nobt_self", "RankAlign_nobt_neg"} & present:
+        print(f"\n{'=' * 78}\nNO-BASE-TYP CONTROL — RankAlign (no_tc epoch2): "
+              f"base-typ vs own-logP reference\n{'=' * 78}")
+        print("gen_roc | pearson, mean±std over 82 tasks. raw is identical by "
+              "construction (typicality flag doesn't change log P(y|x)).")
+        for side, bt_g, nobt_g in [("self", "RankAlign_self", "RankAlign_nobt_self"),
+                                   ("neg", "RankAlign_neg", "RankAlign_nobt_neg")]:
+            if nobt_g not in present:
+                print(f"\n[{side}] {nobt_g} missing — skipped")
+                continue
+            print(f"\n-- {side}-typicality --")
+            print(f"{'':22s} {'raw gen_roc':>14} {'tc gen_roc':>14} "
+                  f"{'raw pears':>11} {'tc pears':>10}")
+            for label, g in [("RankAlign (base-typ)", bt_g),
+                             ("RankAlign (own logP)", nobt_g)]:
+                rr, tt = row(g, "raw"), row(g, "tc")
+                print(f"{label:22s} {rr['gen_roc'][0]:14.4f} "
+                      f"{tt['gen_roc'][0]:14.4f} {rr['pearson'][0]:11.4f} "
+                      f"{tt['pearson'][0]:10.4f}")
+            a, b = row(bt_g, "tc"), row(nobt_g, "tc")
+            print(f"  Δtc(own−base): gen_roc {b['gen_roc'][0]-a['gen_roc'][0]:+.4f}"
+                  f"  pearson {b['pearson'][0]-a['pearson'][0]:+.4f}")
 
 
 if __name__ == "__main__":
