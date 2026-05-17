@@ -34,6 +34,14 @@ esac
 # point. Override e.g. EVAL_EPOCHS="0 1 2" to also eval intermediate epochs.
 EVAL_EPOCHS="${EVAL_EPOCHS:-2}"
 
+# BASETYP=1 (default): typicality reference = frozen base model
+#   (--base-typicality --base-model $BASE); correct for offline-trained
+#   models. BASETYP=0: omit it, so --self/--neg-typicality use the
+#   evaluated model's OWN log P(y) (filename prefix becomes self-/neg-
+#   instead of basetyp-/basetypneg-). Marker/log names include bt<N> so a
+#   BASETYP=0 re-run does not collide with / skip the BASETYP=1 results.
+BASETYP="${BASETYP:-1}"
+
 : "${HF_TOKEN:?HF_TOKEN not set in environment — required for gated gemma-4 download}"
 
 # Paths are env-overridable; defaults are the RunPod pod layout, so existing
@@ -99,7 +107,8 @@ else
 fi
 
 # ---- STEP 2: eval the requested epoch checkpoint(s) (idempotent markers) ----
-log "eval epochs: $EVAL_EPOCHS"
+log "eval epochs: $EVAL_EPOCHS  BASETYP=$BASETYP"
+if [ "$BASETYP" = "1" ]; then BT_ARGS="--base-typicality --base-model $BASE"; else BT_ARGS=""; fi
 for EP in $EVAL_EPOCHS; do
     AD="$(adapter_dir "$EP")"
     if [ ! -d "$AD" ]; then log "WARN: epoch$EP adapter missing, skipping its eval"; continue; fi
@@ -108,13 +117,13 @@ for EP in $EVAL_EPOCHS; do
         log "  ==== eval $ARM epoch$EP $MODE ===="
         n=0
         for T in $TASKS; do
-            marker="${DONE}/${ARM}_ep${EP}_${mname}_${T}.done"
+            marker="${DONE}/${ARM}_ep${EP}_${mname}_bt${BASETYP}_${T}.done"
             if [ -f "$marker" ]; then n=$((n+1)); continue; fi
             python eval_by_claude.py --model "$AD" --task "$T" --split_type random \
-                --gen-shots zero --disc-shots zero "$MODE" --base-typicality \
-                --base-model "$BASE" --validator-log-odds --save-scores-csv \
+                --gen-shots zero --disc-shots zero "$MODE" $BT_ARGS \
+                --validator-log-odds --save-scores-csv \
                 --outputs-dir "$OUTDIR" \
-                >> "$LOGDIR/eval_${ARM}_ep${EP}_${mname}.log" 2>&1 \
+                >> "$LOGDIR/eval_${ARM}_ep${EP}_${mname}_bt${BASETYP}.log" 2>&1 \
                 && touch "$marker"
             n=$((n+1))
             [ $((n % 10)) -eq 0 ] && log "    $MODE epoch$EP: $n/$NT"
