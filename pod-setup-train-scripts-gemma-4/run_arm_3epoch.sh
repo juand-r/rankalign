@@ -36,24 +36,29 @@ EVAL_EPOCHS="${EVAL_EPOCHS:-2}"
 
 : "${HF_TOKEN:?HF_TOKEN not set in environment — required for gated gemma-4 download}"
 
-export HF_HOME=/workspace/.cache/huggingface
-export HF_HUB_CACHE=$HF_HOME/hub
+# Paths are env-overridable; defaults are the RunPod pod layout, so existing
+# pod usage is unchanged. The mll Slurm wrapper sets these to mll paths.
+RANKALIGN_DIR="${RANKALIGN_DIR:-/workspace/rankalign}"
+VENV_DIR="${VENV_DIR:-/workspace/.venv}"
+MODELS_DIR="${MODELS_DIR:-/workspace/models_g4it}"
+OUTDIR="${OUTDIR:-/workspace/outputs}"
+LOGDIR="${LOGDIR:-/workspace/logs}"
+
+export HF_HOME="${HF_HOME:-/workspace/.cache/huggingface}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
 export TRANSFORMERS_CACHE=$HF_HUB_CACHE
 export HF_HUB_DISABLE_XET=1 HF_HUB_ENABLE_HF_TRANSFER=1
 export HUGGING_FACE_HUB_TOKEN=$HF_TOKEN
 export WANDB_MODE=offline
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
-source /workspace/.venv/bin/activate
-cd /workspace/rankalign/scripts
+source "$VENV_DIR/bin/activate"
+cd "$RANKALIGN_DIR/scripts"
 
 MODEL=google/gemma-4-31B-it
 BASE=google/gemma-4-31B-it
-MODELS_DIR=/workspace/models_g4it
-OUTDIR=/workspace/outputs
-DONE=/workspace/outputs/.done
-mkdir -p "$MODELS_DIR" "$OUTDIR" "$DONE"
-LOG=/workspace/logs/run_${ARM}_3epoch.log
-mkdir -p /workspace/logs
+DONE="$OUTDIR/.done"
+mkdir -p "$MODELS_DIR" "$OUTDIR" "$DONE" "$LOGDIR"
+LOG="$LOGDIR/run_${ARM}_3epoch.log"
 log(){ echo "[$(date -u +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
 # Verified COMMON (= real_pipeline_g4it.sh, num_epochs 3). Do not edit casually.
@@ -63,7 +68,7 @@ COMMON="--model $MODEL --num_epochs 3 --task humaneval-v2.1correct-upper \
 --semi-supervised 0.1 --disc-shots zero --lora --gradient_checkpointing \
 --models-dir $MODELS_DIR --total_samples 5110"
 
-TASKS=$(ls /workspace/rankalign/data/humaneval/v2.1correct-upper/humaneval_*.csv \
+TASKS=$(ls "$RANKALIGN_DIR"/data/humaneval/v2.1correct-upper/humaneval_*.csv \
     | xargs -n1 basename | sed 's/\.csv$//' \
     | sed 's/^/humaneval-v2.1correct-upper-/' | tr '\n' ' ')
 NT=$(echo "$TASKS" | wc -w)
@@ -84,11 +89,11 @@ else
     log "training: launching ranking_loss_ref_gemma4.py (3 epochs)"
     # shellcheck disable=SC2086
     python ranking_loss_ref_gemma4.py $COMMON $TC_TRAIN \
-        > "/workspace/logs/train_${ARM}_3epoch.log" 2>&1
+        > "$LOGDIR/train_${ARM}_3epoch.log" 2>&1
     rc=$?
     log "training exit=$rc"
     if [ ! -d "$(adapter_dir 2)" ]; then
-        log "FATAL: epoch2 adapter missing after training. See train_${ARM}_3epoch.log"
+        log "FATAL: epoch2 adapter missing after training. See $LOGDIR/train_${ARM}_3epoch.log"
         exit 1
     fi
 fi
@@ -109,7 +114,7 @@ for EP in $EVAL_EPOCHS; do
                 --gen-shots zero --disc-shots zero "$MODE" --base-typicality \
                 --base-model "$BASE" --validator-log-odds --save-scores-csv \
                 --outputs-dir "$OUTDIR" \
-                >> "/workspace/logs/eval_${ARM}_ep${EP}_${mname}.log" 2>&1 \
+                >> "$LOGDIR/eval_${ARM}_ep${EP}_${mname}.log" 2>&1 \
                 && touch "$marker"
             n=$((n+1))
             [ $((n % 10)) -eq 0 ] && log "    $MODE epoch$EP: $n/$NT"
