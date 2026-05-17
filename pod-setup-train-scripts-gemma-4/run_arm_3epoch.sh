@@ -29,6 +29,11 @@ case "$ARM" in
   *) echo "FATAL: unknown arm '$ARM' (no_tc|self_tc|neg_tc)"; exit 2 ;;
 esac
 
+# Which epoch checkpoints to eval. Default = ONLY the final epoch of a
+# 3-epoch run (epoch2, 0-indexed) — that is the lab-standard comparison
+# point. Override e.g. EVAL_EPOCHS="0 1 2" to also eval intermediate epochs.
+EVAL_EPOCHS="${EVAL_EPOCHS:-2}"
+
 : "${HF_TOKEN:?HF_TOKEN not set in environment — required for gated gemma-4 download}"
 
 export HF_HOME=/workspace/.cache/huggingface
@@ -88,8 +93,9 @@ else
     fi
 fi
 
-# ---- STEP 2: eval each epoch checkpoint (idempotent via done-markers) ----
-for EP in 0 1 2; do
+# ---- STEP 2: eval the requested epoch checkpoint(s) (idempotent markers) ----
+log "eval epochs: $EVAL_EPOCHS"
+for EP in $EVAL_EPOCHS; do
     AD="$(adapter_dir "$EP")"
     if [ ! -d "$AD" ]; then log "WARN: epoch$EP adapter missing, skipping its eval"; continue; fi
     for MODE in $EVAL_MODES; do
