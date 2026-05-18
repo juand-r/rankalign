@@ -98,22 +98,30 @@ def main():
                 rec = {"task_id": slug, "row_idx": ridx, "question": question,
                        "variant_id": f"{slug}:{ridx}:{label}", "label": label,
                        "scheme": scheme, "axis2": list(axis2),
-                       "negative_control": neg}
+                       "negative_control": neg,
+                       # what ACTUALLY applied (from stylize meta) — analyze
+                       # aggregates a unit only over rows where it applied, so
+                       # structural no-ops don't dilute the keep/cut stats.
+                       "scheme_applied": False, "axis2_applied": []}
                 try:
                     if label == "original":
-                        # The untouched dataset row IS the ΔlogP baseline — we
-                        # do not re-judge the dataset's own labels here (v2.1
-                        # has known correct-labeled rows that fail strict
-                        # re-validation; that's the reference builder's
-                        # skip_orig_fail path, not this canary's concern).
-                        # validate() is the backstop for *transformed* variants.
+                        # Raw dataset row — kept for provenance only. NOT the
+                        # ΔlogP baseline: the `noop` variant is (it goes
+                        # through the identical build_full_func_src+to_v2_format
+                        # pipeline, so any re-indent of column-0 trailing code
+                        # is COMMON to baseline+variants and cancels in Δ). We
+                        # do not re-judge dataset labels (reference builder's
+                        # skip_orig_fail path); validate() backs *transforms*.
                         rec.update(answer=answer, validated=True,
                                    revert_reason=None)
                         n_var += 1
                         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
                         continue
-                    out_ans = T.stylize(question, answer, scheme, axis2,
-                                        negative_control=neg)["answer"]
+                    res = T.stylize(question, answer, scheme, axis2,
+                                    negative_control=neg)
+                    out_ans = res["answer"]
+                    rec["scheme_applied"] = bool(res["meta"]["mapping"])
+                    rec["axis2_applied"] = list(res["meta"]["axis2_applied"])
                     passed, err = validate(problem, out_ans)
                     rec.update(answer=out_ans, validated=bool(passed),
                                revert_reason=(None if passed else (err or "")[:300]))

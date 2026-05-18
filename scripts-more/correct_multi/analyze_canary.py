@@ -59,11 +59,17 @@ def main():
     pairs = {r["variant_id"]: r for r in _load(args.pairs)}
     scores = {s["variant_id"]: s for s in _load(args.scores)}
 
-    # original per (task,row)
-    orig = {}
+    # ΔlogP baseline per (task,row) = the NOOP variant's scores, NOT the raw
+    # `original`. The noop goes through the identical
+    # build_full_func_src+to_v2_format pipeline as every transformed variant,
+    # so any column-0-trailing-code re-indent (inherited from the trusted
+    # reference) is COMMON to baseline and variants and CANCELS in Δ. Joining
+    # to raw `original` would conflate the transform with a whole-block
+    # indentation shift on the rows where the model emitted trailing code.
+    base = {}
     for vid, r in pairs.items():
-        if r["label"] == "original" and vid in scores:
-            orig[(r["task_id"], r["row_idx"])] = scores[vid]
+        if r["label"] == "noop" and vid in scores:
+            base[(r["task_id"], r["row_idx"])] = scores[vid]
 
     # attempted (incl reverts) and scored deltas, per unit.
     # CRITICAL (round-3 fix): the keep/cut metric is *length-normalized*
@@ -81,7 +87,20 @@ def main():
     dtc = defaultdict(list)          # per-token Δ(TC) (reported only)
     dcond_sum = defaultdict(list)    # raw summed Δcond (context only)
     samples = defaultdict(list)
+    noop_skipped = defaultdict(int)   # transform requested but a structural
+    #                                   no-op on this row (precondition unmet)
     dropped_unscored = 0
+
+    def _applied(r, kind, name) -> bool:
+        """Did the unit actually change the code on this row? (from stylize
+        meta). A structural no-op (e.g. boolean_expand on a row with no bare
+        comparison return) must NOT dilute the unit's keep/cut stats."""
+        if kind == "axis2":
+            return name in (r.get("axis2_applied") or [])
+        if kind == "scheme":
+            return bool(r.get("scheme_applied"))
+        return True
+
     for vid, r in pairs.items():
         kind, name = _unit(r)
         if kind is None:
@@ -91,7 +110,10 @@ def main():
         if not r.get("validated"):
             reverts[key] += 1
             continue
-        o = orig.get((r["task_id"], r["row_idx"]))
+        if not _applied(r, kind, name):
+            noop_skipped[key] += 1  # excluded from Δ/sign; applicability shown
+            continue
+        o = base.get((r["task_id"], r["row_idx"]))
         s = scores.get(vid)
         if not o or not s:
             dropped_unscored += 1  # logged; affects effective decision N
@@ -113,20 +135,28 @@ def main():
         f"gated on). KEEP iff mean per-token ΔlogP(y|x) ≤ −{args.thresh} AND "
         f"≥{args.sign_frac:.0%} instances negative AND revert "
         f"<{args.revert_max:.0%}. ΔlogP(y)/Δ(TC) reported, never gating.\n")
+    lines.append(
+        "Stats are over rows where the transform ACTUALLY applied (structural "
+        "no-ops excluded so they don't dilute Δ/sign — applicability shown "
+        "separately). ΔlogP baseline = the libcst-noop variant (same pipeline "
+        "→ re-indent artifact cancels).\n")
     if dropped_unscored:
-        lines.append(f"NOTE: {dropped_unscored} validated variants dropped "
-                     f"(row's original unscored) — reduces effective N.\n")
-    lines.append("| unit | n | revert | meanΔcond/tok | medΔcond/tok | %neg | "
-                 "meanΔcond_sum | meanΔunc/tok | meanΔTC/tok | decision |")
-    lines.append("|---|---|---|---|---|---|---|---|---|---|")
+        lines.append(f"NOTE: {dropped_unscored} validated+applied variants "
+                     f"dropped (row's noop baseline unscored) — reduces N.\n")
+    lines.append("| unit | n_used | noop | revert% | meanΔcond/tok | "
+                 "medΔcond/tok | %neg | meanΔcond_sum | meanΔunc/tok | "
+                 "meanΔTC/tok | decision |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
 
     kept = []
     for key in sorted(attempted):
         n = len(dcond[key])
         rev = reverts[key] / attempted[key] if attempted[key] else 1.0
+        noop = noop_skipped.get(key, 0)
         if n == 0:
-            lines.append(f"| {key} | 0 | {rev:.0%} | — | — | — | — | — | — | "
-                         f"CUT (no data) |")
+            why = ("no rows where it applied" if noop else "no data")
+            lines.append(f"| {key} | 0 | {noop} | {rev:.0%} | — | — | — | "
+                         f"— | — | — | CUT ({why}) |")
             continue
         mc, md = st.mean(dcond[key]), st.median(dcond[key])
         pneg = sum(1 for x in dcond[key] if x < 0) / n
@@ -137,9 +167,9 @@ def main():
         dec = "KEEP" if keep else "CUT"
         if keep:
             kept.append(key)
-        lines.append(f"| {key} | {n} | {rev:.0%} | {mc:+.3f} | {md:+.3f} | "
-                     f"{pneg:.0%} | {msum:+.1f} | {mu:+.3f} | {mt:+.3f} | "
-                     f"{dec} |")
+        lines.append(f"| {key} | {n} | {noop} | {rev:.0%} | {mc:+.3f} | "
+                     f"{md:+.3f} | {pneg:.0%} | {msum:+.1f} | {mu:+.3f} | "
+                     f"{mt:+.3f} | {dec} |")
 
     # stacked / noop / neg_control diagnostics (reported, not keep/cut)
     lines.append("\n## Diagnostics (not keep/cut candidates)\n")
