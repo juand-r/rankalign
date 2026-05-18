@@ -1,6 +1,11 @@
 #!/bin/bash
-# Reproducible single-arm 3-epoch train+eval for gemma-4-31B-it on
-# humaneval-v2.1correct-upper. ONE committed entry point — no ad-hoc relaunch.
+# Reproducible single-arm 3-epoch train+eval for gemma-4-31B-it.
+# ONE committed entry point — no ad-hoc relaunch.
+#
+# ---- Dataset (change only this line to switch datasets) --------------------
+HE_TASK="humaneval-v2.1correct-multi"
+# HE_TASK="humaneval-v2.1correct-upper"   # previous dataset
+# ---------------------------------------------------------------------------
 #
 #   bash run_arm_3epoch.sh <no_tc|self_tc|neg_tc>
 #
@@ -21,6 +26,7 @@
 # download). It is NEVER hardcoded here.
 set -uo pipefail
 
+DATASET_DIR="${HE_TASK#humaneval-}"   # e.g. v2.1correct-multi
 ARM="${1:?usage: run_arm_3epoch.sh <no_tc|self_tc|neg_tc>}"
 case "$ARM" in
   no_tc)   TC_TRAIN="";                 EVAL_MODES="--self-typicality --neg-typicality" ;;
@@ -70,25 +76,25 @@ LOG="$LOGDIR/run_${ARM}_3epoch.log"
 log(){ echo "[$(date -u +%H:%M:%S)] $*" | tee -a "$LOG"; }
 
 # Verified COMMON (= real_pipeline_g4it.sh, num_epochs 3). Do not edit casually.
-COMMON="--model $MODEL --num_epochs 3 --task humaneval-v2.1correct-upper \
+COMMON="--model $MODEL --num_epochs 3 --task $HE_TASK \
 --train_g_or_d g --split_type random --nll_validator_weight 0 \
 --nll_generator_weight 0 --preference_loss_weight 1 --all --delta 0.15 \
 --semi-supervised 0.1 --disc-shots zero --lora --gradient_checkpointing \
 --models-dir $MODELS_DIR --total_samples 5110"
 
-TASKS=$(ls "$RANKALIGN_DIR"/data/humaneval/v2.1correct-upper/humaneval_*.csv \
+TASKS=$(ls "$RANKALIGN_DIR"/data/humaneval/${DATASET_DIR}/humaneval_*.csv \
     | xargs -n1 basename | sed 's/\.csv$//' \
-    | sed 's/^/humaneval-v2.1correct-upper-/' | tr '\n' ' ')
+    | sed "s/^/${HE_TASK}-/" | tr '\n' ' ')
 NT=$(echo "$TASKS" | wc -w)
 
 adapter_dir(){ # $1 = epoch
   local infix=""
   [ "$ARM" = self_tc ] && infix="tc-self--"
   [ "$ARM" = neg_tc ]  && infix="tc-neg--"
-  echo "${MODELS_DIR}/v6-google--gemma-4-31B-it-delta0.15-epoch$1--humaneval-v2.1correct-upper-all--d2g--random--alpha1.0--${infix}full-completion--semi0.1"
+  echo "${MODELS_DIR}/v6-google--gemma-4-31B-it-delta0.15-epoch$1--${HE_TASK}-all--d2g--random--alpha1.0--${infix}full-completion--semi0.1"
 }
 
-log "ARM=$ARM  tasks=$NT  TC_TRAIN='${TC_TRAIN:-<none>}'  EVAL_MODES='$EVAL_MODES'"
+log "HE_TASK=$HE_TASK  ARM=$ARM  tasks=$NT  TC_TRAIN='${TC_TRAIN:-<none>}'  EVAL_MODES='$EVAL_MODES'"
 
 # ---- STEP 1: train (skip only if all 3 epoch adapters already present) ----
 if [ -d "$(adapter_dir 0)" ] && [ -d "$(adapter_dir 1)" ] && [ -d "$(adapter_dir 2)" ]; then
