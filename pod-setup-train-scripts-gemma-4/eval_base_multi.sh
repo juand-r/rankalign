@@ -63,11 +63,9 @@ TASKS=$(ls "$RANKALIGN_DIR/data/humaneval/${DATASET_DIR}/humaneval_"*.csv \
 NT=$(echo "$TASKS" | wc -w)
 log "mode=$MODE  TC_FLAG=$TC_FLAG  tasks=$NT  dataset=$HE_TASK"
 
-# ---- Models to evaluate (same as v2.1correct-upper baseline) ---------------
+# ---- Model to evaluate -----------------------------------------------------
 MODELS=(
     "google/gemma-4-31B-it"
-    "google/gemma-2-27b-it"
-    "google/gemma-4-31B"
 )
 
 for MODEL in "${MODELS[@]}"; do
