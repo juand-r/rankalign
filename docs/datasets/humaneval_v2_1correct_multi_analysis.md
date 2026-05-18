@@ -223,22 +223,44 @@ outliers drag the mean down while most rows are unaffected.
 
 ### Canary results (gemma-4-31B-it, 36 sampled correct rows)
 
-| Transform | Rows scored | Mean ΔlogP/tok | % rows negative | Decision |
-|---|---|---|---|---|
-| `redundant_temp` | 24 | −0.471 | 100% | **KEEP** |
-| `dead_cruft` | 36 | −0.324 | 100% | **KEEP** |
-| `inject_comment` | 36 | −0.300 | 100% | **KEEP** |
-| `boolean_expand` | 4 | −0.226 | 75% | **KEEP** (low-N: only 4/36 rows had a bare comparison return) |
-| `cryptic` | 31 | −0.395 | 97% | **KEEP** |
-| `numbered` | 31 | −0.416 | 100% | **KEEP** |
-| `hungarian` | 31 | −0.294 | 90% | **KEEP** |
-| `verbose` | 31 | −0.257 | 87% | **KEEP** |
-| `upper` | 31 | −0.269 | 94% | **KEEP** |
-| `camel` | 12 | −0.187 | 100% | **KEEP** (low-N: only 12/36 rows had renameable locals in camel style) |
+**Column definitions:**
+
+- **n_used** — rows where the transform actually applied (structural no-ops excluded so they don't dilute the signal; e.g. `camel` only applies to names that contain underscores, so many rows are no-ops).
+- **noop** — rows where the transform was a structural no-op (applied the pipeline but nothing changed).
+- **revert%** — fraction of attempted transforms rejected by the HumanEval test suite.
+- **meanΔcond/tok** — mean per-token change in log P(y|x) (conditional log-probability). This is the **gating metric**: keep iff ≤ −0.05.
+- **medΔcond/tok** — median per-token Δ log P(y|x).
+- **%neg** — percentage of individual rows where Δ log P(y|x) < 0. Keep iff ≥ 70%.
+- **meanΔcond_sum** — mean total (not per-token) change in log P(y|x). Reported for context; length-confounded and not gated on.
+- **meanΔunc/tok** — mean per-token change in log P(y) (unconditional / marginal log-probability).
+- **meanΔ[cond−unc]/tok** — mean per-token change in the full TC score log P(y|x) − log P(y). Reported for context; not gated on.
+
+The baseline for all Δ values is the libcst no-op variant of each row (same pipeline, identity transform), so any re-indentation artifact cancels out.
+
+| Transform | n_used | noop | revert% | meanΔcond/tok | medΔcond/tok | %neg | meanΔcond_sum | meanΔunc/tok | meanΔ[cond−unc]/tok | Decision |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `boolean_expand` | 4 | 32 | 0% | −0.226 | −0.275 | 75% | −20.2 | +0.054 | −0.280 | **KEEP** (low-N: 4/36 rows had a bare comparison return) |
+| `dead_cruft` | 36 | 0 | 0% | −0.324 | −0.291 | 100% | −33.8 | −0.082 | −0.243 | **KEEP** |
+| `inject_comment` | 36 | 0 | 0% | −0.300 | −0.235 | 100% | −32.5 | −0.256 | −0.044 | **KEEP** |
+| `redundant_temp` | 24 | 12 | 0% | −0.471 | −0.408 | 100% | −51.7 | −0.307 | −0.164 | **KEEP** |
+| `camel` | 12 | 24 | 0% | −0.187 | −0.186 | 100% | −14.0 | −0.211 | +0.024 | **KEEP** (low-N: 12/36 rows had renameable snake_case locals) |
+| `cryptic` | 31 | 5 | 0% | −0.395 | −0.295 | 97% | −42.9 | −0.233 | −0.163 | **KEEP** |
+| `hungarian` | 31 | 5 | 0% | −0.294 | −0.260 | 90% | −47.0 | +0.038 | −0.332 | **KEEP** |
+| `numbered` | 31 | 5 | 0% | −0.416 | −0.331 | 100% | −51.1 | −0.246 | −0.170 | **KEEP** |
+| `upper` | 31 | 5 | 0% | −0.269 | −0.209 | 94% | −25.7 | −0.159 | −0.110 | **KEEP** |
+| `verbose` | 31 | 5 | 0% | −0.257 | −0.200 | 87% | −59.6 | +0.160 | −0.417 | **KEEP** |
 
 All 10 transforms kept. Revert rate 0% for all. Negative control (a transform
 that injects `raise AssertionError` — intentionally broken): 36/36 correctly
 rejected by the HumanEval test suite.
+
+### Length confound
+
+All four composable transforms add characters to the answer (dead_cruft +4 tokens, inject_comment +6, redundant_temp +9, boolean_expand variable). Since they only apply to correct rows, they introduce a systematic length difference between the correct and incorrect classes.
+
+In v2.1 the medians are correct=215 chars, incorrect=207 chars (8 char gap). After stylization, the medians become correct=245 chars, incorrect=207 chars (38 char gap). The two distributions are shown in `scripts-more/correct_multi/length_confound.png`.
+
+This is a real confound: a scorer that rewards longer answers would gain a spurious advantage on the correct class. The per-token normalization used in the ΔlogP canary metric partially controls for this (it measures log-probability *rate*, not total probability), but any downstream model that uses raw answer length as a feature would be affected.
 
 *Full canary numbers: `docs/datasets/humaneval_v2_1correct_multi_canary_results.md`*
 
