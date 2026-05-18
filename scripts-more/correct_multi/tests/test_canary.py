@@ -85,10 +85,62 @@ def test_build_canary_smoke():
         assert need <= set(recs[0]), f"schema missing {need - set(recs[0])}"
 
 
+def test_analyze_keep_metric_is_length_normalized_not_sum():
+    """R3 CRITICAL regression: a transform that only *adds tokens* (huge
+    negative SUM ΔlogP, ≈0 per-token Δ) must be CUT; a transform with a real
+    per-token drop must be KEPT. Proves keep/cut is length-normalized."""
+    with tempfile.TemporaryDirectory() as d:
+        d = Path(d)
+        pairs, scores = d / "p.jsonl", d / "s.jsonl"
+        P, S = [], []
+
+        def add(vid, tid, ridx, label, validated, n_tok, sumc, sumu):
+            P.append({"task_id": tid, "row_idx": ridx, "variant_id": vid,
+                      "label": label, "scheme": None, "axis2": [],
+                      "negative_control": False, "answer": "x",
+                      "validated": validated, "revert_reason": None})
+            if validated:
+                S.append({"variant_id": vid, "task_id": tid, "row_idx": ridx,
+                          "label": label, "n_tok": n_tok,
+                          "sum_logp_cond": sumc, "sum_logp_uncond": sumu})
+
+        for i in range(8):
+            t = f"hT:{i}"
+            # original: 10 tok, per-tok cond = -1.0  (sum -10)
+            add(f"{t}:original", t, i, "original", True, 10, -10.0, -20.0)
+            # padder: +10 tok of "free" tokens (per-tok cond still -1.0):
+            #   sum -20 (huge negative Δsum=-10) but Δ/tok = 0  -> must CUT
+            add(f"{t}:axis2:padder", t, i, "axis2:padder", True, 20,
+                -20.0, -40.0)
+            # real: same 10 tok but genuinely less typical: per-tok -1.5
+            #   Δ/tok = -0.5 (material) -> must KEEP
+            add(f"{t}:axis2:real", t, i, "axis2:real", True, 10, -15.0, -22.0)
+        pairs.write_text("\n".join(json.dumps(x) for x in P))
+        scores.write_text("\n".join(json.dumps(x) for x in S))
+
+        outmd = d / "out.md"
+        r = subprocess.run(
+            [sys.executable, str(_PKG / "analyze_canary.py"),
+             "--pairs", str(pairs), "--scores", str(scores),
+             "--out", str(outmd), "--thresh", "0.05"],
+            capture_output=True, text=True, timeout=120)
+        assert r.returncode == 0, r.stderr[-1500:]
+        md = outmd.read_text()
+        # padder: Δsum ≈ -10 (very negative) but Δ/tok ≈ 0 → CUT
+        # real:   Δ/tok ≈ -0.5 → KEEP
+        prow = [l for l in md.splitlines() if "axis2:padder" in l][0]
+        rrow = [l for l in md.splitlines() if "axis2:real" in l][0]
+        assert "CUT" in prow, f"length-padder wrongly kept:\n{prow}"
+        assert "KEEP" in rrow, f"real per-token drop not kept:\n{rrow}"
+        # raw-sum still reported (context) — padder's Δsum is the most negative
+        assert "-10.0" in prow or "-10" in prow, f"raw-sum not reported:\n{prow}"
+
+
 if __name__ == "__main__":
     fails = 0
     for name in ("test_scorer_comparability_literals_unchanged",
-                 "test_build_canary_smoke"):
+                 "test_build_canary_smoke",
+                 "test_analyze_keep_metric_is_length_normalized_not_sum"):
         try:
             globals()[name]()
             print(f"PASS {name}")

@@ -175,6 +175,30 @@ def test_body_prepend_targets_outermost_func_not_nested_block():
         assert _eq_on_inputs(sig, body, o2["answer"], args), t
 
 
+def test_redundant_temp_boolean_expand_target_outermost_not_nested_helper():
+    """W1 regression: with a nested helper def, post-order leave_* would
+    mutate the HELPER's return. The depth==1 gate must transform the
+    solution's OUTER return and leave the helper intact."""
+    sig = "def outer(n):"
+    body = ("def helper(z):\n"
+            "        return z > 0\n"
+            "    acc = helper(n)\n"
+            "    return acc == 0")
+    args = [(5,), (0,), (-2,)]
+    # redundant_temp: OUTER `return acc == 0` → _T0; helper untouched
+    rt = T.stylize(sig, body, None, ("redundant_temp",))
+    assert "redundant_temp" in rt["meta"]["axis2_applied"]
+    assert "return z > 0" in rt["answer"], "helper return was wrongly mutated"
+    assert "_T" in rt["answer"], "outer return not transformed"
+    assert _eq_on_inputs(sig, body, rt["answer"], args)
+    # boolean_expand: helper return IS bool too; gate must expand OUTER only
+    be = T.stylize(sig, body, None, ("boolean_expand",))
+    assert "boolean_expand" in be["meta"]["axis2_applied"]
+    assert "return z > 0" in be["answer"], "helper bool-return wrongly expanded"
+    assert "if acc == 0" in be["answer"], "outer bool-return not expanded"
+    assert _eq_on_inputs(sig, body, be["answer"], args)
+
+
 def _run_all():
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     fails = 0

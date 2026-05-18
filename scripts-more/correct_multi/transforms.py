@@ -191,17 +191,38 @@ def _reserved_temp(post_rename_src: str, k: int = 0) -> str:
     return f"_T{k}"
 
 
-class _RedundantTemp(cst.CSTTransformer):
-    """First `return <expr>` (expr not already a bare Name) → `_Tk = <expr>`
-    then `return _Tk`. Value evaluated exactly once, same as the original
-    return → semantics-preserving by construction. Operates at the
-    statement-line level (a Return can only be replaced by other lines here)."""
-    def __init__(self, temp: str):
-        self.temp = temp
+class _OutermostFuncStmt(cst.CSTTransformer):
+    """Mixin: only act on statements in the OUTERMOST FunctionDef's own scope
+    (FunctionDef-depth == 1), never inside a nested helper `def` (depth ≥ 2).
+    Returns inside if/for within the solution stay depth==1 (those ARE the
+    solution's). Without this, post-order leave_* mutates a nested helper's
+    return → wrong code region → confounds per-transform ΔlogP attribution."""
+    def __init__(self):
         self.done = False
+        self._fdepth = 0
+
+    def visit_FunctionDef(self, node):  # noqa: N802
+        self._fdepth += 1
+
+    def leave_FunctionDef(self, orig, updated):  # noqa: N802
+        self._fdepth -= 1
+        return updated
+
+    def _outermost(self) -> bool:
+        return self._fdepth == 1
+
+
+class _RedundantTemp(_OutermostFuncStmt):
+    """First `return <expr>` (expr not already a bare Name) in the OUTERMOST
+    function → `_Tk = <expr>` then `return _Tk`. Value evaluated exactly once,
+    same as the original return → semantics-preserving by construction."""
+    def __init__(self, temp: str):
+        super().__init__()
+        self.temp = temp
 
     def leave_SimpleStatementLine(self, o, u):
-        if self.done or len(u.body) != 1 or not isinstance(u.body[0], cst.Return):
+        if (self.done or not self._outermost() or len(u.body) != 1
+                or not isinstance(u.body[0], cst.Return)):
             return u
         ret = u.body[0]
         if ret.value is None or isinstance(ret.value, cst.Name):
@@ -223,13 +244,12 @@ def _is_bool_returning(expr: cst.BaseExpression) -> bool:
     return False
 
 
-class _BooleanExpand(cst.CSTTransformer):
-    """First `return <bool-expr>` (strict N4 precondition) → if/else."""
-    def __init__(self):
-        self.done = False
-
+class _BooleanExpand(_OutermostFuncStmt):
+    """First `return <bool-expr>` (strict N4 precondition) in the OUTERMOST
+    function → if/else."""
     def leave_SimpleStatementLine(self, o, u):
-        if self.done or len(u.body) != 1 or not isinstance(u.body[0], cst.Return):
+        if (self.done or not self._outermost() or len(u.body) != 1
+                or not isinstance(u.body[0], cst.Return)):
             return u
         ret = u.body[0]
         if ret.value is None or not _is_bool_returning(ret.value):
