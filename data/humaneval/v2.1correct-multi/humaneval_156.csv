@@ -1,0 +1,728 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+",return ''.join(roman_numerals[i] * (number // (i+1)) for i in range(3) if number // (i+1) > 0),No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/156,"Traceback (most recent call last):
+  File ""/tmp/tmpil8m2hig.py"", line 38, in <module>
+    check(int_to_mini_roman)
+  File ""/tmp/tmpil8m2hig.py"", line 18, in check
+    assert candidate(19) == 'xix'
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpil8m2hig.py"", line 13, in int_to_mini_roman
+    return ''.join(roman_numerals[i] * (number // (i+1)) for i in range(3) if number // (i+1) > 0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpil8m2hig.py"", line 13, in <genexpr>
+    return ''.join(roman_numerals[i] * (number // (i+1)) for i in range(3) if number // (i+1) > 0)
+                   ^^^^^^^^^^^^^^
+NameError: name 'roman_numerals' is not defined"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","assert True
+    romanNumerals = {
+        1000: 'm', 900: 'cm', 500: 'd', 400: 'cd',
+        100: 'c', 90: 'xc', 50: 'l', 40: 'xl',
+        10: 'x', 9: 'ix', 5: 'v', 4: 'iv',
+        1: 'i'
+    }
+
+    result = []
+    for value in sorted(romanNumerals.keys(), reverse=True):
+        while number >= value:
+            result.append(romanNumerals[value])
+            number -= value
+
+    return ''.join(result)",Yes,unusual,gpt-4o-mini,0.7,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","the_table_value = [(1000, 'm'), 
+             (900, 'cm'), 
+             (500, 'd'), 
+             (400, 'cd'), 
+             (100, 'c'), 
+             (90, 'xc'), 
+             (50, 'l'), 
+             (40, 'xl'), 
+             (10, 'x'), 
+             (9, 'ix'), 
+             (5, 'v'), 
+             (4, 'iv'), 
+             (1, 'i')]
+
+    the_result_value = """"
+    
+    for the_value_value, the_symbol_value in the_table_value:
+        the_count_value = number // the_value_value
+        the_result_value += the_symbol_value * the_count_value
+        number -= the_value_value * the_count_value
+    return the_result_value",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_num = ''
+    for value, symbol in sorted(symbols.items(), reverse=True):
+        while number >= value:
+            roman_num += symbol
+            number -= value
+    return roman_num",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/156,"Traceback (most recent call last):
+  File ""/tmp/tmp8fgdpz1q.py"", line 43, in <module>
+    check(int_to_mini_roman)
+  File ""/tmp/tmp8fgdpz1q.py"", line 23, in check
+    assert candidate(19) == 'xix'
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp8fgdpz1q.py"", line 14, in int_to_mini_roman
+    for value, symbol in sorted(symbols.items(), reverse=True):
+                                ^^^^^^^
+NameError: name 'symbols' is not defined. Did you mean: 'symbol'?"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","assert True
+    values = [
+        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),
+        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),
+        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'),
+        (1, 'i')
+    ]
+
+    result = []
+    for value, numeral in values:
+        while number >= value:
+            result.append(numeral)
+            number -= value
+    _T0 = ''.join(result)
+    return _T0",Yes,normal,gpt-4o-mini,1.2,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    assert True
+    v2 = {
+        1000: 'm', 900: 'cm', 500: 'd', 400: 'cd', 100: 'c', 90: 'xc',
+        50: 'l', 40: 'xl', 10: 'x', 9: 'ix', 5: 'v', 4: 'iv', 1: 'i'
+    }
+    v1 = ''
+    for v3, v0 in v2.items():
+        while number >= v3:
+            v1 += v0
+            number -= v3
+    return v1",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_map = {
+        1: 'i',
+        4: 'iv',
+        5: 'v',
+        9: 'ix',
+        10: 'x',
+        50: 'w',
+        100: 'l',
+        500: 'xcv'
+    }
+    
+    result = ''
+    
+    for i in range(1, min(number, 1000)):
+        if number % 100 == 0:
+            part = number // 100
+            remainder = number % 100
+            result += roman_map[part]
+            
+        else:
+            result += roman_map[i]
+    
+    return result.lower()",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/156,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu9tlqfrx.py"", line 60, in <module>
+    check(int_to_mini_roman)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu9tlqfrx.py"", line 40, in check
+    assert candidate(19) == 'xix'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu9tlqfrx.py"", line 33, in int_to_mini_roman
+    result += roman_map[i]
+KeyError: 2"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    assert True
+    the_n_value = number
+    the_ones_value = ("""", ""i"", ""ii"", ""iii"", ""iv"", ""v"", ""vi"", ""vii"", ""viii"", ""ix"")
+    the_tens_value = ("""", ""x"", ""xx"", ""xxx"", ""xl"", ""l"", ""lx"", ""lxx"", ""lxxx"", ""xc"")
+    the_hundreds_value = ("""", ""c"", ""cc"", ""ccc"", ""cd"", ""d"", ""dc"", ""dcc"", ""dccc"", ""cm"")
+    the_thousands_value = ("""", ""m"")
+    return the_thousands_value[the_n_value // 1000] + the_hundreds_value[(the_n_value // 100) % 10] + the_tens_value[(the_n_value // 10) % 10] + the_ones_value[the_n_value % 10]",Yes,different-style,gpt-5,1.0,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    v4 = [
+        1000, 900, 500, 400,
+        100, 90, 50, 40,
+        10, 9, 5, 4,
+        1
+    ]
+    v3 = [
+        ""m"", ""cm"", ""d"", ""cd"",
+        ""c"", ""xc"", ""l"", ""xl"",
+        ""x"", ""ix"", ""v"", ""iv"",
+        ""i""
+    ]
+    v2 = ''
+    v1 = 0
+    while  number > 0:
+        for _ in range(number // v4[v1]):
+            v2 += v3[v1]
+            number -= v4[v1]
+        v1 += 1
+    return v2
+
+    print(int_to_mini_roman(19) == 'xix')
+    print(int_to_mini_roman(152) == 'clii')
+    print(int_to_mini_roman(426) == 'cdxxvi')",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_numerals = [
+        ('m', 1000),
+        ('d', 500),
+        ('c', 100),
+        ('l', 50),
+        ('x', 10),
+        ('v', 5),
+        ('i', 1)
+    ]
+
+    result = []
+
+    for symbol, value in roman_numerals:
+        while number >= value:
+            result.append(symbol)
+            number -= value
+
+    return ''.join(result)",No,different-style,gpt-4o-mini,1.2,HumanEval/156,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyodbp2rk.py"", line 55, in <module>
+    check(int_to_mini_roman)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyodbp2rk.py"", line 35, in check
+    assert candidate(19) == 'xix'
+AssertionError"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_digits = ['i', 'v', 'x', 'l', 'c', 'd', 'm']
+    roman_values = [1, 5, 10, 50, 100, 500, 1000]
+
+    mini_roman = []
+
+    for i in range(len(roman_digits) - 1, -1, -1):
+        while number >= roman_values[i]:
+            number -= roman_values[i]
+            mini_roman.append(roman_digits[i])
+
+    mini_roman.reverse()
+    return ''.join(mini_roman)",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/156,"Traceback (most recent call last):
+  File ""/tmp/tmpcxn0p9hn.py"", line 49, in <module>
+    check(int_to_mini_roman)
+  File ""/tmp/tmpcxn0p9hn.py"", line 29, in check
+    assert candidate(19) == 'xix'
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    assert True
+    VALUES = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    NUMERALS = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+    RESULT = ''
+    
+    for I in range(len(VALUES)):
+        COUNT = int(number / VALUES[I])
+        RESULT += NUMERALS[I] * COUNT
+        number -= VALUES[I] * COUNT
+    return RESULT",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","numerals = []
+    units = [1000, 100, 50, 10, 5, 1]
+    for unit in units:
+        while number >= unit:
+            numerals.append(roman_numerals[unit])
+            number -= unit
+
+    return ''.join(numerals)",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/156,"Traceback (most recent call last):
+  File ""/tmp/tmpil3xrn3r.py"", line 45, in <module>
+    check(int_to_mini_roman)
+  File ""/tmp/tmpil3xrn3r.py"", line 25, in check
+    assert candidate(19) == 'xix'
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpil3xrn3r.py"", line 17, in int_to_mini_roman
+    numerals.append(roman_numerals[unit])
+                    ^^^^^^^^^^^^^^
+NameError: name 'roman_numerals' is not defined"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","valueToSymbol = [(1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'), (100, 'c'), (90, 'xc'),
+                       (50, 'l'), (40, 'xl'), (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')]
+    symbols = ''
+    for value, symbol in valueToSymbol:
+        while number >= value:
+            symbols += symbol
+            number -= value
+    return symbols",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_numerals = [
+        (1000, 'm'),
+        (900, 'cm'),
+        (500, 'd'),
+        (400, 'cd'),
+        (100, 'c'),
+        (90, ' XC'),
+        (50, 'l'),
+        (40, 'xl'),
+        (10, 'x'),
+        (9, 'ix'),
+        (5, 'v'),
+        (4, 'iv'),
+        (1, 'i'),
+    ]
+
+    result = []
+    for value, symbol in roman_numerals:
+        while number >= value:
+            result.append(symbol)
+            number -= value
+
+    return ''.join(result)",No,normal,gpt-4o-mini,1.4,HumanEval/156,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnhnghoef.py"", line 60, in <module>
+    check(int_to_mini_roman)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnhnghoef.py"", line 48, in check
+    assert candidate(90) == 'xc'
+AssertionError"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","symbols = ['i', 'v', 'x', 'l', 'c', 'd', 'm']
+    values = [1, 5, 10, 50, 100, 500, 1000]
+
+    result = ''
+    for idx, value in enumerate(values):
+        while number >= value:
+            result += symbols[idx] * (number // value)
+            number %= value
+
+    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/156,"Traceback (most recent call last):
+  File ""/tmp/tmpihrsaham.py"", line 47, in <module>
+    check(int_to_mini_roman)
+  File ""/tmp/tmpihrsaham.py"", line 27, in check
+    assert candidate(19) == 'xix'
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","assert True
+    ROMAN_NUMERALS_DICT = {
+        1000: 'm', 900: 'cm', 500: 'd', 400: 'cd',
+        100: 'c', 90: 'xc', 50: 'l', 40: 'xl',
+        10: 'x', 9: 'ix', 5: 'v', 4: 'iv', 1: 'i'
+    }
+    RESULT = ''
+    ORDER = sorted(ROMAN_NUMERALS_DICT.keys(), reverse=True)
+    for I in ORDER:
+        while number >= I:
+            number -= I
+            RESULT += ROMAN_NUMERALS_DICT[I]
+    return RESULT",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","the_values_value = [1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000]
+    the_symbols_value = ['i', 'iv', 'v', 'ix', 'x', 'xl', 'l', 'xc', 'c', 'cd', 'd', 'cm', 'm']
+    
+    the_mini_roman_value = ''
+    the_i_value = 12
+    
+    while number > 0:
+        the_div_value = number // the_values_value[the_i_value]
+        number %= the_values_value[the_i_value]
+        
+        while the_div_value > 0:
+            the_mini_roman_value += the_symbols_value[the_i_value]
+            the_div_value -= 1
+        
+        the_i_value -= 1
+    
+    return the_mini_roman_value.lower()
+
+    # Tests
+    print(int_to_mini_roman(19)) # should return 'xix'
+    print(int_to_mini_roman(152)) # should return 'clii'
+    print(int_to_mini_roman(426)) # should return 'cdxxvi'",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    assert True
+    romanNumerals = [
+        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),
+        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),
+        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')
+    ]
+    result = ''
+    for value, symbol in romanNumerals:
+        while number >= value:
+            result += symbol
+            number -= value
+    _T0 = result.lower()
+    return _T0",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    assert True
+    if number < 1 or number > 1000:
+        raise Exception('number should be in range 1 <= num <= 1000')
+    the_romanNumerals_value = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+    the_decimalValues_value = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    the_result_value = ''
+    for the_i_value in range(len(the_decimalValues_value)):
+        while number >= the_decimalValues_value[the_i_value]:
+            the_result_value = the_result_value + the_romanNumerals_value[the_i_value]
+            number = number - the_decimalValues_value[the_i_value]
+    return the_result_value",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","roman_map = {
+        1: ""i"",
+        4: ""iv"",
+        5: ""v"",
+        9: ""ix"",
+        10: ""x"",
+        40: ""xl"",
+        50: ""l"",
+        90: ""xc"",
+        100: ""c"",
+        400: ""cd"",
+        500: ""d"",
+        900: ""cm""
+    }
+    result = ''
+    while number > 0:
+        remainder = number % 10
+        if remainder < 4:
+            result += roman_map[remainder]
+        else:
+            result += roman_map[remainder] + ' ' + int(remainder)
+        number = number // 10
+    return result.lower()",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/156,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_15y0y57.py"", line 60, in <module>
+    check(int_to_mini_roman)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_15y0y57.py"", line 40, in check
+    assert candidate(19) == 'xix'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_15y0y57.py"", line 33, in int_to_mini_roman
+    result += roman_map[remainder] + ' ' + int(remainder)
+TypeError: can only concatenate str (not ""int"") to str"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","assert True
+    x_values = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
+    x_numerals = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
+    
+    x_mini_roman = ''
+    
+    for x_i in range(len(x_values)):
+        x_count = int(number / x_values[x_i])
+        x_mini_roman += x_numerals[x_i] * x_count
+        number -= x_values[x_i] * x_count
+    
+    return x_mini_roman
+
+    print(int_to_mini_roman(19) == 'xix')
+    print(int_to_mini_roman(152) == 'clii')
+    print(int_to_mini_roman(426) == 'cdxxvi')",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","# compute the result
+    if number < 1 or number > 1000:
+        _T0 = ''
+        return _T0
+    else:
+        v2 = {
+            1000: 'm', 900: 'cm', 500: 'd', 400: 'cd',
+            100: 'c', 90: 'xc', 50: 'l', 40: 'xl',
+            10: 'x', 9: 'ix', 5: 'v', 4: 'iv', 1: 'i'
+        }
+        v1 = ''
+        for v0, v3 in v2.items():
+            while number >= v0:
+                v1 += v3
+                number -= v0
+        return v1",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/156,
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","val = [
+        ('m', 1000), ('d', 500), ('c', 100), ('l', 50), ('x', 10), ('v', 5), ('i', 1)
+    ]
+    roman = """"
+    for r, v in val:
+        while number >= v:
+            roman += r
+            number -= v
+    return roman",No,refactorable,gpt-4o-mini,1.0,HumanEval/156,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg5cwbjfe.py"", line 46, in <module>
+    check(int_to_mini_roman)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg5cwbjfe.py"", line 26, in check
+    assert candidate(19) == 'xix'
+AssertionError"
+"
+def int_to_mini_roman(number):
+    """"""
+    Given a positive integer, obtain its roman numeral equivalent as a string,
+    and return it in lowercase.
+    Restrictions: 1 <= num <= 1000
+
+    Examples:
+    >>> int_to_mini_roman(19) == 'xix'
+    >>> int_to_mini_roman(152) == 'clii'
+    >>> int_to_mini_roman(426) == 'cdxxvi'
+    """"""
+","if number == 0:
+        return ""n""
+    elif number < 1:
+        raise ValueError(""Number must be positive"")
+    romanNumerals = [
+        (1000, 'm'), (900, 'cm'), (500, 'd'), (400, 'cd'),
+        (100, 'c'), (90, 'xc'), (50, 'l'), (40, 'xl'),
+        (10, 'x'), (9, 'ix'), (5, 'v'), (4, 'iv'), (1, 'i')
+    ]
+    result = ''
+    for value, symbol in romanNumerals:
+        while number >= value:
+            result += symbol
+            number -= value
+    return result.lower()",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/156,

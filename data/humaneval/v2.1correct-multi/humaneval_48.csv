@@ -1,0 +1,667 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","combination = text + text[::-1]
+    if len(combination) % 2:
+        for i in range(int( len(combination) / 2 )):
+            if combination[i] != combination[-i-1]:
+                return False
+    else:
+        for i in range(int( len(combination) / 2)):
+            if combination[i] != combination[-i-1] or combination[i] == combination[-i-1] and combination[i+1] != combination[-i-1]:
+                return False
+    return True",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/48,"Traceback (most recent call last):
+  File ""/tmp/tmpvajkv1tu.py"", line 42, in <module>
+    check(is_palindrome)
+  File ""/tmp/tmpvajkv1tu.py"", line 33, in check
+    assert candidate('aba') == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","text = re.sub(r'\W+', '', text).lower()
+    return text == text[::-1]",No,external,Llama-3.3-70B,,HumanEval/48,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pw5ff45.py"", line 34, in <module>
+    check(is_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pw5ff45.py"", line 24, in check
+    assert candidate('') == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pw5ff45.py"", line 15, in is_palindrome
+    text = re.sub(r'\W+', '', text).lower()
+NameError: name 're' is not defined"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    x_reversed_text = ''
+    for x_i in range(len(text) - 1, -1, -1):
+        x_reversed_text += text[x_i]
+
+    x_is_palindrome_flag = True
+    if len(text) != len(x_reversed_text):
+        x_is_palindrome_flag = False
+    else:
+        for x_i in range(len(text)):
+            if text[x_i] != x_reversed_text[x_i]:
+                x_is_palindrome_flag = False
+                break
+
+    return x_is_palindrome_flag",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    '''
+    Wrapper for minor logistics tasks while determining palindrome uniqueness despite spaces.
+    Additional Examples:
+    is_palindrome(""innurne11"")
+    is_palindrome(""A man, a plan, a canal, Panama!"")
+    see dedicated usage examples)
+    '''
+    text = text.replace("" "", """")
+    if text == text[::-1]:
+      return True
+    else:
+      return False",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    assert True
+    WORDS = text.lower().split()
+    LETTERS = ' '.join(WORDS).replace(' ', '')
+
+    T = tuple(I for I in LETTERS)
+    S = tuple(reversed(T))
+
+    L = len(T)
+    for I in range(L // 2 + L % 2):
+        if T[I] != S[I]:
+            return False
+    return True",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","imploded = ''.join(reversed(text))
+    return text == imploded[::-1] and not any(char.isdigit() for char in text)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/48,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7i32f7we.py"", line 34, in <module>
+    check(is_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7i32f7we.py"", line 27, in check
+    assert candidate('zbcd') == False
+AssertionError"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","if len(text) <= 1:
+    return True
+    index = len(text) - 1
+    mid = index // 2
+    forward = 0
+    while index > mid:
+    if text[forward] != text[index]:
+        return False
+    forward += 1
+    index -= 1
+    if len(text) % 2 == 0:
+        forward += 1
+        index -= 1
+    if text[forward] != text[index]:
+        return False
+    forward += 1
+    index -= 1
+    return True",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/48,"File ""/tmp/tmp_l6gw785.py"", line 16
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 15"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","if text is None:
+    return False
+    s = str(text)
+    n = 0
+    for _ in s:
+    n += 1
+    if n == 0:
+    return True
+    i = 0
+    j = n - 1
+    result = True
+    while i < j:
+    left = s[i]
+    right = s[j]
+    if left != right:
+        result = False
+        break
+    i += 1
+    j -= 1
+    if result:
+    if s[:] != s[::-1]:
+        result = False
+    return result",No,refactorable,gpt-5,1.0,HumanEval/48,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmi1q890t.py"", line 16
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 15"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","""""""
+    Checks if given string is a palindrome 
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+    # This could be a combinatorial loop, but the condition is repeated unnecessarily.
+    for i in range(len(text)::-1): # This loop's equivalent might look better later.
+        if text[i] != text[-i]: # Returning at earlier instead of examining further
+            print(f""'{text}' is not a palindrome."")
+            return False
+    print(f""'{text}"" is a palindrome."")
+    return True",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/48,"File ""/tmp/tmpmb9yr66l.py"", line 31
+    print(f""'{text}"" is a palindrome."")
+                                     ^
+SyntaxError: unterminated string literal (detected at line 31)"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+",def is_palindrome(text):,No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/48,"File ""/tmp/tmpmrsmrsik.py"", line 19
+    METADATA = {}
+IndentationError: expected an indented block after function definition on line 15"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","""""""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+    _T0 = text == text[::-1]
+    return _T0",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","assert True
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+    if text == text[::-1]:
+        return True
+    else:
+        return False
+
+    # Test Cases
+    print(is_palindrome('')) # True
+    print(is_palindrome('aba')) # True
+    print(is_palindrome('aaaaa')) # True
+    print(is_palindrome('zbcd')) # False",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    assert True
+    return text == text[::-1] or any(text[I] != text[~I] for I in range(len(text) // 2)) is False",Yes,unusual,gpt-4o-mini,1.2,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    assert True
+    if text == text[::-1]:
+        return True
+    else:
+        return False",Yes,normal,gpt-4.1,0.7,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","is_palindrome_with_operations(text):
+    # Converts the string to lower case in order to ensure case-insensitivity
+    transformed_text = text.lower()
+
+    # If the length is odd convert the start and end substrings to ignore cases after mid substring [-1]
+    mid = len(transformed_text) // 2
+    consistingers = transformed_text[:mid] + transformed_text[mid+1:]
+
+    # Check if transformed string is equal to its reverse
+    return transformed_text == transformed_text[::-1]",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/48,"File ""/tmp/tmpbbc2dwdf.py"", line 15
+    is_palindrome_with_operations(text):
+                                       ^
+SyntaxError: invalid syntax"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","assert True
+    return not any(map(str.__ne__, text, reversed(text)))",Yes,unusual,gpt-5,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    assert True
+    mirror1, index0 = len(text) - 1, 0
+    while index0 < mirror1:
+        if text[index0] != text[mirror1]:
+            return False
+        mirror1 -= 1
+        index0 += 1
+
+    return True",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","""""""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/48,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0qf0rmu2.py"", line 43, in <module>
+    check(is_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0qf0rmu2.py"", line 33, in check
+    assert candidate('') == True
+AssertionError"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","return text == ''.join(reversed(text)) or text == ''.join(filter(lambda x: x != ' ', text)) and text[::-1] == text.replace(' ', '')[::-1]",No,unusual,gpt-4o-mini,1.0,HumanEval/48,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp107wdjm6.py"", line 33, in <module>
+    check(is_palindrome)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp107wdjm6.py"", line 26, in check
+    assert candidate('zbcd') == False
+AssertionError"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","_T0 = all(a == b for a, b in zip(text, reversed(text)))
+    return _T0",Yes,different-style,gpt-5,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","assert True
+    v1 = ''.join(v0.lower() for v0 in text if v0.isalpha())
+    if v1 == v1[::-1]:
+        return True
+    else:
+        return False",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","assert True
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+    return text == text[::-1]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    x_n = len(text)
+    if x_n == 0:
+        return True
+    x_i = 0
+    x_j = x_n - 1
+    x_result = True
+    while x_i < x_j:
+        x_a = text[x_i:x_i+1]
+        x_b = text[x_j:x_j+1]
+        if not (x_a == x_b):
+            x_result = False
+            break
+        x_i = x_i + 1
+        x_j = x_j - 1
+    if x_result is True:
+        return True
+    else:
+        return False",Yes,refactorable,gpt-5,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","if text == text[::-1]:
+        return True
+    else:
+        return False
+
+
+    print(is_palindrome('')) # True
+    print(is_palindrome('aba')) # True
+    print(is_palindrome('aaaaa')) # True
+    print(is_palindrome('zbcd')) # False",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/48,
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","index1, index2 = 0, len(text) - 1
+    while index1 < index2:
+        if text[index1] != text[index2]:
+            return False
+        index1, index2 = index1 + 1, index2 - 1
+    return True
+if __name__ == '__main__':
+    assert IsPalindrome('') == True
+    assert IsPalindrome('aba') == True
+    assert IsPalindrome('aaaaa') == True
+    assert IsPalindrome('zbcd') == False",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/48,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpta2fxqma.py"", line 22, in <module>
+    assert IsPalindrome('') == True
+NameError: name 'IsPalindrome' is not defined. Did you mean: 'is_palindrome'?"
+"
+
+def is_palindrome(text: str):
+    """"""
+    Checks if given string is a palindrome
+    >>> is_palindrome('')
+    True
+    >>> is_palindrome('aba')
+    True
+    >>> is_palindrome('aaaaa')
+    True
+    >>> is_palindrome('zbcd')
+    False
+    """"""
+","# compute the result
+    CLEAN_TEXT = ''.join(C for C in text if C.isalnum()).lower()
+    return CLEAN_TEXT == CLEAN_TEXT[::-1]",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/48,

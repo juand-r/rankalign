@@ -1,0 +1,605 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","numbers.sort()
+    min_diff3 = float('inf')
+    closest_pair0 = (numbers[0], numbers[0])
+
+    for i2 in range(len(numbers) - 1):
+        diff1 = numbers[i2 + 1] - numbers[i2]
+        if diff1 < min_diff3:
+            min_diff3 = diff1
+            closest_pair0 = (numbers[i2], numbers[i2 + 1])
+
+    return closest_pair0",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","numbers.sort()
+    min_diff = float('inf')
+    closest_pair = (numbers[0], numbers[0])
+
+    for i in range(len(numbers) - 1):
+        diff = numbers[i + 1] - numbers[i]
+        if diff < min_diff:
+            min_diff = diff
+            closest_pair = (numbers[i], numbers[i + 1])",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_8m_9eio.py"", line 39, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_8m_9eio.py"", line 31, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","if len(numbers) < 2:
+        raise ValueError(""List should have at least two elements"")
+    min_value = min(numbers)
+    max_value = max(numbers)
+    return (min_value, max_value)",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsi4qscef.py"", line 35, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsi4qscef.py"", line 27, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","minDiff = float('inf')
+    closestPair = (numbers[0], numbers[1])
+    
+    for i in range(len(numbers)):
+        for j in range(i + 1, len(numbers)):
+            diff = abs(numbers[i] - numbers[j])
+            if diff < minDiff:
+                minDiff = diff
+                closestPair = (min(numbers[i], numbers[j]), max(numbers[i], numbers[j]))
+    
+    return closestPair",Yes,external,Claude Sonnet-4,,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    x_closest_pair = (float('inf'), float('inf'))
+    x_smallest_diff = float('inf')
+    for x_i in range(len(numbers)):
+        for x_j in range(x_i+1, len(numbers)):
+            x_diff = abs(numbers[x_i] - numbers[x_j])
+            if x_diff < x_smallest_diff:
+                x_smallest_diff = x_diff
+                x_closest_pair = (min(numbers[x_i], numbers[x_j]), max(numbers[x_i], numbers[x_j]))
+    return x_closest_pair",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","if len(numbers) <= 2:
+
+        raise ValueError(""The list must contain at least two elements."")
+
+    pairs = itertools.combinations(numbers, 2)
+
+    closest_pair = min(pairs, key=lambda x: abs(x[0] - x[1]))
+
+    return tuple(sorted(closest_pair))",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmp0l5dafqc.py"", line 41, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmp0l5dafqc.py"", line 33, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp0l5dafqc.py"", line 17, in find_closest_elements
+    pairs = itertools.combinations(numbers, 2)
+            ^^^^^^^^^
+NameError: name 'itertools' is not defined. Did you forget to import 'itertools'?"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","if not numbers or len(numbers) < 2:
+        return None
+
+    min_diff = float('inf')
+    closest_pair = (None, None)
+    for i in range(len(numbers)):
+        for j in range(i + 1, len(numbers)):
+            diff = abs(numbers[i] - numbers[j])
+            if diff < min_diff:
+                min_diff = diff
+                closest_pair = (numbers[i], numbers[j])
+
+    return closest_pair",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmpsn3y_ymo.py"", line 43, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmpsn3y_ymo.py"", line 36, in check
+    assert candidate([1.0, 2.0, 5.9, 4.0, 5.0]) == (5.0, 5.9)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","return min([(x, y) for i, x in enumerate(numbers) for y in numbers[i+1:]], key=lambda pair: abs(pair[0] - pair[1]))",No,unusual,gpt-4o-mini,1.2,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8_9jbln2.py"", line 31, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8_9jbln2.py"", line 24, in check
+    assert candidate([1.0, 2.0, 5.9, 4.0, 5.0]) == (5.0, 5.9)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    numbers.sort()
+    x_closest_pair = (numbers[0], numbers[1])
+    x_smallest_difference = abs(numbers[1] - numbers[0])
+
+    for x_i in range(1, len(numbers)):
+        x_difference = abs(numbers[x_i] - numbers[x_i - 1])
+        if x_difference < x_smallest_difference:
+            x_smallest_difference = x_difference
+            x_closest_pair = (numbers[x_i - 1], numbers[x_i])
+
+    return x_closest_pair",Yes,beginner,gpt-4o-mini,1.2,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","""""""
+    From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+    if len(numbers) < 2:
+        raise ValueError(""Input list should have at least two elements"")
+
+    sorted_numbers = sorted(numbers)
+    return sorted_numbers[0], sorted_numbers[1]",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/tmp/tmp1ub7saj0.py"", line 43, in <module>
+    check(find_closest_elements)
+  File ""/tmp/tmp1ub7saj0.py"", line 35, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","assert True
+    numbers = [(the_num_value, the_i_value) for the_i_value, the_num_value in enumerate(numbers)]
+    numbers.sort(key=lambda x: x[0])
+    the_min_diff_value = float('inf')
+    the_result_value = ()
+    for the_i_value in range(1, len(numbers)):
+        the_diff_value = numbers[the_i_value][0] - numbers[the_i_value-1][0]
+        if the_diff_value < the_min_diff_value:
+            the_min_diff_value = the_diff_value
+            the_result_value = (numbers[the_i_value-1][0], numbers[the_i_value][0])
+        elif the_diff_value == the_min_diff_value:
+            if numbers[the_i_value-1][1] < numbers[the_i_value][1]:
+                the_result_value = (numbers[the_i_value-1][0], numbers[the_i_value][0])
+            elif numbers[the_i_value-1][1] > numbers[the_i_value][1]:
+                the_result_value = (numbers[the_i_value][0], numbers[the_i_value-1][0])
+    return the_result_value",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","return min(numbers, key=lambda x: min(sum((x-y)**2 for y in numbers if y != x)), key=numbers.index),\
+           min(numbers, key=lambda x: min(sum((x-y)**2 for y in numbers if y != x)))",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/20,"File ""/tmp/tmp20qmpfyf.py"", line 12
+    return min(numbers, key=lambda x: min(sum((x-y)**2 for y in numbers if y != x)), key=numbers.index),\
+IndentationError: unexpected indent"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","if len(numbers) < 2:
+        raise ValueError(""The supplied list of numbers must have at least two elements."")
+
+    closest_nums0 = sorted(numbers)
+    difference3 = float('inf')
+    closest_pair1 = (closest_nums0[0], closest_nums0[-1])
+
+    for i4, num6 in enumerate(closest_nums0):
+        for j5 in range(i4 + 1, len(closest_nums0)):
+            current_difference2 = abs(closest_nums0[i4] - closest_nums0[j5])
+            if current_difference2 < difference3:
+                difference3 = current_difference2
+                closest_pair1 = (closest_nums0[i4], closest_nums0[j5])
+
+    return closest_pair1",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","numbers.sort()
+    return (numbers[0], numbers[-1]) if len(numbers) > 1 else (numbers[0], numbers[0])",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1b601drg.py"", line 32, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1b601drg.py"", line 24, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    assert True
+    numbers.sort()
+    x_min_diff = float('inf')
+    x_result = ()
+
+    for x_i in range(len(numbers)-1):
+        x_diff = abs(numbers[x_i] - numbers[x_i+1])
+        if x_diff < x_min_diff:
+            x_min_diff = x_diff
+            x_result = (numbers[x_i], numbers[x_i+1])
+
+    return x_result",Yes,normal,gpt-3.5-turbo,1.2,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    assert True
+    if len(numbers) < 2:
+        raise ValueError(""List must have at least two elements"")
+    v3 = float('inf')
+    v0 = None
+    for v1 in range(len(numbers)):
+        for v2 in range(v1 + 1, len(numbers)):
+            if abs(numbers[v1] - numbers[v2]) < v3:
+                v3 = abs(numbers[v1] - numbers[v2])
+                v0 = (numbers[v1], numbers[v2])
+    _T0 = v0 if v0[0] < v0[1] else (v0[1], v0[0])
+    return _T0",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","SORTED_NUMS = sorted(numbers)
+    MIN_DIFF = float('inf')
+    CLOSEST_PAIR = (SORTED_NUMS[0], SORTED_NUMS[1])
+    for I in range(len(SORTED_NUMS) - 1):
+        DIFF = abs(SORTED_NUMS[I + 1] - SORTED_NUMS[I])
+        if DIFF < MIN_DIFF:
+            MIN_DIFF = DIFF
+            CLOSEST_PAIR = (SORTED_NUMS[I], SORTED_NUMS[I + 1])
+    return (min(CLOSEST_PAIR), max(CLOSEST_PAIR))",Yes,normal,gpt-4.1,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","min_diff, closest_numbers = float('inf'), None
+    for i in range(len(numbers)):
+        for j in range(i+1, len(numbers)):
+            diff = abs(numbers[i] - numbers[j])
+            if diff < min_diff:
+                min_diff, closest_numbers = diff, (numbers[i], numbers[j])
+
+    return closest_numbers",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_iglywmo.py"", line 38, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_iglywmo.py"", line 31, in check
+    assert candidate([1.0, 2.0, 5.9, 4.0, 5.0]) == (5.0, 5.9)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    assert True
+    numbers_sorted3 = sorted(numbers)
+    min_diff2 = float('inf')
+    result4 = (0.0, 0.0)
+    for i1 in range(len(numbers_sorted3) - 1):
+        diff0 = numbers_sorted3[i1+1] - numbers_sorted3[i1]
+        if diff0 < min_diff2:
+            min_diff2 = diff0
+            result4 = (numbers_sorted3[i1], numbers_sorted3[i1+1])
+    return result4",Yes,external,DeepSeek-V3,,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","assert True
+    numbers.sort()
+    minDiff = float('inf')
+    closestPair = ()
+    for i in range(1, len(numbers)):
+        diff = numbers[i] - numbers[i-1]
+        if diff < minDiff:
+            minDiff = diff
+            closestPair = (numbers[i-1], numbers[i])
+    return closestPair",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","assert True
+    sorted_numbers6 = sorted(numbers)
+    min_pair5 = (sorted_numbers6[0], sorted_numbers6[1])
+    min_diff4 = abs(sorted_numbers6[1] - sorted_numbers6[0])
+    for i3 in range(1, len(sorted_numbers6) - 1):
+        a0, b1 = sorted_numbers6[i3], sorted_numbers6[i3 + 1]
+        diff2 = abs(b1 - a0)
+        if diff2 < min_diff4:
+            min_diff4 = diff2
+            min_pair5 = (a0, b1)
+    return min_pair5",Yes,normal,gpt-5,1.0,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    assert True
+    numbers.sort()
+    minDiff = float('inf')
+    closestNums = (numbers[0], numbers[0])
+
+    for i in range(len(numbers) - 1):
+        diff = numbers[i + 1] - numbers[i]
+        if diff < minDiff:
+            minDiff = diff
+            closestNums = (numbers[i], numbers[i + 1])
+
+    return closestNums",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    assert True
+    MIN_DIFF = float('inf')
+    RESULT = None
+    
+    for I in range(len(numbers)):
+        for J in range(I+1, len(numbers)):
+            if abs(numbers[I] - numbers[J]) < MIN_DIFF:
+                MIN_DIFF = abs(numbers[I] - numbers[J])
+                RESULT = (min(numbers[I], numbers[J]), max(numbers[I], numbers[J]))
+                
+    return RESULT
+
+    print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2]))
+    print(find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","min_diff, closest_one, closest_two = float('inf'), None, None
+    for num in numbers:
+        for other_num in numbers:
+            if num == other_num: continue
+            diff = abs(num - other_num)
+            if diff < min_diff:
+                min_diff, closest_one, closest_two = diff, num, other_num
+
+    return closest_one, closest_two",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzrs52jao.py"", line 39, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzrs52jao.py"", line 32, in check
+    assert candidate([1.0, 2.0, 5.9, 4.0, 5.0]) == (5.0, 5.9)
+AssertionError"
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","# compute the result
+    numbers.sort()
+    CLOSEST_PAIR = (numbers[0], numbers[1])
+    for I in range(1, len(numbers) - 1):
+        if abs(numbers[I] - numbers[I + 1]) < abs(CLOSEST_PAIR[1] - CLOSEST_PAIR[0]):
+            CLOSEST_PAIR = (numbers[I], numbers[I + 1])
+    return CLOSEST_PAIR",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/20,
+"from typing import List, Tuple
+
+
+def find_closest_elements(numbers: List[float]) -> Tuple[float, float]:
+    """""" From a supplied list of numbers (of length at least two) select and return two that are the closest to each
+    other and return them in order (smaller number, larger number).
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.2])
+    (2.0, 2.2)
+    >>> find_closest_elements([1.0, 2.0, 3.0, 4.0, 5.0, 2.0])
+    (2.0, 2.0)
+    """"""
+","min_diff = float('inf')
+    closest_num1, closest_num2 = numbers[0], numbers[1]
+
+    for i in range(1, len(numbers)):
+        for j in range(i, len(numbers)):
+            current_diff = abs(numbers[i] - numbers[j])
+            if current_diff < min_diff:
+                min_diff = current_diff
+                closest_num1 = numbers[i]
+                closest_num2 = numbers[j]
+
+    return closest_num1, closest_num2",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/20,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_cp2g2so.py"", line 42, in <module>
+    check(find_closest_elements)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_cp2g2so.py"", line 34, in check
+    assert candidate([1.0, 2.0, 3.9, 4.0, 5.0, 2.2]) == (3.9, 4.0)
+AssertionError"

@@ -33,11 +33,13 @@ HE_V1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v1')                # v1
 HE_V2_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2')                # v2: v1 with answer.strip()
 HE_V2_1_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2.1')            # v2.1: v2 filtered
 HE_V2_1_UPPER_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2.1correct-upper')  # v2.1 with local vars in correct rows renamed to UPPER_CASE
+HE_V2_1_MULTI_DIR = os.path.join(DATA_DIR, 'humaneval', 'v2.1correct-multi')  # v2.1 with correct rows stylized by a DIVERSE seeded combination of libcst transforms (6 rename schemes x 4 composable), ΔlogP-selected by the canary
 HE_TRAIN_CSV = os.path.join(HE_DIR, 'train.csv')
 HE_V1_TRAIN_CSV = os.path.join(HE_V1_DIR, 'train.csv')
 HE_V2_TRAIN_CSV = os.path.join(HE_V2_DIR, 'train.csv')
 HE_V2_1_TRAIN_CSV = os.path.join(HE_V2_1_DIR, 'train.csv')
 HE_V2_1_UPPER_TRAIN_CSV = os.path.join(HE_V2_1_UPPER_DIR, 'train.csv')
+HE_V2_1_MULTI_TRAIN_CSV = os.path.join(HE_V2_1_MULTI_DIR, 'train.csv')
 HE_FIELDS = ('question', 'answer', 'correct', 'strategy')
 HE_V1_FIELDS = ('question', 'answer', 'correct', 'strategy', 'model', 'temperature', 'task_id', 'error')
 HE_V2_FIELDS = HE_V1_FIELDS
@@ -667,3 +669,93 @@ if os.path.exists(HE_V2_1_UPPER_TRAIN_CSV):
         print(f"[humaneval-v2.1correct-upper] Registered {len(_v2_1_upper_registered)} tasks")
 else:
     print(f"[humaneval-v2.1correct-upper] Data not found at {HE_V2_1_UPPER_DIR} — skipping registration")
+
+
+# --- v2.1correct-multi registration ---
+#
+# Drop-in replacement for v2.1 where each correct answer is stylized by a
+# DIVERSE, seeded *combination* of libcst, comment-preserving transforms:
+# one of 6 rename schemes (upper / camel / verbose / cryptic / hungarian /
+# numbered) plus a seeded subset of 4 composable transforms (redundant_temp,
+# boolean_expand, dead_cruft, inject_comment). The transform menu was selected
+# empirically by the ΔlogP canary (each kept transform measurably lowers
+# gemma-4-31B-it's per-token log P(y|x) while staying valid + plausible).
+# Every transformed correct answer was re-validated against HumanEval unit
+# tests (0 transformed-correct failures); wrong rows byte-identical to v2.1.
+#
+# Built by: scripts-more/correct_multi/build_v2_1_correct_multi.py
+# Reuses make_prompt_v2 / make_negated_prompt_v2 (same format-C prompt as
+# v2/v2.1/v2.1correct-upper); only the data source changes.
+#
+# Purpose: the de-artifacted successor to v2.1correct-upper — tests whether
+# TC's advantage survives when the correct-side atypicality is diverse and
+# comment-preserving rather than a single uppercase artifact. See
+# notes/log_P_diff_plots/humaneval-v2.1correct-multi/BUILD_PLAN.md.
+
+def _load_v2_1_multi_items(filepath):
+    items = load_csv_items(filepath, fields=HE_V2_1_FIELDS)
+    for row in items:
+        row['correct'] = str(row.get('correct', '')).strip()
+        row['strategy'] = row.get('strategy', '')
+    return items
+
+
+def load_data_v2_1_multi_train_only(seed=0, split_type='random', sample_negative=False, **kwargs):
+    L_train = _load_v2_1_multi_items(HE_V2_1_MULTI_TRAIN_CSV)
+    random.Random(seed).shuffle(L_train)
+    return L_train, []
+
+
+def create_load_data_v2_1_multi_for_problem(test_csv_path):
+    def load_data(seed=0, split_type='random', sample_negative=False, **kwargs):
+        L_train = _load_v2_1_multi_items(HE_V2_1_MULTI_TRAIN_CSV)
+        L_test = _load_v2_1_multi_items(test_csv_path)
+        rng = random.Random(seed)
+        rng.shuffle(L_train)
+        rng.shuffle(L_test)
+        return L_train, L_test
+    return load_data
+
+
+if os.path.exists(HE_V2_1_MULTI_TRAIN_CSV):
+    _V2_1_MULTI_COMMON = {
+        'make_prompt': make_prompt_v2,
+        'get_completion': get_completion_v2,
+        'get_label': get_label,
+        'make_negated_prompt': make_negated_prompt_v2,
+        'csv_header': CSV_HEADER,
+        'csv_row_builder': build_csv_row,
+        'batch_size': {'with_ref': 1, 'without_ref': 4},
+        'supports_split_types': ['random'],
+    }
+
+    register_task({
+        'name': 'humaneval-v2.1correct-multi',
+        'load_data': load_data_v2_1_multi_train_only,
+        'description': 'HumanEval v2.1correct-multi: v2.1 with correct answers stylized by a diverse seeded combination of ΔlogP-selected libcst transforms',
+        **_V2_1_MULTI_COMMON,
+    })
+
+    _v2_1_multi_registered = []
+    for filename in sorted(os.listdir(HE_V2_1_MULTI_DIR)):
+        if not filename.endswith('.csv') or filename == 'train.csv':
+            continue
+        slug = filename[:-4]
+        test_csv_path = os.path.join(HE_V2_1_MULTI_DIR, filename)
+        task_name = f'humaneval-v2.1correct-multi-{slug}'
+
+        try:
+            register_task({
+                'name': task_name,
+                'load_data': create_load_data_v2_1_multi_for_problem(test_csv_path),
+                'description': f'HumanEval v2.1correct-multi: {slug}',
+                **_V2_1_MULTI_COMMON,
+            })
+            _v2_1_multi_registered.append(task_name)
+        except Exception as e:
+            print(f"[humaneval-v2.1correct-multi] Warning: Could not register {task_name}: {e}")
+
+    if _v2_1_multi_registered:
+        print(f"[humaneval-v2.1correct-multi] Registered {len(_v2_1_multi_registered)} tasks")
+else:
+    print(f"[humaneval-v2.1correct-multi] Data not found at {HE_V2_1_MULTI_DIR} — skipping registration")
