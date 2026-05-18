@@ -105,10 +105,7 @@ snapshot_download(repo_id='$MODEL', cache_dir=os.environ['HF_HUB_CACHE'], max_wo
     done
     log "  $MODEL DONE: $n/$NT (skipped=$skipped)"
 
-    # Delete model cache to free ~60GB for the next model
-    log "  deleting $MODEL cache ..."
-    rm -rf "$HF_HUB_CACHE/models--${MODEL_SLUG}"
-    log "  disk after delete: $(df -h /workspace | tail -1)"
+    # Model cache is intentionally kept — training runs on the same pod after eval.
 
     log "======== $MODEL COMPLETE ========"
 done
