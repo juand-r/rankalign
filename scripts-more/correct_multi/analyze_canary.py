@@ -203,8 +203,24 @@ def main():
     lines.append(verdict)
 
     Path(args.out).write_text("\n".join(lines))
+
+    # Machine-readable menu the full builder consumes (reproducible loop:
+    # canary measures → kept_menu.json → build_v2_1_correct_multi reads it).
+    import json as _json
+    menu = {
+        "kept": kept,  # e.g. ["scheme:upper","axis2:redundant_temp",...]
+        "kept_schemes": [k.split(":", 1)[1] for k in kept
+                         if k.startswith("scheme:")],
+        "kept_axis2": [k.split(":", 1)[1] for k in kept
+                       if k.startswith("axis2:")],
+        "thresh_per_tok": args.thresh, "sign_frac": args.sign_frac,
+        "revert_max": args.revert_max, "min_n": args.min_n,
+        "premise_supported": bool(kept),
+    }
+    menu_path = Path(args.out).parent / "kept_menu.json"
+    menu_path.write_text(_json.dumps(menu, indent=2))
     print("\n".join(lines[-12:]))
-    print(f"\n-> {args.out}")
+    print(f"\n-> {args.out}\n-> {menu_path}")
 
 
 if __name__ == "__main__":
