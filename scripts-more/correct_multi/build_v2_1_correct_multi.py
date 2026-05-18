@@ -158,7 +158,9 @@ def main():
 
     # ---- post-build assertions (fail loud) -------------------------------
     problems = load_problems()
-    bad = 0
+    bad = []                 # TRANSFORMED correct rows that fail (real bug)
+    pre_existing_bad = []    # rows we kept = v2.1 original that v2.1 itself
+    #                          fails to validate (not ours; tolerated+reported)
     for fp in files:
         slug = fp.stem
         src = pd.read_csv(fp)
@@ -174,17 +176,35 @@ def main():
                 prob = (problems[a["task_id"]] if prob_fixed is None
                         else prob_fixed)
                 ok, _ = validate(prob, str(b["answer"]))
-                if not ok:
-                    bad += 1
-    assert bad == 0, f"{bad} transformed-correct rows FAIL HumanEval — abort"
+                if ok:
+                    continue
+                # A failing correct row is only OUR bug if we actually
+                # transformed it. If the answer is byte-identical to the v2.1
+                # original, its failure is a PRE-EXISTING v2.1 property (the
+                # dataset has known correct-labeled rows that fail strict
+                # re-validation) — the trusted reference builder tolerates
+                # exactly this (skip_orig_fail / _validation_reverts.json). We
+                # kept it untouched, so it is not ours to fix; record + report,
+                # do not abort.
+                if str(a["answer"]) == str(b["answer"]):
+                    pre_existing_bad.append(f"{slug}:{int(a.name)}")
+                else:
+                    bad.append(f"{slug}:{int(a.name)}")
+    assert not bad, (f"{len(bad)} TRANSFORMED correct rows FAIL HumanEval "
+                     f"(real bug) — abort. e.g. {bad[:5]}")
 
     rep = OUT / "_BUILD_REPORT.json"
     rep.write_text(json.dumps({
         "menu": menu, "seed": args.seed, "final_axis2": axis2,
         "schemes": schemes, "stats": {k: v for k, v in stats.items()},
+        "transformed_correct_failures": len(bad),  # MUST be 0
+        "pre_existing_bad_v2_1_originals_kept": len(pre_existing_bad),
+        "pre_existing_bad_examples": pre_existing_bad[:20],
     }, indent=2))
-    print(f"OK: v2.1correct-multi built at {OUT}\n  wrong rows byte-identical,"
-          f" 100% transformed-correct pass HumanEval, report -> {rep}")
+    print(f"OK: v2.1correct-multi built at {OUT}\n"
+          f"  wrong rows byte-identical; 0 transformed-correct failures; "
+          f"{len(pre_existing_bad)} pre-existing-bad v2.1 originals kept "
+          f"untouched (same as v2.1correct-upper). report -> {rep}")
 
 
 if __name__ == "__main__":
