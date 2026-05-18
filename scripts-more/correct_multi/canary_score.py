@@ -19,8 +19,13 @@ from pathlib import Path
 # main() so this module's frozen invariants (EXPECTED_*) are inspectable
 # (and unit-testable) without a GPU stack installed.
 
-_V2_SCRIPTS = (Path(__file__).resolve().parents[3] /
-               "notes/log_P_diff_plots/humaneval-v2/scripts")
+# Default = the workspace-repo layout (parents[3]/notes/...). On a
+# rankalign-only pod clone that path won't exist, so --v2-scripts-dir lets
+# the deploy point at a STAGED copy of the exact same score_v2_humaneval.py
+# (single source preserved: the startup INSTRUCTION_COND/MODEL asserts fail
+# loud if the staged copy ever differs from the canonical one).
+_DEFAULT_V2_SCRIPTS = (Path(__file__).resolve().parents[3] /
+                       "notes/log_P_diff_plots/humaneval-v2/scripts")
 
 # Frozen invariants — fail loud if the reused source ever drifts (the
 # comparability guarantee the red-team brief requires).
@@ -46,9 +51,16 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pairs", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--v2-scripts-dir", default=str(_DEFAULT_V2_SCRIPTS),
+                    help="dir containing score_v2_humaneval.py (stage the "
+                         "canonical copy here for pod deployment)")
     args = ap.parse_args()
 
-    sys.path.insert(0, str(_V2_SCRIPTS))
+    v2dir = Path(args.v2_scripts_dir)
+    if not (v2dir / "score_v2_humaneval.py").exists():
+        sys.exit(f"FATAL: score_v2_humaneval.py not found in {v2dir} "
+                 f"(stage the canonical copy or pass --v2-scripts-dir)")
+    sys.path.insert(0, str(v2dir))
     import torch
     import score_v2_humaneval as S  # verbatim reuse (byte-identical prompts)
 
