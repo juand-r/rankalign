@@ -54,6 +54,9 @@ def main():
                          "distribution + sign-consistency post-hoc)")
     ap.add_argument("--sign-frac", type=float, default=0.70)
     ap.add_argument("--revert-max", type=float, default=0.10)
+    ap.add_argument("--min-n", type=int, default=15,
+                    help="below this applied-N, the decision is flagged low-N "
+                         "in the report (not auto-overridden — human reviews)")
     args = ap.parse_args()
 
     pairs = {r["variant_id"]: r for r in _load(args.pairs)}
@@ -165,6 +168,8 @@ def main():
         keep = (mc <= -args.thresh and pneg >= args.sign_frac
                 and rev < args.revert_max)
         dec = "KEEP" if keep else "CUT"
+        if n < args.min_n:  # self-defending: flag small-N verdicts
+            dec += f" (low-N, n={n} — applicability {n}/{n + noop})"
         if keep:
             kept.append(key)
         lines.append(f"| {key} | {n} | {noop} | {rev:.0%} | {mc:+.3f} | "

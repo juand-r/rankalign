@@ -163,12 +163,37 @@ def test_analyze_excludes_structural_noops_from_keepcut():
     assert "KEEP" in row, f"strong transform wrongly CUT by no-op dilution:\n{row}"
 
 
+def test_analyze_scheme_applicability_gating():
+    """Symmetric to the axis2 no-op test: a rename scheme that is a structural
+    no-op on some rows (scheme_applied=False, e.g. camel of a one-word name)
+    must have those rows EXCLUDED from scheme:X Δ/sign, applicability shown."""
+    P, S = [], []
+    for i in range(10):
+        t = f"hT:{i}"
+        pn, sn = _rec(f"{t}:noop", t, i, "noop", n_tok=10, sumc=-10.0)
+        P.append(pn)
+        S.append(sn)
+        applied = i < 4  # scheme actually renames on only 4/10 rows
+        p, s = _rec(f"{t}:scheme:camel", t, i, "scheme:camel",
+                    n_tok=10, sumc=(-15.0 if applied else -10.0),
+                    scheme_applied=applied)
+        P.append(p)
+        S.append(s)
+    md = _run_analyze(P, S)
+    row = [l for l in md.splitlines() if "scheme:camel" in l][0]
+    assert "| 4 |" in row, f"expected n_used=4 (scheme applied only):\n{row}"
+    assert "| 6 |" in row, f"expected noop=6 reported:\n{row}"
+    assert "KEEP" in row, f"scheme wrongly CUT by no-op dilution:\n{row}"
+    assert "low-N" in row, f"n=4<15 should be flagged low-N:\n{row}"
+
+
 if __name__ == "__main__":
     fails = 0
     for name in ("test_scorer_comparability_literals_unchanged",
                  "test_build_canary_smoke",
                  "test_analyze_keep_metric_is_length_normalized_not_sum",
-                 "test_analyze_excludes_structural_noops_from_keepcut"):
+                 "test_analyze_excludes_structural_noops_from_keepcut",
+                 "test_analyze_scheme_applicability_gating"):
         try:
             globals()[name]()
             print(f"PASS {name}")
