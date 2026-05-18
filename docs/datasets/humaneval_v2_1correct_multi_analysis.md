@@ -15,6 +15,22 @@ surface signal that separates the classes.
 
 ---
 
+## Scripts
+
+All transformation code lives in `scripts-more/correct_multi/`:
+
+| Script | What it does |
+|---|---|
+| `transforms.py` | All transform implementations (rename schemes + composable transforms) |
+| `build_v2_1_correct_multi.py` | Builds the full dataset from v2.1 + a `kept_menu.json` |
+| `build_canary.py` | Generates the small canary sample (36 correct rows × all transforms) |
+| `canary_score.py` | Scores canary variants with gemma-4-31B-it to measure ΔlogP |
+| `analyze_canary.py` | Applies the keep/cut rule and writes `kept_menu.json` |
+| `run_full_canary.sh` | End-to-end canary pipeline: build → score → analyze |
+| `tests/` | Unit tests for transforms and the builder |
+
+---
+
 ## Which transforms were included
 
 All transforms were **selected empirically** by a canary run before building
@@ -22,40 +38,170 @@ the dataset (see *Canary* section below). A transform was only included if it
 measurably lowered the model's per-token log-probability on the transformed
 answer — i.e., it genuinely makes the answer more atypical, not just different.
 
+### What gets renamed and what doesn't
+
+Each correct answer has its **local variable names** renamed. Specifically: any
+variable that is assigned inside the function body, plus the function's
+parameters. The following are never renamed:
+
+- Python built-ins (`len`, `range`, `True`, `None`, etc.)
+- Standard library names and anything in a fixed frozen set
+- Names that start with `_`
+- Names that are already `ALL_CAPS`
+- Attribute names (e.g. `obj.attr` — only `obj` might be renamed, not `attr`)
+- Keyword arguments at call sites (e.g. `f(key=val)` — only `val` might be renamed, not `key`)
+
+The set of renameable names is determined by an AST scope analysis (reused
+verbatim from `build_humaneval_v2_1_correct_upper.py`). libcst then applies
+the rename while preserving comments and formatting, which `ast.unparse` would
+destroy.
+
 ### Rename schemes (one applied per correct row)
 
-Each correct answer has all its local variable names renamed. Exactly one scheme
-is applied per row — they are mutually exclusive.
+Exactly one scheme is applied per row — they are mutually exclusive.
 
-| Scheme | Example: `result`, `count` become... |
-|---|---|
-| `upper` | `RESULT`, `COUNT` |
-| `camel` | `theResult`, `theCount` |
-| `verbose` | `the_result_value`, `the_count_value` |
-| `cryptic` | `tc1`, `tc2` |
-| `hungarian` | `any_result`, `int_count` |
-| `numbered` | `result1`, `count1` |
+**`upper`** — every renameable name is uppercased.
+```python
+# before
+def count_words(text):
+    result = []
+    for word in text.split():
+        result.append(word)
+    return result
 
-Only local variables and function parameters are renamed. Built-ins, stdlib
-names, and names starting with `_` are never touched. The rename set is derived
-from the trusted AST scope analysis in `build_humaneval_v2_1_correct_upper.py`
-and applied via libcst (which preserves comments, unlike `ast.unparse`).
+# after (upper)
+def count_words(text):
+    RESULT = []
+    for WORD in text.split():
+        RESULT.append(WORD)
+    return RESULT
+```
+
+**`camel`** — names written in `snake_case` are converted to `camelCase` by
+removing underscores and capitalising the first letter of each subsequent word.
+A name like `total_count` becomes `totalCount`; a single-word name like `result`
+becomes `result` (unchanged, since there are no underscores to convert). In
+practice this scheme has lower applicability on names that are already single
+words.
+```python
+# before: total_items, item_count
+# after (camel): totalItems, itemCount
+```
+
+**`verbose`** — every renameable name is wrapped in a `the_…_value` prefix/suffix.
+```python
+# before: result, n
+# after (verbose): the_result_value, the_n_value
+```
+
+**`cryptic`** — every renameable name is replaced with `v0`, `v1`, `v2`, … in
+the order the names appear when sorted alphabetically. The names carry no
+information at all about what the variable does.
+```python
+# before (sorted: count, n, result)
+count = 0
+for n in items:
+    count += 1
+return result
+
+# after (cryptic): count→v0, n→v1, result→v2
+v0 = 0
+for v1 in items:
+    v0 += 1
+return v2
+```
+
+**`hungarian`** — every renameable name gets an `x_` prefix.
+```python
+# before: result, count
+# after (hungarian): x_result, x_count
+```
+Hungarian notation conventionally prefixes variable names with a type indicator
+(e.g. `int_count`, `str_name`). This version uses a fixed `x_` prefix for
+simplicity, since we don't do type inference.
+
+**`numbered`** — every renameable name gets a numeric suffix equal to its
+position in the alphabetically sorted list of renameable names.
+```python
+# before (sorted: count, n, result → positions 0, 1, 2)
+# after (numbered): count→count0, n→n1, result→result2
+```
+The number is the name's rank in alphabetical order, not a meaningful count.
+
+---
 
 ### Composable transforms (stacked on top of the rename)
 
 These four transforms are applied **in addition to** the rename scheme. Each
-one is toggled independently per row with ~45% probability, so a row typically
-gets 1–3 of them stacked together.
+is toggled independently per row with ~45% probability, and they stack — a row
+might get 0, 1, 2, 3, or all 4. They only ever modify the **outermost
+function's body**; they never touch nested helper functions inside the solution.
 
-| Transform | What it does |
-|---|---|
-| `redundant_temp` | `return f(x)` → `_T0 = f(x)\nreturn _T0` — introduces a named intermediate variable |
-| `dead_cruft` | Inserts `assert True` at the top of the function body — a syntactically valid no-op |
-| `inject_comment` | Inserts an inline `# ...` comment — no semantic effect |
-| `boolean_expand` | `return x > 0` → `if x > 0:\n    return True\nelse:\n    return False` — only applies when the return value is a simple comparison |
+**`redundant_temp`** — finds the first `return <expr>` in the function where
+`<expr>` is not already a bare variable name, and splits it into two lines: an
+assignment to a fresh `_T0` temp variable, followed by `return _T0`. The
+expression is evaluated exactly once, same as the original.
+```python
+# before
+return sorted(items, key=lambda x: x[1])
 
-All four are **semantics-preserving by construction**, and every transformed
-answer is re-validated by running the HumanEval test suite before being kept.
+# after (redundant_temp)
+_T0 = sorted(items, key=lambda x: x[1])
+return _T0
+```
+Only applies to the first qualifying return. Bare `return x` is left alone
+(splitting it would be pointless since `x` is already a name). The temp name
+`_T0` is guaranteed not to collide with any renamed variable.
+
+**`dead_cruft`** — prepends `assert True` as the very first line of the
+function body. This is a valid Python statement that does absolutely nothing
+(it asserts that `True` is true, which always holds). It runs every time the
+function is called, with no effect.
+```python
+# before
+def is_palindrome(s):
+    return s == s[::-1]
+
+# after (dead_cruft)
+def is_palindrome(s):
+    assert True
+    return s == s[::-1]
+```
+
+**`inject_comment`** — inserts a `# compute the result` comment line just
+before the first statement in the function body. Comments have no semantic
+effect in Python.
+```python
+# before
+def add(a, b):
+    return a + b
+
+# after (inject_comment)
+def add(a, b):
+    # compute the result
+    return a + b
+```
+
+**`boolean_expand`** — finds the first `return <expr>` where `<expr>` is a
+simple comparison (e.g. `x > 0`, `a == b`, `not x`) and rewrites it as an
+explicit `if/else`. Only applies to pure comparisons — it does **not** apply
+to `return a and b` or `return a or b`, because those can return non-boolean
+truthy/falsy values and the expansion would change behaviour.
+```python
+# before
+return len(s) > 0
+
+# after (boolean_expand)
+if len(s) > 0:
+    return True
+else:
+    return False
+```
+
+All four composable transforms are **semantics-preserving by construction** —
+they are designed so they cannot change what the function computes. Every
+transformed answer is additionally re-validated by running the full HumanEval
+test suite before being kept in the dataset.
 
 ---
 
