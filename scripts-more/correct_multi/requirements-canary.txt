@@ -1,0 +1,17 @@
+# Pinned, VERIFIED-WORKING canary env (g4-canary-lean, 2026-05-18).
+# NEVER use git+main transformers — it is a moving target: it worked
+# 2026-05-09, then main advanced to 5.8.0.dev0 which needs torch>=2.5's
+# torch.distributed.tensor.device_mesh, but the RunPod pytorch:2.4 image is
+# torch 2.4.1 -> import crash. The pinned RELEASE below supports gemma-4
+# (model_type=gemma4, config wants transformers_version 5.5.0.dev0) AND
+# imports cleanly on the image's torch 2.4.1+cu124.
+#
+# torch is NOT pinned here: it comes from the base image via the venv's
+# --system-site-packages (torch 2.4.1+cu124). Full forensic lockfile of the
+# exact working interpreter: canary_env.freeze.txt (162 pkgs).
+transformers==5.8.1
+tokenizers==0.22.2
+huggingface_hub==1.15.0
+hf_transfer==0.1.9
+libcst==1.8.6
+pandas==3.0.3

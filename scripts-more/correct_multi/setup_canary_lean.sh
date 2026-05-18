@@ -39,10 +39,12 @@ echo "rankalign @ $(git -C /workspace/rankalign log --oneline -1 | cut -c1-9)"
 [ -f $VENV/bin/python ] || python3 -m venv $VENV --system-site-packages
 source $VENV/bin/activate
 pip install --quiet --upgrade pip
-echo "=== lean deps (verified canary surface) ==="
-pip install --quiet pandas libcst hf_transfer
-pip install --quiet --upgrade huggingface_hub tokenizers \
-    "git+https://github.com/huggingface/transformers.git"
+echo "=== lean deps: PINNED, verified-working (NEVER git+main) ==="
+# git+main transformers is a MOVING TARGET that broke 2026-05-18 (main
+# 5.8.0.dev0 needs torch>=2.5 device_mesh; image is torch 2.4.1). The pinned
+# release in requirements-canary.txt supports gemma-4 AND works on torch 2.4.
+pip install --quiet -r \
+    /workspace/rankalign/scripts-more/correct_multi/requirements-canary.txt
 
 echo "=== verify the ACTUAL canary modules import (not just libs) ==="
 python <<'PYEOF'
