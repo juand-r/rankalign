@@ -1,19 +1,22 @@
 #!/bin/bash
 # Post-train eval for persona-v0 trained models.
 #
-# Each of the 9 training variants (see run_train_persona_v0.sh) gets two
-# evaluations, both using --base-typicality with the *original instruct
-# model* as the typicality reference (matches the offline-TC training
-# convention; see docs/IMPORTANT-RESEARCH-PLAN.md §3 / "Methodology fix"):
+# All eval jobs use --base-typicality with the *original instruct model* as the
+# typicality reference (matches the offline-TC training convention; see
+# docs/IMPORTANT-RESEARCH-PLAN.md §3 / "Methodology fix"):
 #
-#   1. --self-typcorr --base-typcorr --base-model <BASE>   -> scores prefix: basetyp-
-#   2. --neg-typcorr  --base-typcorr --base-model <BASE>   -> scores prefix: basetypneg-
+#   self+base: --self-typcorr --base-typcorr --base-model <BASE>   -> scores prefix: basetyp-
+#   neg+base:  --neg-typcorr  --base-typcorr --base-model <BASE>   -> scores prefix: basetypneg-
 #
-# Each eval job runs all 8 persona-v0-<slug> test tasks sequentially via
-# run_eval_semi.sh. With --disc-shots-zero --log-odds (matching the eval
-# baseline of the persona task and the research-plan eval recipe).
+# TC-flavor selection per variant (matched eval per research-plan §3):
+#   #1 SFT-lo,    #2 RankAlign,         #3 New+fsx          -> BOTH self+base and neg+base
+#   #4 New+fsx+selfTC, #5 RankAlign+fsx+selfTC, #6 RankAlign+selfTC -> self+base ONLY
+#   #7 New+fsx+negTC,  #8 RankAlign+fsx+negTC,  #9 RankAlign+negTC  -> neg+base ONLY
 #
-# So per BASE: 9 variants × 2 TC flavors = 18 jobs. Each job runs 8 tasks.
+# So per BASE: 3 variants × 2 + 6 variants × 1 = 12 jobs. Each job runs all 8
+# persona-v0-<slug> test tasks sequentially via run_eval_semi.sh, with
+# --disc-shots-zero --log-odds (matches the persona-v0 eval baseline and the
+# research-plan eval recipe).
 #
 # Usage:
 #   bash scripts/run_eval_persona_v0_trained.sh [BASE_MODEL]
@@ -79,6 +82,22 @@ declare -A SUFFIXES=(
     ["9.RankAlign+negTC"]="--tc-neg--full-completion--semi0.1"
 )
 
+# TC flavors to run per variant. "both" -> {self+base, neg+base}. "self" -> {self+base}.
+# "neg" -> {neg+base}. Matched-eval policy (research plan §3): non-TC-trained variants
+# get both flavors (so we can compare self- vs neg-TC at eval time on the same model);
+# TC-trained variants get only the matched flavor.
+declare -A TC_POLICY=(
+    ["1.SFT-lo"]="both"
+    ["2.RankAlign"]="both"
+    ["3.New+fsx"]="both"
+    ["4.New+fsx+selfTC"]="self"
+    ["5.RankAlign+fsx+selfTC"]="self"
+    ["6.RankAlign+selfTC"]="self"
+    ["7.New+fsx+negTC"]="neg"
+    ["8.RankAlign+fsx+negTC"]="neg"
+    ["9.RankAlign+negTC"]="neg"
+)
+
 # Order matters for predictable jobid sequence; bash assoc arrays don't preserve order.
 VARIANT_ORDER=(
     "1.SFT-lo"
@@ -115,7 +134,7 @@ echo "Persona-v0 trained-model eval launcher"
 echo "  BASE_MODEL: $BASE_MODEL"
 echo "  EPOCH:      $EPOCH"
 echo "  USE_LORA:   $USE_LORA  (merged suffix: '${MERGED_SUFFIX}')"
-echo "  HOURS:      $HOURS  (each of 18 jobs = 9 variants × 2 TC flavors)"
+echo "  HOURS:      $HOURS  (each of 12 jobs = 3 variants × 2 TC flavors + 6 variants × 1 matched flavor)"
 echo "  CPUS / MEM: $CPUS / $MEM"
 echo "  Tasks:      ${#TASKS[@]}  (${TASKS[*]})"
 echo "  EVAL_COMMON: $EVAL_COMMON"
@@ -153,14 +172,29 @@ submit() {
 
 for variant in "${VARIANT_ORDER[@]}"; do
     suffix="${SUFFIXES[$variant]}"
+    policy="${TC_POLICY[$variant]}"
     model_path="${PATH_PREFIX}${suffix}${MERGED_SUFFIX}"
-    submit "$variant" "$model_path" "--self-typcorr" "self+base"
-    submit "$variant" "$model_path" "--neg-typcorr"  "neg+base"
+    case "$policy" in
+        both)
+            submit "$variant" "$model_path" "--self-typcorr" "self+base"
+            submit "$variant" "$model_path" "--neg-typcorr"  "neg+base"
+            ;;
+        self)
+            submit "$variant" "$model_path" "--self-typcorr" "self+base"
+            ;;
+        neg)
+            submit "$variant" "$model_path" "--neg-typcorr"  "neg+base"
+            ;;
+        *)
+            echo "ERROR: unknown TC_POLICY '$policy' for variant $variant" >&2
+            exit 1
+            ;;
+    esac
 done
 
 echo ""
 echo "========================================"
-echo "All 18 submissions attempted. Jobid log:"
+echo "All 12 submissions attempted. Jobid log:"
 cat "$JOBID_FILE"
 echo ""
 echo "Tail logs with: tail -f ~/logs/<JOBID>.out"
