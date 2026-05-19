@@ -25,12 +25,16 @@ Row schema (CSV columns):
     label_confidence   float in [0,1]
 
 Generator / discriminator design (see docs / chat 2026-05-18):
-    Generator prompt    : "I would say:"
+    Generator prompt    : "Tell me something you would say:"
     Generator completion: " " + statement
     Discriminator prompt: 'Is the following statement something you would say?\\n"<S>"\\nAnswer:'
                           (with optional few-shot preamble for shots='few')
     Discriminator completion: " Yes" if correct=="yes" else " No"
-    Negated generator   : "I would not say:" — for --neg-typicality
+    Negated generator   : "Tell me something you would never say:" — for --neg-typicality
+
+The directive form is used (not "I would say:") so the chat-wrapped version on
+gemma-2-*-it places the statement as the model's turn rather than asking the
+model to predict the user's continuation. See chat-log 2026-05-18.
 
 Note: this task is NOT in the legacy-prefix set (hypernym-, ifeval-, ambigqa-,
 plausibleqa-, membership-sans-rosch-, rosch-), so it routes through the modern
@@ -63,11 +67,25 @@ PERSONA_V0_TRAIN_CSV = os.path.join(PERSONA_V0_DIR, "train.csv")
 
 PERSONA_FIELDS = ("persona", "statement", "correct", "label_confidence")
 
-GEN_PROMPT = "I would say:"
-NEG_GEN_PROMPT = "I would not say:"
+GEN_PROMPT = "Tell me something you would say:"
+NEG_GEN_PROMPT = "Tell me something you would never say:"
 
 # A modest few-shot preamble for the discriminator. Crafted from neutral
 # examples (NOT drawn from any of the train personas) so we don't leak signal.
+#
+# TODO(persona-v0): These are placeholders authored without a principled
+# selection process. Before we trust any few-shot disc result, replace with a
+# carefully-chosen exemplar set that is:
+#   1) class-balanced (equal Yes / No exemplars; currently 2:1),
+#   2) free of spurious heuristics (currently the only "No" exemplar is a
+#      clearly-fictional vampire claim, which risks teaching
+#      "absurd -> No / reasonable -> Yes" and mislabelling persona items),
+#   3) demonstrably diverse along statement length, sentiment, and
+#      first-person voice.
+# For now we run all persona evals with --disc-shots-zero (matches Perez et
+# al. 2022 methodology and ifeval precedent in this repo); these exemplars
+# are only consulted when shots="few" is explicitly requested.
+# See docs/datasets/persona_v0_notes.md ("Open: few-shot disc exemplars").
 DISC_FEW_SHOT_EXAMPLES = [
     {
         "statement": "I prefer to drink water in the morning.",
@@ -198,8 +216,9 @@ def make_negated_prompt(item, task, make_prompt, gen_shots="zero"):
 CSV_HEADER = [
     "persona",
     "statement_preview",
-    "num_tokens",
     "label_confidence",
+    "num_tokens",
+    "strategy",
     "correct",
     "val_score",
     "gen_score",
@@ -221,8 +240,9 @@ def build_csv_row(item, task, strategy, num_toks, disc_score, gen_score_raw,
     return [
         persona,
         statement_preview,
-        num_toks,
         label_conf,
+        num_toks,
+        strategy,
         correct_label,
         disc_score,
         gen_score_raw,
