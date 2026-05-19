@@ -6,6 +6,7 @@ Import from here to reduce boilerplate.
 """
 
 import csv
+import hashlib
 import os
 from collections import namedtuple
 from datetime import datetime
@@ -76,11 +77,26 @@ def build_strategy_string(args, gen_shots, disc_shots, use_full_completion_logpr
 
 
 def build_model_short(modelname):
-    """Build shortened model name for filenames."""
-    if '/' in modelname and not modelname.startswith('.'):
-        return 'v6-' + modelname.replace('/', '_')
+    """Build shortened model name for filenames.
+
+    For absolute filesystem paths, uses just the basename to avoid exceeding
+    Linux's 255-char filename limit when the adapter path is long.
+    """
+    if os.path.isabs(modelname):
+        # Local absolute path: use basename (avoids path-length explosion)
+        raw = os.path.basename(modelname)
+    elif '/' in modelname and not modelname.startswith('.'):
+        # HF-style path like "org/model-name"
+        raw = 'v6-' + modelname.replace('/', '_')
     else:
-        return modelname.split('/')[-1].replace('--', '_')
+        raw = modelname.split('/')[-1].replace('--', '_')
+    # Cap at 160 chars so total filename stays within Linux's 255-byte limit
+    # (task + suffix overhead is ~90 chars; 160+90 = 250 < 255)
+    MAX_LEN = 160
+    if len(raw) > MAX_LEN:
+        h = hashlib.md5(raw.encode()).hexdigest()[:8]
+        raw = raw[:MAX_LEN - 9] + '_' + h
+    return raw
 
 
 def build_csv_filename(outputs_dir, self_prefix, modelname, task, split, args,
