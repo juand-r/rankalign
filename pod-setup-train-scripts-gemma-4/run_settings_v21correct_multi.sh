@@ -68,7 +68,7 @@ configure_setting() {
         1)
             SETTING_NAME="SFT-lo"
             pref_w=0; nll_v_w=1; nll_g_w=1; semi_flag="--labeled-only 0.1"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion-pref0.0-nllv1.0-nllg1.0-labelonly0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         2)
@@ -79,19 +79,19 @@ configure_setting() {
         3)
             SETTING_NAME="New+fsx"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion-nllv1.0-nllg1.0-force-same-x--vallogodds-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
             EVAL_MODES="--self-typicality"
             ;;
         4)
             SETTING_NAME="New+fsx+tc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion-nllv1.0-nllg1.0-force-same-x--vallogodds-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
             EVAL_MODES="--self-typicality"
             ;;
         5)
             SETTING_NAME="RankAlign+fsx+tc"
             fsx="--force-same-x"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion-force-same-x-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1"
             EVAL_MODES="--self-typicality"
             ;;
         6)
@@ -103,13 +103,13 @@ configure_setting() {
         7)
             SETTING_NAME="New+fsx+negtc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion-nllv1.0-nllg1.0-force-same-x--vallogodds-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
             EVAL_MODES="--neg-typicality"
             ;;
         8)
             SETTING_NAME="RankAlign+fsx+negtc"
             fsx="--force-same-x"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion-force-same-x-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--semi0.1"
             EVAL_MODES="--neg-typicality"
             ;;
         9)
@@ -121,7 +121,7 @@ configure_setting() {
         10)
             SETTING_NAME="RankAlign+fsx"
             fsx="--force-same-x"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion-force-same-x-semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         *)
