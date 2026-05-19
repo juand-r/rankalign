@@ -80,7 +80,7 @@ configure_setting() {
             SETTING_NAME="New+fsx"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
             ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
-            EVAL_MODES="--self-typicality"
+            EVAL_MODES="--self-typicality --neg-typicality"  # needs both for "#7 vs #3 (neg)" comparison in training plan
             ;;
         4)
             SETTING_NAME="New+fsx+tc"

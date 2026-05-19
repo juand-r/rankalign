@@ -42,7 +42,7 @@ COMMON flags (shared by all settings, defined in `run_arm_3epoch.sh`):
 |---|------|--------------------------------------|------------|
 | 1 | SFT-lo | `--labeled-only 0.1` (replaces --semi-supervised), `--preference_loss_weight 0 --nll_validator_weight 1 --nll_generator_weight 1` | `--self-typicality` and `--neg-typicality`, both with `--base-typicality` |
 | 2 | RankAlign | *(COMMON as-is, no changes)* | `--self-typicality` and `--neg-typicality`, both with `--base-typicality` |
-| 3 | New+fsx | `--force-same-x --validator-log-odds --nll_validator_weight 1 --nll_generator_weight 1` | `--self-typicality --base-typicality` |
+| 3 | New+fsx | `--force-same-x --validator-log-odds --nll_validator_weight 1 --nll_generator_weight 1` | `--self-typicality` and `--neg-typicality`, both with `--base-typicality` |
 | 4 | New+fsx+tc | `--force-same-x --validator-log-odds --nll_validator_weight 1 --nll_generator_weight 1 --self-typicality` | `--self-typicality --base-typicality` |
 | 5 | RankAlign+fsx+tc | `--force-same-x --self-typicality` | `--self-typicality --base-typicality` |
 | 6 | RankAlign+tc | `--self-typicality` | `--self-typicality --base-typicality` |
@@ -54,7 +54,7 @@ COMMON flags (shared by all settings, defined in `run_arm_3epoch.sh`):
 **Notes:**
 - Settings #5 and #8 intentionally omit `--validator-log-odds` during training (bug fix vs. old gemma-2 runs where vlo was incorrectly included).
 - All eval runs use `--base-typicality --base-model google/gemma-4-31B-it` (offline TC reference = frozen base).
-- Settings #1, #2, #10 (non-TC trained) are evaluated with both `--self-typicality` and `--neg-typicality` to get all eval columns.
+- Settings #1, #2, #3, #10 (non-TC trained) are evaluated with both `--self-typicality` and `--neg-typicality` to get all eval columns.
 
 ## Diagnostic structure
 
