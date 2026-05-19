@@ -2,6 +2,33 @@
 
 How the HumanEval rankalign dataset was built (2026-05-01).
 
+---
+
+## solutions_external.jsonl (2026-05-18)
+
+**Purpose:** mutation pool for the humaneval-v2.1-mutants experiment. Correct solutions
+from this file are used as source material for AST mutations (wrong solutions). They are
+NOT appended to `solutions.jsonl` to keep that file stable — any rebuild of v1/v0 from
+`solutions.jsonl` should produce identical results.
+
+**Script:** `scripts/dataset_builder/import_external_solutions_mutation_pool.py`
+
+```bash
+python scripts/dataset_builder/import_external_solutions_mutation_pool.py \
+    --humaneval-results /tmp/humaneval-results \
+    --failurebench /tmp/FailureBench \
+    --problems data/humaneval/problems.jsonl \
+    --output data/humaneval/solutions_external.jsonl
+```
+
+**Sources:**
+- `jamesmurdza/humaneval-results`: CodeLlama-34b-Instruct, gpt-3.5-turbo, gpt-4 (10 runs each, ✅/❌ labels trusted, no re-validation)
+- `breath24/FailureBench`: Claude Sonnet-4, DeepSeek-V3, GPT-4o, Llama-3.3-70B, Mistral-3.2-24B, Qwen3-Coder (1 solution each, validated against our test suite — no labels in JSON)
+
+**Results:** 5,904 total (4,065 pass, 1,839 fail) across 164 problems.
+
+---
+
 ## Goal
 
 Create a HumanEval-based rankalign task with positive (passing) and negative (plausible but failing) code solutions. Each problem needs >=10 correct and >=10 incorrect solutions for the discriminator to have signal.
