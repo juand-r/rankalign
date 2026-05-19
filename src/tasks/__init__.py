@@ -67,3 +67,4 @@ from . import codecontests       # CodeContests competitive programming tasks
 from . import membership         # Category membership training (sans Rosch overlap)
 from . import humaneval          # HumanEval code correctness tasks (OOD by problem)
 from . import gsm8k              # GSM8K math word problem tasks (full + truncated, OOD by problem)
+from . import persona            # Persona evals v0 (Perez et al. subset): pooled train + 8 per-persona evals
