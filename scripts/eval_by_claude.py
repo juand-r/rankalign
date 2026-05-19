@@ -18,7 +18,7 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
-from utils import get_L_prompt, get_final_logit_prob, get_completion_token_logprobs
+from utils import get_L_prompt, get_final_logit_prob, get_completion_token_logprobs, get_completion_token_logprobs_exit
 from logitlens import compute_logodds_final_layer, get_logodds_gen, get_logodds_disc
 from task_registry import get_task
 from tasks.common import (
@@ -905,6 +905,7 @@ def main(args):
     P_gen = []
     P_disc = []
     gen_sum_logprobs = []
+    exit_sum_logprobs = []  # populated when --exit-layer is set
     disc_probs = []
 
     json_list = []
@@ -927,7 +928,15 @@ def main(args):
         all_num_tokens.append(len(completion_tokens))
         if use_full_completion_logprobs:
             # Multi-token: autoregressive scoring of full completion (skip redundant prompt-only forward pass)
-            gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role, include_eos=args.include_eos)
+            if args.exit_layer is not None:
+                gen_token_logprobs, exit_token_logprobs = get_completion_token_logprobs_exit(
+                    prompt_gen, completion_gen, model, tokenizer,
+                    exit_layer_fraction=args.exit_layer,
+                    device=device, is_chat=model_is_chat, has_system_role=model_has_system_role,
+                )
+                exit_sum_logprobs.append(float(exit_token_logprobs.sum().item()))
+            else:
+                gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role, include_eos=args.include_eos)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         else:
             # Single-token: need next-token distribution for log-odds and rank metrics
@@ -1151,7 +1160,18 @@ def main(args):
         # No typicality correction - set raw scores and leave typcorr as None
         gen_scores_raw = [float(x) for x in gen_scores] if isinstance(gen_scores, list) else [float(x) for x in gen_scores]
         gen_scores_typcorr = None  # Will be NaN in CSV
-    
+
+    # Compute exit-layer (logit lens) corrected scores if --exit-layer was set
+    if exit_sum_logprobs:
+        beta = args.exit_layer_beta
+        gen_scores_exit = [g - beta * e for g, e in zip(gen_scores_raw, exit_sum_logprobs)]
+        print(f"\nExit-layer correction (fraction={args.exit_layer}, beta={beta}):")
+        print(f"  Raw gen mean:  {sum(gen_scores_raw)/len(gen_scores_raw):.4f}")
+        print(f"  Exit log-prob mean: {sum(exit_sum_logprobs)/len(exit_sum_logprobs):.4f}")
+        print(f"  Corrected mean: {sum(gen_scores_exit)/len(gen_scores_exit):.4f}")
+    else:
+        gen_scores_exit = None
+
     # # OLD: Confusion matrix was computed here before compute_logodds_final_layer
     # # Now moved to after compute_logodds_final_layer to use consistent disc_scores
     # # Compute confusion matrix for discriminator
@@ -1544,6 +1564,11 @@ def main(args):
                 args, gen_shots, disc_shots, use_full_completion_logprobs
             )
 
+            # Extend header with exit-layer columns if applicable
+            csv_header = list(task_config["csv_header"])
+            if gen_scores_exit is not None:
+                csv_header += ["gen_score_exit", "gen_score_exit_lenorm"]
+
             rows = []
             for i, item in enumerate(LL):
                 (
@@ -1553,21 +1578,24 @@ def main(args):
                     gen_score_lenorm,
                     gen_score_typcorr_lenorm,
                 ) = compute_score_columns(i, gen_scores_raw, gen_scores_typcorr, all_num_tokens)
-                rows.append(
-                    task_config["csv_row_builder"](
-                        item=item,
-                        task=task,
-                        strategy=strategy,
-                        num_toks=num_toks,
-                        disc_score=disc_scores[i],
-                        gen_score_raw=gen_score_raw,
-                        gen_score_typcorr_val=gen_score_typcorr_val,
-                        gen_score_lenorm=gen_score_lenorm,
-                        gen_score_typcorr_lenorm=gen_score_typcorr_lenorm,
-                        modelname=modelname,
-                    )
-                )
-            write_scores_csv(scores_csv_filename, task_config["csv_header"], rows)
+                row = list(task_config["csv_row_builder"](
+                    item=item,
+                    task=task,
+                    strategy=strategy,
+                    num_toks=num_toks,
+                    disc_score=disc_scores[i],
+                    gen_score_raw=gen_score_raw,
+                    gen_score_typcorr_val=gen_score_typcorr_val,
+                    gen_score_lenorm=gen_score_lenorm,
+                    gen_score_typcorr_lenorm=gen_score_typcorr_lenorm,
+                    modelname=modelname,
+                ))
+                if gen_scores_exit is not None:
+                    exit_score = gen_scores_exit[i]
+                    exit_lenorm = exit_score / num_toks if num_toks > 0 else float('nan')
+                    row += [exit_score, exit_lenorm]
+                rows.append(row)
+            write_scores_csv(scores_csv_filename, csv_header, rows)
 
         elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
             import csv
@@ -2103,6 +2131,8 @@ if __name__ == "__main__":
     parser.add_argument("--neg-typicality", action="store_true", default=False, help="use negated prompts for typicality correction (LLR: log P(y|Q) - log P(y|neg_Q)). Implies --typicality-correction.")
     parser.add_argument("--base-typicality", action="store_true", default=False, help="use the base (pre-finetuning) model for typicality correction: P_base(y|null). Implies --typicality-correction.")
     parser.add_argument("--base-model-name", type=str, default="google/gemma-2-2b", help="HuggingFace model name for the base model (used with --base-typicality). Default: google/gemma-2-2b")
+    parser.add_argument("--exit-layer", type=float, default=None, help="logit-lens exit layer as fraction of total layers (e.g. 0.5 = halfway). Adds exit_logitlens and exit_logitlens+lenorm score columns to the CSV.")
+    parser.add_argument("--exit-layer-beta", type=float, default=1.0, help="beta for ACD-style correction: gen_score - beta * exit_score. Default: 1.0")
     parser.add_argument("--validator-log-odds", action="store_true", default=False, help="use log-odds (log(P(Yes)/P(No))) for validator instead of log-probs (log(P(Yes))). Changes threshold from log(0.5) to 0.")
     parser.add_argument("--no-v2", action="store_true", default=False, help="use original hypernym data instead of v2 grammar-corrected data")
     parser.add_argument(

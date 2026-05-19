@@ -70,6 +70,8 @@ def build_strategy_string(args, gen_shots, disc_shots, use_full_completion_logpr
             strategy += "_typcorr"
         if args.base_typicality:
             strategy += "_basemodel"
+    if getattr(args, 'exit_layer', None) is not None:
+        strategy += f"_exit{args.exit_layer}"
     return strategy
 
 

@@ -1189,6 +1189,108 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
 
         return torch.stack(token_logprobs)
 
+def _get_model_lm_components(model):
+    """Return (final_norm, lm_head, n_layers) for standard or multimodal LMs.
+
+    Handles Gemma4ForConditionalGeneration (language_model submodule) and
+    standard CausalLM (model submodule) layouts.
+    """
+    if hasattr(model, 'language_model'):
+        lm = model.language_model
+        return lm.model.norm, lm.lm_head, len(lm.model.layers)
+    else:
+        return model.model.norm, model.lm_head, len(model.model.layers)
+
+
+def get_completion_token_logprobs_exit(
+    prompt, completion, model, tokenizer,
+    exit_layer_fraction=0.5,
+    device='cuda', is_chat=False, has_system_role=False,
+):
+    """Return per-token log probs from the full model AND from an earlier exit layer.
+
+    Uses the logit lens: applies the model's final norm + lm_head to the hidden
+    state at exit_layer_fraction * n_layers, giving P_exit(y|x) — a surface-level
+    typicality estimate that hasn't integrated deep semantic context.
+
+    The ACD-style corrected score is: full_logprobs - beta * exit_logprobs.
+
+    Args:
+        exit_layer_fraction: fraction of layers to tap (0.5 = halfway). Clamped
+            to [1, n_layers - 1]. hidden_states[k] is the output AFTER k layers
+            (hidden_states[0] is the embedding, before any transformer layer).
+
+    Returns:
+        full_logprobs: shape (n_completion_tokens,) — same as get_completion_token_logprobs
+        exit_logprobs: shape (n_completion_tokens,) — exit-layer log probs
+    """
+    norm, lm_head, n_layers = _get_model_lm_components(model)
+    exit_idx = max(1, min(n_layers - 1, int(n_layers * exit_layer_fraction)))
+
+    model_device = get_model_input_device(model, device)
+    with torch.no_grad():
+        if is_chat and has_system_role:
+            message = [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt},
+            ]
+            prefix_ids = tokenizer.apply_chat_template(
+                message, add_generation_prompt=True,
+                return_tensors="pt", tokenize=True, return_dict=False,
+            )[0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
+            prefix_len = prefix_ids.shape[0]
+        elif is_chat:
+            message = [{"role": "user", "content": prompt}]
+            prefix_ids = tokenizer.apply_chat_template(
+                message, add_generation_prompt=True,
+                return_tensors="pt", tokenize=True, return_dict=False,
+            )[0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            input_ids = torch.tensor([prefix_ids.tolist() + completion_ids])
+            prefix_len = prefix_ids.shape[0]
+        else:
+            prompt_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0]
+            completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
+            if len(prompt_ids) == 0:
+                fallback_id = tokenizer.eos_token_id or tokenizer.pad_token_id or 0
+                prompt_ids = torch.tensor([fallback_id])
+            input_ids = torch.tensor([prompt_ids.tolist() + completion_ids])
+            prefix_len = prompt_ids.shape[0]
+
+        outputs = model(input_ids.to(model_device), use_cache=False, output_hidden_states=True)
+        if outputs.hidden_states is None:
+            raise RuntimeError(
+                "output_hidden_states=True did not produce hidden states. "
+                "The model may not propagate this flag — try calling model.language_model directly."
+            )
+
+        # Full-layer log probs
+        log_probs = outputs.logits.log_softmax(-1).squeeze(0)  # [seq_len, vocab]
+
+        # Exit-layer log probs via logit lens
+        exit_hidden = outputs.hidden_states[exit_idx]  # [1, seq_len, hidden_size]
+        # Move to norm's device (with device_map="auto", layers may be on different GPUs)
+        norm_device = next(norm.parameters()).device
+        exit_hidden_normed = norm(exit_hidden.to(norm_device))
+        lm_head_device = next(lm_head.parameters()).device
+        exit_logits = lm_head(exit_hidden_normed.to(lm_head_device))
+        exit_log_probs = exit_logits.log_softmax(-1).squeeze(0)  # [seq_len, vocab]
+
+        token_logprobs, exit_token_logprobs = [], []
+        for k, tok_id in enumerate(completion_ids):
+            t = prefix_len + k - 1
+            if t < 0 or t >= log_probs.shape[0]:
+                token_logprobs.append(torch.tensor(float("nan")))
+                exit_token_logprobs.append(torch.tensor(float("nan")))
+            else:
+                token_logprobs.append(log_probs[t, tok_id].detach().cpu().float())
+                exit_token_logprobs.append(exit_log_probs[t, tok_id].detach().cpu().float())
+
+        return torch.stack(token_logprobs), torch.stack(exit_token_logprobs)
+
+
 def get_L_prompt(task, split_type, seed, sample_negative=True, variation=0, v2=True):
     # Check task registry first (for new extensible tasks)
     task_config = get_task(task)
