@@ -33,6 +33,8 @@ RANKALIGN_SRC = SCRIPT_DIR.parent / "src"
 sys.path.insert(0, str(RANKALIGN_SRC))
 
 from utils import _get_model_lm_components, get_model_input_device
+from tasks.humaneval import make_prompt_v2
+import tasks  # trigger task registration (needed for make_prompt_v2 imports)
 
 
 def load_v21_csv(path: Path) -> list[dict]:
@@ -50,26 +52,9 @@ def load_v21_csv(path: Path) -> list[dict]:
 
 
 def build_prompt_and_completion(item: dict) -> tuple[str, str]:
-    """Build the v2 format-C generator prompt and completion for an item."""
-    question = item["question"]
-    answer = item["answer"]
-
-    instruction = (
-        "Write a correct implementation of the following Python function. "
-        "Return ONLY the solution code, no markdown, starting from inside the function:"
-    )
-
-    # Extract first def line as signature
-    sig = ""
-    for line in question.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("def "):
-            sig = stripped
-            break
-
-    prompt = f"{instruction}\n\n{question}\nSolution:\n{sig}"
-    completion = answer.strip()
-    return prompt, completion
+    """Build the v2 format-C generator prompt and completion using the exact make_prompt_v2 logic."""
+    pc = make_prompt_v2(item, style="generator", shots="zero")
+    return pc.prompt, pc.completion
 
 
 def score_item(
