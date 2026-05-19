@@ -1196,8 +1196,14 @@ def _get_model_lm_components(model):
     standard CausalLM (model submodule) layouts.
     """
     if hasattr(model, 'language_model'):
+        # e.g. Gemma4ForCausalLM-style with direct language_model attribute
         lm = model.language_model
         return lm.model.norm, lm.lm_head, len(lm.model.layers)
+    elif hasattr(model, 'model') and hasattr(model.model, 'language_model'):
+        # Gemma4ForConditionalGeneration: model.model = Gemma4Model,
+        # model.model.language_model = Gemma4TextModel; lm_head lives on model
+        text_lm = model.model.language_model
+        return text_lm.norm, model.lm_head, len(text_lm.layers)
     else:
         return model.model.norm, model.lm_head, len(model.model.layers)
 
