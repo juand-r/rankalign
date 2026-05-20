@@ -1,7 +1,7 @@
 #!/bin/bash
 # run_settings_v21correct_multi.sh <SETTING_A> [SETTING_B ...]
 #
-# Runs one or two numbered training settings (1-10) sequentially.
+# Runs one or more numbered training settings (1-12) sequentially.
 # Usage on each pod (per TRAINING_PLAN_v21correct_multi.md):
 #   nohup bash /workspace/rankalign/pod-setup-train-scripts-gemma-4/run_settings_v21correct_multi.sh 1 2 \
 #       > /workspace/logs/train_s1_s2.log 2>&1 &
@@ -9,7 +9,7 @@
 # Settings:
 #   1=SFT-lo  2=RankAlign  3=New+fsx  4=New+fsx+tc  5=RankAlign+fsx+tc
 #   6=RankAlign+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc
-#   9=RankAlign+negtc  10=RankAlign+fsx
+#   9=RankAlign+negtc  10=RankAlign+fsx  11=New+tc  12=New+negtc
 #
 # Idempotent: training skipped if all 3 epoch adapters exist;
 # eval skipped per done-marker. Safe to re-run after a crash.
@@ -124,8 +124,20 @@ configure_setting() {
             ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
+        11)
+            SETTING_NAME="New+tc"
+            nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--self-typicality"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1"
+            EVAL_MODES="--self-typicality"
+            ;;
+        12)
+            SETTING_NAME="New+negtc"
+            nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--neg-typicality"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1"
+            EVAL_MODES="--neg-typicality"
+            ;;
         *)
-            echo "FATAL: unknown setting '$S' (1-10)"; exit 2 ;;
+            echo "FATAL: unknown setting '$S' (1-12)"; exit 2 ;;
     esac
 
     TRAIN_FLAGS="--model $MODEL --num_epochs 3 --task $HE_TASK \
@@ -218,7 +230,7 @@ if [ $# -eq 0 ]; then
     echo "usage: run_settings_v21correct_multi.sh <SETTING_1> [SETTING_2 ...]"
     echo "settings: 1=SFT-lo 2=RankAlign 3=New+fsx 4=New+fsx+tc 5=RankAlign+fsx+tc"
     echo "          6=RankAlign+tc 7=New+fsx+negtc 8=RankAlign+fsx+negtc"
-    echo "          9=RankAlign+negtc 10=RankAlign+fsx"
+    echo "          9=RankAlign+negtc 10=RankAlign+fsx 11=New+tc 12=New+negtc"
     exit 1
 fi
 

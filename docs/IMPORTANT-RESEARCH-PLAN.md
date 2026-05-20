@@ -67,7 +67,7 @@ Going forward:
 
 ---
 
-## 2. The 9 training settings (gemma-2-9b-it humaneval reference)
+## 2. The 12 training settings (gemma-2-9b-it humaneval reference; #10–12 added for gemma-4 run)
 
 These are the settings encoded in
 [`scripts/run_train_humaneval.sh`](../scripts/run_train_humaneval.sh) and
@@ -86,13 +86,19 @@ ambigqa, plausibleqa, ifeval, etc.).
 | 7 | **New+fsx+negtc** | comb | semi | ✓ | ✓ | neg | Like #4, neg-TC instead of self-TC. |
 | 8 | **RankAlign+fsx+negtc** | pref-only | semi | ✓ (bug) | ✓ | neg | Like #5, neg-TC. Same `--validator-log-odds` bug. |
 | 9 | **RankAlign+negtc** | pref-only | semi | — | — | neg | RankAlign + neg-TC alone. **The cleanest "does neg-TC alone help?" probe.** |
+| 10 | **RankAlign+fsx** | pref-only | semi | — | ✓ | — | RankAlign + fsx alone (no TC, no comb, no vlo). **The cleanest "does fsx alone help?" probe.** Added in the gemma-4 humaneval-v2.1correct-multi run. |
+| 11 | **New+tc** | comb | semi | ✓ | — | self | comb + vlo + self-TC, no fsx. Isolates TC on top of the new loss without fsx confound. Added in the gemma-4 humaneval-v2.1correct-multi run. |
+| 12 | **New+negtc** | comb | semi | ✓ | — | neg | comb + vlo + neg-TC, no fsx. Isolates neg-TC on top of the new loss without fsx confound. Added in the gemma-4 humaneval-v2.1correct-multi run. |
 
 So the diagnostic shape is:
 
 - **Does TC alone help?** → #6 / #9 vs #2 (and vs #1).
 - **Does TC help on top of new-loss + fsx?** → #3 vs #4 (self) and #3
   vs #7 (neg).
-- **Does fsx contribute given TC?** → #6 vs #5, #9 vs #8.
+- **Does TC help on top of new-loss alone (no fsx)?** → #3-without-fsx vs #11 (self) and #12 (neg). More directly: #11 vs #6 (adds comb to self-TC) and #12 vs #9 (adds comb to neg-TC).
+- **Does fsx contribute given new-loss + TC?** → #4 vs #11 (self), #7 vs #12 (neg).
+- **Does fsx contribute given TC alone?** → #6 vs #5, #9 vs #8.
+- **Does fsx alone help?** → #10 vs #2.
 
 ---
 
