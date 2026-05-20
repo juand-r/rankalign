@@ -94,6 +94,12 @@ TASK_FAMILY_CONFIGS = [
         'file_pattern': 'scores_*hypernym*.csv',
         'split_patterns': {'test': '_test_', 'train': '_train_'},
     },
+    {
+        'name': 'persona',
+        'task_pattern': r'persona-v0-([a-zA-Z][a-zA-Z-]+)',
+        'file_pattern': 'scores_*persona-v0*.csv',
+        'split_patterns': {'test': '_test_', 'train': '_train_'},
+    },
 ]
 
 # Eval score column variants (gen_score variants; val_score is always val_score)
