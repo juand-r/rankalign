@@ -455,10 +455,35 @@ semi-supervised branch (lines 2615, 2620, 2632).
   unlabeled**, dropping NLL signal that should fire on the labeled
   side.
 
-**Status.** No production run currently combines `comb` +
-`--no-force-same-x` + `--semi-supervised`, so this is not corrupting
-the existing humaneval / rosch / gsm8k results. It would bite any
-future non-fsx semi-supervised `comb` run.
+**Status (updated 2026-05-20).** No on-disk trained model currently
+combines `comb` + `--no-force-same-x` + `--semi-supervised` (verified
+across `models/`, `models-quickiter/`, `outputs/`, and
+`outputs_gemma4_*`), so this bug is **not corrupting any existing
+result** as of 2026-05-20. However, the bug **will bite settings #11
+and #12** as defined in §2 (comb + vlo + tc-self/tc-neg, no fsx, semi)
+the moment we train those — they were added to the plan on 2026-05-19
+specifically for the gemma-4 humaneval-v2.1correct-multi run.
+
+**Settings to (re-)train and (re-)eval after the fix lands:**
+
+| # | Setting | Why affected |
+|---|---|---|
+| 11 | New + PMI [−fsx] | `comb semi + no-fsx` → mixed pairs drop labeled-end NLL |
+| 12 | New + NegTC [−fsx] | same as #11 |
+
+Settings **not** affected (no change needed):
+
+- #1 SFT-lo: `labelonly` mode discards unlabeled items entirely
+  (`scripts/ranking_loss_ref.py:1574-1576`), so every pair is
+  pure-labeled; the gate evaluates to 1 everywhere.
+- #2 RankAlign, #5, #6, #8, #9, #10: pref-only weights → NLL terms are
+  multiplied by 0, the gate is irrelevant.
+- #3, #4, #7: `comb + semi` but **with** fsx → pairs are within one
+  prompt, `is_labeled_i ≡ is_labeled_j` by per-prompt split, gate
+  evaluates correctly. (Quoted as "Not biting" above.)
+
+Any **future** `sft semi + no-fsx` or `comb semi + no-fsx` run that we
+add to the plan beyond #11/#12 should be included in the re-train list.
 
 **Proposed fix when we want it.** Per-end masking instead of
 pair-level masking:
@@ -472,6 +497,14 @@ nll_generator_loss = -(is_labeled_i * score_gen_i * indicator_i +
 
 and gate the labeled-vs-unlabeled split per-end too (or just drop the
 `pair_is_labeled` gate in the outer combination).
+
+**Verification recipe before claiming the bug is fixed.** Run a tiny
+`comb + semi 0.1 + no-fsx` smoke training (e.g. 50 steps on rosch) on
+the fixed code and confirm:
+1. `train/nll_validator_loss` and `train/nll_generator_loss` are
+   nonzero on **mixed** pairs (currently they are zero).
+2. The per-step effective NLL-touched-item count matches the labeled
+   ratio (≈ 10% of items per pair, not ≈ 1% of pairs).
 
 ### TODO — `--ground-truth-not-validator` flag in `ranking_loss_ref_online.py`
 
