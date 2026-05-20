@@ -33,16 +33,24 @@
 #   HOURS       - Slurm walltime per job (default: 2)
 #   CPUS        - CPUs per task (default: 6)
 #   MEM         - memory per job (default: 60G)
-#   MODELS_DIR  - directory containing trained models (default: ../models, i.e. ../models from scripts/)
+#   MODELS_DIR  - absolute or relative path to the trained-models dir
+#                 (default: <repo_root>/models, resolved from the script's
+#                 own location so it works regardless of cwd).
 #   EPOCH       - which epoch checkpoint to eval (default: 2)
 
 set -e
+
+# Resolve repo root from the script's own location so the launcher works
+# whether it's invoked from scripts/, from the repo root, or from elsewhere
+# (e.g. by schedule_evals_after_training.sh which runs us from repo root).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 BASE_MODEL="${1:-${BASE_MODEL:-google/gemma-2-9b-it}}"
 HOURS="${HOURS:-2}"
 CPUS="${CPUS:-6}"
 MEM="${MEM:-60G}"
-MODELS_DIR="${MODELS_DIR:-../models}"
+MODELS_DIR="${MODELS_DIR:-$REPO_ROOT/models}"
 EPOCH="${EPOCH:-2}"
 
 TASKS=(
