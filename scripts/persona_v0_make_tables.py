@@ -38,6 +38,7 @@ TABLES_MD = REPO_ROOT / "output-metrics" / "persona_v0_tables.md"
 
 # Order of variants and the suffix in `training_config` that uniquely identifies each.
 # (Suffixes are mutually distinguishable; matched against substring presence/absence.)
+# 0.Base = untrained base instruct model; classified separately (not via training_config).
 VARIANTS = [
     ("1.SFT-lo",                 dict(tc=None,   has_nll=True,  has_fsx=False, has_vlo=False, semi="labelonly")),
     ("2.RankAlign",              dict(tc=None,   has_nll=False, has_fsx=False, has_vlo=False, semi="semi")),
@@ -89,7 +90,12 @@ def classify_variant(training_config: str) -> str | None:
 
 
 def base_model_short(model: str) -> str | None:
-    """Map a `model` column value to '9b-it' / '2b-it' or None."""
+    """Map a `model` column value to '9b-it' / '2b-it' or None.
+
+    Handles both naming conventions:
+      - Base instruct models    : `v6-google_gemma-2-Xb-it`     (single underscore)
+      - Finetuned (model_path)  : `v6-google--gemma-2-Xb-it`    (double dash)
+    """
     if "gemma-2-9b-it" in model:
         return "9b-it"
     if "gemma-2-2b-it" in model:
@@ -97,14 +103,17 @@ def base_model_short(model: str) -> str | None:
     return None
 
 
-def eval_tc_flavor(row) -> str | None:
-    """Determine eval-time TC flavor for trained-model rows."""
-    if not row["basetyp_tc"]:
-        return None
+def eval_tc_dim(row) -> str | None:
+    """Group rows along the eval-TC dimension used to slice tables.
+
+    Two slices: 'self' and 'neg'. Whether `--base-typcorr` was used is a
+    separate axis (always True for finetuned rows here, always False for base
+    rows since the base model IS the typicality reference).
+    """
     if row["self_tc"] and not row["neg_tc"]:
-        return "basetyp"      # --self-typcorr --base-typcorr
+        return "self"
     if row["neg_tc"] and not row["self_tc"]:
-        return "basetypneg"   # --neg-typcorr  --base-typcorr
+        return "neg"
     return None
 
 
@@ -121,18 +130,32 @@ def main():
         sys.exit(f"Missing {SUMMARY_CSV}. Run summarize_scores.py first.")
     df = pd.read_csv(SUMMARY_CSV)
 
-    # Restrict to trained-model rows with --base-typcorr at eval, on the test split,
-    # using only raw / tc gen-score variants (not lenorm).
-    mask = (
+    # Two row groups:
+    #   - Finetuned   : require --base-typcorr at eval (basetyp_tc=True), classify variant.
+    #   - Base instr. : NOT finetuned, NOT basetyp_tc (base model IS the ref),
+    #                   variant = "0.Base".
+    # Both restricted to test split, raw / tc gen-score variants only.
+    base_mask = (
         df["finetuned"]
         & df["basetyp_tc"]
         & (df["split"] == "test")
         & df["eval_variant"].isin(["raw", "tc"])
     )
-    sub = df[mask].copy()
+    sub_ft = df[base_mask].copy()
+    sub_ft["variant"] = sub_ft["training_config"].map(classify_variant)
+
+    base_mask = (
+        (~df["finetuned"])
+        & (~df["basetyp_tc"])
+        & (df["split"] == "test")
+        & df["eval_variant"].isin(["raw", "tc"])
+    )
+    sub_base = df[base_mask].copy()
+    sub_base["variant"] = "0.Base"
+
+    sub = pd.concat([sub_ft, sub_base], ignore_index=True)
     sub["base"] = sub["model"].map(base_model_short)
-    sub["eval_TC"] = sub.apply(eval_tc_flavor, axis=1)
-    sub["variant"] = sub["training_config"].map(classify_variant)
+    sub["eval_TC"] = sub.apply(eval_tc_dim, axis=1)
     sub = sub.dropna(subset=["base", "eval_TC", "variant"])
 
     # Long-format aggregate: mean / std across 8 personas per
@@ -157,26 +180,25 @@ def main():
     print(f"Wrote {TABLES_CSV} ({len(long_df)} rows)")
 
     # Markdown tables: one per (base, eval_TC, metric); columns = raw, tc gen-score variants.
-    variant_order = [v for v, _ in VARIANTS]
+    variant_order = ["0.Base"] + [v for v, _ in VARIANTS]
     md_lines = []
-    md_lines.append("# Persona-v0 trained-model results")
+    md_lines.append("# Persona-v0 base + trained-model results")
     md_lines.append("")
     md_lines.append("All cells: **mean (std) across the 8 persona-v0-<slug> test tasks, x 100**.")
-    md_lines.append("All eval jobs used `--base-typcorr` (typicality reference = base instruct model).")
     md_lines.append("`raw` column = gen_score; `tc` column = gen_score_typcorr.")
+    md_lines.append("")
+    md_lines.append("Eval flags by row:")
+    md_lines.append("- `0.Base`  : `--self-typcorr` or `--neg-typcorr` only (the base model IS the typicality reference, so no `--base-typcorr`).")
+    md_lines.append("- `1`–`9` finetuned rows : `--self-typcorr --base-typcorr` or `--neg-typcorr --base-typcorr`.")
     md_lines.append("")
     md_lines.append("Source CSV: `output-metrics/persona_v0_tables_long.csv`")
     md_lines.append("(derived from `output-metrics/persona_v0_summary.csv`).")
     md_lines.append("")
 
     for base in ["9b-it", "2b-it"]:
-        for eval_TC in ["basetyp", "basetypneg"]:
+        for eval_TC in ["self", "neg"]:
             for metric_key, metric_label in METRICS:
-                title_eval = "self+base" if eval_TC == "basetyp" else "neg+base"
-                title = f"## gemma-2-{base}, eval = {title_eval} (`--{eval_TC.replace('basetyp','--base-typcorr ').strip()}-typcorr`{'' if eval_TC == 'basetyp' else ''}), {metric_label}"
-                # Cleaner title:
-                eval_flag = "--self-typcorr --base-typcorr" if eval_TC == "basetyp" else "--neg-typcorr --base-typcorr"
-                title = f"## gemma-2-{base}  {metric_label}  (eval flags: `{eval_flag}`)"
+                title = f"## gemma-2-{base}  {metric_label}  (eval = {eval_TC}-typcorr)"
                 md_lines.append(title)
                 md_lines.append("")
                 md_lines.append("| variant | raw | tc |")
