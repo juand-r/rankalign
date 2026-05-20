@@ -32,6 +32,9 @@ MODELS=(
 )
 
 TC_FLAVORS=(--neg-typcorr --self-typcorr)
+# `run` writes Slurm logs to $HOME/logs. /u/jdr is currently quota-limited for
+# new log growth, so default to a high-space HOME for job submission.
+RUN_HOME="${RUN_HOME:-/datastor2/jdr}"
 
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
@@ -40,6 +43,7 @@ JOBID_FILE="$OVERNIGHT_DIR/persona_v1_baseline_eval_jobids.txt"
 
 echo "Submitting persona-v1 baseline evals: ${#MODELS[@]} models × ${#TC_FLAVORS[@]} TC flavors = $((${#MODELS[@]} * ${#TC_FLAVORS[@]})) jobs"
 echo "Tasks per job (${#PERSONAS[@]}): ${PERSONAS[*]}"
+echo "RUN_HOME: $RUN_HOME (run logs -> $RUN_HOME/logs)"
 echo "Logging jobids to: $JOBID_FILE"
 echo "============================================================"
 
@@ -47,7 +51,7 @@ for MODEL in "${MODELS[@]}"; do
     for TC in "${TC_FLAVORS[@]}"; do
         echo ""
         echo ">>> $MODEL  $TC"
-        OUT=$(run 1 2 scripts/run_eval_semi.sh "$MODEL" "$TC" --log-odds --disc-shots-zero -- "${PERSONAS[@]}" 2>&1) || true
+        OUT=$(HOME="$RUN_HOME" run 1 2 scripts/run_eval_semi.sh "$MODEL" "$TC" --log-odds --disc-shots-zero -- "${PERSONAS[@]}" 2>&1) || true
         echo "$OUT"
         JOBID=$(echo "$OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
         if [ -n "$JOBID" ]; then
