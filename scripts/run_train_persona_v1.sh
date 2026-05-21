@@ -50,9 +50,6 @@ CPUS="${CPUS:-6}"
 MEM="${MEM:-60G}"
 TASK=persona-v1
 COMMON="--disc-shots zero --max-seq-len 512"
-# `run` writes Slurm logs to $HOME/logs. /u/jdr is currently quota-limited for
-# new log growth, so default to a high-space HOME for job submission.
-RUN_HOME="${RUN_HOME:-/datastor2/jdr}"
 
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
@@ -68,7 +65,6 @@ echo "  HOURS:  $HOURS (each of 9 jobs)"
 echo "  CPUS:   $CPUS"
 echo "  MEM:    $MEM"
 echo "  COMMON: $COMMON"
-echo "  RUN_HOME: $RUN_HOME (run logs -> $RUN_HOME/logs)"
 echo "  Jobid log: $JOBID_FILE"
 echo "========================================"
 
@@ -76,7 +72,7 @@ submit() {
     local label="$1"; shift
     echo ""
     echo ">>> [$label] $*"
-    OUT=$(HOME="$RUN_HOME" run 1 "$HOURS" --cpu "$CPUS" --mem "$MEM" scripts/run_train_semi.sh "$MODEL" "$TASK" "$@" 2>&1) || true
+    OUT=$(run 1 "$HOURS" --cpu "$CPUS" --mem "$MEM" scripts/run_train_semi.sh "$MODEL" "$TASK" "$@" 2>&1) || true
     echo "$OUT"
     JOBID=$(echo "$OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
     if [ -n "$JOBID" ]; then
