@@ -60,6 +60,10 @@ INCLUDE_EOS=""
 MODELS_DIR=""
 FORCE_SAME_X="--force-same-x"
 MAX_SEQ_LEN=""
+# --script lets the caller swap the python entry point (e.g. fix1 fork).
+# Default keeps the historical behavior (ranking_loss_ref.py).
+SCRIPT="ranking_loss_ref.py"
+SHAPE_WEIGHTS=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -77,6 +81,12 @@ while [[ $# -gt 0 ]]; do
         --models-dir) MODELS_DIR="--models-dir $2"; shift 2 ;;
         --no-force-same-x) FORCE_SAME_X=""; shift ;;
         --max-seq-len) MAX_SEQ_LEN="--max-seq-len $2"; shift 2 ;;
+        --script) SCRIPT=$2; shift 2 ;;
+        --shape-weights)
+            # Format: "case_a,mixed_neg,mixed_pos,both_u" e.g. "0.2,0.2,0.2,0.4"
+            IFS=',' read -ra _SW <<< "$2"
+            SHAPE_WEIGHTS="--shape-weight-case-a ${_SW[0]} --shape-weight-mixed-neg ${_SW[1]} --shape-weight-mixed-pos ${_SW[2]} --shape-weight-both-u ${_SW[3]}"
+            shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -171,7 +181,10 @@ echo "  $SEMI_FLAG"
 echo "========================================"
 
 
-python ranking_loss_ref.py \
+echo "  SCRIPT: $SCRIPT"
+[ -n "$SHAPE_WEIGHTS" ] && echo "  SHAPE_WEIGHTS: $SHAPE_WEIGHTS"
+
+python "$SCRIPT" \
     --model $MODEL \
     --num_epochs $NUM_EPOCHS \
     --task $TASK \
@@ -193,7 +206,8 @@ python ranking_loss_ref.py \
     $LORA_FLAG \
     $INCLUDE_EOS \
     $MODELS_DIR \
-    $MAX_SEQ_LEN
+    $MAX_SEQ_LEN \
+    $SHAPE_WEIGHTS
 
 STATUS=$?
 echo ""
