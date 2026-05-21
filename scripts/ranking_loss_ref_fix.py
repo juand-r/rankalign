@@ -2146,9 +2146,19 @@ def main(args):
     else:
         raise ValueError("TODO!")
 
-    print(pairs[0])
-    print("\n\n")
-    print(pairs[1])
+    # Diagnostic prints. Guarded against the (extremely unlikely) edge case of
+    # len(pairs) < 2 surviving the delta filter; in that case we still want to
+    # see the count instead of crashing on pairs[1].
+    if len(pairs) == 0:
+        # In fix1 g-mode the upstream guard at line ~1864 raises before this
+        # point, so this branch is unreachable in practice. Defensive print
+        # protects the d/both code paths and any future g-mode refactors.
+        print("WARNING: pairs is empty after delta filter!")
+    else:
+        print(pairs[0])
+        print("\n\n")
+        if len(pairs) >= 2:
+            print(pairs[1])
     print("\n\nNum Samples: ", len(pairs))
 
     class PairwiseDataset(Dataset):
