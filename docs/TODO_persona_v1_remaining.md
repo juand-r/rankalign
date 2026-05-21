@@ -72,6 +72,17 @@ TC_POLICY["12.New+negTC"]="neg"
 (Verify suffixes match what `ranking_loss_ref.py` actually saves — these
 are my best read; cross-check after the trainings finish by `ls models/`.)
 
+### 4b. Run summarize_scores.py for the v1 evals already on disk
+We now have baseline + trained evals for #1–#9 on **2b-it** and **9b-it**
+(disc-shots zero throughout) plus baseline-only on **2b** in two flavors
+(disc-zero in `outputs_persona-v1_gemma_2b_zero-shot-disc/`, disc-few in
+`outputs/`). Aggregate mean + std err across personas with
+`scripts/summarize_scores.py` (or the persona-v1-aware
+`scripts/persona_v0_make_tables.py` adapted) and write per-(base, eval_TC,
+metric) tables in CSV + markdown. Chat 2026-05-20 has the layout you
+asked for (raw and tc as columns; one table per (model, metric, neg/self
+TC); base-typcorr noted in the tables).
+
 ### 5. Run trained-eval for the gemma-2-2b runs in flight tonight
 Need a new launcher path (or env var) that uses **disc-shots-few at eval**
 for the 2b base, since training was disc-few. Mirror the disc-shots-auto
