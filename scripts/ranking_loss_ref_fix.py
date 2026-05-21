@@ -1791,7 +1791,19 @@ def main(args):
 
         def _enumerate_shape_subset(lo_pool, hi_pool):
             """All (i, j) with i in lo_pool, j in hi_pool, i != j,
-            val(i) < val(j), |val(j) - val(i)| > delta."""
+            val(i) < val(j), |val(j) - val(i)| > delta.
+
+            TODO(perf): this is O(|lo_pool| * |hi_pool|) in time AND memory
+            (the surviving pairs are materialized into a Python list). For the
+            both_U shape in semi-supervised g-mode this is O(|U|^2), which is
+            ~1.8M iterations / ~80MB for persona-v1 (n=1500) and starts to hurt
+            for n > ~10k. Same complexity profile as the parent
+            ranking_loss_ref.py non-fsx branch (pre-existing, not a fix1
+            regression). When this becomes a bottleneck, replace with
+            rejection sampling: draw random (i in lo_pool, j in hi_pool),
+            check (val_i < val_j) + delta, retry on miss, until we have
+            total_samples_for_this_shape pairs. That's O(N) memory and
+            O(N / acceptance_rate) time."""
             pairs = []
             for i in lo_pool:
                 v_i = Z[i][1]
