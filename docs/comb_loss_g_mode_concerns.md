@@ -353,3 +353,290 @@ In rough order:
    + generator-NLL, not + validator-NLL." If we genuinely want
    validator-NLL during g-mode training, we need a second forward
    pass on the discriminator prompt — non-trivial patch.
+
+---
+
+# Locked design for `scripts/ranking_loss_ref_fix.py` (2026-05-21)
+
+A separate `ranking_loss_ref_fix.py` was forked from `ranking_loss_ref.py`
+to land the corrections from this analysis without disturbing existing
+training. Scope: **only `g` mode is supported** in the fix. (`d` and
+`both` modes are out of scope; if someone passes them, fall back to the
+unmodified path or raise.)
+
+## Locked decisions (answered 2026-05-21)
+
+1. **NLL is per-item, not per-pair.** The `pair_is_labeled` gate is
+   removed. Generator-NLL fires on every labeled **positive** item that
+   appears in any pair; validator-NLL fires on every labeled item
+   (modulo decision 6).
+2. **Drop inconsistent pairs.** Preference loss only fires on pairs
+   where every labeled item is on its "natural side" (see framework
+   below). Inconsistent pairs are not down-weighted; they are excluded
+   from pair construction.
+3. **Drop case-B (same-class labeled) pairs.** L+/L+ and L−/L− pairs
+   are dropped — preference would arbitrarily pick a winner among
+   gold-equals based on validator noise.
+4. **Single sampling stream** for the first version. (Two-stream
+   refactor — preference pairs vs per-item NLL sweep — deferred.)
+5. **Stratification by pair shape is a tunable knob.** Pair pool is
+   partitioned by shape; sampler takes per-shape weights. Default:
+   slightly oversample labeled-touching pairs (concrete value below).
+6. **Validator-NLL position bug is out of scope.** In `g` mode the
+   current val-NLL reads Yes/No log-odds at a position inside the
+   statement (concern #1 of this doc). Fixing it requires a second
+   forward pass on the discriminator prompt. For now, **`g`-mode
+   val-NLL is hard-disabled** in the fix file (weight forced to 0 with
+   a warning) until a separate refactor lands.
+7. **Generator NLL stays one-sided.** Only fires for labeled positives;
+   no negative-suppression term. (Adding `-log(1-P(stmt))` for
+   negatives is unbounded and out of scope.)
+
+## Simplified case framework
+
+The cleanest mental model: each item has a **natural side** in any
+pair `(i, j)` with `val(i) < val(j)`:
+
+- **L+** (labeled positive) → belongs on **HI** (j)
+- **L−** (labeled negative) → belongs on **LO** (i)
+- **U** (unlabeled) → either side OK
+
+A pair is **valid** iff every labeled item is on its natural side.
+This collapses into 4 valid pair shapes (cross-product of allowed
+LO and HI pools):
+
+| LO pool | HI pool | shape       |
+|---------|---------|-------------|
+| L−      | L+      | `case_A`    |
+| L−      | U       | `mixed_neg` |
+| U       | L+      | `mixed_pos` |
+| U       | U       | `both_U`    |
+
+Equivalently: **invalid shapes** (which the current
+`ranking_loss_ref.py` happily generates and trains on) are exactly:
+
+- `(L−, L−)` → preference pushes one negative up
+- `(L+, L+)` → preference picks a winner among gold-equals
+- `(L+, L−)` → preference suppresses positive AND boosts negative
+- `(L+, U)` → preference suppresses a known positive
+- `(U, L−)` → preference boosts a known negative
+
+Under the natural-side filter, every loss term either agrees with
+gold on labeled items or defers to validator on unlabeled items.
+There is no item where preference and gen-NLL want opposite things.
+
+## Loss formulas (per pair, post-filter)
+
+Let `s(item) = log P(stmt | gen_prompt)` be the generator score for
+the item's statement, computed from one forward pass of the current
+model on `[gen_prompt][stmt]`. For each kept pair `(i, j)` with
+`val(i) < val(j)`:
+
+```
+pref_loss   = -log σ( s(j) − s(i) )
+
+gen_nll     = - ( 1[label(i) == pos] · s(i)
+                + 1[label(j) == pos] · s(j) ) / 2
+
+val_nll     = 0     # disabled in g-mode per decision 6
+
+per_pair_loss = w_pref · pref_loss
+              + w_gen  · gen_nll
+              + w_val  · val_nll
+```
+
+Then `total_loss = mean over batch of per_pair_loss`.
+
+Notes on normalization:
+
+- `gen_nll` is divided by 2 to match the existing `nllg=1.0` scale
+  (current code uses `(score_gen_i * indicator_i + score_gen_j *
+  indicator_j) / 2`). With the per-item framing the `indicator` is
+  exactly `1[label == pos]` per side; for unlabeled items it is 0.
+- The previous `pair_is_labeled` outer gate (which zeroed the entire
+  NLL contribution unless **both** items were labeled) is removed.
+  Pairs where exactly one side is labeled now contribute partial NLL
+  signal on that side, which is the whole point of the fix.
+
+## Pair-construction algorithm
+
+```python
+def build_pair_pool(items, val_scores, labels, delta,
+                    shape_weights, total_samples, rng):
+    """
+    Returns: list of (i, j) index pairs, val(i) < val(j), |Δval| > delta,
+             with every labeled item on its natural side.
+
+    items, val_scores, labels: parallel arrays of length N.
+    labels[k] ∈ {'pos', 'neg', 'unlabeled'}.
+    shape_weights: dict mapping shape name -> non-negative weight.
+                   Normalized to sum to 1 internally.
+    """
+    L_pos = [k for k, lab in enumerate(labels) if lab == 'pos']
+    L_neg = [k for k, lab in enumerate(labels) if lab == 'neg']
+    U     = [k for k, lab in enumerate(labels) if lab == 'unlabeled']
+
+    def enumerate_shape(lo_pool, hi_pool, allow_both_lo_hi=True):
+        """Build all (i, j) with val(i) < val(j), |Δval| > delta,
+        i ∈ lo_pool, j ∈ hi_pool. Skip i == j when pools overlap.
+        """
+        pairs = []
+        for i in lo_pool:
+            for j in hi_pool:
+                if i == j:
+                    continue
+                if val_scores[i] < val_scores[j] and \
+                   (val_scores[j] - val_scores[i]) > delta:
+                    pairs.append((i, j))
+        return pairs
+
+    pool_by_shape = {
+        'case_A':    enumerate_shape(L_neg, L_pos),
+        'mixed_neg': enumerate_shape(L_neg, U),
+        'mixed_pos': enumerate_shape(U,     L_pos),
+        'both_U':    enumerate_shape(U,     U),
+    }
+
+    # Stratified sampling per shape weights.
+    total_w = sum(shape_weights.values())
+    sampled = []
+    for shape, w in shape_weights.items():
+        target = round(total_samples * w / total_w)
+        avail  = pool_by_shape[shape]
+        take   = min(target, len(avail))
+        if take > 0:
+            sampled.extend(rng.sample(avail, take))
+
+    # If we didn't hit total_samples (shape was empty / undersized),
+    # backfill from any non-exhausted shape, weighted same way.
+    deficit = total_samples - len(sampled)
+    if deficit > 0:
+        flat = [(s, p) for s, lst in pool_by_shape.items() for p in lst]
+        # remove already-sampled
+        already = set(sampled)
+        flat = [(s, p) for (s, p) in flat if p not in already]
+        if flat:
+            sampled.extend([p for (_s, p) in rng.sample(flat,
+                                                        min(deficit, len(flat)))])
+
+    rng.shuffle(sampled)
+    return sampled, pool_by_shape  # second return for diagnostics/logging
+```
+
+Default `shape_weights` for the fix file (knob 5):
+
+```python
+DEFAULT_SHAPE_WEIGHTS = {
+    'case_A':    0.20,   # ~20% of budget — high signal, small pool
+    'mixed_neg': 0.20,
+    'mixed_pos': 0.20,
+    'both_U':    0.40,   # ~40% of budget — large pool, no labels
+}
+```
+
+These are weights, not hard floors. If a shape's pool is smaller than
+its target, the deficit is backfilled from non-exhausted shapes
+(uniformly weighted by their full pool size). All four weights are
+expose as CLI flags for ablation.
+
+For comparison, **random** sampling under the current code produces
+pair shapes in proportion to their pool sizes — for `semi 0.1` on
+balanced data that's roughly 0.5% case_A / 9% mixed_neg / 9%
+mixed_pos / 81% both_U, so the default above is a meaningful shift
+toward labeled-touching pairs.
+
+## Pair-count estimate for persona-v1 (sanity check, decision 5 feasibility)
+
+Persona-v1 train.csv has **N = 1500** items, perfectly balanced
+(750 yes / 750 no), 500 per persona × 3 personas. With
+`--semi-supervised 0.1` (10% labeled) and balanced sampling:
+
+| Set   | Size  |
+|-------|-------|
+| L+    | ~75   |
+| L−    | ~75   |
+| U     | ~1350 |
+
+Pair pool sizes (before val-orientation and delta filters):
+
+| Shape       | Unordered count |
+|-------------|-----------------|
+| `case_A`    | 75 × 75 = 5,625 |
+| `mixed_neg` | 75 × 1350 = 101,250 |
+| `mixed_pos` | 75 × 1350 = 101,250 |
+| `both_U`    | 1350 × 1349 / 2 = 910,575 |
+| **total**   | **1,118,700** |
+
+**Measured pool sizes** (via `scripts/_smoke_fix1_pairs.py`, synthetic
+val-scores: L+ ~ N(0.5, 1), L− ~ N(−0.5, 1), U ~ N(0, 1), delta=0.15,
+75/75/1350 partition, seed=42):
+
+| Shape       | After all filters | Default budget @ 5110 total |
+|-------------|-------------------|----------------------------|
+| `case_A`    | **4,027** | 0.20 × 5110 = 1,022 |
+| `mixed_neg` | **56,447** | 1,022 |
+| `mixed_pos` | **63,146** | 1,022 |
+| `both_U`    | **835,903** | 2,044 |
+| **total**   | **959,523** | 5,110 |
+
+**Verdict.** All four shapes have ample pool size for the default
+stratified budget. `case_A` is the smallest pool but still ~4× the
+default budget for that shape; the fix is comfortably feasible with
+the default weights even when the validator is only modestly
+informative.
+
+> ⚠ Caveat: synthetic val-scores assume a moderately informative
+> validator (mean separation = 1.0 between L+ and L− distributions in
+> log-prob space). Real `gemma-2-9b-it` baselines on persona-v1 are
+> closer to chance (Raw GenROC = 42.96), so the case_A pool may be
+> smaller in practice. Even halving it to ~2,000 leaves the default
+> budget reachable. If a base has so weak a validator that the case_A
+> pool drops below the budget, the backfill logic in
+> `ranking_loss_ref_fix.py` redistributes from the other shapes.
+
+## Implementation plan for `ranking_loss_ref_fix.py`
+
+Targeted edits (no rewrite):
+
+1. **Add a g-mode-only guard** near the top of `main()` after
+   `train_g_or_d` is parsed. Raise on `d` / `both`.
+2. **Replace pair construction** (g-mode branch, lines ~1696–1788 in
+   the original `ranking_loss_ref.py`) with `build_pair_pool` above.
+   Keep the `Z` / `pairs_` data structure that the downstream
+   serializer (lines ~1916–1944) consumes; only the **pair index
+   selection** changes. Print pool diagnostics (sizes per shape,
+   sampled per shape).
+3. **Remove `pair_is_labeled` gate** from gen-NLL inside the train
+   loop. Replace with explicit `1[label == pos]` per item, derived
+   from `indicator_i` / `indicator_j` (which already encode this in
+   the dataset class).
+4. **Hard-disable val-NLL in g-mode**. In the train loop, force
+   `nll_validator_loss = 0.0` and emit a one-time warning if the user
+   passes a non-zero `--nll_validator_weight` in g-mode.
+5. **Add CLI flags** for shape weights:
+   `--shape-weight-case-a`, `--shape-weight-mixed-neg`,
+   `--shape-weight-mixed-pos`, `--shape-weight-both-u`. Default to the
+   table above. Validate they sum to >0.
+6. **Update model-name suffix** to encode the change so eval files
+   don't collide with the original. Add a `_fix1` token to the model
+   short name (similar to existing `_merged`, `_force-same-x` tokens)
+   so trained checkpoints and score CSVs are unambiguously from the
+   fixed code path.
+
+Touch the **dataset class** (`PairwiseDataset.__getitem__`) **only if
+needed**; the current 7-tuple structure already carries `indicator`
+and `is_labeled`, which is everything the fixed loss needs. Keep
+`pair_is_labeled` in the batch dict for backward compat / diagnostics
+even if unused.
+
+## What this fix does NOT cover
+
+- Validator-NLL position correctness (concern #1). Deferred per
+  decision 6.
+- `--force-same-x` is a no-op for persona-v1 (concern #2). This is a
+  task-property issue, not a code bug; not in scope of any code fix.
+  Persona results should drop fsx-vs-no-fsx comparisons.
+- Two-stream sampling (independent NLL pass over all labeled items).
+  Deferred per decision 4.
+- `d` mode and `both` mode. Out of scope; the fix file raises on
+  them.
