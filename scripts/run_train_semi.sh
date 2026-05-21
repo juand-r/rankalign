@@ -30,12 +30,14 @@
 #   google/gemma-2-9b          google/gemma-2-9b-it
 #   meta-llama/Llama-3.1-8B   meta-llama/Llama-3.1-8B-Instruct
 #   Qwen/Qwen2.5-7B           Qwen/Qwen2.5-7B-Instruct
+#   Qwen/Qwen3.5-4B           Qwen/Qwen3.5-9B
 #
 # Examples:
 #   run 1 2 scripts/run_train_semi.sh google/gemma-2-2b plausibleqa comb semi 0.1 --log-odds
 #   run 1 2 scripts/run_train_semi.sh meta-llama/Llama-3.1-8B plausibleqa sft semi 0.1
 #   run 1 2 scripts/run_train_semi.sh Qwen/Qwen2.5-7B ambigqa comb labelonly 0.1 --log-odds
 #   run 1 2 scripts/run_train_semi.sh google/gemma-2-9b-it ifeval-concat comb semi 0.1 --log-odds
+#   run 1 2 scripts/run_train_semi.sh Qwen/Qwen3.5-9B ambigqa comb semi 0.1 --log-odds
 
 source /u/jdr/venvs/venv_lexcons/bin/activate
 
@@ -142,6 +144,9 @@ SAMPLES_FLAG=""
 
 NUM_EPOCHS=3
 LORA_FLAG=""
+# TODO: extend this check if we ever use a smaller Qwen (e.g. Qwen3.5-2B) or any
+# model that names its size with uppercase "-2B" — currently the substring match
+# is case-sensitive ("-2b" only), so "-2B" models would unexpectedly get LoRA.
 if [[ "$MODEL" != *"-2b"* && "$MODEL" != *"-2b-"* ]]; then
     LORA_FLAG="--lora"
 fi

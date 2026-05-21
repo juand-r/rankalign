@@ -34,6 +34,7 @@ def get_completion_logprobs_all_exits(
     prompt, completion, model, tokenizer,
     exit_fractions,
     device='cuda', is_chat=False, has_system_role=False,
+    disable_thinking=False,
 ):
     """Single forward pass returning full-model and multiple exit-layer per-token log probs.
 
@@ -54,6 +55,7 @@ def get_completion_logprobs_all_exits(
     }
 
     model_device = get_model_input_device(model, device)
+    chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     with torch.no_grad():
         if is_chat and has_system_role:
             message = [
@@ -61,7 +63,7 @@ def get_completion_logprobs_all_exits(
                 {"role": "user", "content": prompt},
             ]
             prefix_ids = tokenizer.apply_chat_template(
-                message, add_generation_prompt=True,
+                message, add_generation_prompt=True, **chat_kwargs,
                 return_tensors="pt", tokenize=True, return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
@@ -70,7 +72,7 @@ def get_completion_logprobs_all_exits(
         elif is_chat:
             message = [{"role": "user", "content": prompt}]
             prefix_ids = tokenizer.apply_chat_template(
-                message, add_generation_prompt=True,
+                message, add_generation_prompt=True, **chat_kwargs,
                 return_tensors="pt", tokenize=True, return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
@@ -262,7 +264,7 @@ def compute_gpt2_typicality(completions, task, LL):
     return typicality_scores
 
 
-def compute_self_typicality(completions, is_chat=False, has_system_role=False, include_eos=False):
+def compute_self_typicality(completions, is_chat=False, has_system_role=False, include_eos=False, disable_thinking=False):
     """
     Compute self-typicality: unconditional log P_model(completion) using the scoring model itself.
 
@@ -279,7 +281,8 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False, i
         token_logprobs = get_completion_token_logprobs(
             "", completion, model, tokenizer, device,
             is_chat=is_chat, has_system_role=has_system_role,
-            include_eos=include_eos
+            include_eos=include_eos,
+            disable_thinking=disable_thinking,
         )
         typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -290,7 +293,7 @@ def compute_self_typicality(completions, is_chat=False, has_system_role=False, i
     return typicality_scores
 
 
-def compute_base_typicality(completions, base_model_name, is_chat=False, has_system_role=False, fp32=False, include_eos=False):
+def compute_base_typicality(completions, base_model_name, is_chat=False, has_system_role=False, fp32=False, include_eos=False, disable_thinking=False):
     """
     Compute typicality using the base (pre-finetuning) model: P_base(completion | null).
 
@@ -324,7 +327,8 @@ def compute_base_typicality(completions, base_model_name, is_chat=False, has_sys
         token_logprobs = get_completion_token_logprobs(
             "", completion, base_model, base_tokenizer, base_device,
             is_chat=is_chat, has_system_role=has_system_role,
-            include_eos=include_eos
+            include_eos=include_eos,
+            disable_thinking=disable_thinking,
         )
         typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -341,7 +345,7 @@ def compute_base_typicality(completions, base_model_name, is_chat=False, has_sys
     return typicality_scores
 
 
-def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has_system_role=False, fp32=False):
+def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has_system_role=False, fp32=False, disable_thinking=False):
     """
     Compute the base model's unconditional next-token log probs for all tokens
     in the scoring model's vocabulary.
@@ -373,6 +377,7 @@ def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has
     base_device = get_model_input_device(base_model, device)
 
     print("Computing base-model unconditional vocab probabilities...")
+    base_chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     if is_chat:
         if has_system_role:
             message = [
@@ -382,7 +387,7 @@ def load_base_vocab_probs(base_model_name, scoring_tokenizer, is_chat=False, has
         else:
             message = [{"role": "user", "content": ""}]
         prefix_ids = base_tokenizer.apply_chat_template(
-            message, add_generation_prompt=True,
+            message, add_generation_prompt=True, **base_chat_kwargs,
             return_tensors="pt", tokenize=True, return_dict=False,
         )[0]
         input_ids = prefix_ids.unsqueeze(0)
@@ -478,7 +483,7 @@ def make_negated_gen_prompt(item, task, make_prompt, gen_shots='zero'):
     return neg_prompt, completion
 
 
-def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_system_role=False, include_eos=False):
+def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_system_role=False, include_eos=False, disable_thinking=False):
     """Compute log P(completion | negated_prompt) for each item using the scoring model.
 
     This is the LLR denominator: instead of P(y) (unconditional), we use
@@ -493,7 +498,8 @@ def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_
         token_logprobs = get_completion_token_logprobs(
             neg_prompt, completion, model, tokenizer, device,
             is_chat=is_chat, has_system_role=has_system_role,
-            include_eos=include_eos
+            include_eos=include_eos,
+            disable_thinking=disable_thinking,
         )
         neg_scores.append(float(token_logprobs.sum().item()))
 
@@ -505,7 +511,8 @@ def compute_neg_typicality(LL, task, make_prompt, gen_shots, is_chat=False, has_
 
 
 def compute_base_neg_typicality(LL, task, make_prompt, gen_shots, base_model_name,
-                                is_chat=False, has_system_role=False, fp32=False, include_eos=False):
+                                is_chat=False, has_system_role=False, fp32=False, include_eos=False,
+                                disable_thinking=False):
     """Compute log P_base(completion | negated_prompt) using a separately loaded base model.
 
     Loads the base model temporarily, computes neg-prompt scores, then unloads it.
@@ -538,7 +545,8 @@ def compute_base_neg_typicality(LL, task, make_prompt, gen_shots, base_model_nam
         token_logprobs = get_completion_token_logprobs(
             neg_prompt, completion, base_model, base_tokenizer, base_device,
             is_chat=is_chat, has_system_role=has_system_role,
-            include_eos=include_eos
+            include_eos=include_eos,
+            disable_thinking=disable_thinking,
         )
         neg_scores.append(float(token_logprobs.sum().item()))
 
@@ -555,7 +563,7 @@ def compute_base_neg_typicality(LL, task, make_prompt, gen_shots, base_model_nam
     return neg_scores
 
 
-def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False):
+def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False, disable_thinking=False):
     """
     Compute the scoring model's own unconditional next-token log probabilities
     for all tokens in its vocabulary.
@@ -571,6 +579,7 @@ def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False
     model_device = get_model_input_device(model, device)
 
     print("Computing self-model unconditional vocab probabilities...")
+    self_chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     if is_chat:
         if has_system_role:
             message = [
@@ -582,6 +591,7 @@ def load_self_vocab_probs(model, tokenizer, is_chat=False, has_system_role=False
         prefix_ids = tokenizer.apply_chat_template(
             message,
             add_generation_prompt=True,
+            **self_chat_kwargs,
             return_tensors="pt",
             tokenize=True,
             return_dict=False,
@@ -958,6 +968,12 @@ def main(args):
         raise ValueError("If you are using GPT then rewrite this bit!")
     print(f"first_sw_token={first_sw_token}, has_bos={has_bos}")
 
+    # For Qwen3+ post-trained models, disable hybrid reasoning mode in chat template.
+    # Empty kwargs for other models is byte-identical to today's behavior.
+    model_disable_thinking = _qwen3_post_trained
+    if model_disable_thinking:
+        print("Qwen3+ post-trained: disabling thinking mode in chat template (enable_thinking=False)")
+
     yestoks = [tokenizer.encode(i)[-1] for i in yes_words]
     notoks = [tokenizer.encode(i)[-1] for i in no_words]
 
@@ -1021,17 +1037,18 @@ def main(args):
                     prompt_gen, completion_gen, model, tokenizer,
                     exit_fractions=args.exit_layers,
                     device=device, is_chat=model_is_chat, has_system_role=model_has_system_role,
+                    disable_thinking=model_disable_thinking,
                 )
                 for frac, exit_lp in exit_logprobs_dict.items():
                     exit_sum_logprobs[frac].append(float(exit_lp.sum().item()))
             else:
-                gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role, include_eos=args.include_eos)
+                gen_token_logprobs = get_completion_token_logprobs(prompt_gen, completion_gen, model, tokenizer, device, is_chat=model_is_chat, has_system_role=model_has_system_role, include_eos=args.include_eos, disable_thinking=model_disable_thinking)
             gen_sum_logprobs.append(float(gen_token_logprobs.sum().item()))
         else:
             # Single-token: need next-token distribution for log-odds and rank metrics
-            probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
+            probs_gen = get_final_logit_prob(prompt_gen, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role, disable_thinking=model_disable_thinking)
             P_gen.append(probs_gen)
-        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role)
+        probs_disc = get_final_logit_prob(prompt_disc, model, tokenizer, device, is_chat = model_is_chat, has_system_role=model_has_system_role, disable_thinking=model_disable_thinking)
         disc_probs.append((float(probs_disc[yestoks].sum().item()), float(probs_disc[notoks].sum().item())))
 
         # # DEBUG: Print prompts and probabilities for first 5 examples
@@ -1143,21 +1160,26 @@ def main(args):
             _base_qwen3_pt = re.search(r'[Qq]wen3', args.base_model_name) is not None and 'Base' not in args.base_model_name
             base_is_chat = _base_name_instruct or _base_qwen3_pt
             base_has_system_role = 'llama' in args.base_model_name.lower() or 'qwen' in args.base_model_name.lower()
+            # For Qwen3+ post-trained base models, disable hybrid reasoning in chat template.
+            base_disable_thinking = _base_qwen3_pt
         else:
             base_is_chat = False
             base_has_system_role = False
+            base_disable_thinking = False
 
         if not use_full_completion_logprobs and not args.neg_typicality:
             if args.base_typicality:
                 vocab_logprobs = load_base_vocab_probs(
                     args.base_model_name, tokenizer,
                     is_chat=base_is_chat, has_system_role=base_has_system_role,
-                    fp32=args.fp32_model
+                    fp32=args.fp32_model,
+                    disable_thinking=base_disable_thinking,
                 )
             elif args.self_typicality:
                 vocab_logprobs = load_self_vocab_probs(
                     model, tokenizer,
-                    is_chat=model_is_chat, has_system_role=model_has_system_role
+                    is_chat=model_is_chat, has_system_role=model_has_system_role,
+                    disable_thinking=model_disable_thinking,
                 )
             else:
                 vocab_logprobs = load_gpt2_vocab_probs(modelname, tokenizer)
@@ -1190,13 +1212,15 @@ def main(args):
                 typicality_scores = compute_base_neg_typicality(
                     LL, task, make_prompt, gen_shots, args.base_model_name,
                     is_chat=base_is_chat, has_system_role=base_has_system_role,
-                    fp32=args.fp32_model, include_eos=args.include_eos
+                    fp32=args.fp32_model, include_eos=args.include_eos,
+                    disable_thinking=base_disable_thinking,
                 )
             else:
                 typicality_scores = compute_neg_typicality(
                     LL, task, make_prompt, gen_shots,
                     is_chat=model_is_chat, has_system_role=model_has_system_role,
-                    include_eos=args.include_eos
+                    include_eos=args.include_eos,
+                    disable_thinking=model_disable_thinking,
                 )
         elif args.self_typicality:
             completions = []
@@ -1207,13 +1231,15 @@ def main(args):
                 typicality_scores = compute_base_typicality(
                     completions, args.base_model_name,
                     is_chat=base_is_chat, has_system_role=base_has_system_role,
-                    fp32=args.fp32_model, include_eos=args.include_eos
+                    fp32=args.fp32_model, include_eos=args.include_eos,
+                    disable_thinking=base_disable_thinking,
                 )
             else:
                 typicality_scores = compute_self_typicality(
                     completions,
                     is_chat=model_is_chat, has_system_role=model_has_system_role,
-                    include_eos=args.include_eos
+                    include_eos=args.include_eos,
+                    disable_thinking=model_disable_thinking,
                 )
         else:
             completions = []

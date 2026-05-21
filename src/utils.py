@@ -1045,17 +1045,21 @@ def get_model_input_device(model, fallback_device='cuda'):
     except StopIteration:
         return torch.device(fallback_device)
 
-def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=False, has_system_role=False):
+def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=False, has_system_role=False, disable_thinking=False):
+    # When disable_thinking=True, pass enable_thinking=False to apply_chat_template
+    # so Qwen3+ hybrid models skip reasoning mode. Empty dict for other models is
+    # byte-identical to today's behavior.
+    chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     with torch.no_grad():
         if is_chat and has_system_role:
             message = [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},]
-            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
+            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True, **chat_kwargs, return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         elif is_chat:
             message = [
                 {"role": "user", "content": prompt},]
-            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
+            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True, **chat_kwargs, return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         else:
             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0].tolist()
         # Use device of first parameter for proper placement with device_map="auto"
@@ -1088,14 +1092,15 @@ def get_final_logit_prob(prompt, model, tokenizer, device = 'cuda', is_chat=Fals
     # print(torch.sum(torch.exp(model_log_probs)))
     return torch.exp(model_log_probs)
 
-def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
+def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False, disable_thinking=False):
 
+    chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     with torch.no_grad():
         if is_chat:
             message = [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt},]
-            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True,return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
+            input_ids = tokenizer.apply_chat_template(message, add_generation_prompt=True, **chat_kwargs, return_tensors="pt", tokenize=True, return_dict=False)[0].tolist()
         else:
             input_ids = tokenizer(prompt, return_tensors="pt")["input_ids"][0].tolist()
         # outputs = model(torch.tensor([input_ids]).to(device), output_hidden_states=True)
@@ -1111,7 +1116,7 @@ def get_response(prompt, model, tokenizer, device = 'cuda', is_chat=False):
         # print(f"decoded_response::{decoded_response}::")
     return decoded_response
 
-def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False, has_system_role=False, include_eos=False):
+def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='cuda', is_chat=False, has_system_role=False, include_eos=False, disable_thinking=False):
     """Return per-token log probabilities for the given completion conditioned on the prompt.
 
     - If is_chat is False: tokenize `prompt` and `completion` separately and concatenate.
@@ -1123,6 +1128,7 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
     """
     # Use device of first parameter for proper placement with device_map="auto"
     model_device = get_model_input_device(model, device)
+    chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     with torch.no_grad():
         if is_chat and has_system_role:
             # Build the chat prompt prefix (system + user + assistant prefix)
@@ -1133,6 +1139,7 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
             prefix_ids = tokenizer.apply_chat_template(
                 message,
                 add_generation_prompt=True,
+                **chat_kwargs,
                 return_tensors="pt",
                 tokenize=True,
                 return_dict=False,
@@ -1150,6 +1157,7 @@ def get_completion_token_logprobs(prompt, completion, model, tokenizer, device='
             prefix_ids = tokenizer.apply_chat_template(
                 message,
                 add_generation_prompt=True,
+                **chat_kwargs,
                 return_tensors="pt",
                 tokenize=True,
                 return_dict=False,
@@ -1212,6 +1220,7 @@ def get_completion_token_logprobs_exit(
     prompt, completion, model, tokenizer,
     exit_layer_fraction=0.5,
     device='cuda', is_chat=False, has_system_role=False,
+    disable_thinking=False,
 ):
     """Return per-token log probs from the full model AND from an earlier exit layer.
 
@@ -1234,6 +1243,7 @@ def get_completion_token_logprobs_exit(
     exit_idx = max(1, min(n_layers - 1, int(n_layers * exit_layer_fraction)))
 
     model_device = get_model_input_device(model, device)
+    chat_kwargs = {"enable_thinking": False} if disable_thinking else {}
     with torch.no_grad():
         if is_chat and has_system_role:
             message = [
@@ -1241,7 +1251,7 @@ def get_completion_token_logprobs_exit(
                 {"role": "user", "content": prompt},
             ]
             prefix_ids = tokenizer.apply_chat_template(
-                message, add_generation_prompt=True,
+                message, add_generation_prompt=True, **chat_kwargs,
                 return_tensors="pt", tokenize=True, return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]
@@ -1250,7 +1260,7 @@ def get_completion_token_logprobs_exit(
         elif is_chat:
             message = [{"role": "user", "content": prompt}]
             prefix_ids = tokenizer.apply_chat_template(
-                message, add_generation_prompt=True,
+                message, add_generation_prompt=True, **chat_kwargs,
                 return_tensors="pt", tokenize=True, return_dict=False,
             )[0]
             completion_ids = tokenizer(completion, add_special_tokens=False)["input_ids"]

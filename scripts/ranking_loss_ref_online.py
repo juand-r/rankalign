@@ -188,7 +188,8 @@ def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
 
 
 def compute_self_typicality_training(completions, model, tokenizer, device,
-                                     is_chat=False, has_system_role=False, include_eos=False):
+                                     is_chat=False, has_system_role=False, include_eos=False,
+                                     disable_thinking=False):
     """
     Compute self-typicality: unconditional log P_model(completion) using the
     scoring model itself (instead of GPT-2).
@@ -205,7 +206,8 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
             token_logprobs = get_completion_token_logprobs(
                 "", completion, model, tokenizer, device,
                 is_chat=is_chat, has_system_role=has_system_role,
-                include_eos=include_eos
+                include_eos=include_eos,
+                disable_thinking=disable_thinking,
             )
             typicality_scores.append(float(token_logprobs.sum().item()))
 
@@ -218,7 +220,8 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
 
 def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
                                     model, tokenizer, device,
-                                    is_chat=False, has_system_role=False, include_eos=False):
+                                    is_chat=False, has_system_role=False, include_eos=False,
+                                    disable_thinking=False):
     """Compute log P(completion | negated_prompt) for each training item.
 
     Uses make_negated_gen_prompt from eval_by_claude.py to construct the
@@ -235,7 +238,8 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
             token_logprobs = get_completion_token_logprobs(
                 neg_prompt, completion, model, tokenizer, device,
                 is_chat=is_chat, has_system_role=has_system_role,
-                include_eos=include_eos
+                include_eos=include_eos,
+                disable_thinking=disable_thinking,
             )
             neg_scores.append(float(token_logprobs.sum().item()))
 
@@ -669,6 +673,13 @@ def main(args):
         has_system_role = True
         print("Model has system role!")
 
+    # For Qwen3+ post-trained models, disable hybrid reasoning mode in chat template.
+    # Empty kwargs for other models is byte-identical to today's behavior.
+    disable_thinking = _qwen3_post_trained
+    chat_template_kwargs = {"enable_thinking": False} if disable_thinking else {}
+    if disable_thinking:
+        print("Qwen3+ post-trained: disabling thinking mode in chat template (enable_thinking=False)")
+
     # Define device first
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -787,7 +798,7 @@ def main(args):
         else:
             message = [
                 {"role": "user", "content": prompt},]
-        toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt')[0]
+        toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs)[0]
         # Strip leading BOS if present (Gemma/Llama prepend BOS; Qwen does not)
         has_leading_bos = (
             tokenizer.bos_token_id is not None
@@ -899,7 +910,7 @@ def main(args):
                     if has_system_role else []
                 ) + [{"role": "user", "content": prompt_text}]
                 n_prompt = len(tokenizer.apply_chat_template(
-                    msgs, add_generation_prompt=True, return_tensors='pt')[0])
+                    msgs, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs)[0])
                 n_completion = len(tokenizer.encode(completion_text, add_special_tokens=False))
                 return n_prompt + n_completion
             return len(tokenizer.encode(prompt_text + completion_text, add_special_tokens=False))
@@ -991,17 +1002,17 @@ def main(args):
 
             if use_full_completion:
                 if train_g_or_d == 'both':
-                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
-                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
+                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     total_log_prob_d = float(log_prob_d.sum().item())
                     total_log_prob_g = float(log_prob_g.sum().item())
                     logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
                 else:
-                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     total_log_prob = float(log_prob.sum().item())
                     logprobs_last_layer.append(total_log_prob)
             else:
-                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 if train_g_or_d == 'both':
                     ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                     ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
@@ -1061,17 +1072,17 @@ def main(args):
             
             if use_full_completion:
                 if train_g_or_d == 'both':
-                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
-                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
+                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     total_log_prob_d = float(log_prob_d.sum().item())
                     total_log_prob_g = float(log_prob_g.sum().item())
                     logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
                 else:
-                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     total_log_prob = float(log_prob.sum().item())
                     logprobs_last_layer.append(total_log_prob)
             else:
-                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 if train_g_or_d == 'both':
                     ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
                     ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
@@ -1113,7 +1124,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
             if train_g_or_d=='d':
                 # Get the log probability for the target token (answer)
                 target_text = space_prefix + L_train_all[idx]['answers'][0].capitalize()
@@ -1168,7 +1179,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
             # Get the log probability for the target token (replacement)
             #target_text = space_prefix + L_train_all[idx].replacement
             #target_tokens = tokenizer.encode(target_text)
@@ -1227,7 +1238,7 @@ def main(args):
         # Compute log-probabilities for generator prompts
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
             # Get the log probability for the target token (final_word)
             #target_text = space_prefix + L_train_all[idx]['final_word']
             #target_tokens = tokenizer.encode(target_text)
@@ -1303,13 +1314,13 @@ def main(args):
                 raise ValueError("must use full completion for ifeval task")
             
             if train_g_or_d == 'both':
-                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
-                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
+                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 total_log_prob_d = float(log_prob_d.sum().item())
                 total_log_prob_g = float(log_prob_g.sum().item())
                 logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
             else:
-                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 total_log_prob = float(log_prob.sum().item())
                 logprobs_last_layer.append(total_log_prob)
 
@@ -1350,13 +1361,13 @@ def main(args):
                 raise ValueError("must use full completion for collie task")
             
             if train_g_or_d == 'both':
-                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
-                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
+                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 total_log_prob_d = float(log_prob_d.sum().item())
                 total_log_prob_g = float(log_prob_g.sum().item())
                 logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
             else:
-                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                 total_log_prob = float(log_prob.sum().item())
                 logprobs_last_layer.append(total_log_prob)
 
@@ -1422,7 +1433,8 @@ def main(args):
                 L_train_all, task, make_prompt_fn,
                 model, tokenizer, device,
                 is_chat=with_chat, has_system_role=has_system_role,
-                include_eos=args.include_eos
+                include_eos=args.include_eos,
+                disable_thinking=disable_thinking,
             )
         elif args.self_typicality:
             # Self-typicality: use the scoring model itself
@@ -1430,7 +1442,8 @@ def main(args):
             typicality_scores = compute_self_typicality_training(
                 completions, model, tokenizer, device,
                 is_chat=with_chat, has_system_role=has_system_role,
-                include_eos=args.include_eos
+                include_eos=args.include_eos,
+                disable_thinking=disable_thinking,
             )
         else:
             # GPT-2 typicality: load GPT-2 as the prior
@@ -1506,7 +1519,7 @@ def main(args):
                     
                     # Compute log P("Yes") using get_final_logit_prob
                     # Note: get_final_logit_prob returns full log-prob distribution [vocab_size]
-                    log_probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role)
+                    log_probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     log_prob_yes = log_probs[target_token_yes].item()
                     val_scores.append(log_prob_yes)
             # Note: model.train() called later in training loop (line ~1980)
@@ -1551,24 +1564,24 @@ def main(args):
         # Process discriminator prompts (p_train_tune)
         # Use "assistant" role (Gemma maps it to "model" internally; Qwen/Llama use it natively)
         ms_tune = [ [ {"role": "system", "content": "You are a helpful assistant."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
-        toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+        toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
         max_context_length = toks_tune.shape[1]
         
         # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
         if train_g_or_d == 'both':
             ms_gold = [ [ {"role": "system", "content": "You are a helpful assistant."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
-            toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+            toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
             max_context_length = max(max_context_length, toks_gold.shape[1])
     elif with_chat:
         # Process discriminator prompts (p_train_tune)
         ms_tune = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
-        toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+        toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
         max_context_length = toks_tune.shape[1]
         
         # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
         if train_g_or_d == 'both':
             ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
-            toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt')
+            toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
             max_context_length = max(max_context_length, toks_gold.shape[1])
     else:
         #TODO later should make this cleaner in utils.make_and_format_data
@@ -2395,12 +2408,14 @@ def main(args):
                     log_prob = get_completion_token_logprobs(
                         prompt, target_text, current_model, tokenizer, device,
                         is_chat=with_chat, has_system_role=has_system_role,
+                        disable_thinking=disable_thinking,
                     )
                     new_logprobs.append(float(log_prob.sum().item()))
                 else:
                     probs = get_final_logit_prob(
                         prompt, current_model, tokenizer, device,
                         is_chat=with_chat, has_system_role=has_system_role,
+                        disable_thinking=disable_thinking,
                     )
                     ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
                     new_logprobs.append(math.log(probs[ind].item() + 1e-12))
