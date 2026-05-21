@@ -24,8 +24,12 @@
 #   - Train pool is now 1500 rows (3 ID x 500). OOD test set unchanged.
 #
 # Persona uses:
-#   --disc-shots zero  (matches eval setup)
-#   --max-seq-len 512  (statements short, ~30 tok max even chat-wrapped)
+#   --disc-shots zero   (default; matches eval setup for instruct models)
+#                       Set DISC_SHOTS=auto to omit the flag and let
+#                       ranking_loss_ref.py auto-detect (base models -> few).
+#                       Used for gemma-2-2b where zero-shot disc gives a
+#                       garbage validator (see chat 2026-05-20 / -21).
+#   --max-seq-len 512   (statements short, ~30 tok max even chat-wrapped)
 #
 # Walltime defaults to 10h (v0 had two #8/#9 variants TIMEOUT at 6h).
 #
@@ -49,7 +53,14 @@ HOURS="${HOURS:-10}"
 CPUS="${CPUS:-6}"
 MEM="${MEM:-60G}"
 TASK=persona-v1
-COMMON="--disc-shots zero --max-seq-len 512"
+# DISC_SHOTS: 'zero' (default) -> --disc-shots zero; 'auto' -> omit the flag
+# (ranking_loss_ref.py then picks zero for instruct, few for base models).
+DISC_SHOTS="${DISC_SHOTS:-zero}"
+if [ "$DISC_SHOTS" = "auto" ]; then
+    COMMON="--max-seq-len 512"
+else
+    COMMON="--disc-shots $DISC_SHOTS --max-seq-len 512"
+fi
 
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
