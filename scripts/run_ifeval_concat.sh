@@ -4,26 +4,34 @@ set -euo pipefail
 # Train and evaluate models on IFEval-style tasks.
 #
 # Spec format (colon-separated): NAME:PREF:NLLV:NLLG:VALLOGODDS:LENORM
-# Typicality is controlled globally via --tc (self-typicality).
+# Typicality: --tc (tc-self paths + self-TC eval); --neg (tc-neg paths + neg-TC train);
+#   --base-tc (eval base-model TC); combine --neg --base-tc for base-neg eval (basetypneg CSVs).
 #
 # Evaluates each variant on:
 #   - each ifeval-prompt_* task
 #
 # Usage:
-#   ./run_ifeval_concat.sh <NUM_GPUS> [--model MODEL] [--task TASK] [--tc]
+#   ./run_ifeval_concat.sh <NUM_GPUS> [--model MODEL] [--task TASK] [--models-dir DIR]
+#     [--tc|--neg|--base-tc]
 #     [--semi-mode none|labelonly|semi] [--semi-ratio RATIO]
 #     [--variant NAME|all] [--train-only|--eval-only]
-# Variants: base, sft, pref_only, all_terms, all
+# Variants: base, sft, pref_only, pref_no_fsx, all_terms, all
+#   pref_no_fsx: same weights as pref_only but trains without --force-same-x
 # Example:
 #   ./run_ifeval_concat.sh 4 --variant base
 #   ./run_ifeval_concat.sh 2 --variant sft
 #   ./run_ifeval_concat.sh 4 --tc --semi-mode labelonly --semi-ratio 0.1 --variant pref_only
+#   ./run_ifeval_concat.sh 4 --variant pref_no_fsx
 #   ./run_ifeval_concat.sh 4 --tc --semi-mode semi --semi-ratio 0.1 --variant all_terms
+#   ./run_ifeval_concat.sh 4 --base-tc --eval-only --variant all_terms
+#   ./run_ifeval_concat.sh 2 --models-dir /datastor1/jdr/gv-gap/rankalign/models \
+#     --neg --base-tc --eval-only --variant all_terms
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+MODELS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/models"
 
-source /lusr/opt/miniconda/bin/activate /datastor2/jocelyn/.conda/nlp
+source /lusr/opt/miniconda/bin/activate /datastor2/jocelyn/.conda/nlp-qwen
 
 export HF_HOME=/datastor2/jocelyn/.cache/huggingface
 export HF_HUB_CACHE="${HF_HOME}/hub"
@@ -62,6 +70,9 @@ VARIANT_FILTER="all"
 MODEL="google/gemma-2-9b-it"
 TASK_CONCAT="ifeval-concat"
 USE_TC=0
+USE_NEG=0
+USE_BASE_TC=0
+USE_EVAL_NEG=0
 SEMI_MODE="none"
 SEMI_RATIO="0.1"
 shift || true
@@ -76,8 +87,25 @@ while [[ $# -gt 0 ]]; do
             TASK_CONCAT="$2"
             shift 2
             ;;
+        --models-dir)
+            MODELS_DIR="$2"
+            shift 2
+            ;;
         --tc)
             USE_TC=1
+            shift
+            ;;
+        --neg)
+            USE_NEG=1
+            shift
+            ;;
+        --base-tc|--tc-base)
+            USE_BASE_TC=1
+            shift
+            ;;
+        --neg-base-tc)
+            USE_BASE_TC=1
+            USE_EVAL_NEG=1
             shift
             ;;
         --variant)
@@ -107,20 +135,48 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-TC_TAG=$([ "$USE_TC" = 1 ] && echo self || echo plain)
+if [ "$USE_TC" = 1 ] && [ "$USE_NEG" = 1 ]; then
+    echo "Error: --tc and --neg are mutually exclusive"
+    exit 1
+fi
 
-VALID_VARIANTS="all base sft pref_only all_terms"
+if [ "$USE_TC" = 1 ]; then
+    TC_TAG=self
+elif [ "$USE_NEG" = 1 ]; then
+    TC_TAG=neg
+else
+    TC_TAG=plain
+fi
+
+if [ "$USE_BASE_TC" = 1 ] && { [ "$USE_EVAL_NEG" = 1 ] || [ "$USE_NEG" = 1 ]; }; then
+    EVAL_TC_TAG=basetypneg
+elif [ "$USE_BASE_TC" = 1 ]; then
+    EVAL_TC_TAG=base
+elif [ "$USE_NEG" = 1 ]; then
+    EVAL_TC_TAG=neg
+elif [ "$USE_TC" = 1 ]; then
+    EVAL_TC_TAG=self
+else
+    EVAL_TC_TAG=plain
+fi
+
+VALID_VARIANTS="all base sft pref_only pref_no_fsx all_terms"
 if [[ ! " $VALID_VARIANTS " =~ " $VARIANT_FILTER " ]]; then
     echo "Invalid --variant: $VARIANT_FILTER (must be one of: $VALID_VARIANTS)"
     exit 1
 fi
 
 if [ -z "$NUM_GPUS_INPUT" ]; then
-    echo "Usage: $0 <NUM_GPUS> [--model MODEL] [--task TASK] [--tc] [--semi-mode none|labelonly|semi] [--semi-ratio RATIO] [--variant NAME|all] [--train-only|--eval-only]"
+    echo "Usage: $0 <NUM_GPUS> [--model MODEL] [--task TASK] [--models-dir DIR] [--tc|--neg|--base-tc|--neg-base-tc] [--semi-mode none|labelonly|semi] [--semi-ratio RATIO] [--variant NAME|all] [--train-only|--eval-only]"
     echo "  NUM_GPUS: number of GPUs to use, assumed IDs 0..N-1 (e.g., 4 -> 0,1,2,3)"
     echo "  --model: HF model id (default: google/gemma-2-9b-it)"
     echo "  --task: training task name (default: ifeval-concat)"
-    echo "  --tc: enable self-typicality for train/eval (plain if omitted)"
+    echo "  --models-dir: checkpoint root (default: ../models relative to repo)"
+    echo "  --tc: self-typicality for train/eval; adds --tc-self to checkpoint paths"
+    echo "  --neg: neg-typicality for train; adds --tc-neg to checkpoint paths"
+    echo "  --base-tc: eval uses base-model self-TC (--base-typicality; basetyp CSVs)"
+    echo "  --neg-base-tc: eval uses base-model neg-TC (basetypneg CSVs); paths follow --neg/--tc/plain"
+    echo "  Add --neg for tc-neg checkpoint paths (e.g. with --models-dir on gv-gap)"
     echo "  --semi-mode: none | labelonly | semi (default: none)"
     echo "  --semi-ratio: labeled prompt ratio in [0,1] (default: 0.1)"
     echo "  --variant: $VALID_VARIANTS"
@@ -141,6 +197,12 @@ fi
 if ! [[ "$SEMI_RATIO" =~ ^0(\.[0-9]+)?$|^1(\.0+)?$ ]]; then
     echo "--semi-ratio expects a ratio in [0, 1] (got: $SEMI_RATIO)"
     exit 1
+fi
+
+# Absolute root for existence checks / logs; relative (from scripts/) for eval --model CSV names.
+MODELS_DIR="$(cd "$MODELS_DIR" && pwd)"
+if ! MODELS_DIR_REL="$(realpath --relative-to="$SCRIPT_DIR" "$MODELS_DIR" 2>/dev/null)"; then
+    MODELS_DIR_REL="$(python3 -c "import os; print(os.path.relpath('${MODELS_DIR}', '${SCRIPT_DIR}'))")"
 fi
 
 NUM_GPUS=$NUM_GPUS_INPUT
@@ -193,7 +255,8 @@ fi
 EVAL_TASKS=("${TASKS[@]}")
 
 echo "EVAL_TASKS: ${EVAL_TASKS[@]}"
-echo "Typicality: ${TC_TAG}"
+echo "Models dir: ${MODELS_DIR} (eval: ${MODELS_DIR_REL}/<checkpoint>)"
+echo "Train typicality: ${TC_TAG} | Eval typicality: ${EVAL_TC_TAG}"
 echo "Semi mode: ${SEMI_MODE} (ratio=${SEMI_RATIO})"
 echo "LoRA: $([ "$USE_LORA" = "1" ] && echo enabled || echo disabled)"
 
@@ -204,13 +267,20 @@ run_train_variant() {
     local NLLG_W=$4
     local USE_VALIDATOR_LOG_ODDS=${5:-0}
     local USE_LENORM=${6:-0}
-    local GPU_PAIR=${7:-$TRAIN_GPU}
+    local FORCE_SAME_X=${7:-1}
+    local GPU_PAIR=${8:-$TRAIN_GPU}
     local GPU_LOG=$(echo "$GPU_PAIR" | tr ',' '-')
     local LOG_FILE="logs/train_${TASK_CONCAT}_${NAME}_${TC_TAG}_gpu${GPU_LOG}.log"
     local tc_args=()
     local semi_args=()
     local lora_args=()
-    if [ "$USE_TC" = "1" ]; then
+    local force_same_x_args=()
+    if [ "$FORCE_SAME_X" = "1" ]; then
+        force_same_x_args+=(--force-same-x)
+    fi
+    if [ "$USE_NEG" = "1" ]; then
+        tc_args+=(--neg-typicality)
+    elif [ "$USE_TC" = "1" ]; then
         tc_args+=(--self-typicality)
     fi
     if [ "$SEMI_MODE" = "labelonly" ]; then
@@ -226,7 +296,7 @@ run_train_variant() {
     {
         echo "========================================"
         echo "Task: $TASK_CONCAT | Variant: $NAME | typicality=$TC_TAG"
-        echo "pref=$PREF_W nllv=$NLLV_W nllg=$NLLG_W validator_log_odds=$USE_VALIDATOR_LOG_ODDS"
+        echo "pref=$PREF_W nllv=$NLLV_W nllg=$NLLG_W validator_log_odds=$USE_VALIDATOR_LOG_ODDS force_same_x=$FORCE_SAME_X"
         echo "semi_mode=$SEMI_MODE ratio=$SEMI_RATIO"
         echo "========================================"
 
@@ -244,7 +314,7 @@ run_train_variant() {
             --alpha "$ALPHA" \
             --total_samples "$TOTAL_SAMPLES" \
             --save_steps 1 \
-            --force-same-x \
+            "${force_same_x_args[@]}" \
             --no-wandb \
             --no-upload-hf \
             $([ "$USE_LENORM" = "1" ] && echo "--length-normalize") \
@@ -261,8 +331,9 @@ build_model_dir() {
     local NLLG_W=$3
     local USE_VALLOGODDS=${4:-0}
     local USE_LENORM=${5:-0}
-    local SEMI_MODE_LOCAL=${6:-none}
-    local SEMI_RATIO_LOCAL=${7:-0.1}
+    local FORCE_SAME_X=${6:-1}
+    local SEMI_MODE_LOCAL=${7:-none}
+    local SEMI_RATIO_LOCAL=${8:-0.1}
 
     local model_tag="${MODEL//\//--}"
     local typcorr_str=""
@@ -275,7 +346,9 @@ build_model_dir() {
     # Training saves with 0-based epoch index; NUM_EPOCHS=2 -> last save at epoch 1
     local LAST_EPOCH=$((NUM_EPOCHS - 1))
 
-    if [ "$USE_TC" = "1" ]; then
+    if [ "$USE_NEG" = "1" ]; then
+        typcorr_str="--tc-neg"
+    elif [ "$USE_TC" = "1" ]; then
         typcorr_str="--tc-self"
     fi
     if [ "$USE_LENORM" = "1" ]; then
@@ -307,14 +380,16 @@ build_model_dir() {
     elif [ "$SEMI_MODE_LOCAL" = "semi" ]; then
         semi_str="--semi${SEMI_RATIO_LOCAL}"
     fi
-    # Training uses --force-same-x; model save path includes it, so we must too for eval to find the dir
-    local force_same_x_str="--force-same-x"
+    local force_same_x_str=""
+    if [ "$FORCE_SAME_X" = "1" ]; then
+        force_same_x_str="--force-same-x"
+    fi
 
     local lora_suffix=""
     if [ "$USE_LORA" = "1" ]; then
         lora_suffix="_merged"
     fi
-    echo "../models/v6-${model_tag}-delta${DELTA}-epoch${LAST_EPOCH}--${TASK_CONCAT}-all--d2g--random--alpha${ALPHA}${typcorr_str}${lenorm_str}--full-completion${pref_str}${nllv_str}${nllg_str}${force_same_x_str}${vallogodds_str}${semi_str}${lora_suffix}"
+    echo "${MODELS_DIR_REL}/v6-${model_tag}-delta${DELTA}-epoch${LAST_EPOCH}--${TASK_CONCAT}-all--d2g--random--alpha${ALPHA}${typcorr_str}${lenorm_str}--full-completion${pref_str}${nllv_str}${nllg_str}${force_same_x_str}${vallogodds_str}${semi_str}${lora_suffix}"
 }
 
 run_eval_variant() {
@@ -324,21 +399,33 @@ run_eval_variant() {
     local NLLG_W=$4
     local USE_VALLOGODDS=$5
     local USE_LENORM=$6
-    local TASK=$7
-    local GPU=$8
+    local FORCE_SAME_X=${7:-1}
+    local TASK=$8
+    local GPU=$9
 
     local MODEL_DIR
-    local LOG_FILE="logs/eval_${TASK}_${NAME}_${TC_TAG}_gpu${GPU}.log"
+    local eval_tc_args=()
+    if [ "$USE_BASE_TC" = "1" ] && { [ "$USE_EVAL_NEG" = "1" ] || [ "$USE_NEG" = "1" ]; }; then
+        eval_tc_args+=(--neg-typicality --base-typicality --base-model-name "$MODEL")
+    elif [ "$USE_BASE_TC" = "1" ]; then
+        eval_tc_args+=(--base-typicality --base-model-name "$MODEL")
+    elif [ "$USE_NEG" = "1" ]; then
+        eval_tc_args+=(--neg-typicality)
+    elif [ "$USE_TC" = "1" ]; then
+        eval_tc_args+=(--self-typicality)
+    fi
+
+    local LOG_FILE="logs/eval_${TASK}_${NAME}_${EVAL_TC_TAG}_gpu${GPU}.log"
     {
         echo "========================================"
-        echo "Task: $TASK | Variant: $NAME | GPU: $GPU | typicality=$TC_TAG"
+        echo "Task: $TASK | Variant: $NAME | GPU: $GPU | typicality=$EVAL_TC_TAG"
         echo "========================================"
     } >> "$LOG_FILE"
 
     if [ "$NAME" = "base" ]; then
         MODEL_DIR="$MODEL"
     else
-        MODEL_DIR=$(build_model_dir "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$SEMI_MODE" "$SEMI_RATIO")
+        MODEL_DIR=$(build_model_dir "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$FORCE_SAME_X" "$SEMI_MODE" "$SEMI_RATIO")
         if [ ! -d "$MODEL_DIR" ]; then
             echo "  [SKIP] Model not found: $MODEL_DIR" >> "$LOG_FILE"
             return
@@ -352,15 +439,16 @@ run_eval_variant() {
         --validator-log-odds \
         --save-scores-csv \
         --disc-shots zero \
-        --self-typicality \
+        "${eval_tc_args[@]}" \
         >> "$LOG_FILE" 2>&1
 }
 
-# Training task specs: NAME:PREF:NLLV:NLLG:VALLOGODDS:LENORM
+# Training task specs: NAME:PREF:NLLV:NLLG:VALLOGODDS:LENORM:FORCE_SAME_X (1=--force-same-x, 0=omit)
 ALL_TRAIN_SPECS=(
-    "sft:0.0:1:1:0:0"
-    "pref_only:1:0:0:0:0"
-    "all_terms:1:1:1:1:0"
+    "sft:0.0:1:1:0:0:1"
+    "pref_only:1:0:0:0:0:1"
+    "pref_no_fsx:1:0:0:0:0:0"
+    "all_terms:1:1:1:1:0:1"
 )
 
 TRAIN_SPECS=()
@@ -397,8 +485,9 @@ run_train_worker() {
     local idx=0
     for spec in "${TRAIN_SPECS[@]}"; do
         if [ $((idx % NUM_WORKERS)) -eq "$worker_idx" ]; then
-            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_VALLOGODDS USE_LENORM < <(printf '%s\n' "$spec")
-            run_train_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$gpu_pair"
+            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_VALLOGODDS USE_LENORM FORCE_SAME_X < <(printf '%s\n' "$spec")
+            FORCE_SAME_X=${FORCE_SAME_X:-1}
+            run_train_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$FORCE_SAME_X" "$gpu_pair"
         fi
         idx=$((idx + 1))
     done
@@ -420,12 +509,13 @@ if [ "$MODE" = "train" ] || [ "$MODE" = "both" ]; then
     fi
 fi
 
-# Eval variant specs: NAME:PREF:NLLV:NLLG:VALLOGODDS:LENORM
+# Eval variant specs: NAME:PREF:NLLV:NLLG:VALLOGODDS:LENORM:FORCE_SAME_X
 ALL_VARIANTS=(
-    "base:0:0:0:0:0"
-    "sft:0.0:1:1:0:0"
-    "pref_only:1:0:0:0:0"
-    "all_terms:1:1:1:1:0"
+    "base:0:0:0:0:0:1"
+    "sft:0.0:1:1:0:0:1"
+    "pref_only:1:0:0:0:0:1"
+    "pref_no_fsx:1:0:0:0:0:0"
+    "all_terms:1:1:1:1:0:1"
 )
 
 VARIANTS=()
@@ -475,8 +565,9 @@ run_eval_worker() {
         if [ $((idx % NUM_GPUS)) -eq "$gpu_idx" ]; then
             TASK="${job%%|*}"
             V="${job#*|}"
-            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_VALLOGODDS USE_LENORM < <(printf '%s\n' "$V")
-            run_eval_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$TASK" "$gpu_id"
+            IFS=':' read -r NAME PREF_W NLLV_W NLLG_W USE_VALLOGODDS USE_LENORM FORCE_SAME_X < <(printf '%s\n' "$V")
+            FORCE_SAME_X=${FORCE_SAME_X:-1}
+            run_eval_variant "$NAME" "$PREF_W" "$NLLV_W" "$NLLG_W" "$USE_VALLOGODDS" "$USE_LENORM" "$FORCE_SAME_X" "$TASK" "$gpu_id"
             assigned=$((assigned + 1))
         fi
         idx=$((idx + 1))

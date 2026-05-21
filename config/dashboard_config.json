@@ -1,26 +1,23 @@
 {
   "outputs_dir": "/datastor2/jocelyn/rankalign/outputs",
-  "task_pattern": "ifeval-prompt_([0-9]+)",
+  "file_pattern": "scores_*.csv",
+  "task_pattern": "hypernym-([a-zA-Z]+)",
   "split_patterns": {
     "train": "_train_",
     "test": "_test_"
   },
-  "label_column": "correct",
-  "label_map": {
-    "yes": 1,
-    "no": 0
-  },
+  "label_column": "gpt4_ground_truth",
+  "label_map": {"yes": 1, "no": 0},
   "gen_score_col": "gen_score",
   "val_score_col": "val_score",
-  "base_pattern": "^scores_self-gemma-2-9b-it",
-  "finetuned_pattern": "^scores_self-v6-google_gemma-2-9b-it-delta",
+  "base_pattern": "^scores_self-v6-google_gemma-2-2b_",
+  "finetuned_pattern": "^scores_self-v6-google_gemma-2-2b-delta",
   "union_models": {
-    "training_task": "ifeval-concat",
-    "eval_task_pattern": "force-same-x_(?:vallogodds_)?merged_(ifeval-prompt_[0-9]+)_"
+    "training_task": "hypernym-concat-bananas-to-dogs-double-all",
+    "eval_task_pattern": "(hypernym-[a-zA-Z]+)_test"
   },
   "aggregation_groups": {
-    "out-of-domain": "regex:^ifeval-prompt-([1-9]|1\\d|2[0-1])$",
-    "in-domain": "regex:^ifeval-prompt-(2[2-9]|[3-9]\\d|\\d{3,})$"
+    "All Hypernym": "hypernym-*"
   },
   "eval_columns": {
     "raw": "gen_score",
@@ -28,31 +25,8 @@
     "lenorm": "gen_score_lenorm",
     "tc+lenorm": "gen_score_typcorr_lenorm"
   },
-  "metrics": [
-    "Val Acc",
-    "Val ROC",
-    "Gen ROC",
-    "Correlation",
-    "Corr-Pos",
-    "Corr-Neg"
-  ],
-  "visible_categories": [
-    "Base",
-    "S",
-    "U"
-  ],
-  "visible_modes": [
-    "Comb",
-    "SFT",
-    "Pref"
-  ],
-  "visible_flags": [
-    "all",
-    "labelonly",
-    "semi",
-    "tco",
-    "tcneg",
-    "norm",
-    "v"
-  ]
+  "metrics": ["Val Acc", "Val ROC", "Gen ROC", "Correlation", "Corr-Pos", "Corr-Neg"],
+  "visible_categories": ["Base", "S", "U"],
+  "visible_modes": ["Comb", "SFT", "Pref"],
+  "visible_flags": ["all", "labelonly", "semi", "tco", "tcneg", "norm", "v"]
 }

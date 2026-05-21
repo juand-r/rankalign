@@ -3,12 +3,14 @@
 Visualization dashboard for semi-supervised / label-only evaluation scores.
 
 Row classification: each heatmap row comes from exactly ONE scores file.
-Rows are discovered from data via combinatorial scheme:
-    {data_mode}-{training_mode}[-tcs][-norm][-v]
+Finetuned rows use a combinatorial scheme:
+    {data_mode}-{training_mode}[-tcs|-tcsstep][-norm][-v]
 
   data_mode:     LO (label-only) or Semi (semi-supervised)
   training_mode: Pref, Comb, or SFT
-  flags:         tcs (tc-self), norm (lenorm), v (vallogodds)
+  flags:         tcs (tc-self), tcsstep (tc-self-step), norm (lenorm), v (vallogodds)
+
+Non-finetuned base model checkpoints add a single shared row label "Base" (optional, via base_pattern).
 
 Supports hypernym, ambigqa, plausibleqa, and ifeval tasks.
 
@@ -61,6 +63,10 @@ DEFAULT_CONFIG = {
     'outputs_dir': str(DEFAULT_OUTPUTS_DIR),
     'file_pattern': 'scores_self-*.csv',
     'finetuned_pattern': r'^scores_self-v6-google_gemma-2-2b-delta',
+    # Base (non-finetuned) eval files, e.g. scores_v6-google_gemma-2-2b_* (see base_scores_glob)
+    'base_pattern': r'^scores_v6-google_gemma-2-2b_',
+    'base_scores_glob': 'scores_v6-google_gemma-2-2b*.csv',
+    'include_base_model_eval': True,
     'split_patterns': {
         'train': '_train_',
         'test': '_test_'
@@ -83,7 +89,9 @@ DEFAULT_CONFIG = {
     },
     'visible_data_modes': ['LO', 'Semi'],
     'visible_modes': ['Comb', 'SFT', 'Pref'],
-    'visible_flags': ['tcs', 'norm', 'v'],
+    'visible_flags': ['tcs', 'tcsstep', 'norm', 'v'],
+    # Limit tasks in dropdowns / heatmaps (parsed task id, e.g. hypernym-foo). Empty = all.
+    'task_filter_pattern': '',
 }
 
 # Visualization colors
@@ -116,13 +124,15 @@ class FileInfo:
     nllv_weight: Optional[float]
     nllg_weight: Optional[float]
     # Flags:
-    has_tc_self: bool       # _tc-self_ in filename
+    has_tc_self: bool       # _tc-self_ in filename (not tc-self-step)
+    has_tc_self_step: bool  # _tc-self-step_ in filename
     has_norm: bool          # _lenorm_ in filename
     has_vallogodds: bool    # _vallogodds in filename
     # Derived:
-    training_mode: str      # "SFT", "Pref", or "Comb"
-    row_label: str          # e.g. "LO-Comb-tcs-norm-v"
+    training_mode: str      # "SFT", "Pref", or "Comb" ("" for base)
+    row_label: str          # e.g. "LO-Comb-tcs-norm-v" or "Base"
     timestamp: str          # extracted from filename for dedup
+    is_base: bool = False   # True for non-finetuned base model score files
 
 
 # =============================================================================
@@ -141,20 +151,44 @@ def parse_filename(csv_file, config):
     """Parse a semi-supervised scores CSV filename into a FileInfo.
 
     Pipeline:
+      0. Optional: base model (base_pattern, non-finetuned) -> row "Base"
       1. Match finetuned pattern (scores_self-...-delta)
       2. Require _d2g_
       3. Extract data mode (semi / labelonly)
       4. Extract eval task via EVAL_TASK_RE
       5. Training mode (SFT / Pref / Comb)
-      6. Flags (tc-self, lenorm, vallogodds)
+      6. Flags (tc-self, tc-self-step, lenorm, vallogodds)
 
     Returns FileInfo or None (for files that should be skipped).
     """
     name = Path(csv_file).name
     stem = Path(csv_file).stem
-    finetuned_pattern = config.get('finetuned_pattern', '')
+    finetuned_pattern = config.get('finetuned_pattern', '') or ''
+    base_pattern = (config.get('base_pattern') or '').strip()
 
-    if not finetuned_pattern or not re.match(finetuned_pattern, stem):
+    is_finetuned = bool(finetuned_pattern and re.match(finetuned_pattern, stem))
+
+    # --- Base model (non-finetuned) ---
+    if base_pattern and re.match(base_pattern, stem) and not is_finetuned:
+        eval_match = EVAL_TASK_RE.search(stem)
+        if not eval_match:
+            return None
+        task = eval_match.group(1)
+        dataset = task.split('-', 1)[1] if '-' in task else task
+        split = _extract_split(stem, config.get('split_patterns', {}))
+        if split == 'unknown':
+            return None
+        timestamp = _extract_timestamp(name)
+        return FileInfo(
+            path=str(csv_file), filename=name,
+            task=task, dataset=dataset, split=split,
+            data_mode='', pref_weight=None, nllv_weight=None, nllg_weight=None,
+            has_tc_self=False, has_tc_self_step=False, has_norm=False, has_vallogodds=False,
+            training_mode='', row_label='Base', timestamp=timestamp,
+            is_base=True,
+        )
+
+    if not finetuned_pattern or not is_finetuned:
         return None
 
     if '_d2g_' not in stem:
@@ -214,20 +248,25 @@ def parse_filename(csv_file, config):
         training_mode = 'Comb'
 
     # --- Flags ---
-    has_tc_self = '_tc-self_' in stem
+    has_tc_self_step = '_tc-self-step_' in stem
+    has_tc_self = ('_tc-self_' in stem) and not has_tc_self_step
     has_norm = '_lenorm_' in stem
     has_vallogodds = '_vallogodds' in stem
 
-    row_label = build_row_label(data_mode, training_mode, has_tc_self, has_norm, has_vallogodds)
+    row_label = build_row_label(
+        data_mode, training_mode, has_tc_self, has_tc_self_step, has_norm, has_vallogodds
+    )
 
     return FileInfo(
         path=str(csv_file), filename=name,
         task=task, dataset=dataset, split=split,
         data_mode=data_mode,
         pref_weight=pref_weight, nllv_weight=nllv_weight, nllg_weight=nllg_weight,
-        has_tc_self=has_tc_self, has_norm=has_norm, has_vallogodds=has_vallogodds,
+        has_tc_self=has_tc_self, has_tc_self_step=has_tc_self_step,
+        has_norm=has_norm, has_vallogodds=has_vallogodds,
         training_mode=training_mode, row_label=row_label,
         timestamp=timestamp,
+        is_base=False,
     )
 
 
@@ -235,14 +274,18 @@ def parse_filename(csv_file, config):
 # ROW LABEL BUILDER
 # =============================================================================
 
-def build_row_label(data_mode, training_mode, has_tc_self, has_norm, has_vallogodds):
+def build_row_label(
+    data_mode, training_mode, has_tc_self, has_tc_self_step, has_norm, has_vallogodds
+):
     """Build a row label from parsed fields.
 
-    Format: {data_mode}-{training_mode}[-tcs][-norm][-v]
-    Examples: "LO-Pref", "Semi-Comb-tcs-norm-v", "LO-SFT-tcs"
+    Format: {data_mode}-{training_mode}[-tcs|-tcsstep][-norm][-v]
+    Examples: "LO-Pref", "Semi-Comb-tcs-norm-v", "Semi-Comb-tcsstep", "LO-SFT-tcs"
     """
     parts = [f"{data_mode}-{training_mode}"]
-    if has_tc_self:
+    if has_tc_self_step:
+        parts.append('tcsstep')
+    elif has_tc_self:
         parts.append('tcs')
     if has_norm:
         parts.append('norm')
@@ -252,7 +295,9 @@ def build_row_label(data_mode, training_mode, has_tc_self, has_norm, has_vallogo
 
 
 def row_sort_key(row_label):
-    """Sort key for row labels. LO before Semi, then by mode, then flags."""
+    """Sort key for row labels. LO before Semi, then by mode, then flags; Base last."""
+    if row_label == 'Base':
+        return (2, 99, '', row_label)
     parts = row_label.split('-', 2)
     data_mode = parts[0] if parts else ''
 
@@ -268,9 +313,12 @@ def row_sort_key(row_label):
 
 def is_row_visible(row_label, config):
     """Check if a row should be displayed based on config visibility settings."""
+    if row_label == 'Base':
+        return bool(config.get('include_base_model_eval', True))
+
     visible_data_modes = config.get('visible_data_modes', ['LO', 'Semi'])
     visible_modes = config.get('visible_modes', ['Comb', 'SFT', 'Pref'])
-    visible_flags = config.get('visible_flags', ['tcs', 'norm', 'v'])
+    visible_flags = config.get('visible_flags', ['tcs', 'tcsstep', 'norm', 'v'])
 
     parts = row_label.split('-', 2)
     data_mode = parts[0] if parts else ''
@@ -295,6 +343,22 @@ def is_row_visible(row_label, config):
 # FILE RESOLUTION
 # =============================================================================
 
+def _iter_score_csv_paths(outputs_dir: Path, config):
+    """Yield unique CSV paths: primary file_pattern plus base_scores_glob when base eval is enabled."""
+    patterns = [config.get('file_pattern', 'scores_self-*.csv')]
+    base_pat = (config.get('base_pattern') or '').strip()
+    if base_pat and config.get('include_base_model_eval', True):
+        bg = (config.get('base_scores_glob') or '').strip() or 'scores_v6-google_gemma-2-2b*.csv'
+        if bg not in patterns:
+            patterns.append(bg)
+    seen = set()
+    for pat in patterns:
+        for p in sorted(outputs_dir.glob(pat)):
+            if p not in seen:
+                seen.add(p)
+                yield p
+
+
 def discover_and_resolve_files(config):
     """Discover all scores files and parse them into FileInfo objects.
 
@@ -302,11 +366,10 @@ def discover_and_resolve_files(config):
         list of FileInfo: All successfully parsed files.
     """
     outputs_dir = Path(config['outputs_dir'])
-    file_pattern = config.get('file_pattern', 'scores_*.csv')
 
     all_files = []
     skipped = 0
-    for csv_file in sorted(outputs_dir.glob(file_pattern)):
+    for csv_file in _iter_score_csv_paths(outputs_dir, config):
         try:
             info = parse_filename(csv_file, config)
             if info is not None:
@@ -456,6 +519,139 @@ def compute_metrics(gen_scores, val_scores, labels, metric_type='log-odds'):
         'corr': corr_all, 'corr_pos': corr_pos, 'corr_neg': corr_neg,
         'acc': acc, 'val_roc': val_roc, 'gen_roc': gen_roc
     }
+
+
+DASH_TASK_SOURCE_COL = '_dash_task_source'
+
+# Plotly qualitative + Dark24 + Set2 (no runtime import of plotly.colors for env compatibility)
+_QUALITATIVE_COLORS = (
+    '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+    '#FF97FF', '#FECB52', '#2E91E5', '#E15F99', '#1CA71C', '#FB0D0D', '#DA16FF', '#222A2A',
+    '#B68100', '#750D86', '#EB663B', '#511CFB', '#00A08B', '#FB00D1', '#FC0080', '#EBEEEB',
+    '#AD9900', '#15EF4F', '#A1045A', '#785EF0', '#00FFC0', '#FA4B1B', '#FE00FA', '#F14D16',
+    '#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B', '#E377C2', '#7F7F7F',
+    '#BCBD22', '#17BECF', '#66C2A5', '#FC8D62', '#8DA0CB', '#E78AC3', '#A6D854', '#FFD92F',
+    '#E5C494', '#B3B3B3',
+)
+
+
+def _qualitative_palette(n: int) -> List[str]:
+    return [_QUALITATIVE_COLORS[i % len(_QUALITATIVE_COLORS)] for i in range(n)]
+
+
+def build_multi_prompt_gv_figure(
+    combined_df: pd.DataFrame,
+    gen_col: str,
+    gen_axis_title: str,
+    val_col: str,
+    metric_label: str,
+    metric_type: str,
+    title: str,
+    task_col: str = DASH_TASK_SOURCE_COL,
+) -> go.Figure:
+    """Generator vs validator scatter with marginals; points colored by source task (prompt), not label."""
+    def _empty(msg: str) -> go.Figure:
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[dict(text=msg, xref='paper', yref='paper', x=0.5, y=0.5, showarrow=False)],
+        )
+        return fig
+
+    if combined_df is None or combined_df.empty:
+        return _empty('Select one or more tasks and ensure split/model match files.')
+
+    if gen_col not in combined_df.columns or val_col not in combined_df.columns:
+        return _empty(f'Missing columns: need {gen_col!r} and {val_col!r} in loaded data.')
+
+    df = combined_df.copy()
+    valid_mask = np.isfinite(df[gen_col].astype(float)) & np.isfinite(df[val_col].astype(float))
+    valid = df.loc[valid_mask]
+    if valid.empty:
+        return _empty('No finite gen/val scores for the selected tasks.')
+
+    tasks = sorted(valid[task_col].astype(str).unique())
+    palette = _qualitative_palette(len(tasks))
+    colors = {t: palette[i] for i, t in enumerate(tasks)}
+
+    threshold = 0 if metric_type == 'log-odds' else np.log(0.5)
+
+    has_noun2 = 'noun2' in valid.columns
+    prompt_col = 'prompt' if 'prompt' in valid.columns else ('val_prompt' if 'val_prompt' in valid.columns else None)
+    response_col = 'response' if 'response' in valid.columns else ('answer' if 'answer' in valid.columns else None)
+    main_fig = make_subplots(
+        rows=2, cols=2,
+        column_widths=[0.8, 0.2],
+        row_heights=[0.2, 0.8],
+        horizontal_spacing=0.02,
+        vertical_spacing=0.02,
+        specs=[[{"type": "histogram"}, None],
+               [{"type": "scatter"}, {"type": "histogram"}]],
+    )
+
+    for t in tasks:
+        sub = valid[valid[task_col].astype(str) == t]
+        gx = sub[gen_col].values.astype(float)
+        vy = sub[val_col].values.astype(float)
+        lab = sub['label'].values if 'label' in sub.columns else np.zeros(len(sub), dtype=int)
+        hover_texts = []
+        for i in range(len(gx)):
+            parts = [f"Task={t}", f"Gen={gx[i]:.2f}", f"Val={vy[i]:.2f}",
+                     'correct' if lab[i] == 1 else 'incorrect']
+            if has_noun2:
+                parts.append(f"Item={sub['noun2'].iloc[i]}")
+            elif response_col == 'answer' and 'answer' in sub.columns:
+                parts.append(f"Answer={sub['answer'].iloc[i]}")
+            hover_texts.append(' | '.join(parts))
+        if prompt_col or response_col:
+            fp = sub[prompt_col].astype(str).fillna('').values if prompt_col else np.array([''] * len(sub), dtype=object)
+            fr = sub[response_col].astype(str).fillna('').values if response_col else np.array([''] * len(sub), dtype=object)
+            cd = np.column_stack([fp, fr])
+        else:
+            cd = None
+
+        c = colors[t]
+        main_fig.add_trace(
+            go.Scatter(
+                x=gx,
+                y=vy,
+                mode='markers',
+                marker=dict(color=c, size=8, opacity=0.65),
+                name=str(t),
+                legendgroup=str(t),
+                hovertext=np.array(hover_texts),
+                hoverinfo='text',
+                customdata=cd,
+            ),
+            row=2,
+            col=1,
+        )
+        main_fig.add_trace(
+            go.Histogram(x=gx, marker_color=c, opacity=0.45, showlegend=False, name=f'{t}-x'),
+            row=1,
+            col=1,
+        )
+        main_fig.add_trace(
+            go.Histogram(y=vy, marker_color=c, opacity=0.45, showlegend=False, name=f'{t}-y'),
+            row=2,
+            col=2,
+        )
+
+    main_fig.add_hline(y=threshold, line=dict(color='red', dash='dash', width=2), row=2, col=1)
+
+    main_fig.update_layout(
+        title=title,
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        showlegend=True,
+        barmode='overlay',
+        legend=dict(orientation='v', yanchor='top', y=1, xanchor='left', x=1.02),
+    )
+    main_fig.update_xaxes(title_text=gen_axis_title, row=2, col=1, showgrid=True, gridcolor='lightgray')
+    main_fig.update_yaxes(title_text=f'Validator {metric_label}', row=2, col=1, showgrid=True, gridcolor='lightgray')
+    return main_fig
 
 
 # =============================================================================
@@ -702,6 +898,34 @@ def expand_aggregation_pattern(pattern, all_tasks):
     return []
 
 
+def task_name_matches_filter(task_name: str, pattern: str) -> bool:
+    """Match a parsed task name against task_filter_pattern (empty string matches all).
+
+    - Glob with '*': fnmatch
+    - Prefix ``regex:``: re.search on task name
+    - Otherwise: exact string equality
+    """
+    p = (pattern or '').strip()
+    if not p:
+        return True
+    if p.startswith('regex:'):
+        try:
+            return bool(re.search(p[len('regex:'):], task_name))
+        except re.error:
+            return False
+    if '*' in p:
+        return fnmatch.fnmatch(task_name, p)
+    return task_name == p
+
+
+def filter_file_infos_by_task_pattern(file_infos, config):
+    """Keep only FileInfo rows whose task matches config task_filter_pattern."""
+    pat = (config.get('task_filter_pattern') or '').strip()
+    if not pat:
+        return file_infos
+    return [f for f in file_infos if task_name_matches_filter(f.task, pat)]
+
+
 # =============================================================================
 # CONFIG MANAGEMENT
 # =============================================================================
@@ -783,6 +1007,34 @@ app.layout = html.Div([
                               style={'color': '#666'})
                 ], style={'marginBottom': '15px'}),
 
+                # Base model pattern + glob
+                html.Div([
+                    html.Label('Base Model Pattern (regex, optional):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Input(id='config-base-pattern', type='text',
+                             value=DEFAULT_CONFIG['base_pattern'],
+                             style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
+                    html.Small('e.g. ^scores_v6-google_gemma-2-2b_ — leave empty to skip base model CSVs',
+                              style={'color': '#666'})
+                ], style={'marginBottom': '15px'}),
+
+                html.Div([
+                    html.Label('Base Model File Glob:', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Input(id='config-base-scores-glob', type='text',
+                             value=DEFAULT_CONFIG['base_scores_glob'],
+                             style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
+                    html.Small('Used only when Base Model Pattern is non-empty; widened to discover base score files',
+                              style={'color': '#666'})
+                ], style={'marginBottom': '15px'}),
+
+                html.Div([
+                    dcc.Checklist(
+                        id='config-include-base',
+                        options=[{'label': ' Include base model eval row (heatmaps + model dropdown)', 'value': 'yes'}],
+                        value=['yes'] if DEFAULT_CONFIG['include_base_model_eval'] else [],
+                        style={'fontSize': '14px'}
+                    ),
+                ], style={'marginBottom': '15px'}),
+
                 # Split patterns
                 html.Div([
                     html.Label('Split Patterns (JSON):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
@@ -813,6 +1065,18 @@ app.layout = html.Div([
                                 value=json.dumps(DEFAULT_CONFIG['aggregation_groups'], indent=2),
                                 style={'width': '100%', 'height': '80px', 'padding': '8px', 'borderRadius': '4px',
                                        'border': '1px solid #ccc', 'fontFamily': 'monospace'}),
+                ], style={'marginBottom': '15px'}),
+
+                # Task filter (parsed task ids)
+                html.Div([
+                    html.Label('Task filter (optional):', style={'fontWeight': 'bold', 'display': 'block', 'marginBottom': '5px'}),
+                    dcc.Input(id='config-task-filter-pattern', type='text',
+                             value=DEFAULT_CONFIG['task_filter_pattern'],
+                             placeholder='e.g. hypernym-*  or  regex:ifeval-prompt_.*',
+                             style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
+                    html.Small('Restrict dropdowns and heatmaps to matching parsed task names. '
+                               'Empty = all tasks. Glob (*), exact match, or regex:... (same rules as aggregation groups).',
+                              style={'color': '#666'})
                 ], style={'marginBottom': '15px'}),
 
                 # Eval columns
@@ -846,7 +1110,11 @@ app.layout = html.Div([
                     dcc.Input(id='config-visible-flags', type='text',
                              value=json.dumps(DEFAULT_CONFIG['visible_flags']),
                              style={'width': '100%', 'padding': '8px', 'borderRadius': '4px', 'border': '1px solid #ccc'}),
-                    html.Small('Options: "tcs" (tc-self), "norm" (lenorm), "v" (vallogodds)', style={'color': '#666'})
+                    html.Small(
+                        'Options: "tcs" (tc-self), "tcsstep" (tc-self-step), '
+                        '"norm" (lenorm), "v" (vallogodds)',
+                        style={'color': '#666'},
+                    )
                 ], style={'marginBottom': '25px'}),
 
             ], style={'maxWidth': '800px', 'margin': '0 auto', 'padding': '20px',
@@ -916,6 +1184,42 @@ app.layout = html.Div([
             'whiteSpace': 'pre-wrap'
         }, children="Click a point in the main scatter to view the full prompt/response here."),
 
+        # Multi-prompt overlay (same layout as main GV scatter; color = task, not label)
+        html.Details([
+            html.Summary(
+                '🧩 Multi-prompt generator vs validator (raw & FC)',
+                style={'cursor': 'pointer', 'fontWeight': 'bold'}
+            ),
+            html.Div([
+                html.Label('Tasks to overlay on one plot (same split & model):', style={'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    id='multi-prompt-task-selector',
+                    multi=True,
+                    placeholder='Select one or more tasks…',
+                    style={'width': '100%'},
+                ),
+            ], style={'width': '80%', 'margin': '12px auto'}),
+            html.P(
+                'Points are colored by task (legend). Raw uses config eval column '
+                '"raw"; FC uses "tc" (typo-corrected).',
+                style={'width': '80%', 'margin': '0 auto 8px', 'color': '#555', 'fontSize': '13px'},
+            ),
+            dcc.Graph(id='multi-prompt-raw-scatter', style={'height': '700px'}),
+            html.Div(id='response-panel-multi-raw', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap',
+            }, children='Click a point in the raw plot to view prompt/response here.'),
+            dcc.Graph(id='multi-prompt-fc-scatter', style={'height': '700px'}),
+            html.Div(id='response-panel-multi-fc', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap',
+            }, children='Click a point in the FC plot to view prompt/response here.'),
+        ], style={'margin': '20px'}),
+
         # Faceted by strategy
         html.Details([
             html.Summary('📊 Faceted View by Strategy', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
@@ -971,35 +1275,44 @@ app.layout = html.Div([
 # CALLBACKS - CONFIG PAGE
 # =============================================================================
 
-def _build_config_from_form(outputs_dir, finetuned_pattern, split_patterns, label_col,
-                            label_map, aggregation, eval_cols,
+def _build_config_from_form(outputs_dir, finetuned_pattern, base_pattern, base_scores_glob,
+                            include_base, split_patterns, label_col,
+                            label_map, aggregation, task_filter_pattern, eval_cols,
                             visible_data_modes, visible_modes, visible_flags):
     """Build config dict from form values."""
     return {
         'outputs_dir': outputs_dir,
         'file_pattern': 'scores_self-*.csv',
         'finetuned_pattern': finetuned_pattern,
+        'base_pattern': (base_pattern or '').strip(),
+        'base_scores_glob': (base_scores_glob or '').strip(),
+        'include_base_model_eval': bool(include_base and 'yes' in include_base),
         'split_patterns': json.loads(split_patterns) if split_patterns else {},
         'label_column': label_col,
         'label_map': json.loads(label_map) if label_map else None,
         'gen_score_col': 'gen_score',
         'val_score_col': 'val_score',
         'aggregation_groups': json.loads(aggregation) if aggregation else {},
+        'task_filter_pattern': (task_filter_pattern or '').strip(),
         'eval_columns': json.loads(eval_cols) if eval_cols else {},
         'metrics': DEFAULT_CONFIG['metrics'],
         'visible_data_modes': json.loads(visible_data_modes) if visible_data_modes else ['LO', 'Semi'],
         'visible_modes': json.loads(visible_modes) if visible_modes else ['Comb', 'SFT', 'Pref'],
-        'visible_flags': json.loads(visible_flags) if visible_flags else ['tcs', 'norm', 'v'],
+        'visible_flags': json.loads(visible_flags) if visible_flags else ['tcs', 'tcsstep', 'norm', 'v'],
     }
 
 
 @app.callback(
     [Output('config-outputs-dir', 'value'),
      Output('config-finetuned-pattern', 'value'),
+     Output('config-base-pattern', 'value'),
+     Output('config-base-scores-glob', 'value'),
+     Output('config-include-base', 'value'),
      Output('config-split-patterns', 'value'),
      Output('config-label-col', 'value'),
      Output('config-label-map', 'value'),
      Output('config-aggregation', 'value'),
+     Output('config-task-filter-pattern', 'value'),
      Output('config-eval-cols', 'value'),
      Output('config-visible-data-modes', 'value'),
      Output('config-visible-modes', 'value'),
@@ -1022,23 +1335,29 @@ def handle_load_config(n_clicks):
         return (
             dash.no_update, dash.no_update, dash.no_update, dash.no_update,
             dash.no_update, dash.no_update, dash.no_update, dash.no_update,
+            dash.no_update, dash.no_update, dash.no_update, dash.no_update,
             dash.no_update, dash.no_update,
             f"⚠️ {error}",
             style
         )
 
     style = {**base_style, 'backgroundColor': '#e8f5e9', 'color': '#2e7d32'}
+    inc = config.get('include_base_model_eval', True)
     return (
         config.get('outputs_dir', str(DEFAULT_OUTPUTS_DIR)),
         config.get('finetuned_pattern', ''),
+        config.get('base_pattern', DEFAULT_CONFIG['base_pattern']),
+        config.get('base_scores_glob', DEFAULT_CONFIG['base_scores_glob']),
+        ['yes'] if inc else [],
         json.dumps(config.get('split_patterns', {})),
         config.get('label_column', 'gpt4_ground_truth'),
         json.dumps(config.get('label_map')) if config.get('label_map') else '',
         json.dumps(config.get('aggregation_groups', {}), indent=2),
+        config.get('task_filter_pattern', ''),
         json.dumps(config.get('eval_columns', {}), indent=2),
         json.dumps(config.get('visible_data_modes', ['LO', 'Semi'])),
         json.dumps(config.get('visible_modes', ['Comb', 'SFT', 'Pref'])),
-        json.dumps(config.get('visible_flags', ['tcs', 'norm', 'v'])),
+        json.dumps(config.get('visible_flags', ['tcs', 'tcsstep', 'norm', 'v'])),
         f"✅ Loaded config from {CONFIG_FILE}",
         style
     )
@@ -1050,18 +1369,23 @@ def handle_load_config(n_clicks):
     [Input('save-json-btn', 'n_clicks')],
     [State('config-outputs-dir', 'value'),
      State('config-finetuned-pattern', 'value'),
+     State('config-base-pattern', 'value'),
+     State('config-base-scores-glob', 'value'),
+     State('config-include-base', 'value'),
      State('config-split-patterns', 'value'),
      State('config-label-col', 'value'),
      State('config-label-map', 'value'),
      State('config-aggregation', 'value'),
+     State('config-task-filter-pattern', 'value'),
      State('config-eval-cols', 'value'),
      State('config-visible-data-modes', 'value'),
      State('config-visible-modes', 'value'),
      State('config-visible-flags', 'value')],
     prevent_initial_call=True
 )
-def save_config(n_clicks, outputs_dir, finetuned_pattern, split_patterns, label_col,
-                label_map, aggregation, eval_cols,
+def save_config(n_clicks, outputs_dir, finetuned_pattern, base_pattern, base_scores_glob,
+                include_base, split_patterns, label_col,
+                label_map, aggregation, task_filter_pattern, eval_cols,
                 visible_data_modes, visible_modes, visible_flags):
     """Save current config to JSON file."""
     if not n_clicks:
@@ -1071,8 +1395,9 @@ def save_config(n_clicks, outputs_dir, finetuned_pattern, split_patterns, label_
 
     try:
         config = _build_config_from_form(
-            outputs_dir, finetuned_pattern, split_patterns, label_col,
-            label_map, aggregation, eval_cols,
+            outputs_dir, finetuned_pattern, base_pattern, base_scores_glob, include_base,
+            split_patterns, label_col,
+            label_map, aggregation, task_filter_pattern, eval_cols,
             visible_data_modes, visible_modes, visible_flags
         )
         save_config_to_file(config)
@@ -1098,16 +1423,22 @@ def save_config(n_clicks, outputs_dir, finetuned_pattern, split_patterns, label_
      Output('split-selector', 'options'),
      Output('split-selector', 'value'),
      Output('model-selector', 'options'),
-     Output('model-selector', 'value')],
+     Output('model-selector', 'value'),
+     Output('multi-prompt-task-selector', 'options'),
+     Output('multi-prompt-task-selector', 'value')],
     [Input('load-dashboard-btn', 'n_clicks'),
      Input('load-dashboard-btn-top', 'n_clicks'),
      Input('back-to-config-btn', 'n_clicks')],
     [State('config-outputs-dir', 'value'),
      State('config-finetuned-pattern', 'value'),
+     State('config-base-pattern', 'value'),
+     State('config-base-scores-glob', 'value'),
+     State('config-include-base', 'value'),
      State('config-split-patterns', 'value'),
      State('config-label-col', 'value'),
      State('config-label-map', 'value'),
      State('config-aggregation', 'value'),
+     State('config-task-filter-pattern', 'value'),
      State('config-eval-cols', 'value'),
      State('config-visible-data-modes', 'value'),
      State('config-visible-modes', 'value'),
@@ -1115,8 +1446,9 @@ def save_config(n_clicks, outputs_dir, finetuned_pattern, split_patterns, label_
     prevent_initial_call=True
 )
 def toggle_pages(load_clicks, load_clicks_top, back_clicks,
-                 outputs_dir, finetuned_pattern, split_patterns, label_col,
-                 label_map, aggregation, eval_cols,
+                 outputs_dir, finetuned_pattern, base_pattern, base_scores_glob, include_base,
+                 split_patterns, label_col,
+                 label_map, aggregation, task_filter_pattern, eval_cols,
                  visible_data_modes, visible_modes, visible_flags):
     """Toggle between config page and viz page."""
     ctx = dash.callback_context
@@ -1136,18 +1468,20 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
     if button_id == 'back-to-config-btn':
         return (config_visible, viz_hidden, None, None,
                 dash.no_update, dash.no_update, dash.no_update, dash.no_update,
-                dash.no_update, dash.no_update)
+                dash.no_update, dash.no_update, dash.no_update, dash.no_update)
 
     # Load dashboard
     try:
         config = _build_config_from_form(
-            outputs_dir, finetuned_pattern, split_patterns, label_col,
-            label_map, aggregation, eval_cols,
+            outputs_dir, finetuned_pattern, base_pattern, base_scores_glob, include_base,
+            split_patterns, label_col,
+            label_map, aggregation, task_filter_pattern, eval_cols,
             visible_data_modes, visible_modes, visible_flags
         )
 
         # Discover and parse files
         file_infos = discover_and_resolve_files(config)
+        file_infos = filter_file_infos_by_task_pattern(file_infos, config)
 
         if not file_infos:
             raise PreventUpdate
@@ -1158,7 +1492,10 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
         # Build dropdown options
         all_tasks = sorted(set(f.task for f in file_infos))
         all_splits = sorted(set(f.split for f in file_infos))
-        all_row_labels = sorted(set(f.row_label for f in file_infos), key=row_sort_key)
+        all_row_labels = sorted(
+            set(f.row_label for f in file_infos if is_row_visible(f.row_label, config)),
+            key=row_sort_key
+        )
 
         task_options = [{'label': t, 'value': t} for t in all_tasks]
         split_options = [{'label': s, 'value': s} for s in all_splits]
@@ -1168,7 +1505,9 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
             config_hidden, viz_visible, config, files_data,
             task_options, all_tasks[0] if all_tasks else None,
             split_options, all_splits[0] if all_splits else None,
-            model_options, all_row_labels[0] if all_row_labels else None
+            model_options, all_row_labels[0] if all_row_labels else None,
+            task_options,
+            [],
         )
 
     except Exception as e:
@@ -1183,10 +1522,11 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
      Output('model-selector', 'value', allow_duplicate=True)],
     [Input('task-selector', 'value'),
      Input('split-selector', 'value')],
-    [State('files-store', 'data')],
+    [State('files-store', 'data'),
+     State('config-store', 'data')],
     prevent_initial_call=True
 )
-def update_model_options(task, split, files_data):
+def update_model_options(task, split, files_data, config):
     """Update model dropdown based on task and split selection."""
     if not task or not split or not files_data:
         raise PreventUpdate
@@ -1195,11 +1535,145 @@ def update_model_options(task, split, files_data):
         set(f['row_label'] for f in files_data if f['task'] == task and f['split'] == split),
         key=row_sort_key
     )
+    if config:
+        available = [r for r in available if is_row_visible(r, config)]
 
     if not available:
         return [{'label': 'No models available', 'value': None}], None
 
     return [{'label': m, 'value': m} for m in available], available[0]
+
+
+@app.callback(
+    [Output('multi-prompt-raw-scatter', 'figure'),
+     Output('multi-prompt-fc-scatter', 'figure')],
+    [Input('multi-prompt-task-selector', 'value'),
+     Input('split-selector', 'value'),
+     Input('model-selector', 'value')],
+    [State('config-store', 'data'),
+     State('files-store', 'data')],
+)
+def update_multi_prompt_scatters(selected_tasks, split, row_label, config, files_data):
+    """Overlay multiple tasks on one GV scatter each for raw gen score and FC (typcorr) gen score."""
+
+    def _msg_fig(title: str, msg: str) -> go.Figure:
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text=msg,
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                    font=dict(size=14, color='#888'),
+                )
+            ],
+        )
+        return fig
+
+    empty = go.Figure()
+    if not config or not files_data or not split or not row_label:
+        return empty, empty
+
+    if not selected_tasks:
+        return (
+            _msg_fig('Multi-prompt: raw', 'Select one or more tasks above.'),
+            _msg_fig('Multi-prompt: FC', 'Select one or more tasks above.'),
+        )
+
+    eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
+    raw_col = eval_columns.get('raw', 'gen_score')
+    fc_col = eval_columns.get('tc', 'gen_score_typcorr')
+    val_col = config.get('val_score_col', 'val_score')
+
+    frames: List[pd.DataFrame] = []
+    first_path: Optional[str] = None
+    for task in selected_tasks:
+        matching = [
+            f for f in files_data
+            if f['task'] == task and f['split'] == split and f['row_label'] == row_label
+        ]
+        if not matching:
+            continue
+        csv_path = matching[0]['path']
+        if first_path is None:
+            first_path = csv_path
+        try:
+            df = load_scores_data(csv_path, config)
+        except Exception:
+            continue
+        df = df.copy()
+        df[DASH_TASK_SOURCE_COL] = task
+        frames.append(df)
+
+    if not frames:
+        empty_ann = go.Figure()
+        empty_ann.update_layout(
+            title='No matching CSVs for the selected tasks / split / model.',
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text='Check that each selected task exists for this split and model.',
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                    font=dict(size=13, color='#888'),
+                )
+            ],
+        )
+        return empty_ann, empty_ann
+
+    combined = pd.concat(frames, ignore_index=True)
+    metric_type = 'log-odds' if first_path and 'log-odds' in first_path else 'log-probs'
+    metric_label = 'log-odds' if metric_type == 'log-odds' else 'log-probs'
+    gen_axis_base = f'Generator {metric_label}'
+
+    raw_fig = build_multi_prompt_gv_figure(
+        combined,
+        raw_col,
+        f'{gen_axis_base} (raw)',
+        val_col,
+        metric_label,
+        metric_type,
+        'Multi-prompt: raw generator vs validator',
+    )
+    if fc_col not in combined.columns:
+        fc_fig = go.Figure()
+        fc_fig.update_layout(
+            title='Multi-prompt: FC generator vs validator',
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text=f'Column {fc_col!r} not found in loaded data.',
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                )
+            ],
+        )
+    else:
+        fc_fig = build_multi_prompt_gv_figure(
+            combined,
+            fc_col,
+            f'{gen_axis_base} (FC)',
+            val_col,
+            metric_label,
+            metric_type,
+            'Multi-prompt: FC generator vs validator',
+        )
+
+    return raw_fig, fc_fig
 
 
 # =============================================================================
@@ -1303,7 +1777,6 @@ def update_visualizations(task, split, row_label, config, files_data):
         raise ValueError(f"Unknown outlier_method: {outlier_method}")
 
     outlier_indices = np.argsort(outlier_scores)[-40:]
-    outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in outlier_indices]
     outlier_set = set(outlier_indices)
     non_outlier_mask = np.array([i not in outlier_set for i in range(len(labels))])
 
@@ -1366,10 +1839,14 @@ def update_visualizations(task, split, row_label, config, files_data):
         go.Scatter(
             x=gen_scores[outlier_indices], y=val_scores[outlier_indices],
             mode='markers+text',
-            marker=dict(symbol='x', size=9, color=outlier_colors),
+            marker=dict(
+                color=[POS_CLASS_COLOR if labels[i] == 1 else NEG_CLASS_COLOR for i in outlier_indices],
+                size=8,
+                opacity=0.6
+            ),
             text=outlier_display_texts,
             textposition='top right', textfont=dict(size=8),
-            name='Outliers', showlegend=False,
+            name='Outliers', showlegend=True,
             hovertext=hover_texts[outlier_indices], hoverinfo='text',
             customdata=customdata[outlier_indices] if customdata is not None else None
         ),
@@ -1445,7 +1922,13 @@ def update_visualizations(task, split, row_label, config, files_data):
             faceted_fig.update_xaxes(range=[x_min - x_pad, x_max + x_pad], showgrid=True, gridcolor='lightgray', row=r, col=c)
             faceted_fig.update_yaxes(range=[y_min - y_pad, y_max + y_pad], showgrid=True, gridcolor='lightgray', row=r, col=c)
 
-    faceted_fig.update_layout(title='Faceted by Strategy', paper_bgcolor='white', plot_bgcolor='white', height=400 * n_rows)
+    faceted_fig.update_layout(
+        title='Faceted by Strategy',
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=400 * n_rows,
+        showlegend=True
+    )
 
     # === PCA PLOT ===
     pca = PCA(n_components=2)
@@ -1457,7 +1940,7 @@ def update_visualizations(task, split, row_label, config, files_data):
     pca_fig.add_trace(
         go.Scatter(
             x=X_std[pos_mask & non_outlier_mask, 0], y=X_std[pos_mask & non_outlier_mask, 1], mode='markers',
-            marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive',
+            marker=dict(color=POS_CLASS_COLOR, size=6, opacity=0.5), name='Positive', legendgroup='pos',
             hovertext=hover_texts[pos_mask & non_outlier_mask], hoverinfo='text',
             customdata=customdata[pos_mask & non_outlier_mask] if customdata is not None else None
         ), row=1, col=1
@@ -1465,7 +1948,7 @@ def update_visualizations(task, split, row_label, config, files_data):
     pca_fig.add_trace(
         go.Scatter(
             x=X_std[neg_mask & non_outlier_mask, 0], y=X_std[neg_mask & non_outlier_mask, 1], mode='markers',
-            marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative',
+            marker=dict(color=NEG_CLASS_COLOR, size=6, opacity=0.5), name='Negative', legendgroup='neg',
             hovertext=hover_texts[neg_mask & non_outlier_mask], hoverinfo='text',
             customdata=customdata[neg_mask & non_outlier_mask] if customdata is not None else None
         ), row=1, col=1
@@ -1473,8 +1956,12 @@ def update_visualizations(task, split, row_label, config, files_data):
     pca_fig.add_trace(
         go.Scatter(
             x=X_std[outlier_indices, 0], y=X_std[outlier_indices, 1], mode='markers',
-            marker=dict(symbol='x', size=8, color=outlier_colors),
-            name='Outliers', showlegend=False,
+            marker=dict(
+                color=[POS_CLASS_COLOR if labels[i] == 1 else NEG_CLASS_COLOR for i in outlier_indices],
+                size=6,
+                opacity=0.5
+            ),
+            name='Outliers', showlegend=True,
             hovertext=hover_texts[outlier_indices], hoverinfo='text',
             customdata=customdata[outlier_indices] if customdata is not None else None
         ), row=1, col=1
@@ -1505,14 +1992,18 @@ def update_visualizations(task, split, row_label, config, files_data):
     pca_fig.add_trace(
         go.Scatter(
             x=X_pca[outlier_indices, 0], y=X_pca[outlier_indices, 1], mode='markers',
-            marker=dict(symbol='x', size=8, color=outlier_colors),
+            marker=dict(
+                color=[POS_CLASS_COLOR if labels[i] == 1 else NEG_CLASS_COLOR for i in outlier_indices],
+                size=6,
+                opacity=0.5
+            ),
             showlegend=False,
             hovertext=hover_texts[outlier_indices], hoverinfo='text',
             customdata=customdata[outlier_indices] if customdata is not None else None
         ), row=1, col=2
     )
 
-    pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white')
+    pca_fig.update_layout(paper_bgcolor='white', plot_bgcolor='white', showlegend=True)
     pca_fig.update_xaxes(title_text='Generator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray',
                          zeroline=True, zerolinecolor='black', zerolinewidth=1)
     pca_fig.update_yaxes(title_text='Validator (std)', row=1, col=1, showgrid=True, gridcolor='lightgray',
@@ -1524,7 +2015,10 @@ def update_visualizations(task, split, row_label, config, files_data):
 
     # === COMPARE CORRECTIONS 2x2 ===
     eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
-    gen_variants = [(col, name.replace('_', ' ').title()) for name, col in list(eval_columns.items())[:4]]
+    gen_variants = []
+    for name, col in list(eval_columns.items())[:4]:
+        label = name.replace('_', ' ').title().replace('Tc', 'Fc')
+        gen_variants.append((col, label))
 
     compare_fig = make_subplots(rows=2, cols=2, subplot_titles=[v[1] for v in gen_variants],
                                  vertical_spacing=0.25, horizontal_spacing=0.1)
@@ -1585,8 +2079,6 @@ def update_visualizations(task, split, row_label, config, files_data):
                 var_outlier_indices = valid_indices[sorted_by_score]
                 var_outlier_set = set(var_outlier_indices)
                 var_non_outlier_mask = np.array([i not in var_outlier_set for i in range(len(labels))])
-                var_outlier_colors = [POS_OUTLIER_COLOR if labels[i] == 1 else NEG_OUTLIER_COLOR for i in var_outlier_indices]
-
                 # Collect outlier words by type
                 if has_noun2 and outlier_method == 'kendall':
                     top_left_words = []
@@ -1633,8 +2125,14 @@ def update_visualizations(task, split, row_label, config, files_data):
                 compare_fig.add_trace(
                     go.Scatter(
                         x=gen_vals[var_outlier_indices], y=val_scores[var_outlier_indices],
-                        mode='markers', marker=dict(symbol='x', size=8, color=var_outlier_colors),
-                        showlegend=False,
+                        mode='markers',
+                        marker=dict(
+                            color=[POS_CLASS_COLOR if labels[i] == 1 else NEG_CLASS_COLOR for i in var_outlier_indices],
+                            size=6,
+                            opacity=0.5
+                        ),
+                        name='Outliers',
+                        showlegend=(idx == 0),
                         hovertext=compare_hover[var_outlier_indices], hoverinfo='text',
                         customdata=compare_customdata[var_outlier_indices] if compare_customdata is not None else None
                     ),
@@ -1713,8 +2211,14 @@ def update_visualizations(task, split, row_label, config, files_data):
                     align='left', xanchor='center', yanchor='top'
                 )
 
-    compare_fig.update_layout(title='Compare Score Corrections', paper_bgcolor='white', plot_bgcolor='white',
-                               height=1100, margin=dict(b=150))
+    compare_fig.update_layout(
+        title='Compare Score Corrections',
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        height=1100,
+        margin=dict(b=150),
+        showlegend=True
+    )
 
     file_status = f"Loaded: {Path(csv_path).name}"
     return file_status, stats_text, main_fig, faceted_fig, pca_fig, compare_fig
@@ -1728,13 +2232,17 @@ def update_visualizations(task, split, row_label, config, files_data):
     [Output('response-panel-main', 'children'),
      Output('response-panel-faceted', 'children'),
      Output('response-panel-pca', 'children'),
-     Output('response-panel-compare', 'children')],
+     Output('response-panel-compare', 'children'),
+     Output('response-panel-multi-raw', 'children'),
+     Output('response-panel-multi-fc', 'children')],
     [Input('main-scatter', 'clickData'),
      Input('faceted-plot', 'clickData'),
      Input('pca-plot', 'clickData'),
-     Input('compare-plot', 'clickData')]
+     Input('compare-plot', 'clickData'),
+     Input('multi-prompt-raw-scatter', 'clickData'),
+     Input('multi-prompt-fc-scatter', 'clickData')]
 )
-def update_response_panels(main_click, faceted_click, pca_click, compare_click):
+def update_response_panels(main_click, faceted_click, pca_click, compare_click, multi_raw_click, multi_fc_click):
     """Show full prompt/response text on click for each graph."""
     def render_panel(click_data, empty_text):
         if not click_data or 'points' not in click_data or not click_data['points']:
@@ -1756,7 +2264,9 @@ def update_response_panels(main_click, faceted_click, pca_click, compare_click):
         render_panel(main_click, "Click a point in the main scatter to view the full prompt/response here."),
         render_panel(faceted_click, "Click a point in the faceted plot to view the full prompt/response here."),
         render_panel(pca_click, "Click a point in the PCA plots to view the full prompt/response here."),
-        render_panel(compare_click, "Click a point in the compare plot to view the full prompt/response here.")
+        render_panel(compare_click, "Click a point in the compare plot to view the full prompt/response here."),
+        render_panel(multi_raw_click, "Click a point in the raw multi-prompt plot to view prompt/response here."),
+        render_panel(multi_fc_click, "Click a point in the FC multi-prompt plot to view prompt/response here."),
     )
 
 
@@ -1777,7 +2287,12 @@ def generate_all_heatmaps(config, files_data):
     children = []
 
     # Reconstruct FileInfo objects from dicts
-    file_infos = [FileInfo(**d) for d in files_data]
+    file_infos = []
+    for d in files_data:
+        d2 = dict(d)
+        d2.setdefault('is_base', False)
+        d2.setdefault('has_tc_self_step', False)
+        file_infos.append(FileInfo(**d2))
 
     all_tasks = sorted(set(f.task for f in file_infos))
     all_splits = sorted(set(f.split for f in file_infos))

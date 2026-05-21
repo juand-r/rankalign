@@ -5,7 +5,7 @@ Folder name format (constructed by ranking_loss_ref.py line 2658):
 
   v6-{model//--}-delta{delta}-epoch{epoch}--{task}[-with-ref][-all]
     --{direction}--{split}--alpha{x}
-    [--tc-neg|--tc-self|--tc-online]
+    [--tc-neg|--tc-self-step|--tc-self-epoch|--tc-self-online|--tc-self|--tc-online]
     [--lenorm][--single-token-data][--full-completion]
     [--pref{x}][--nllv{x}][--nllg{x}]
     [--force-same-x][--valboost][--vallogodds]
@@ -88,8 +88,15 @@ def parse_checkpoint_name(path: str) -> dict:
     alpha = alpha_match.group(1) if alpha_match else None
 
     # --- Typicality correction (mutually exclusive) ---
+    # Order matters: --tc-self is a substring of --tc-self-step / --tc-self-epoch / --tc-self-online.
     if '--tc-neg' in rest:
         tc = 'neg'
+    elif '--tc-self-step' in rest:
+        tc = 'self'
+    elif '--tc-self-epoch' in rest:
+        tc = 'self'
+    elif '--tc-self-online' in rest:
+        tc = 'self'  # legacy (renamed to --tc-self-epoch in training)
     elif '--tc-self' in rest:
         tc = 'self'
     elif '--tc-online' in rest:

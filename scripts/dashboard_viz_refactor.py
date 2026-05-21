@@ -621,6 +621,139 @@ def compute_metrics(gen_scores, val_scores, labels, metric_type='log-odds'):
     }
 
 
+DASH_TASK_SOURCE_COL = '_dash_task_source'
+
+# Plotly qualitative + Dark24 + Set2 (no runtime import of plotly.colors for env compatibility)
+_QUALITATIVE_COLORS = (
+    '#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880',
+    '#FF97FF', '#FECB52', '#2E91E5', '#E15F99', '#1CA71C', '#FB0D0D', '#DA16FF', '#222A2A',
+    '#B68100', '#750D86', '#EB663B', '#511CFB', '#00A08B', '#FB00D1', '#FC0080', '#EBEEEB',
+    '#AD9900', '#15EF4F', '#A1045A', '#785EF0', '#00FFC0', '#FA4B1B', '#FE00FA', '#F14D16',
+    '#1F77B4', '#FF7F0E', '#2CA02C', '#D62728', '#9467BD', '#8C564B', '#E377C2', '#7F7F7F',
+    '#BCBD22', '#17BECF', '#66C2A5', '#FC8D62', '#8DA0CB', '#E78AC3', '#A6D854', '#FFD92F',
+    '#E5C494', '#B3B3B3',
+)
+
+
+def _qualitative_palette(n: int) -> List[str]:
+    return [_QUALITATIVE_COLORS[i % len(_QUALITATIVE_COLORS)] for i in range(n)]
+
+
+def build_multi_prompt_gv_figure(
+    combined_df: pd.DataFrame,
+    gen_col: str,
+    gen_axis_title: str,
+    val_col: str,
+    metric_label: str,
+    metric_type: str,
+    title: str,
+    task_col: str = DASH_TASK_SOURCE_COL,
+) -> go.Figure:
+    """Generator vs validator scatter with marginals; points colored by source task (prompt), not label."""
+    def _empty(msg: str) -> go.Figure:
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[dict(text=msg, xref='paper', yref='paper', x=0.5, y=0.5, showarrow=False)],
+        )
+        return fig
+
+    if combined_df is None or combined_df.empty:
+        return _empty('Select one or more tasks and ensure split/model match files.')
+
+    if gen_col not in combined_df.columns or val_col not in combined_df.columns:
+        return _empty(f'Missing columns: need {gen_col!r} and {val_col!r} in loaded data.')
+
+    df = combined_df.copy()
+    valid_mask = np.isfinite(df[gen_col].astype(float)) & np.isfinite(df[val_col].astype(float))
+    valid = df.loc[valid_mask]
+    if valid.empty:
+        return _empty('No finite gen/val scores for the selected tasks.')
+
+    tasks = sorted(valid[task_col].astype(str).unique())
+    palette = _qualitative_palette(len(tasks))
+    colors = {t: palette[i] for i, t in enumerate(tasks)}
+
+    threshold = 0 if metric_type == 'log-odds' else np.log(0.5)
+
+    has_noun2 = 'noun2' in valid.columns
+    prompt_col = 'prompt' if 'prompt' in valid.columns else ('val_prompt' if 'val_prompt' in valid.columns else None)
+    response_col = 'response' if 'response' in valid.columns else ('answer' if 'answer' in valid.columns else None)
+    main_fig = make_subplots(
+        rows=2, cols=2,
+        column_widths=[0.8, 0.2],
+        row_heights=[0.2, 0.8],
+        horizontal_spacing=0.02,
+        vertical_spacing=0.02,
+        specs=[[{"type": "histogram"}, None],
+               [{"type": "scatter"}, {"type": "histogram"}]],
+    )
+
+    for t in tasks:
+        sub = valid[valid[task_col].astype(str) == t]
+        gx = sub[gen_col].values.astype(float)
+        vy = sub[val_col].values.astype(float)
+        lab = sub['label'].values if 'label' in sub.columns else np.zeros(len(sub), dtype=int)
+        hover_texts = []
+        for i in range(len(gx)):
+            parts = [f"Task={t}", f"Gen={gx[i]:.2f}", f"Val={vy[i]:.2f}",
+                     'correct' if lab[i] == 1 else 'incorrect']
+            if has_noun2:
+                parts.append(f"Item={sub['noun2'].iloc[i]}")
+            elif response_col == 'answer' and 'answer' in sub.columns:
+                parts.append(f"Answer={sub['answer'].iloc[i]}")
+            hover_texts.append(' | '.join(parts))
+        if prompt_col or response_col:
+            fp = sub[prompt_col].astype(str).fillna('').values if prompt_col else np.array([''] * len(sub), dtype=object)
+            fr = sub[response_col].astype(str).fillna('').values if response_col else np.array([''] * len(sub), dtype=object)
+            cd = np.column_stack([fp, fr])
+        else:
+            cd = None
+
+        c = colors[t]
+        main_fig.add_trace(
+            go.Scatter(
+                x=gx,
+                y=vy,
+                mode='markers',
+                marker=dict(color=c, size=8, opacity=0.65),
+                name=str(t),
+                legendgroup=str(t),
+                hovertext=np.array(hover_texts),
+                hoverinfo='text',
+                customdata=cd,
+            ),
+            row=2,
+            col=1,
+        )
+        main_fig.add_trace(
+            go.Histogram(x=gx, marker_color=c, opacity=0.45, showlegend=False, name=f'{t}-x'),
+            row=1,
+            col=1,
+        )
+        main_fig.add_trace(
+            go.Histogram(y=vy, marker_color=c, opacity=0.45, showlegend=False, name=f'{t}-y'),
+            row=2,
+            col=2,
+        )
+
+    main_fig.add_hline(y=threshold, line=dict(color='red', dash='dash', width=2), row=2, col=1)
+
+    main_fig.update_layout(
+        title=title,
+        paper_bgcolor='white',
+        plot_bgcolor='white',
+        showlegend=True,
+        barmode='overlay',
+        legend=dict(orientation='v', yanchor='top', y=1, xanchor='left', x=1.02),
+    )
+    main_fig.update_xaxes(title_text=gen_axis_title, row=2, col=1, showgrid=True, gridcolor='lightgray')
+    main_fig.update_yaxes(title_text=f'Validator {metric_label}', row=2, col=1, showgrid=True, gridcolor='lightgray')
+    return main_fig
+
+
 # =============================================================================
 # HEATMAP DATA LOADING
 # =============================================================================
@@ -1130,6 +1263,42 @@ app.layout = html.Div([
             'whiteSpace': 'pre-wrap'
         }, children="Click a point in the main scatter to view the full prompt/response here."),
 
+        # Multi-prompt overlay (same layout as main GV scatter; color = task, not label)
+        html.Details([
+            html.Summary(
+                '🧩 Multi-prompt generator vs validator (raw & FC)',
+                style={'cursor': 'pointer', 'fontWeight': 'bold'}
+            ),
+            html.Div([
+                html.Label('Tasks to overlay on one plot (same split & model):', style={'fontWeight': 'bold'}),
+                dcc.Dropdown(
+                    id='multi-prompt-task-selector',
+                    multi=True,
+                    placeholder='Select one or more tasks…',
+                    style={'width': '100%'},
+                ),
+            ], style={'width': '80%', 'margin': '12px auto'}),
+            html.P(
+                'Points are colored by task (legend). Raw uses config eval column '
+                '"raw"; FC uses "tc" (typo-corrected).',
+                style={'width': '80%', 'margin': '0 auto 8px', 'color': '#555', 'fontSize': '13px'},
+            ),
+            dcc.Graph(id='multi-prompt-raw-scatter', style={'height': '700px'}),
+            html.Div(id='response-panel-multi-raw', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap',
+            }, children='Click a point in the raw plot to view prompt/response here.'),
+            dcc.Graph(id='multi-prompt-fc-scatter', style={'height': '700px'}),
+            html.Div(id='response-panel-multi-fc', style={
+                'width': '80%', 'margin': '8px auto 12px', 'padding': '10px 14px',
+                'backgroundColor': '#fff8e1', 'borderRadius': '8px',
+                'border': '1px solid #ffe0b2', 'fontFamily': 'monospace',
+                'whiteSpace': 'pre-wrap',
+            }, children='Click a point in the FC plot to view prompt/response here.'),
+        ], open=True, style={'margin': '20px'}),
+
         # Faceted by strategy
         html.Details([
             html.Summary('📊 Faceted View by Strategy', style={'cursor': 'pointer', 'fontWeight': 'bold'}),
@@ -1347,7 +1516,9 @@ def save_config(n_clicks, outputs_dir, task_pattern, split_patterns, label_col, 
      Output('split-selector', 'options'),
      Output('split-selector', 'value'),
      Output('model-selector', 'options'),
-     Output('model-selector', 'value')],
+     Output('model-selector', 'value'),
+     Output('multi-prompt-task-selector', 'options'),
+     Output('multi-prompt-task-selector', 'value')],
     [Input('load-dashboard-btn', 'n_clicks'),
      Input('load-dashboard-btn-top', 'n_clicks'),
      Input('back-to-config-btn', 'n_clicks')],
@@ -1391,7 +1562,7 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
     if button_id == 'back-to-config-btn':
         return (config_visible, viz_hidden, None, None,
                 dash.no_update, dash.no_update, dash.no_update, dash.no_update,
-                dash.no_update, dash.no_update)
+                dash.no_update, dash.no_update, dash.no_update, dash.no_update)
 
     # Load dashboard
     try:
@@ -1424,7 +1595,9 @@ def toggle_pages(load_clicks, load_clicks_top, back_clicks,
             config_hidden, viz_visible, config, files_data,
             task_options, all_tasks[0] if all_tasks else None,
             split_options, all_splits[0] if all_splits else None,
-            model_options, all_row_labels[0] if all_row_labels else None
+            model_options, all_row_labels[0] if all_row_labels else None,
+            task_options,
+            [],
         )
 
     except Exception as e:
@@ -1456,6 +1629,138 @@ def update_model_options(task, split, files_data):
         return [{'label': 'No models available', 'value': None}], None
 
     return [{'label': m, 'value': m} for m in available], available[0]
+
+
+@app.callback(
+    [Output('multi-prompt-raw-scatter', 'figure'),
+     Output('multi-prompt-fc-scatter', 'figure')],
+    [Input('multi-prompt-task-selector', 'value'),
+     Input('split-selector', 'value'),
+     Input('model-selector', 'value')],
+    [State('config-store', 'data'),
+     State('files-store', 'data')],
+)
+def update_multi_prompt_scatters(selected_tasks, split, row_label, config, files_data):
+    """Overlay multiple tasks on one GV scatter each for raw gen score and FC (typcorr) gen score."""
+
+    def _msg_fig(title: str, msg: str) -> go.Figure:
+        fig = go.Figure()
+        fig.update_layout(
+            title=title,
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text=msg,
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                    font=dict(size=14, color='#888'),
+                )
+            ],
+        )
+        return fig
+
+    empty = go.Figure()
+    if not config or not files_data or not split or not row_label:
+        return empty, empty
+
+    if not selected_tasks:
+        return (
+            _msg_fig('Multi-prompt: raw', 'Select one or more tasks above.'),
+            _msg_fig('Multi-prompt: FC', 'Select one or more tasks above.'),
+        )
+
+    eval_columns = config.get('eval_columns', DEFAULT_CONFIG['eval_columns'])
+    raw_col = eval_columns.get('raw', 'gen_score')
+    fc_col = eval_columns.get('tc', 'gen_score_typcorr')
+    val_col = config.get('val_score_col', 'val_score')
+
+    frames: List[pd.DataFrame] = []
+    first_path: Optional[str] = None
+    for task in selected_tasks:
+        matching = [
+            f for f in files_data
+            if f['task'] == task and f['split'] == split and f['row_label'] == row_label
+        ]
+        if not matching:
+            continue
+        csv_path = matching[0]['path']
+        if first_path is None:
+            first_path = csv_path
+        try:
+            df = load_scores_data(csv_path, config)
+        except Exception:
+            continue
+        df = df.copy()
+        df[DASH_TASK_SOURCE_COL] = task
+        frames.append(df)
+
+    if not frames:
+        empty_ann = go.Figure()
+        empty_ann.update_layout(
+            title='No matching CSVs for the selected tasks / split / model.',
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text='Check that each selected task exists for this split and model.',
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                    font=dict(size=13, color='#888'),
+                )
+            ],
+        )
+        return empty_ann, empty_ann
+
+    combined = pd.concat(frames, ignore_index=True)
+    metric_type = 'log-odds' if first_path and 'log-odds' in first_path else 'log-probs'
+    metric_label = 'log-odds' if metric_type == 'log-odds' else 'log-probs'
+    gen_axis_base = f'Generator {metric_label}'
+
+    raw_fig = build_multi_prompt_gv_figure(
+        combined,
+        raw_col,
+        f'{gen_axis_base} (raw)',
+        val_col,
+        metric_label,
+        metric_type,
+        'Multi-prompt: raw generator vs validator',
+    )
+    if fc_col not in combined.columns:
+        fc_fig = go.Figure()
+        fc_fig.update_layout(
+            title='Multi-prompt: FC generator vs validator',
+            paper_bgcolor='white',
+            plot_bgcolor='white',
+            annotations=[
+                dict(
+                    text=f'Column {fc_col!r} not found in loaded data.',
+                    xref='paper',
+                    yref='paper',
+                    x=0.5,
+                    y=0.5,
+                    showarrow=False,
+                )
+            ],
+        )
+    else:
+        fc_fig = build_multi_prompt_gv_figure(
+            combined,
+            fc_col,
+            f'{gen_axis_base} (FC)',
+            val_col,
+            metric_label,
+            metric_type,
+            'Multi-prompt: FC generator vs validator',
+        )
+
+    return raw_fig, fc_fig
 
 
 # =============================================================================
@@ -1984,13 +2289,17 @@ def update_visualizations(task, split, row_label, config, files_data):
     [Output('response-panel-main', 'children'),
      Output('response-panel-faceted', 'children'),
      Output('response-panel-pca', 'children'),
-     Output('response-panel-compare', 'children')],
+     Output('response-panel-compare', 'children'),
+     Output('response-panel-multi-raw', 'children'),
+     Output('response-panel-multi-fc', 'children')],
     [Input('main-scatter', 'clickData'),
      Input('faceted-plot', 'clickData'),
      Input('pca-plot', 'clickData'),
-     Input('compare-plot', 'clickData')]
+     Input('compare-plot', 'clickData'),
+     Input('multi-prompt-raw-scatter', 'clickData'),
+     Input('multi-prompt-fc-scatter', 'clickData')]
 )
-def update_response_panels(main_click, faceted_click, pca_click, compare_click):
+def update_response_panels(main_click, faceted_click, pca_click, compare_click, multi_raw_click, multi_fc_click):
     """Show full prompt/response text on click for each graph."""
     def render_panel(click_data, empty_text):
         if not click_data or 'points' not in click_data or not click_data['points']:
@@ -2012,7 +2321,9 @@ def update_response_panels(main_click, faceted_click, pca_click, compare_click):
         render_panel(main_click, "Click a point in the main scatter to view the full prompt/response here."),
         render_panel(faceted_click, "Click a point in the faceted plot to view the full prompt/response here."),
         render_panel(pca_click, "Click a point in the PCA plots to view the full prompt/response here."),
-        render_panel(compare_click, "Click a point in the compare plot to view the full prompt/response here.")
+        render_panel(compare_click, "Click a point in the compare plot to view the full prompt/response here."),
+        render_panel(multi_raw_click, "Click a point in the raw multi-prompt plot to view prompt/response here."),
+        render_panel(multi_fc_click, "Click a point in the FC multi-prompt plot to view prompt/response here."),
     )
 
 
