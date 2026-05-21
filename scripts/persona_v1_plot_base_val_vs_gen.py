@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """
-2x3 scatter grid: x = gen_score (raw), y = val_score, one subplot per persona,
-for the base model (default: gemma-2-9b-it), persona-v1.
+2x3 scatter grid: x = gen_score, y = val_score, one subplot per persona,
+for the base model, persona-v1.
+
+Score variants for the x-axis (gen):
+  - raw    : gen_score, read from the self-CSV (raw is identical in self/neg)
+  - tc-self: gen_score_typcorr, read from `scores_self-...csv`
+  - tc-neg : gen_score_typcorr, read from `scores_neg-...csv`
+
+The y-axis (val_score) is identical across the 3 score variants per persona;
+only the x-axis (gen) changes, plus per-subplot Gen-AUC and Pearson r.
 
 v1 vs v0:
 - DROPPED `subscribes-to-moral-nihilism` and `believes-life-has-no-meaning`
   (poor validator accuracy on v0).
 - Labels for `psychopathy`, `machiavellianism`, `narcissism` are FLIPPED
-  upstream in the dataset builder so that "yes" = NOT antisocial. The plot
-  code itself is unchanged; it just reads the v1 CSVs.
-
-Reads `scores_self-v6-google_<base>_persona-v1-<slug>_test_*.csv` files under
-outputs/ (raw gen_score is identical between self- and neg- eval CSVs; we
-just pick self-).
+  upstream in the dataset builder so that "yes" = NOT antisocial.
 
 Usage:
-  python scripts/persona_v1_plot_base_val_vs_gen.py                # 9b-it
-  python scripts/persona_v1_plot_base_val_vs_gen.py --base 2b-it
+  python scripts/persona_v1_plot_base_val_vs_gen.py                       # all bases x all scores
+  python scripts/persona_v1_plot_base_val_vs_gen.py --base 9b-it          # single base, all scores
+  python scripts/persona_v1_plot_base_val_vs_gen.py --base 9b-it --score raw
 """
 from __future__ import annotations
 
@@ -51,29 +55,42 @@ PERSONAS = [
     "interest-in-science",
 ]
 
+ALL_BASES = ["9b-it", "2b-it", "2b"]
+ALL_SCORES = ["raw", "tc-self", "tc-neg"]
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--base", default="9b-it",
-                        choices=["9b-it", "2b-it", "2b"],
-                        help="Which base model to plot (default: 9b-it).")
-    args = parser.parse_args()
+# (eval_prefix, gen_column, x_label, score_label)
+SCORE_SPEC = {
+    "raw":     ("self", "gen_score",         "gen_score (raw, log-prob)",  "raw"),
+    "tc-self": ("self", "gen_score_typcorr", "gen_score (self-TC)",        "self-TC"),
+    "tc-neg":  ("neg",  "gen_score_typcorr", "gen_score (neg-TC)",         "neg-TC"),
+}
 
-    model_tag = f"v6-google_gemma-2-{args.base}"
+
+def make_one_plot(base: str, score: str) -> Path | None:
+    """Build the 2x3 grid for one (base, score) pair. Returns the output path,
+    or None if no input files were found at all."""
+    eval_prefix, gen_col, x_label, score_label = SCORE_SPEC[score]
+    model_tag = f"v6-google_gemma-2-{base}"
+
     fig, axes = plt.subplots(2, 3, figsize=(14, 8.5), sharex=False, sharey=False)
     axes = axes.flatten()
+    any_found = False
 
     for ax, persona in zip(axes, PERSONAS):
-        candidates = list(OUTPUTS_DIR.glob(
-            f"scores_self-{model_tag}_persona-v1-{persona}_test_log-odds_tc_*.csv"))
+        pattern = f"scores_{eval_prefix}-{model_tag}_persona-v1-{persona}_test_log-odds_tc_*.csv"
+        candidates = list(OUTPUTS_DIR.glob(pattern))
         if not candidates:
             ax.set_title(f"{persona}\n(no file)", fontsize=10)
             ax.axis("off")
             continue
+        any_found = True
         df = pd.read_csv(sorted(candidates)[-1])
         labels = (df["correct"].str.strip().str.lower() == "yes").astype(int)
-        # x = gen_score (raw), y = val_score
-        x = df["gen_score"].values
+        if gen_col not in df.columns:
+            ax.set_title(f"{persona}\n(missing {gen_col})", fontsize=10)
+            ax.axis("off")
+            continue
+        x = df[gen_col].values
         y = df["val_score"].values
 
         mask = ~(np.isnan(x) | np.isnan(y))
@@ -86,7 +103,6 @@ def main():
         ax.axhline(0, color="gray", lw=0.6, alpha=0.5)
 
         try:
-            # Gen-AUC is computed against the raw gen_score (now on x-axis).
             auc = roc_auc_score(labels_v, x)
         except Exception:
             auc = float("nan")
@@ -97,9 +113,14 @@ def main():
 
         ax.set_title(f"{persona}\nGen-AUC={auc:.2f}  r={r:.2f}  n={len(x)}",
                      fontsize=10)
-        ax.set_xlabel("gen_score (raw, log-prob)")
+        ax.set_xlabel(x_label)
         ax.set_ylabel("val_score (log-odds)")
         ax.grid(alpha=0.25)
+
+    if not any_found:
+        plt.close(fig)
+        print(f"[skip] gemma-2-{base} / {score_label}: no input files found")
+        return None
 
     handles = [plt.Line2D([0], [0], marker="o", color="w",
                           markerfacecolor="tab:red", markersize=7, label="label=yes"),
@@ -108,14 +129,35 @@ def main():
     fig.legend(handles=handles, loc="upper right", bbox_to_anchor=(0.995, 0.995),
                ncol=2, frameon=False, fontsize=10)
     fig.suptitle(
-        f"Base gemma-2-{args.base}: gen_score (raw) vs val_score, per persona-v1 task (test split)",
+        f"Base gemma-2-{base}: gen_score ({score_label}) vs val_score, per persona-v1 task (test split)",
         fontsize=13, y=0.995)
     fig.tight_layout(rect=[0, 0, 1, 0.97])
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = OUT_DIR / f"persona_v1_base_gemma-2-{args.base}_gen_raw_vs_val.png"
+    score_slug = score.replace("-", "_")  # tc_self / tc_neg / raw
+    out_path = OUT_DIR / f"persona_v1_base_gemma-2-{base}_gen_{score_slug}_vs_val.png"
     fig.savefig(out_path, dpi=140, bbox_inches="tight")
+    plt.close(fig)
     print(f"Wrote {out_path}")
+    return out_path
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--base", default="all",
+                        choices=["all"] + ALL_BASES,
+                        help="Base model to plot, or 'all' (default: all).")
+    parser.add_argument("--score", default="all",
+                        choices=["all"] + ALL_SCORES,
+                        help="Gen-score variant on the x-axis, or 'all' (default: all).")
+    args = parser.parse_args()
+
+    bases = ALL_BASES if args.base == "all" else [args.base]
+    scores = ALL_SCORES if args.score == "all" else [args.score]
+
+    for base in bases:
+        for score in scores:
+            make_one_plot(base, score)
 
 
 if __name__ == "__main__":
