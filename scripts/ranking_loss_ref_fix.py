@@ -7,17 +7,26 @@ python ranking_loss_ref.py --model google/gemma-2-2b --task hypernym --with_ref 
 ============================================================================
 FIX1 FORK NOTES (ranking_loss_ref_fix.py, 2026-05-21)
 
-This is a g-mode-only fork of ranking_loss_ref.py. Differences from the
-parent (see docs/comb_loss_g_mode_concerns.md for full rationale):
+This is a g-mode-only fork of ranking_loss_ref.py. Scope is limited to
+addressing Issue #3 from docs/comb_loss_g_mode_concerns.md (generator
+NLL conflicts with preference loss on inconsistent pairs). Other
+concerns from that doc -- e.g. the validator-NLL position bug -- are
+intentionally OUT OF SCOPE here and will be addressed separately.
+
+Differences from the parent ranking_loss_ref.py:
 
   1. Only --train_g_or_d g is supported. d / both / iter raise.
+     (g-mode is the only path the loss-block edits below cover; d /
+     both / iter are unmodified but simply not exposed via this fork.)
   2. Pairs are restricted to a 4-shape consistent pool:
        case_A     = (L_neg, L_pos)
        mixed_neg  = (L_neg, U)
        mixed_pos  = (U,     L_pos)
        both_U     = (U,     U)
      Any pair where a labeled item is on its "wrong" natural side is
-     dropped at construction time. --force-same-x is ignored.
+     dropped at construction time. --force-same-x composes with this
+     filter (when on, the L+/L-/U partition is done within each
+     prompt group; parent fsx semantics preserved).
   3. Sampling is stratified by pair shape via 4 CLI knobs:
        --shape-weight-case-a / --shape-weight-mixed-neg /
        --shape-weight-mixed-pos / --shape-weight-both-u
@@ -25,14 +34,13 @@ parent (see docs/comb_loss_g_mode_concerns.md for full rationale):
   4. Generator NLL fires PER ITEM (not per pair). Weight per item =
      is_labeled_item * indicator_item, so it only fires for labeled
      positives. The legacy pair_is_labeled outer gate is removed.
-  5. Validator NLL is HARD-DISABLED in g-mode (the existing path reads
-     Yes/No log-odds at a position inside the generator statement,
-     which is meaningless). --nll_validator_weight is forced to 0.
+  5. Validator NLL behavior is UNCHANGED from the parent. The
+     val-NLL position bug (concern #1 in the doc) is out of scope for
+     this fix and will be addressed separately.
   6. Trained checkpoints + tracking CSVs get a --fix1 suffix so they
      can't collide with parent-script outputs.
 
-Use scripts/ranking_loss_ref.py for d/both/iter modes or for the
-legacy pair-construction / loss path.
+Use scripts/ranking_loss_ref.py for d/both/iter modes.
 ============================================================================
 
 """
@@ -580,8 +588,8 @@ def main(args):
     use_all = args.all  # New flag for using all examples
     train_g_or_d = args.train_g_or_d
     # ranking_loss_ref_fix.py: this fork supports ONLY g-mode training. The
-    # per-item NLL framing, the 4-shape consistent-pair pool, and the
-    # hard-disabled validator NLL are all g-mode-specific. See
+    # per-item gen-NLL framing and the 4-shape consistent-pair pool are
+    # g-mode-specific (the loss block edits only cover g-mode). See
     # docs/comb_loss_g_mode_concerns.md for the full rationale.
     if train_g_or_d != 'g':
         raise NotImplementedError(
@@ -597,18 +605,6 @@ def main(args):
     preference_loss_weight = args.preference_loss_weight
     nll_validator_weight = args.nll_validator_weight
     nll_generator_weight = args.nll_generator_weight
-    # ranking_loss_ref_fix.py: g-mode validator NLL is hard-disabled. The
-    # current val-NLL reads Yes/No log-odds at a position INSIDE the generator
-    # statement (concern #1 in docs/comb_loss_g_mode_concerns.md). Fixing the
-    # position requires a second forward pass on the discriminator prompt and
-    # is out of scope for this fix. Force weight to 0.
-    if nll_validator_weight != 0.0:
-        print(
-            f"\n[ranking_loss_ref_fix.py] WARNING: --nll_validator_weight={nll_validator_weight} "
-            f"forced to 0.0 in g-mode (val-NLL position bug, see "
-            f"docs/comb_loss_g_mode_concerns.md). Use ranking_loss_ref.py if you need val-NLL.\n"
-        )
-        nll_validator_weight = 0.0
     use_wandb = not args.no_wandb
     validator_log_odds = args.validator_log_odds
     track_scores = args.track_scores
@@ -1753,8 +1749,11 @@ def main(args):
         #   mixed_pos  = U     x L_pos     (unlabeled on lo, labeled pos on hi)
         #   both_U     = U     x U         (no labels, validator decides)
         # Pairs from any other shape (L+/L+, L-/L-, L+/L-, L+/U-on-lo,
-        # U-on-hi/L-) are dropped. --force-same-x is ignored in this fix
-        # (no-op for persona; can be re-added per-shape later if needed).
+        # U-on-hi/L-) are dropped.
+        #
+        # --force-same-x composes with the 4-shape filter: when fsx is on, the
+        # partition into L+/L-/U is done WITHIN each prompt group, and pairs
+        # never cross prompts (parent fsx semantics preserved).
 
         # (p_train_tune, logprobs, L_train_all, typicality, is_labeled)
         Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z, is_labeled_flags))
@@ -1790,32 +1789,10 @@ def main(args):
                 raise ValueError(f"Task {task} not supported for label-class lookup in fix1")
             return 'L_pos' if ind >= 0.5 else 'L_neg'
 
-        L_pos_ix, L_neg_ix, U_ix = [], [], []
-        for k, z in enumerate(Z):
-            cls = _label_class_for_z(z)
-            if cls == 'L_pos':
-                L_pos_ix.append(k)
-            elif cls == 'L_neg':
-                L_neg_ix.append(k)
-            else:
-                U_ix.append(k)
-
-        print(f"\n{'='*60}")
-        print(f"FIX1 G-MODE PAIR CONSTRUCTION (consistent-pair pool)")
-        print(f"{'='*60}")
-        print(f"|L+| = {len(L_pos_ix)}  |L-| = {len(L_neg_ix)}  |U| = {len(U_ix)}  "
-              f"(of {len(Z)} total)")
-        if args.force_same_x:
-            print("[FIX1] --force-same-x is IGNORED in this fork "
-                  "(no-op for tasks with constant generator prompt; see docs).")
-
-        def _enumerate_shape(lo_pool, hi_pool):
+        def _enumerate_shape_subset(lo_pool, hi_pool):
             """All (i, j) with i in lo_pool, j in hi_pool, i != j,
             val(i) < val(j), |val(j) - val(i)| > delta."""
             pairs = []
-            # Z is sorted ascending; take advantage with simple pair scan.
-            lo_set = set(lo_pool)
-            hi_set = set(hi_pool)
             for i in lo_pool:
                 v_i = Z[i][1]
                 for j in hi_pool:
@@ -1826,12 +1803,59 @@ def main(args):
                         pairs.append((i, j))
             return pairs
 
-        pool_by_shape = {
-            'case_A':    _enumerate_shape(L_neg_ix, L_pos_ix),
-            'mixed_neg': _enumerate_shape(L_neg_ix, U_ix),
-            'mixed_pos': _enumerate_shape(U_ix,     L_pos_ix),
-            'both_U':    _enumerate_shape(U_ix,     U_ix),
-        }
+        print(f"\n{'='*60}")
+        print(f"FIX1 G-MODE PAIR CONSTRUCTION (consistent-pair pool)")
+        print(f"  force_same_x={args.force_same_x}")
+        print(f"{'='*60}")
+
+        if args.force_same_x:
+            # Group indices by prompt (z[0].prompt is p_train_tune.prompt) and
+            # partition each group into (L+, L-, U). Enumerate the 4 shapes
+            # within each group; concatenate across groups.
+            prompt_to_indices = defaultdict(list)
+            for idx, z in enumerate(Z):
+                prompt = z[0].prompt
+                prompt_to_indices[prompt].append(idx)
+            print(f"Found {len(prompt_to_indices)} unique generator prompts")
+
+            pool_by_shape = {'case_A': [], 'mixed_neg': [], 'mixed_pos': [], 'both_U': []}
+            n_lpos = n_lneg = n_u = 0
+            for prompt, indices in prompt_to_indices.items():
+                grp_lpos, grp_lneg, grp_u = [], [], []
+                for k in indices:
+                    cls = _label_class_for_z(Z[k])
+                    if cls == 'L_pos':
+                        grp_lpos.append(k)
+                    elif cls == 'L_neg':
+                        grp_lneg.append(k)
+                    else:
+                        grp_u.append(k)
+                n_lpos += len(grp_lpos); n_lneg += len(grp_lneg); n_u += len(grp_u)
+                pool_by_shape['case_A'].extend(_enumerate_shape_subset(grp_lneg, grp_lpos))
+                pool_by_shape['mixed_neg'].extend(_enumerate_shape_subset(grp_lneg, grp_u))
+                pool_by_shape['mixed_pos'].extend(_enumerate_shape_subset(grp_u,    grp_lpos))
+                pool_by_shape['both_U'].extend(_enumerate_shape_subset(grp_u,       grp_u))
+            print(f"|L+| = {n_lpos}  |L-| = {n_lneg}  |U| = {n_u}  (of {len(Z)} total)")
+        else:
+            # Global partition (no per-prompt grouping).
+            L_pos_ix, L_neg_ix, U_ix = [], [], []
+            for k, z in enumerate(Z):
+                cls = _label_class_for_z(z)
+                if cls == 'L_pos':
+                    L_pos_ix.append(k)
+                elif cls == 'L_neg':
+                    L_neg_ix.append(k)
+                else:
+                    U_ix.append(k)
+            print(f"|L+| = {len(L_pos_ix)}  |L-| = {len(L_neg_ix)}  |U| = {len(U_ix)}  "
+                  f"(of {len(Z)} total)")
+            pool_by_shape = {
+                'case_A':    _enumerate_shape_subset(L_neg_ix, L_pos_ix),
+                'mixed_neg': _enumerate_shape_subset(L_neg_ix, U_ix),
+                'mixed_pos': _enumerate_shape_subset(U_ix,     L_pos_ix),
+                'both_U':    _enumerate_shape_subset(U_ix,     U_ix),
+            }
+
         for shape, pool in pool_by_shape.items():
             print(f"  {shape:10s}: {len(pool):8d} valid pairs (after delta filter)")
 
@@ -2757,21 +2781,25 @@ def main(args):
                 diff = score_j - score_i - diff_ref
                 preference_loss = -torch.log(torch.sigmoid(diff) + 1e-12).mean()
 
-                # FIX1: Validator NLL is hard-disabled in g-mode (position bug,
-                # see docs/comb_loss_g_mode_concerns.md, concern #1). We force
-                # nll_validator_weight=0 at startup, but compute logging stats
-                # so wandb traces stay populated.
+                # Validator NLL loss (UNCHANGED from parent ranking_loss_ref.py;
+                # the val-NLL position bug is intentionally out of scope for fix1
+                # -- see docs/comb_loss_g_mode_concerns.md, concern #1).
                 if validator_log_odds:
+                    # Use log-odds with binary cross-entropy (aligns training with evaluation)
                     logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
                     logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
+                    nll_validator_loss = (
+                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
+                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
+                    ).mean() / 2
+                    # For logging, compute score_correct as log-odds (signed by correct answer)
                     score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
                     score_correct_j = logodds_correct_j * (2 * indicator_j - 1)
                 else:
+                    # Original: -log P(correct_answer | prompt) for both items
                     score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
                     score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                # Always 0 in fix1 (weight is forced to 0 at startup); kept as a
-                # tensor on-device for wandb logging consistency.
-                nll_validator_loss = torch.zeros((), device=device)
+                    nll_validator_loss = -(pair_is_labeled * (score_correct_i + score_correct_j)).mean() / 2
 
                 # FIX1: Generator NLL is per-item, fires only for labeled positives.
                 # No pair_is_labeled outer gate. The per-item weighting is:
@@ -2788,9 +2816,13 @@ def main(args):
                 gen_w_j = is_labeled_j_t * indicator_j
                 nll_generator_loss = -(gen_w_i * score_gen_i + gen_w_j * score_gen_j).mean() / 2
 
-                # FIX1: Total loss is always the sum of pref + (per-item NLL) terms.
-                # No more "labeled pair vs unlabeled pair" branch -- pairs were
-                # already filtered for consistency at construction time.
+                # FIX1: Total loss is always the sum of pref + (per-item gen-NLL)
+                # + (per-pair val-NLL). No more "labeled pair vs unlabeled pair"
+                # outer branch -- pairs are pre-filtered for consistency at
+                # construction time, so preference fires on every pair, gen-NLL
+                # fires per-item on labeled positives, and val-NLL fires only on
+                # both-labeled (case_A) pairs via the inner pair_is_labeled gate
+                # (parent behavior preserved).
                 loss = (
                     preference_loss_weight * preference_loss
                     + nll_validator_weight * nll_validator_loss
