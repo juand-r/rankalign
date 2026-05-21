@@ -63,10 +63,18 @@ TASKS=(
     persona-v1-interest-in-science
 )
 
-# Common eval flags. --log-odds matches the project convention; --disc-shots-zero
-# matches the disc setting these models were *trained* with (see
-# scripts/run_train_persona_v1.sh: `COMMON="--disc-shots zero ..."`).
-EVAL_COMMON="--log-odds --disc-shots-zero"
+# Common eval flags. --log-odds matches the project convention.
+# DISC_SHOTS env var controls disc-shots at eval time:
+#   'zero' (default) -> --disc-shots-zero, matches v1 9b-it/2b-it training.
+#   'few'            -> omit the flag (run_eval_semi.sh defaults to few-shot),
+#                       matches the v1 gemma-2-2b training launched
+#                       2026-05-21 with DISC_SHOTS=auto (= few for base models).
+DISC_SHOTS="${DISC_SHOTS:-zero}"
+if [ "$DISC_SHOTS" = "few" ] || [ "$DISC_SHOTS" = "auto" ]; then
+    EVAL_COMMON="--log-odds"
+else
+    EVAL_COMMON="--log-odds --disc-shots-zero"
+fi
 
 # Variant suffixes (without trailing _merged; LoRA models append _merged automatically below).
 declare -A SUFFIXES=(
@@ -120,7 +128,8 @@ PATH_PREFIX="${MODELS_DIR}/v6-${BASE_REPL}-delta0.15-epoch${EPOCH}--persona-v1-a
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
 MODEL_TAG=$(basename "$BASE_MODEL" | sed 's|/|_|g; s|--|_|g')
-JOBID_FILE="$OVERNIGHT_DIR/persona_v1_eval_trained_jobids_${MODEL_TAG}.txt"
+DISC_TAG="_disc-${DISC_SHOTS}"
+JOBID_FILE="$OVERNIGHT_DIR/persona_v1_eval_trained_jobids_${MODEL_TAG}${DISC_TAG}.txt"
 : > "$JOBID_FILE"
 
 echo "========================================"
@@ -132,6 +141,7 @@ echo "  HOURS:      $HOURS  (each of 12 jobs = 3 variants × 2 TC flavors + 6 va
 echo "  CPUS / MEM: $CPUS / $MEM"
 echo "  Tasks:      ${#TASKS[@]}  (${TASKS[*]})"
 echo "  EVAL_COMMON: $EVAL_COMMON"
+echo "  DISC_SHOTS: $DISC_SHOTS"
 echo "  Jobid log:  $JOBID_FILE"
 echo "========================================"
 
