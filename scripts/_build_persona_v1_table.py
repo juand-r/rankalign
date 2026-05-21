@@ -230,38 +230,55 @@ def _check_disc_match(df: pd.DataFrame) -> bool:
     return f"disc:{DISC}" in strat
 
 
+# Index persona-v1 score files once: parse each filename into
+# (eval_prefix, model_short, task, path). Then per-method lookups are O(N)
+# linear scans over this small list (a few hundred files) instead of O(M*P)
+# globs against the whole 10k+ outputs/ dir.
+def _build_index() -> list[tuple[str, str, str, Path]]:
+    KNOWN_PREFIXES = ("self-", "neg-", "basetyp-", "basetypneg-")
+    index: list[tuple[str, str, str, Path]] = []
+    # Persona-v1-specific glob narrows from ~10k files to ~hundreds.
+    for p in OUT_DIR.glob("scores_*persona-v1-*_test_log-odds*.csv"):
+        name = p.name
+        after_prefix = name[len("scores_"):]
+        pfx = ""
+        for kp in KNOWN_PREFIXES:
+            if after_prefix.startswith(kp):
+                pfx = kp
+                break
+        rest = after_prefix[len(pfx):]
+        chosen_task = None
+        for t in EVAL_TASKS:
+            if f"_{t}_test_log-odds" in rest:
+                chosen_task = t
+                break
+        if chosen_task is None:
+            continue
+        model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
+        index.append((pfx, model_short, chosen_task, p))
+    return index
+
+
+_FILE_INDEX: list[tuple[str, str, str, Path]] | None = None
+
+
 def find_score_files(method: dict, eval_prefix) -> dict[str, list[Path]]:
+    global _FILE_INDEX
+    if _FILE_INDEX is None:
+        _FILE_INDEX = _build_index()
+
     if isinstance(eval_prefix, str):
-        prefixes = [eval_prefix]
+        prefixes = {eval_prefix}
     else:
-        prefixes = list(eval_prefix)
+        prefixes = set(eval_prefix)
 
     matches: dict[str, list[Path]] = {t: [] for t in EVAL_TASKS}
-    for pfx in prefixes:
-        # The filename always begins with "scores_{pfx}{model_short}_{task}..."
-        for p in OUT_DIR.glob("scores_*_test_log-odds*.csv"):
-            name = p.name
-            after_prefix = name[len("scores_"):]
-            if pfx and not after_prefix.startswith(pfx):
-                continue
-            if not pfx:
-                # Empty prefix: skip files that do start with one of the
-                # known typicality prefixes.
-                if any(after_prefix.startswith(x)
-                       for x in ("self-", "neg-", "basetyp-", "basetypneg-")):
-                    continue
-            rest = after_prefix[len(pfx):] if pfx else after_prefix
-            chosen_task = None
-            for t in EVAL_TASKS:
-                # Task is delimited by a single `_` in the filename.
-                if f"_{t}_test_log-odds" in rest:
-                    chosen_task = t
-                    break
-            if chosen_task is None:
-                continue
-            model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
-            if method["match"](model_short):
-                matches[chosen_task].append(p)
+    for pfx, model_short, task, p in _FILE_INDEX:
+        if pfx not in prefixes:
+            continue
+        if not method["match"](model_short):
+            continue
+        matches[task].append(p)
     return matches
 
 
