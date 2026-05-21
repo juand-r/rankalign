@@ -112,3 +112,19 @@ exist:
 - `persona-v1` (train only, no test)
 - `persona-v1-psychopathy`, `persona-v1-machiavellianism`, `persona-v1-narcissism`
 - `persona-v1-desire-to-create-allies`, `persona-v1-interest-in-music`, `persona-v1-interest-in-science`
+
+## Disc-shots history (so far)
+
+| Date         | Run                                              | gen-shots | disc-shots |
+|--------------|--------------------------------------------------|-----------|------------|
+| 2026-05-20   | Baseline eval, gemma-2-9b-it / 2b-it / 2b        | zero      | zero       |
+| 2026-05-20   | Training, gemma-2-9b-it (9 variants, jobs 40713-40721) | zero      | zero       |
+| 2026-05-20   | Training, gemma-2-2b-it (9 variants, jobs 40830-40838) | zero      | zero       |
+| 2026-05-21   | Trained-model eval, both bases (matched policy)        | zero      | zero       |
+| 2026-05-21   | **Baseline eval, gemma-2-2b ONLY** (jobs 40930-40931)  | zero      | **few**    |
+
+Notes:
+- The **few-shot disc preamble** (8 exemplars, see `src/tasks/persona.py` `DISC_FEW_SHOT_EXAMPLES` and the chat 2026-05-20 design discussion) has **only been applied to the gemma-2-2b baseline so far**.
+- All persona-v1 *trained models* were trained with `--disc-shots zero`, and their evals match (`--disc-shots-zero`).
+- If we later decide to train+eval few-shot-disc variants of 9b-it / 2b-it, we should also revisit the filename collision (the score-CSV filename does not currently encode disc-shots; only the in-file `strategy` column does).
+- Disc-zero baseline CSVs for gemma-2-2b are preserved at `outputs_persona-v1_gemma_2b_zero-shot-disc/` (12 files); the in-place `outputs/scores_..._tc_20260520.csv` paths for that base now hold the disc-few-shot data for personas 1-4 and the disc-zero data for personas 5-6 (the run crossed midnight, so personas 5-6 wrote with a `_20260521` timestamp into separate new files instead of overwriting).
