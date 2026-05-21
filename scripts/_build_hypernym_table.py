@@ -1,0 +1,287 @@
+#!/usr/bin/env python3
+"""Build the hypernym ID/OOD table per IMPORTANT-RESEARCH-PLAN.md.
+
+Hypernym training set = `hypernym-concat-bananas-to-dogs-double-all`,
+which uses 8 hyponym datasets:
+  bananas, bazookas, cabinets, cars, chairs, crows, diapers, dogs.
+At eval time we have 18 hyponym sets on disk:
+  - ID  (8): the 8 trained-on hyponyms above
+  - OOD (10): dolls, ducklings, elephants, guns, hammers, helmets,
+              jackets, kayaks, kites, mirrors
+
+Rows: 12 methods (0=Base, 1..9, 11, 12), same numbering & ordering as
+the IFEval driver.
+Cols: Raw, PMI self, PMI base, Neg self, Neg base.
+
+Note: hypernym scores filenames use `_test_v2_log-odds` (not just
+`_test_log-odds` like ifeval/rosch/humaneval).
+
+Env vars:
+- HYPERNYM_MODEL  ∈ {2b, 2b-it, 9b-it}   default 9b-it
+- HYPERNYM_SPLIT  ∈ {id, ood}             default ood
+- HYPERNYM_METRIC ∈ {gen_roc, pearson, spearman, val_roc, val_acc}
+                                          default gen_roc
+
+Writes:
+- metrics-from-scores/hypernym_{model}_{split}_{metric}_table_long.csv
+- metrics-from-scores/hypernym_{model}_{split}_{metric}_table_cells.csv
+- prints the markdown table to stdout
+"""
+
+from __future__ import annotations
+import os
+import re
+import sys
+import math
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO / "scripts"))
+from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
+
+OUT_DIR = REPO / "outputs"
+METRICS_DIR = REPO / "metrics-from-scores"
+METRICS_DIR.mkdir(exist_ok=True)
+
+# 8 ID hyponyms (in training set) per src/tasks/hypernym_concat_subset_v2.py.
+ID_HYPONYMS = [
+    "bananas", "bazookas", "cabinets", "cars",
+    "chairs", "crows", "diapers", "dogs",
+]
+# OOD hyponyms = all eval-task hyponyms present on disk that are NOT in ID.
+# Hardcoded from a one-time disk survey; assert at runtime that no extra
+# OOD hyponym is on disk that we'd silently miss.
+OOD_HYPONYMS = [
+    "dolls", "ducklings", "elephants", "guns", "hammers",
+    "helmets", "jackets", "kayaks", "kites", "mirrors",
+]
+
+MODEL = os.environ.get("HYPERNYM_MODEL", "9b-it").lower()
+VALID_MODELS = {"2b", "2b-it", "9b-it"}
+if MODEL not in VALID_MODELS:
+    raise SystemExit(f"HYPERNYM_MODEL must be one of {VALID_MODELS}, got {MODEL!r}")
+
+SPLIT = os.environ.get("HYPERNYM_SPLIT", "ood").lower()
+if SPLIT == "id":
+    HYPONYMS = ID_HYPONYMS
+elif SPLIT == "ood":
+    HYPONYMS = OOD_HYPONYMS
+else:
+    raise SystemExit(f"HYPERNYM_SPLIT must be 'id' or 'ood', got {SPLIT!r}")
+EVAL_TASKS = [f"hypernym-{h}" for h in HYPONYMS]
+N_EXPECTED = len(EVAL_TASKS)
+
+METRIC = os.environ.get("HYPERNYM_METRIC", "gen_roc").lower()
+SUPPORTED_METRICS = {"gen_roc", "pearson", "spearman", "val_roc", "val_acc"}
+if METRIC not in SUPPORTED_METRICS:
+    raise SystemExit(f"HYPERNYM_METRIC must be one of {SUPPORTED_METRICS}, got {METRIC!r}")
+METRIC_LABEL = {
+    "gen_roc": "GenROC", "pearson": "Pearson(gen, val)",
+    "spearman": "Spearman(gen, val)", "val_roc": "ValROC", "val_acc": "ValAcc",
+}[METRIC]
+
+# Hypernym files use `_test_v2_log-odds` not `_test_log-odds`.
+TEST_SEG = "test_v2_log-odds"
+
+BASE_HF = f"v6-google_gemma-2-{MODEL}"
+MERGED_OPT = r"(_merged)?"
+CP = rf"v6-google_gemma-2-{MODEL}-delta0\.15-epoch2_hypernym-concat-bananas-to-dogs-double-all_d2g_random_alpha1\.0"
+
+COLUMNS = [
+    ("Raw",      ["self-", "neg-", "basetyp-", "basetypneg-"], "raw"),
+    ("PMI self", "self-",       "tc"),
+    ("PMI base", "basetyp-",    "tc"),
+    ("Neg self", "neg-",        "tc"),
+    ("Neg base", "basetypneg-", "tc"),
+]
+
+METHODS: list[dict] = [
+    dict(num=0, label="Base",
+         match=lambda s: s == BASE_HF),
+    dict(num=1, label="SFT labelonly 10%",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_full-completion_pref0\.0_nllv1\.0_nllg1\.0(_force-same-x)?_labelonly0\.1{MERGED_OPT}", s)),
+         fsx_label_match=lambda s: "_force-same-x_" in s),
+    dict(num=2, label="RankAlign",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_full-completion(_semi0\.1)?{MERGED_OPT}", s))),
+    dict(num=3, label="New + fsx [-TC]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_full-completion_nllv1\.0_nllg1\.0_force-same-x_vallogodds_semi0\.1{MERGED_OPT}", s))),
+    dict(num=4, label="New + PMI + fsx",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-self_full-completion_nllv1\.0_nllg1\.0_force-same-x_vallogodds_semi0\.1{MERGED_OPT}", s))),
+    dict(num=5, label="RA + PMI + fsx [-NLL]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-self_full-completion_force-same-x(_vallogodds)?_semi0\.1{MERGED_OPT}", s))),
+    dict(num=6, label="RA + PMI [+TC]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-self_full-completion(_vallogodds)?_semi0\.1{MERGED_OPT}", s))),
+    dict(num=7, label="New + NegTC + fsx",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-neg_full-completion_nllv1\.0_nllg1\.0_force-same-x_vallogodds_semi0\.1{MERGED_OPT}", s))),
+    dict(num=8, label="RA + NegTC + fsx [-NLL]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-neg_full-completion_force-same-x(_vallogodds)?_semi0\.1{MERGED_OPT}", s))),
+    dict(num=9, label="RA + NegTC [+TC]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-neg_full-completion(_vallogodds)?_semi0\.1{MERGED_OPT}", s))),
+    dict(num=11, label="New + PMI [-fsx]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-self_full-completion_nllv1\.0_nllg1\.0_vallogodds_semi0\.1{MERGED_OPT}", s))),
+    dict(num=12, label="New + NegTC [-fsx]",
+         match=lambda s: bool(re.fullmatch(
+             rf"{CP}_tc-neg_full-completion_nllv1\.0_nllg1\.0_vallogodds_semi0\.1{MERGED_OPT}", s))),
+]
+
+NA_COLS = {
+    4: {"Neg self", "Neg base"},
+    5: {"Neg self", "Neg base"},
+    6: {"Neg self", "Neg base"},
+    11: {"Neg self", "Neg base"},
+    7: {"PMI self", "PMI base"},
+    8: {"PMI self", "PMI base"},
+    9: {"PMI self", "PMI base"},
+    12: {"PMI self", "PMI base"},
+}
+
+
+def find_score_files(method: dict, eval_prefix) -> dict[str, list[Path]]:
+    if isinstance(eval_prefix, str):
+        prefixes = [eval_prefix]
+    else:
+        prefixes = list(eval_prefix)
+    matches: dict[str, list[Path]] = {t: [] for t in EVAL_TASKS}
+    for pfx in prefixes:
+        pattern = f"scores_{pfx}*_{TEST_SEG}*.csv"
+        for p in OUT_DIR.glob(pattern):
+            name = p.name
+            after_prefix = name[len("scores_"):]
+            if pfx and not after_prefix.startswith(pfx):
+                continue
+            if not pfx:
+                if any(after_prefix.startswith(x) for x in ("self-", "neg-", "basetyp-", "basetypneg-")):
+                    continue
+            rest = after_prefix[len(pfx):] if pfx else after_prefix
+            chosen_task = None
+            for t in EVAL_TASKS:
+                if f"_{t}_{TEST_SEG}" in rest:
+                    chosen_task = t
+                    break
+            if chosen_task is None:
+                continue
+            model_short = rest.split(f"_{chosen_task}_{TEST_SEG}", 1)[0]
+            if method["match"](model_short):
+                matches[chosen_task].append(p)
+    return matches
+
+
+def cell_value(method: dict, eval_prefix, variant: str):
+    files_by_task = find_score_files(method, eval_prefix)
+    vals = []
+    used_files = []
+    for task in EVAL_TASKS:
+        candidates = files_by_task.get(task, [])
+        if not candidates:
+            continue
+        path = sorted(candidates)[-1]
+        try:
+            df = load_scores(path)
+            metrics = compute_all_metrics(df)
+        except Exception:
+            continue
+        if variant not in metrics:
+            continue
+        v = metrics[variant].get(METRIC)
+        if v is None or (isinstance(v, float) and math.isnan(v)):
+            continue
+        vals.append((task, float(v), path.name))
+        used_files.append((task, path.name, float(v)))
+    n = len(vals)
+    if n == 0:
+        return dict(mean=None, se=None, n=0, vals=[], files=[])
+    arr = np.array([v for _, v, _ in vals], dtype=float) * 100.0
+    mean = float(arr.mean())
+    sd = float(arr.std(ddof=1)) if n > 1 else float("nan")
+    se = sd / math.sqrt(n) if n > 1 else float("nan")
+    return dict(mean=mean, se=se, n=n, vals=vals, files=used_files)
+
+
+def fmt_cell(c: dict, expected_n: int) -> str:
+    if c["n"] == 0:
+        return "—"
+    if c["se"] is None or math.isnan(c["se"]):
+        s = f"{c['mean']:.2f}"
+    else:
+        s = f"{c['mean']:.2f} ± {c['se']:.2f}"
+    if c["n"] != expected_n:
+        s += f" (n={c['n']})"
+    return s
+
+
+def main():
+    long_rows, cell_rows, table_rows = [], [], []
+    ROW_ORDER = [0, 1, 2, 3, 4, 5, 6, 11, 7, 8, 9, 12]
+    methods_by_num = {m["num"]: m for m in METHODS}
+    ordered = [methods_by_num[n] for n in ROW_ORDER]
+    fsx_label_suffix: dict[int, str] = {}
+
+    for m in ordered:
+        cells = {}
+        if "fsx_label_match" in m:
+            seen_fsx = False
+            for _col, pfx, _v in COLUMNS:
+                for f in find_score_files(m, pfx).values():
+                    for p in f:
+                        if m["fsx_label_match"](p.name):
+                            seen_fsx = True
+                            break
+                    if seen_fsx:
+                        break
+                if seen_fsx:
+                    break
+            fsx_label_suffix[m["num"]] = " +fsx" if seen_fsx else ""
+        for col_label, eval_prefix, variant in COLUMNS:
+            if col_label in NA_COLS.get(m["num"], set()):
+                cells[col_label] = "---"
+                cell_rows.append(dict(
+                    method_num=m["num"], method=m["label"],
+                    column=col_label, mean=None, se=None, n=0, note="NA per template"))
+                continue
+            c = cell_value(m, eval_prefix, variant)
+            cells[col_label] = fmt_cell(c, N_EXPECTED)
+            cell_rows.append(dict(
+                method_num=m["num"], method=m["label"],
+                column=col_label, mean=c["mean"], se=c["se"], n=c["n"],
+                note=("OK" if c["n"] == N_EXPECTED else f"missing {N_EXPECTED - c['n']}/{N_EXPECTED}")))
+            for task, val, fn in c["vals"]:
+                long_rows.append(dict(
+                    method_num=m["num"], method=m["label"],
+                    column=col_label, eval_prefix=eval_prefix, variant=variant,
+                    task=task, value=val, file=fn))
+        table_rows.append(dict(num=m["num"], label=m["label"], **cells))
+
+    long_csv = METRICS_DIR / f"hypernym_{MODEL}_{SPLIT}_{METRIC}_table_long.csv"
+    cells_csv = METRICS_DIR / f"hypernym_{MODEL}_{SPLIT}_{METRIC}_table_cells.csv"
+    pd.DataFrame(long_rows).to_csv(long_csv, index=False)
+    pd.DataFrame(cell_rows).to_csv(cells_csv, index=False)
+
+    split_human = "in-domain (ID)" if SPLIT == "id" else "OOD"
+    rng_desc = ", ".join(HYPONYMS)
+    print(f"\nHypernym {split_human} {METRIC_LABEL} × 100 — mean ± SE across {N_EXPECTED} hyponyms ({rng_desc})")
+    print(f"Model: gemma-2-{MODEL}, trained on hypernym-concat-bananas-to-dogs-double-all, epoch2\n")
+    header = ["Method"] + [c[0] for c in COLUMNS]
+    print("| " + " | ".join(header) + " |")
+    print("| " + " | ".join(["---"] * len(header)) + " |")
+    for r in table_rows:
+        cells_display = [str(r[c[0]]) for c in COLUMNS]
+        suf = fsx_label_suffix.get(r["num"], "")
+        print(f"| {r['num']} {r['label']}{suf} | " + " | ".join(cells_display) + " |")
+
+    print(f"\nCSVs:\n- [{long_csv.relative_to(REPO)}]({long_csv.relative_to(REPO)})\n- [{cells_csv.relative_to(REPO)}]({cells_csv.relative_to(REPO)})")
+
+
+if __name__ == "__main__":
+    main()
