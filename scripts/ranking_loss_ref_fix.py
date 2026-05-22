@@ -1,56 +1,51 @@
 """
-This script is used to train a model to rank discriminator prompts to match the ranking of log-probabilities of generator prompts.
+FIX1 g-mode training fork of scripts/ranking_loss_ref.py.
 
-Usage:
-python ranking_loss_ref.py --model google/gemma-2-2b --task hypernym --with_ref --num_epochs 10 --learning_rate 1e-5 --delta 5 --total_samples 5110 --save_steps 1
-
-============================================================================
-FIX1 FORK NOTES (ranking_loss_ref_fix.py, 2026-05-21)
-
-This is a g-mode-only fork of ranking_loss_ref.py. Scope is limited to
-addressing Issue #3 from docs/comb_loss_g_mode_concerns.md (generator
-NLL conflicts with preference loss on inconsistent pairs). Other
-concerns from that doc -- e.g. the validator-NLL position bug -- are
-intentionally OUT OF SCOPE here and will be addressed separately.
-
-See docs/issue3_fix.md for the full algorithm + design rationale.
-
-Differences from the parent ranking_loss_ref.py:
+This script is intentionally narrower than the parent script:
 
   1. Only --train_g_or_d g is supported. d / both / iter raise.
-  2. Pairs are restricted to a 4-shape consistent pool:
+  2. Only registry tasks are supported. Legacy task branches raise.
+  3. Only full-completion, batch_size=1 training is supported.
+  4. with_ref, track_scores, single-token-only, and non-g modes raise.
+
+Main fix1 behavior:
+
+  1. Pair construction uses the 4-shape consistent pool:
        case_A     = (L_neg, L_pos)
        mixed_neg  = (L_neg, U)
        mixed_pos  = (U,     L_pos)
        both_U     = (U,     U)
-     Any pair where a labeled item is on its "wrong" natural side is
-     dropped at construction time.
-  3. Sampling is per-prompt x per-shape with within-prompt backfill:
-       - Per-prompt budget = total_samples * n_p / N_total
-         (proportional to completion count -> equal expected exposure
-          per completion, regardless of which prompt it lives in).
-       - Within each prompt, shape budgets follow --shape-weight-*
-         CLI flags (defaults: 0.20 / 0.20 / 0.20 / 0.40).
-       - When fsx is OFF, the entire dataset is one virtual prompt
-         (so per-prompt logic collapses to the global stratified case).
-       - Within-prompt backfill (only) for cells that are smaller than
-         their target.
-  4. Generator NLL fires PER ITEM (not per pair). Weight per item =
-     is_labeled_item * indicator_item, so it only fires for labeled
-     positives. The legacy pair_is_labeled outer gate is removed.
-  5. Validator NLL also fires PER ITEM (not per pair). Weight per
-     item = is_labeled_item, so it fires on every labeled item
-     regardless of its partner -- both labeled positives and labeled
-     negatives. The val-NLL POSITION bug (where in the sequence we
-     read the Yes/No log-odds; concern #1 in
-     docs/comb_loss_g_mode_concerns.md) is a separate issue, out of
-     scope; only the gating is changed here.
-  6. Trained checkpoints + tracking CSVs get a --fix1 suffix so they
-     can't collide with parent-script outputs.
+     Pairs with labeled items on the wrong natural side are dropped.
 
-Use scripts/ranking_loss_ref.py for d/both/iter modes.
-============================================================================
+  2. Sampling is per-prompt x per-shape with within-prompt backfill.
+     Shape weights are controlled by --shape-weight-* flags.
 
+  3. Generator NLL fires per item, only for labeled positives:
+       weight = is_labeled_item * indicator_item
+
+  4. Validator NLL fires per item for every labeled item:
+       weight = is_labeled_item
+
+  5. Validator NLL position is fixed for g-mode: when val-NLL is on,
+     the dataset builds discriminator-side inputs `disc_prompt + " Yes"`,
+     the train loop runs a second discriminator forward pass, and Yes/No
+     log-odds are read at the discriminator answer slot rather than inside
+     the generator statement.
+
+  6. Legacy pair_is_labeled AND-gating is not used by the active loss.
+
+  7. Trained checkpoints use the v7- prefix and --fix1 suffix.
+
+Known caveats:
+
+  - --include-eos is not safe with non-log-odds val-NLL until the
+    discriminator-side tail is also made to include EOS.
+  - --batch-size > 1 is disabled; variable-length token fields still need
+    a custom collate function before batching can be safely re-enabled.
+  - --force-same-x behavior still needs a separate cleanup/toggle pass.
+
+See docs/issue3_fix.md and docs/comb_loss_g_mode_concerns.md for rationale.
+Use scripts/ranking_loss_ref.py for parent d/both/iter behavior.
 """
 import os
 import sys
@@ -80,7 +75,9 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = os.path.join(parent_dir, "src")
 sys.path.append(src_path)
 import utils
-from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_ifeval, make_prompt_collie, get_final_logit_prob, get_completion_token_logprobs
+#from utils import make_prompt_triviaqa, make_prompt_hypernymy, make_prompt_swords, make_prompt_lambada, make_prompt_ifeval, make_prompt_collie, 
+from utils import get_final_logit_prob, get_completion_token_logprobs
+
 from task_registry import get_task, get_all_task_names
 
 def compute_optimal_threshold(scores, labels):
@@ -118,7 +115,7 @@ def compute_optimal_threshold(scores, labels):
 
 def compute_self_typicality_training(completions, model, tokenizer, device,
                                      is_chat=False, has_system_role=False, include_eos=False,
-                                     disable_thinking=False):
+                                     disable_thinking=False, debug=False):
     """
     Compute self-typicality: unconditional log P_model(completion) using the
     scoring model itself (instead of GPT-2).
@@ -131,13 +128,16 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
 
     print("\nComputing self-typicality scores (using scoring model itself)...")
     with torch.no_grad():
-        for completion in tqdm(completions, desc="Self typicality"):
+        for idx, completion in enumerate(tqdm(completions, desc="Self typicality")):
             token_logprobs = get_completion_token_logprobs(
                 "", completion, model, tokenizer, device,
                 is_chat=is_chat, has_system_role=has_system_role,
                 include_eos=include_eos,
                 disable_thinking=disable_thinking,
             )
+            if debug and idx < 3:
+                print(f"[DEBUG self-typ] idx={idx} completion={completion!r}")
+                print(f"[DEBUG self-typ] token_logprobs={token_logprobs.tolist()} sum={float(token_logprobs.sum().item()):.6f}")
             typicality_scores.append(float(token_logprobs.sum().item()))
 
     print(f"  Computed {len(typicality_scores)} self-typicality scores")
@@ -150,7 +150,7 @@ def compute_self_typicality_training(completions, model, tokenizer, device,
 def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
                                     model, tokenizer, device,
                                     is_chat=False, has_system_role=False, include_eos=False,
-                                    disable_thinking=False):
+                                    disable_thinking=False, debug=False):
     """Compute log P(completion | negated_prompt) for each training item.
 
     Uses make_negated_gen_prompt from eval_by_claude.py to construct the
@@ -162,7 +162,7 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
 
     print("\nComputing neg-typicality scores (negated-prompt LLR denominator)...")
     with torch.no_grad():
-        for item in tqdm(L_train_all, desc="Neg typicality"):
+        for idx, item in enumerate(tqdm(L_train_all, desc="Neg typicality")):
             neg_prompt, completion = make_negated_gen_prompt(item, task, make_prompt_fn)
             token_logprobs = get_completion_token_logprobs(
                 neg_prompt, completion, model, tokenizer, device,
@@ -170,6 +170,10 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
                 include_eos=include_eos,
                 disable_thinking=disable_thinking,
             )
+            if debug and idx < 3:
+                print(f"[DEBUG neg-typ] idx={idx} neg_prompt={neg_prompt!r}")
+                print(f"[DEBUG neg-typ] completion={completion!r}")
+                print(f"[DEBUG neg-typ] token_logprobs={token_logprobs.tolist()} sum={float(token_logprobs.sum().item()):.6f}")
             neg_scores.append(float(token_logprobs.sum().item()))
 
     print(f"  Computed {len(neg_scores)} neg-typicality scores")
@@ -421,12 +425,19 @@ def main(args):
 
     tokenizer, model = load_model_tokenizer(model_name)
     # Note: device_map="auto" in load_model_tokenizer handles device placement
+    def dbg(msg):
+        if debug:
+            print(f"[DEBUG] {msg}")
     
     # Compute yes/no token IDs for log-odds computation
     yestoks = [tokenizer.encode(w)[-1] for w in yes_words]
     notoks = [tokenizer.encode(w)[-1] for w in no_words]
     if validator_log_odds:
         print(f"Using log-odds for validator: yestoks={yestoks}, notoks={notoks}")
+    if debug:
+        dbg(f"with_chat={with_chat} has_system_role={has_system_role} space_prefix={space_prefix!r} disc_shots={disc_shots}")
+        dbg(f"yes token variants: {[(w, tokenizer.encode(w, add_special_tokens=False), tokenizer.decode([tokenizer.encode(w)[-1]])) for w in yes_words]}")
+        dbg(f"no token variants: {[(w, tokenizer.encode(w, add_special_tokens=False), tokenizer.decode([tokenizer.encode(w)[-1]])) for w in no_words]}")
     
     # Conditionally add LoRA for memory-efficient fine-tuning
     if use_lora:
@@ -473,41 +484,6 @@ def main(args):
     if task_config is not None:
         # NEW PATH: Use registered task configuration
         L_train, L_test = task_config['load_data'](seed=0, split_type=split_type, v2=use_v2)
-    # LEGACY PATH: Existing task implementations (unchanged)
-    elif task=='hypernym':
-        L = utils.load_noun_pair_data()
-        if split_type=='hyper':
-            L_train, L_test = utils.split_train_test_no_overlap(L, seed=0)
-        elif split_type=='random':
-            L_train, L_test = utils.split_train_test(L, seed=0, subsample=False, num_train=3000)
-        elif split_type=='both':
-            raise NotImplementedError("both mode is not supported in fix1")
-            L_train, L_test = utils.split_train_test_no_overlap_both(L, seed=2)
-        else:
-            raise ValueError("Wrong value for split-type")
-        #L_train, L_test = utils.split_train_test(L, seed=0, subsample=False, num_train=3000)
-        #L_train, L_test = utils.split_train_test_no_overlap(L, seed=0)
-        #L_train, L_test = utils.split_train_test_no_overlap_both(L)
-    elif task=='hypernym-car':
-        # Pre-split balanced dataset for "cars are a kind of X"
-        L_train, L_test = utils.load_hypernym_car_data()
-    elif task=='trivia-qa':
-        #USE SUBSET FOR NOW
-        #L_train =  L['train'].shuffle(seed=42).select(range(3000))
-        #L_test = L['validation'].shuffle(seed=42).select(range(1000))
-        L_train, L_test, _ = utils.get_L_prompt('trivia-qa', split_type, seed=0)
-    elif task=='swords':
-        L_train, L_test = utils.load_swords_data(seed=0)
-    elif task=='lambada':
-        #L_train, L_test = utils.load_lambada_data(seed=0)
-        # experiment with negatives -- recent version of get_L_prompt does this
-        L_train, L_test, _ = utils.get_L_prompt('lambada', split_type, seed=0)
-    elif task=='ifeval':
-        # LEGACY: bare "ifeval" is superseded by "ifeval-concat" (task registry).
-        # These branches are kept for backward compat but are effectively dead code.
-        L_train, L_test = utils.load_ifeval_data(seed=0)
-    elif task=='collie':
-        L_train, L_test = utils.load_collie_data(seed=0)
     else:
         raise NotImplementedError("Task not implemented!")
 
@@ -541,7 +517,8 @@ def main(args):
             if train_g_or_d in ('g', 'both'):
                 pc = task_config['make_prompt'](item, style='generator', shots='zero')
                 lengths.append(_encode_len(pc.prompt, pc.completion))
-            if train_g_or_d in ('d', 'both'):
+            # g-mode only needs train-time discriminator inputs when val-NLL is on.
+            if train_g_or_d in ('d', 'both') or (train_g_or_d == 'g' and nll_validator_weight > 0):
                 pc = task_config['make_prompt'](item, style='discriminator', shots=disc_shots)
                 lengths.append(_encode_len(pc.prompt, space_prefix + "Yes"))
             if not lengths:
@@ -632,6 +609,10 @@ def main(args):
                 else:
                     log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
                     total_log_prob = float(log_prob.sum().item())
+                    if debug and idx < 3:
+                        dbg(f"pair-score idx={idx} style={gold_prompt_style} target={target_text!r}")
+                        dbg(f"pair-score prompt={prompt[:300]!r}")
+                        dbg(f"pair-score target_ids={tokenizer.encode(target_text, add_special_tokens=False)} token_logprobs={log_prob.tolist()} sum={total_log_prob:.6f}")
                     logprobs_last_layer.append(total_log_prob)
             else:
                 probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
@@ -659,345 +640,13 @@ def main(args):
             task_config['make_prompt'], L_train_all, tokenizer,
             style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None
         )
+        if debug:
+            dbg(f"p_train_gold[0]: prompt={p_train_gold[0].prompt[:300]!r} completion={p_train_gold[0].completion!r}")
+            dbg(f"p_train_tune[0]: prompt={p_train_tune[0].prompt[:300]!r} completion={p_train_tune[0].completion!r}")
+            dbg(f"logprobs_last_layer[0:3]={logprobs_last_layer[:3]}")
 
-    # LEGACY PATH: Existing task implementations (unchanged)
-    elif task in ['hypernym', 'hypernym-car']:
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i.taxonomic == "yes"]
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_hypernymy, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for presumed "gold truth" prompts (when training discriminator, these are generator prompts)
-        # if trainin disc, log_probs_last_layer_pos are for generator prompt
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            # Get the log probability for the target token (noun2)
-            # For hypernymy, we want the probability of the noun2 token
-            if train_g_or_d=='d':
-                target_text = space_prefix + L_train_all[idx].noun2
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx].noun2
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-            
-            if use_full_completion:
-                if train_g_or_d == 'both':
-                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    total_log_prob_d = float(log_prob_d.sum().item())
-                    total_log_prob_g = float(log_prob_g.sum().item())
-                    logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
-                else:
-                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    total_log_prob = float(log_prob.sum().item())
-                    logprobs_last_layer.append(total_log_prob)
-            else:
-                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                if train_g_or_d == 'both':
-                    ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                    ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                    # Assert that heuristic matches correct approach
-                    ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
-                    ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
-                    assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
-                    assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
-                    log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                    log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                    logprobs_last_layer.append((log_prob_d, log_prob_g))
-                    #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
-                else:
-                    ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                    # Assert that heuristic matches correct approach
-                    ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
-                    assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
-                    log_prob = math.log(probs[ind].item() + 1e-12)
-                    logprobs_last_layer.append(log_prob)
-
-        # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_hypernymy, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
-
-    elif task=='trivia-qa':
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i['correct']=='yes']
-
-        #L_train_all = L_train  # Already using all examples for trivia-qa
-        # Generate generator prompts
-        #p_train_gen, hf_train_gen, _ = utils.make_and_format_data(make_prompt_triviaqa, L_train_all, tokenizer, style='generator', shots='zero', both=None)
-        #prompts_gen = [i.prompt for i in p_train_gen]
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_triviaqa, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for generator prompts
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-            if train_g_or_d=='d':
-                # Get the log probability for the target token (answer)
-                target_text = space_prefix + L_train_all[idx]['answers'][0].capitalize()
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx]['answers'][0].capitalize()
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-            # Use the first token after the space
-            if train_g_or_d == 'both':
-                ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                # Assert that heuristic matches correct approach
-                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
-                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
-                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
-                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
-                log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                logprobs_last_layer.append((log_prob_d, log_prob_g))
-                #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
-            else:
-                ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                # Assert that heuristic matches correct approach
-                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
-                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
-                log_prob = math.log(probs[ind].item() + 1e-12)
-                logprobs_last_layer.append(log_prob)
-
-        # Generate discriminator prompts
-        #p_train_disc, hf_train, _ = utils.make_and_format_data(make_prompt_triviaqa, L_train_all, tokenizer, style='discriminator', shots=disc_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_triviaqa, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-
-    elif task=='swords':
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i.synonym=='yes']
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_swords, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for generator prompts
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-            # Get the log probability for the target token (replacement)
-            #target_text = space_prefix + L_train_all[idx].replacement
-            #target_tokens = tokenizer.encode(target_text)
-            if train_g_or_d=='d':
-                target_text = space_prefix + L_train_all[idx].replacement
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx].replacement
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-            # Use the first token after the space
-            if train_g_or_d == 'both':
-                ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                # Assert that heuristic matches correct approach
-                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
-                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
-                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
-                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
-                log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                logprobs_last_layer.append((log_prob_d, log_prob_g))
-                #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
-            else:
-                ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                # Assert that heuristic matches correct approach
-                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
-                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
-                log_prob = math.log(probs[ind].item() + 1e-12)
-                logprobs_last_layer.append(log_prob)
-        # Generate discriminator prompts
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_swords, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
-
-    elif task=='lambada':
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i['correct']=='yes']
-
-
-        #L_train_all = L_train  # Already using all examples for lambada
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_lambada, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
- 
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for generator prompts
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-            # Get the log probability for the target token (final_word)
-            #target_text = space_prefix + L_train_all[idx]['final_word']
-            #target_tokens = tokenizer.encode(target_text)
-            if train_g_or_d=='d':
-                target_text = space_prefix + L_train_all[idx]['final_word']
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx]['final_word']
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-            # Use the first token after the space
-            if train_g_or_d == 'both':
-                ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                # Assert that heuristic matches correct approach
-                ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
-                ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
-                assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
-                assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
-                log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                logprobs_last_layer.append((log_prob_d, log_prob_g))
-                #NOTE careful these contain tuples of (log_prob_d, log_prob_g)
-            else:
-                ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                # Assert that heuristic matches correct approach
-                ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
-                assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
-                log_prob = math.log(probs[ind].item() + 1e-12)
-                logprobs_last_layer.append(log_prob)
-        # Generate discriminator prompts
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_lambada, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
-    elif task=='ifeval':
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i.correct]
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_ifeval, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for presumed "gold truth" prompts (when training discriminator, these are generator prompts)
-        # if trainin disc, log_probs_last_layer_pos are for generator prompt
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            # Get the log probability for the target 
-            if train_g_or_d=='d':
-                target_text = space_prefix + L_train_all[idx]['response']
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx]['response']
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-
-            if not use_full_completion:
-                raise ValueError("must use full completion for ifeval task")
-            
-            if train_g_or_d == 'both':
-                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                total_log_prob_d = float(log_prob_d.sum().item())
-                total_log_prob_g = float(log_prob_g.sum().item())
-                logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
-            else:
-                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                total_log_prob = float(log_prob.sum().item())
-                logprobs_last_layer.append(total_log_prob)
-
-        # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_ifeval, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
-    elif task=='collie':
-        if use_all:
-            L_train_all = L_train
-        else:
-            L_train_all = [i for i in L_train if i.correct]
-        # Generate generator prompts
-        p_train_gold, hf_train_gold, _ = utils.make_and_format_data(make_prompt_collie, L_train_all, tokenizer, style=gold_prompt_style, shots=gold_prompt_shots, neg=False, both=None)
-        prompts_gold = [i.prompt for i in p_train_gold]
-
-        # Compute log-probabilities for presumed "gold truth" prompts (when training discriminator, these are generator prompts)
-        # if trainin disc, log_probs_last_layer_pos are for generator prompt
-        logprobs_last_layer = []
-        for idx, prompt in enumerate(tqdm(prompts_gold)):
-            # Get the log probability for the target 
-            if train_g_or_d=='d':
-                target_text = space_prefix + L_train_all[idx]['generated']
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='g':
-                target_text = space_prefix +"Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d=='both':
-                # For both mode, we use the same target as discriminator mode
-                target_text_d = space_prefix + L_train_all[idx]['generated']
-                target_tokens_d = tokenizer.encode(target_text_d)
-
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
-
-            if not use_full_completion:
-                raise ValueError("must use full completion for collie task")
-            
-            if train_g_or_d == 'both':
-                log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                total_log_prob_d = float(log_prob_d.sum().item())
-                total_log_prob_g = float(log_prob_g.sum().item())
-                logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
-            else:
-                log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                total_log_prob = float(log_prob.sum().item())
-                logprobs_last_layer.append(total_log_prob)
-
-        # Generate discriminator prompts if train_g_or_d == 'd'.  Previously was p_train_disc
-        p_train_tune, hf_train, _ = utils.make_and_format_data(make_prompt_collie, L_train_all, tokenizer, style=tune_prompt_style, shots=tune_prompt_shots, neg=False, both=None)
-        #prompts_pos = [i.prompt for i in p_train]
     else:
-        raise ValueError("Task unsupported!")
+        raise NotImplementedError("Legacy tasks no longer supported in fix1")
 
     # Compute typicality scores if requested (for ALL modes)
     # Note: typicality_scores will be used during training to correct generator scores
@@ -1016,47 +665,24 @@ def main(args):
         if task_config is not None:
             # NEW PATH: Use registered task configuration
             completions = [task_config['get_completion'](item).strip() for item in L_train_all]
-        # LEGACY PATH: Existing task implementations (unchanged)
-        elif task in ['hypernym', 'hypernym-car']:
-            completions = [item.noun2 for item in L_train_all]
-        elif task == 'trivia-qa':
-            completions = [item['answers'][0] for item in L_train_all]
-        elif task == 'swords':
-            completions = [item.replacement for item in L_train_all]
-        elif task == 'lambada':
-            completions = [item['final_word'] for item in L_train_all]
-        elif task == 'ifeval':
-            completions = [item['response'] for item in L_train_all]
-        elif task == 'collie':
-            completions = [item['generated'] for item in L_train_all]
         else:
-            raise ValueError(f"Task {task} not supported for typicality correction")
+            raise NotImplementedError("Legacy tasks no longer supported in fix1")
         
         if args.neg_typicality:
             # Neg-typicality: log P(completion | negated_prompt)
             print("\nUsing NEG-TYPICALITY (negated-prompt LLR)")
             if task_config is not None:
                 make_prompt_fn = task_config['make_prompt']
-            elif task in ['hypernym', 'hypernym-car']:
-                make_prompt_fn = make_prompt_hypernymy
-            elif task == 'trivia-qa':
-                make_prompt_fn = make_prompt_triviaqa
-            elif task == 'swords':
-                make_prompt_fn = make_prompt_swords
-            elif task == 'lambada':
-                make_prompt_fn = make_prompt_lambada
-            elif task == 'ifeval':
-                make_prompt_fn = make_prompt_ifeval
-            elif task == 'collie':
-                make_prompt_fn = make_prompt_collie
             else:
-                raise ValueError(f"Task {task} not supported for neg-typicality (no make_prompt_fn)")
+                raise NotImplementedError("Legacy tasks no longer supported in fix1")
+
             typicality_scores = compute_neg_typicality_training(
                 L_train_all, task, make_prompt_fn,
                 model, tokenizer, device,
                 is_chat=with_chat, has_system_role=has_system_role,
                 include_eos=args.include_eos,
                 disable_thinking=disable_thinking,
+                debug=debug,
             )
         elif args.self_typicality:
             # Self-typicality: use the scoring model itself
@@ -1066,16 +692,10 @@ def main(args):
                 is_chat=with_chat, has_system_role=has_system_role,
                 include_eos=args.include_eos,
                 disable_thinking=disable_thinking,
+                debug=debug,
             )
         else:
-            # GPT-2 typicality: load GPT-2 as the prior
-            print("\nLoading GPT-2 for typicality correction...")
-            tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
-            model_gpt2 = AutoModelForCausalLM.from_pretrained("gpt2")
-            model_gpt2 = model_gpt2.to(device)
-            model_gpt2.eval()
-            print(f"  GPT-2 loaded on {device}")
-            typicality_scores = compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device)
+            raise NotImplementedError("GPT-2 typicality is not wired in fix1; use --self-typicality or --neg-typicality")
 
         print(f"  Computed typicality scores for {len(typicality_scores)} examples")
         print(f"  Typicality mean: {sum(typicality_scores)/len(typicality_scores):.4f}")
@@ -1102,10 +722,6 @@ def main(args):
         else:
             print("\n  (In 'g' mode: typicality will be applied during training, not pair selection)")
         
-        if not args.self_typicality and not args.neg_typicality:
-            del model_gpt2, tokenizer_gpt2
-            torch.cuda.empty_cache()
-        
         print("="*60 + "\n")
 
     if with_chat and has_system_role:
@@ -1115,8 +731,7 @@ def main(args):
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
         max_context_length = toks_tune.shape[1]
         
-        # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
-        if train_g_or_d == 'both':
+        if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             ms_gold = [ [ {"role": "system", "content": "You are a helpful assistant."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
             max_context_length = max(max_context_length, toks_gold.shape[1])
@@ -1126,15 +741,14 @@ def main(args):
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
         max_context_length = toks_tune.shape[1]
         
-        # If mode is 'both', also process generator prompts (p_train_gold) and take the maximum
-        if train_g_or_d == 'both':
+        if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
             max_context_length = max(max_context_length, toks_gold.shape[1])
     else:
         #TODO later should make this cleaner in utils.make_and_format_data
         max_context_length = len(hf_train[0]['input_ids'])
-        if train_g_or_d == 'both':
+        if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             max_context_length = max(len(hf_train_gold[0]['input_ids']), max_context_length)
     print("MAX CONTEXT LENGTH: ", max_context_length)
     if args.max_seq_len is not None and args.max_seq_len > 0:
@@ -1226,16 +840,11 @@ def main(args):
             if not is_lab:
                 return 'U'
             data_item = z_tuple[2]
+
             if _task_config is not None:
                 ind = _task_config['get_indicator'](data_item)
-            elif task in ['hypernym', 'hypernym-car']:
-                ind = 1.0 if data_item.taxonomic.strip().lower() == 'yes' else 0.0
-            elif task == 'swords':
-                ind = 1.0 if data_item.synonym.strip().lower() == 'yes' else 0.0
-            elif task in ['trivia-qa', 'lambada', 'ifeval']:
-                ind = 1.0 if data_item['correct'].strip().lower() == 'yes' else 0.0
             else:
-                raise ValueError(f"Task {task} not supported for label-class lookup in fix1")
+                raise NotImplementedError("Legacy tasks no longer supported in fix1")
             return 'L_pos' if ind >= 0.5 else 'L_neg'
 
         def _enumerate_shape_subset(lo_pool, hi_pool):
@@ -1346,7 +955,7 @@ def main(args):
 
         # 4. Sample per (prompt, shape) with within-prompt backfill.
         #    See docs/issue3_fix.md "Backfill policy" section.
-        # TODO: if multi-prompt tasks with many empty shapes start drifting the
+        #TODO: if multi-prompt tasks with many empty shapes start drifting the
         # global per-shape ratio noticeably, add --shape-backfill flag with
         # {within-prompt (default), within-shape, none} options. For now,
         # within-prompt only.
@@ -1467,19 +1076,9 @@ def main(args):
             # NEW PATH: Use registered task configuration
             label = task_config['get_label'](data_item)
         # LEGACY PATH: Existing task implementations (unchanged)
-        elif task in ['hypernym', 'hypernym-car']:
-            label = data_item.taxonomic.strip().lower()
-        elif task == 'trivia-qa':
-            label = data_item['correct'].strip().lower()
-        elif task == 'swords':
-            label = data_item.synonym.strip().lower()
-        elif task == 'lambada':
-            label = data_item['correct'].strip().lower()
-        elif task == 'ifeval':
-            label = data_item['correct'].strip().lower()
         else:
-            raise ValueError(f"Task {task} not supported for ground truth lookup")
-        
+            raise NotImplementedError("Legacy tasks no longer supported in fix1")
+       
         if label == 'yes':
             return space_prefix + "Yes"
         else:
@@ -1493,20 +1092,6 @@ def main(args):
             # NEW PATH: Use registered task configuration
             return space_prefix + task_config['get_completion'](data_item).strip()
         # LEGACY PATH: Existing task implementations (unchanged)
-        if task in ['hypernym', 'hypernym-car']:
-            return space_prefix + data_item.noun2
-        elif task == 'trivia-qa':
-            return space_prefix + data_item['answers'][0]
-        elif task == 'swords':
-            return space_prefix + data_item.replacement
-        elif task == 'lambada':
-            return space_prefix + data_item['final_word']
-        elif task == 'ifeval':
-            return space_prefix + data_item['response']
-        elif task == 'collie':
-            return space_prefix + data_item['generated']
-        else:
-            raise ValueError(f"Task {task} not supported for generator completion lookup")
 
     def get_indicator(data_item, task):
         """Get indicator (1 if positive example, 0 if negative)."""
@@ -1515,19 +1100,8 @@ def main(args):
         if task_config is not None:
             # NEW PATH: Use registered task configuration
             return task_config['get_indicator'](data_item)
-        # LEGACY PATH: Existing task implementations (unchanged)
-        if task in ['hypernym', 'hypernym-car']:
-            label = data_item.taxonomic.strip().lower()
-        elif task == 'trivia-qa':
-            label = data_item['correct'].strip().lower()
-        elif task == 'swords':
-            label = data_item.synonym.strip().lower()
-        elif task == 'lambada':
-            label = data_item['correct'].strip().lower()
-        elif task == 'ifeval':
-            label = data_item['correct'].strip().lower()
         else:
-            raise ValueError(f"Task {task} not supported for indicator lookup")
+            raise NotImplementedError("Legacy tasks no longer supported in fix1")
         
         return 1.0 if label == 'yes' else 0.0
 
@@ -1546,7 +1120,7 @@ def main(args):
                     (format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  # prompts
                     (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
-                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                    (pair[0][0].completion, pair[1][0].completion),  # generator completions (same string as forward pass)
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
                     (pair[0][3], pair[1][3]),  # typicality scores
                     (pair[0][4], pair[1][4]),  # is_labeled flags
@@ -1560,7 +1134,7 @@ def main(args):
                     (pair[0][0].prompt, pair[1][0].prompt),  # prompts
                     (pair[0][0].completion, pair[1][0].completion),  # completion for ranking (generator completions)
                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
-                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
+                    (pair[0][0].completion, pair[1][0].completion),  # generator completions (same string as forward pass)
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
                     (pair[0][3], pair[1][3]),  # typicality scores
                     (pair[0][4], pair[1][4]),  # is_labeled flags
@@ -1600,14 +1174,10 @@ def main(args):
             self.max_length = max_length
             self.device = device
             self.use_full_completion = use_full_completion
-            # FIX1 (val-NLL position fix, 2026-05-22): once-only truncation
-            # warning flag for the disc input. With padding='max_length' +
-            # truncation=True the tokenizer right-truncates inputs that exceed
-            # max_length, which would silently chop off the " Yes" tail and
-            # leave pred_pos = -2 pointing into disc_prompt rather than the
-            # answer slot. We catch this by comparing the last `comp_len`
-            # tokens of the encoded disc input to the expected tail.
-            self._disc_trunc_warned = False
+            self._debug_printed = 0
+
+        def __len__(self):
+            return len(self.pairs)
 
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
@@ -1633,6 +1203,8 @@ def main(args):
                 else:
                     completion_i += _eos
                     completion_j += _eos
+                    #TODO: (2026-05-22) --include-eos is not safe with non-log-odds val-NLL
+                    # until the discriminator-side tail below also includes EOS.
                     correct_i += _eos
                     correct_j += _eos
                     gen_completion_i += _eos
@@ -1675,64 +1247,74 @@ def main(args):
                 token_gen_i = self.tokenizer.encode(gen_completion_i, add_special_tokens=False, return_tensors='pt')
                 token_gen_j = self.tokenizer.encode(gen_completion_j, add_special_tokens=False, return_tensors='pt')
 
-                # FIX1 (val-NLL position fix, 2026-05-22): tokenize the
-                # discriminator-side input `disc_prompt + " Yes"`. Always
-                # use " Yes" as the tail (matches `both`-mode pattern); we only
-                # need a fixed-length tail to define the answer slot position.
-                # `compute_logodds_simple` reads log-odds at pred_pos = -2 from
-                # this sequence, which is the slot where the model predicts the
-                # first token of the answer (i.e. P(Yes)/P(No) at the answer
-                # slot of a properly-formed discriminator prompt). The 2nd
-                # forward pass on this sequence happens in the train loop, gated
-                # on nll_validator_weight > 0 to avoid the cost on pref-only runs.
-                disc_yes_tail = space_prefix + "Yes"
-                input_i_disc = disc_prompt_i + disc_yes_tail
-                input_j_disc = disc_prompt_j + disc_yes_tail
-                enc_i_disc = self.tokenizer(
-                    input_i_disc,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt',
-                )
-                enc_j_disc = self.tokenizer(
-                    input_j_disc,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt',
-                )
-                # Tokenize the " Yes" tail (typically 1 token; used by
-                # compute_logodds_simple to compute pred_pos = -(comp_len+1)).
-                token_yes_disc = self.tokenizer.encode(disc_yes_tail, add_special_tokens=False, return_tensors='pt')
-
-                # FIX1 (val-NLL position fix, 2026-05-22): once-only check that
-                # the disc input wasn't right-truncated. With left-padding +
-                # right-truncation, an over-long input loses its tail, so the
-                # last comp_len tokens would no longer equal the " Yes" tail
-                # and val-NLL would read at the wrong slot (silently). We
-                # compare and warn loudly the first time we see a mismatch.
-                if not self._disc_trunc_warned:
-                    expected_tail = token_yes_disc.squeeze(0)  # [comp_len]
-                    comp_len_tail = expected_tail.size(0)
-                    actual_tail_i = enc_i_disc['input_ids'].squeeze(0)[-comp_len_tail:]
-                    actual_tail_j = enc_j_disc['input_ids'].squeeze(0)[-comp_len_tail:]
-                    if not (torch.equal(actual_tail_i, expected_tail) and torch.equal(actual_tail_j, expected_tail)):
-                        print(
-                            "\n" + "!" * 70 + "\n"
-                            f"[FIX1 WARNING] disc input truncation detected at idx={idx}.\n"
-                            f"  expected tail tokens: {expected_tail.tolist()} "
-                            f"(decoded: {self.tokenizer.decode(expected_tail)!r})\n"
-                            f"  actual tail (i):      {actual_tail_i.tolist()} "
-                            f"(decoded: {self.tokenizer.decode(actual_tail_i)!r})\n"
-                            f"  actual tail (j):      {actual_tail_j.tolist()} "
-                            f"(decoded: {self.tokenizer.decode(actual_tail_j)!r})\n"
-                            f"  max_length={self.max_length}; consider raising it.\n"
-                            f"  val-NLL log-odds will read at the wrong slot for this batch.\n"
-                            "  (this warning fires only once per dataset; suppressing further occurrences.)\n"
-                            + "!" * 70 + "\n"
+                def _check_tail(name, enc, token_tensor):
+                    tail = token_tensor.squeeze(0)
+                    tail_len = tail.size(0)
+                    if tail_len == 0:
+                        return
+                    actual = enc['input_ids'].squeeze(0)[-tail_len:]
+                    if not torch.equal(actual, tail):
+                        raise ValueError(
+                            f"{name} tail mismatch (likely truncation/tokenization mismatch). "
+                            "Increase --max-seq-len or inspect prompt/completion formatting."
                         )
-                        self._disc_trunc_warned = True
+
+                _check_tail("generator i", enc_i, token_i)
+                _check_tail("generator j", enc_j, token_j)
+                if not torch.equal(token_i, token_gen_i) or not torch.equal(token_j, token_gen_j):
+                    raise ValueError(
+                        "Generator NLL tokens differ from preference completion tokens; "
+                        "gen-NLL would read the wrong positions."
+                    )
+
+                if nll_validator_weight > 0:
+                    # Disc-side input for val-NLL. Always append "Yes"; only its
+                    # length is used to locate the answer slot for log-odds.
+                    disc_yes_tail = space_prefix + "Yes"
+                    input_i_disc = disc_prompt_i + disc_yes_tail
+                    input_j_disc = disc_prompt_j + disc_yes_tail
+                    enc_i_disc = self.tokenizer(
+                        input_i_disc,
+                        padding='max_length',
+                        truncation=True,
+                        max_length=self.max_length,
+                        return_tensors='pt',
+                    )
+                    enc_j_disc = self.tokenizer(
+                        input_j_disc,
+                        padding='max_length',
+                        truncation=True,
+                        max_length=self.max_length,
+                        return_tensors='pt',
+                    )
+                    token_yes_disc = self.tokenizer.encode(disc_yes_tail, add_special_tokens=False, return_tensors='pt')
+                    disc_tail = token_yes_disc.squeeze(0)
+                    tail_len = disc_tail.size(0)
+                    if tail_len > 0:
+                        tail_i = enc_i_disc['input_ids'].squeeze(0)[-tail_len:]
+                        tail_j = enc_j_disc['input_ids'].squeeze(0)[-tail_len:]
+                        if not (torch.equal(tail_i, disc_tail) and torch.equal(tail_j, disc_tail)):
+                            raise ValueError(
+                                "Discriminator input tail mismatch (likely truncation). "
+                                "Increase --max-seq-len or reduce prompt length."
+                            )
+                    if not validator_log_odds:
+                        if token_correct_i.size(1) != token_yes_disc.size(1) or token_correct_j.size(1) != token_yes_disc.size(1):
+                            raise ValueError(
+                                "Non-log-odds val-NLL requires Yes/No targets to have the same token length "
+                                "as the discriminator tail."
+                            )
+
+                if debug and self._debug_printed < 3:
+                    print(f"[DEBUG dataset] idx={idx}")
+                    print(f"[DEBUG dataset] prompt_i={prompt_i[:300]!r}")
+                    print(f"[DEBUG dataset] completion_i={completion_i!r}")
+                    print(f"[DEBUG dataset] correct_i={correct_i!r} indicator_i={indicator_i} is_labeled_i={is_labeled_i}")
+                    print(f"[DEBUG dataset] token_i={token_i.squeeze(0).tolist()} token_gen_i={token_gen_i.squeeze(0).tolist()} token_correct_i={token_correct_i.squeeze(0).tolist()}")
+                    if nll_validator_weight > 0:
+                        print(f"[DEBUG dataset] disc_prompt_i={disc_prompt_i[:300]!r}")
+                        print(f"[DEBUG dataset] token_id_disc={token_yes_disc.squeeze(0).tolist()}")
+                    self._debug_printed += 1
 
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
@@ -1775,17 +1357,15 @@ def main(args):
                     # FIX1: per-item labeled flags (used by per-item NLL in fix)
                     'is_labeled_i': torch.tensor(1.0 if is_labeled_i else 0.0, dtype=torch.float),
                     'is_labeled_j': torch.tensor(1.0 if is_labeled_j else 0.0, dtype=torch.float),
-                    # FIX1 (val-NLL position fix, 2026-05-22): discriminator-side
-                    # input for the 2nd forward pass that computes val-NLL log-odds
-                    # at the actual answer slot.
-                    'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
-                    'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
-                    'input_ids_j_disc': enc_j_disc['input_ids'].squeeze(0),
-                    'attention_mask_j_disc': enc_j_disc['attention_mask'].squeeze(0),
-                    # token_id_disc is the same for i and j (always " Yes" tail);
-                    # only the length matters for compute_logodds_simple.
-                    'token_id_disc': token_yes_disc.squeeze(0),
                 }
+                if nll_validator_weight > 0:
+                    item.update({
+                        'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
+                        'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
+                        'input_ids_j_disc': enc_j_disc['input_ids'].squeeze(0),
+                        'attention_mask_j_disc': enc_j_disc['attention_mask'].squeeze(0),
+                        'token_id_disc': token_yes_disc.squeeze(0),
+                    })
             else:
                 raise NotImplementedError("Not implemented in fix1")
 
@@ -1799,9 +1379,10 @@ def main(args):
     # per-task auto-pick block above. Default behavior (no override) is unchanged
     # because args.batch_size is None by default.
     if args.batch_size is not None and args.batch_size > 0:
-        if args.batch_size != batch_size:
-            print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
-        batch_size = args.batch_size
+        raise NotImplementedError("batch size has some issues, so not supported yet")
+        #if args.batch_size != batch_size:
+        #    print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
+        #batch_size = args.batch_size
 
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -1893,16 +1474,6 @@ def main(args):
                 is_labeled_i_t = batch["is_labeled_i"].to(device)
                 is_labeled_j_t = batch["is_labeled_j"].to(device)
 
-                # FIX1 (val-NLL position fix, 2026-05-22): discriminator-side
-                # batch tensors. Loaded unconditionally (cheap), but the 2nd
-                # forward pass below is gated on nll_validator_weight > 0 so
-                # pref-only runs don't pay the 2x compute cost.
-                input_ids_i_disc = batch["input_ids_i_disc"].to(device)
-                attention_mask_i_disc = batch["attention_mask_i_disc"].to(device)
-                input_ids_j_disc = batch["input_ids_j_disc"].to(device)
-                attention_mask_j_disc = batch["attention_mask_j_disc"].to(device)
-                token_id_disc = batch["token_id_disc"].to(device)
-
                 label = batch["label"].to(device)
 
                 # Forward pass for prompt i
@@ -1915,10 +1486,13 @@ def main(args):
                 outputs_j = model(input_ids=input_ids_j, attention_mask=attention_mask_j)
                 log_probs_j = F.log_softmax(outputs_j.logits, dim=-1)  # [B, seq_len, vocab_size]
 
-                # FIX1 (val-NLL position fix, 2026-05-22): 2nd forward pass on
-                # discriminator-side inputs. Only runs when val-NLL is on; otherwise
-                # log_probs_*_disc are None and the val-NLL block returns 0.0.
                 if nll_validator_weight > 0:
+                    input_ids_i_disc = batch["input_ids_i_disc"].to(device)
+                    attention_mask_i_disc = batch["attention_mask_i_disc"].to(device)
+                    input_ids_j_disc = batch["input_ids_j_disc"].to(device)
+                    attention_mask_j_disc = batch["attention_mask_j_disc"].to(device)
+                    token_id_disc = batch["token_id_disc"].to(device)
+
                     outputs_i_disc = model(input_ids=input_ids_i_disc, attention_mask=attention_mask_i_disc)
                     log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
                     outputs_j_disc = model(input_ids=input_ids_j_disc, attention_mask=attention_mask_j_disc)
@@ -2063,6 +1637,25 @@ def main(args):
                     + nll_validator_weight * nll_validator_loss
                     + nll_generator_weight * nll_generator_loss
                 )
+
+                if debug and global_step == 0:
+                    dbg(f"batch input_ids_i shape={tuple(input_ids_i.shape)} input_ids_j shape={tuple(input_ids_j.shape)}")
+                    dbg(f"token_id_i={token_id_i[0].tolist()} decoded={tokenizer.decode(token_id_i[0])!r}")
+                    dbg(f"token_gen_i={token_gen_i[0].tolist()} decoded={tokenizer.decode(token_gen_i[0])!r}")
+                    dbg(f"score_i={score_i.detach().cpu().tolist()} score_j={score_j.detach().cpu().tolist()} diff={diff.detach().cpu().tolist()}")
+                    if nll_validator_weight > 0:
+                        dbg(f"token_id_disc={token_id_disc[0].tolist()} decoded={tokenizer.decode(token_id_disc[0])!r}")
+                        if validator_log_odds:
+                            dbg(f"logodds_correct_i={logodds_correct_i.detach().cpu().tolist()} logodds_correct_j={logodds_correct_j.detach().cpu().tolist()}")
+                        else:
+                            dbg(f"score_correct_i={score_correct_i.detach().cpu().tolist()} score_correct_j={score_correct_j.detach().cpu().tolist()}")
+                    dbg(
+                        "losses "
+                        f"pref={float(preference_loss.item()):.6f} "
+                        f"val_nll={float(nll_validator_loss.item()):.6f} "
+                        f"gen_nll={float(nll_generator_loss.item()):.6f} "
+                        f"total={float(loss.item()):.6f}"
+                    )
                 
                 loss.backward()
                 optimizer.step()
@@ -2208,7 +1801,8 @@ if __name__ == "__main__":
     import tasks
 
     # Legacy task names (handled by existing if/elif chains)
-    LEGACY_TASKS = ["hypernym", "hypernym-car", "trivia-qa", "swords", "lambada", "ifeval", "collie"]
+    #LEGACY_TASKS = ["hypernym", "hypernym-car", "trivia-qa", "swords", "lambada", "ifeval"]
+    LEGACY_TASKS = []
     # Combined list includes both legacy and any newly registered tasks
     ALL_TASKS = get_all_task_names(LEGACY_TASKS)
 
@@ -2223,7 +1817,7 @@ if __name__ == "__main__":
     parser.add_argument("--total_samples", type=int, default=5110, help="Total samples")
     parser.add_argument("--save_steps", type=int, default=1, help="Save steps")
     parser.add_argument("--all", default=True, action="store_true", help="Whether to use all examples or just positive ones")
-    parser.add_argument("--train_g_or_d", type=str, default='d', choices=["d","g","iter","both"], help="Train generator or discriminator.")
+    parser.add_argument("--train_g_or_d", type=str, default='g', choices=["d","g","iter","both"], help="Train generator or discriminator.")
     parser.add_argument("--split_type", type=str, default='random', choices=["random","hyper","both"], help="How to do train/test split. Only applies to hypernymy.")
     parser.add_argument("--alpha", type=str, default='1.0', help="Alpha value or function name. NOTE: this is only used when train_g_or_d is 'both'. Can be a number between 0 and 1, or 'alpha_fun_1'")
     parser.add_argument("--lora", action='store_true', help="Use LoRA for memory-efficient fine-tuning")
