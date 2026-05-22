@@ -2482,18 +2482,26 @@ def main(args):
     # if max_context_length > 90:
     #     max_context_length = 90
 
+    # FIX1 (batch-size patch, 2026-05-21): apply --batch-size override AFTER the
+    # per-task auto-pick block above. Default behavior (no override) is unchanged
+    # because args.batch_size is None by default.
+    if args.batch_size is not None and args.batch_size > 0:
+        if args.batch_size != batch_size:
+            print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
+        batch_size = args.batch_size
+
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    if batch_size > 1 and (args.semi_supervised is not None or args.labeled_only is not None):
-        raise NotImplementedError(
-            "Semi-supervised / labeled-only with batch_size > 1 has known bugs:\n"
-            "  Bug 1: F.binary_cross_entropy_with_logits uses reduction='mean', so pair_is_labeled\n"
-            "         masks the batch-averaged BCE instead of per-example. Fix: add reduction='none'.\n"
-            "  Bug 2: In the semi-supervised total loss, labeled_loss and unlabeled_loss are scalars\n"
-            "         but pair_is_labeled is [B], making loss non-scalar. Fix: compute per-example\n"
-            "         preference loss before .mean(), do weighted combination per-example, then .mean().\n"
-            "  Both bugs only matter with batch_size > 1. Current batch_size={batch_size}."
-        )
+    # FIX1 (batch-size patch, 2026-05-21): the parent's raise NotImplementedError
+    # for batch_size > 1 + semi-supervised has been LIFTED in fix1 g-mode because:
+    #   Bug 1 (BCE batch-mean masking): fixed -- val-NLL log-odds branch now uses
+    #     reduction='none' so per-element masking works correctly.
+    #   Bug 2 (labeled/unlabeled outer mixing): N/A -- fix1 g-mode removed the
+    #     pair_is_labeled * labeled_loss + (1-pair_is_labeled) * unlabeled_loss
+    #     branch entirely (single-sum loss, no scalar/[B] mixing).
+    # All other loss components (preference, gen-NLL, non-log-odds val-NLL) were
+    # already per-element correct because they operate on [B] tensors directly.
+    # See unit test in scripts/_smoke_fix1_batch.py for verification.
     print("\n\nDone making dataloader\n\n")
     optimizer = AdamW(model.parameters(), lr=lr)
 
@@ -2855,11 +2863,17 @@ def main(args):
                 # is out of scope here. Only the gating is changed.
                 if validator_log_odds:
                     # Use log-odds with binary cross-entropy (aligns training with evaluation)
+                    # FIX1 (batch-size patch, 2026-05-21): use reduction='none' so the
+                    # per-item is_labeled mask is applied PER-ELEMENT, not after the
+                    # batch-mean. With reduction='mean' (the default) and B>1 the BCE
+                    # collapses to a scalar before the mask, giving every example the
+                    # same value -- the mask becomes meaningless. At B=1 the two are
+                    # bit-identical (verified by unit test).
                     logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
                     logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
                     nll_validator_loss = (
-                        is_labeled_i_t * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
-                        is_labeled_j_t * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
+                        is_labeled_i_t * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i, reduction='none') +
+                        is_labeled_j_t * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j, reduction='none')
                     ).mean() / 2
                     # For logging, compute score_correct as log-odds (signed by correct answer)
                     score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
@@ -3140,6 +3154,14 @@ if __name__ == "__main__":
                         help="[fix1] Sampling weight for mixed_pos pairs (U lo, L_pos hi).")
     parser.add_argument("--shape-weight-both-u", type=float, default=0.40,
                         help="[fix1] Sampling weight for both_U pairs (U lo, U hi).")
+    parser.add_argument("--batch-size", type=int, default=None, metavar="N",
+                        help="[fix1] Override training batch size after the per-task auto-pick. "
+                             "Default: per-task default (usually 1 for full-completion mode). "
+                             "Lifted the parent's batch_size>1 + semi-supervised guard for fix1 "
+                             "g-mode -- bug 2 (loss scalar/[B] mixing) was eliminated by fix1's "
+                             "single-sum loss block; bug 1 (BCE batch-mean masking) was eliminated "
+                             "by the reduction='none' patch. Use B=2 or B=4 for ~1.5-2x speedup "
+                             "on 9b-it / 2b-it persona-v1; verify VRAM headroom first.")
     args = parser.parse_args()
 
     if args.semi_supervised is not None and args.labeled_only is not None:
