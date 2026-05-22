@@ -49,17 +49,22 @@ sys.path.insert(0, str(REPO / "scripts"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
 SEARCH_DIRS = [
-    REPO / "outputs_gemma4_from_pod",
-    REPO / "outputs_gemma4_3epoch_e2",
-    REPO / "outputs_gemma4_e0_firstrun",
-    REPO / "outputs_gemma4_from_pod_epoch0",
+    Path("/datastor2/jdr/rankalign/outputs_gemma4_from_pod"),
     REPO / "outputs",
 ]
 METRICS_DIR = REPO / "metrics-from-scores"
 METRICS_DIR.mkdir(exist_ok=True)
 
-TRAIN_TASK = "humaneval-v2.1correct-multi"          # appears in eval-task name
-TRAIN_DATA_TAG = "humaneval-v2.1correct-multi-all"   # appears in model_short
+# End-of-run provenance: every (file consumed) and every (collapsed dup
+# group, kept newest) is recorded here. Summarized at the end of main().
+PROVENANCE_USED: list[dict] = []
+PROVENANCE_DUPS: list[dict] = []
+
+TRAIN_TASK = os.environ.get("HUMANEVAL_TRAIN_TASK", "humaneval-v2.1correct-multi")
+TRAIN_DATA_TAG = f"{TRAIN_TASK}-all"   # how it appears in the model_short
+# Slug used in output filenames (replace dots with the original dots; just
+# substitute the prefix for brevity in default cases).
+TRAIN_SLUG = TRAIN_TASK.replace("humaneval-", "")  # e.g. "v2.1correct-multi"
 
 METRIC = os.environ.get("HUMANEVAL_METRIC", "gen_roc").lower()
 SUPPORTED_METRICS = {"gen_roc", "pearson", "spearman", "val_roc", "val_acc"}
@@ -115,6 +120,12 @@ _KNOWN_FLAGS = [
 # missing from the observed flag list, the flag is *definitively* absent
 # (it cannot be hidden by the trailing hash truncation).
 _EARLY_FLAGS = {"tc-self", "tc-neg"}
+
+
+# Only checkpoints from this training epoch are considered. Same convention
+# as the gemma-2 (ifeval/rosch/hypernym) table builders, which hard-code
+# epoch2 into their model_short regex.
+REQUIRED_EPOCH = "epoch2"
 
 
 def _norm_tokens(s: str) -> tuple[str, list[str], bool]:
@@ -173,6 +184,9 @@ def _match_method(model_short: str, *,
     # Reject the un-trained base HF model (it has no d2g token, no
     # training-data tag, etc.) — only Method 0's matcher should claim it.
     if BASE_PATTERN.match(model_short):
+        return False
+    # Reject anything from a non-target training epoch.
+    if REQUIRED_EPOCH not in model_short:
         return False
     _, flags, was_trunc = _norm_tokens(model_short)
     if not flags and not was_trunc:
@@ -301,6 +315,21 @@ NA_COLS = {
 }
 
 
+# Recognised eval-prefixes (most specific first to avoid `basetyp-`
+# matching the start of `basetypneg-`).
+_EVAL_PREFIXES = ("basetypneg-", "basetyp-", "self-", "neg-")
+
+
+def _extract_eval_prefix(filename: str) -> str:
+    """Return the eval-prefix segment of a scores filename (or '' if none).
+    Expects the bare basename (e.g. 'scores_self-...csv')."""
+    after = filename[len("scores_"):] if filename.startswith("scores_") else filename
+    for p in _EVAL_PREFIXES:
+        if after.startswith(p):
+            return p
+    return ""
+
+
 def find_score_files(method: dict, eval_prefix) -> dict[str, list[Path]]:
     if isinstance(eval_prefix, str):
         prefixes = [eval_prefix]
@@ -342,7 +371,38 @@ def cell_value(method: dict, eval_prefix, variant: str):
         candidates = files_by_task.get(task, [])
         if not candidates:
             continue
-        path = sorted(candidates)[-1]
+        # Multi-prefix candidates (e.g. Raw column) are legitimate because
+        # raw `gen_score` is identical across eval prefixes. Within a single
+        # prefix bucket, multiple files mean a real re-eval duplicate; pick
+        # the newest (lex-largest date suffix) and record the collapsed
+        # files for the end-of-run provenance summary.
+        from collections import defaultdict
+        buckets: dict[str, list[Path]] = defaultdict(list)
+        for c in candidates:
+            buckets[_extract_eval_prefix(c.name)].append(c)
+        for pfx, fs in buckets.items():
+            if len(fs) > 1:
+                fs_sorted = sorted(fs)
+                kept = fs_sorted[-1]
+                dropped = fs_sorted[:-1]
+                PROVENANCE_DUPS.append(dict(
+                    method_num=method.get("num"),
+                    method=method.get("label"),
+                    task=task, prefix=pfx,
+                    kept=str(kept),
+                    dropped=";".join(str(d) for d in dropped),
+                ))
+                buckets[pfx] = [kept]
+        # Pick a single canonical file. (For Raw, any prefix is fine since
+        # gen_score is identical; sort for determinism.)
+        single_candidates = [fs[0] for fs in buckets.values()]
+        path = sorted(single_candidates)[0]
+        # Record provenance of every file actually consumed.
+        PROVENANCE_USED.append(dict(
+            method_num=method.get("num"),
+            method=method.get("label"),
+            task=task, file=path.name,
+        ))
         try:
             df = load_scores(path)
             metrics = compute_all_metrics(df)
@@ -426,13 +486,13 @@ def main():
                     task=task, value=val, file=fn))
         table_rows.append(dict(num=m["num"], label=m["label"], **cells))
 
-    tag = "humaneval_v2.1correct-multi_g4-31B-it"
+    tag = f"humaneval_{TRAIN_SLUG}_g4-31B-it"
     long_csv = METRICS_DIR / f"{tag}_{METRIC}_table_long.csv"
     cells_csv = METRICS_DIR / f"{tag}_{METRIC}_table_cells.csv"
     pd.DataFrame(long_rows).to_csv(long_csv, index=False)
     pd.DataFrame(cell_rows).to_csv(cells_csv, index=False)
 
-    print(f"\nHumaneval-v2.1correct-multi {METRIC_LABEL} × 100 — mean ± SE across {N_EXPECTED} problems")
+    print(f"\nHumaneval-{TRAIN_SLUG} {METRIC_LABEL} × 100 — mean ± SE across {N_EXPECTED} problems")
     print(f"Model: gemma-4-31B-it, trained on {TRAIN_DATA_TAG}, epoch2\n")
     header = ["Method"] + [c[0] for c in COLUMNS]
     print("| " + " | ".join(header) + " |")
@@ -443,6 +503,56 @@ def main():
         print(f"| {r['num']} {r['label']}{suf} | " + " | ".join(cells_display) + " |")
 
     print(f"\nCSVs:\n- [{long_csv.relative_to(REPO)}]({long_csv.relative_to(REPO)})\n- [{cells_csv.relative_to(REPO)}]({cells_csv.relative_to(REPO)})")
+
+    _print_provenance(tag)
+
+
+def _print_provenance(tag: str):
+    """Show what was actually consumed and which dups were collapsed."""
+    import pandas as pd
+    n_used = len(PROVENANCE_USED)
+    n_dups = len(PROVENANCE_DUPS)
+
+    # Extract the (epoch, model_short) pairs that the script ACTUALLY pulled
+    # data from. We re-parse the filename so this is independent of the
+    # matcher's own bookkeeping.
+    consumed_models = set()
+    for r in PROVENANCE_USED:
+        name = r["file"]
+        after = name[len("scores_"):] if name.startswith("scores_") else name
+        pfx = _extract_eval_prefix(after) or ""
+        rest = after[len(pfx):]
+        # Strip the trailing `_{eval-task}_test_log-odds...csv`.
+        m = re.search(r"^(.+?)_humaneval-v\d+(?:\.\d+)?[A-Za-z\-]*-humaneval_\d+_test_log-odds", rest)
+        if m:
+            ms = m.group(1)
+        else:
+            ms = rest
+        ep_m = re.search(r"epoch(\d+)", ms)
+        ep = int(ep_m.group(1)) if ep_m else None
+        consumed_models.add((ep, ms))
+
+    print(f"\nProvenance ({n_used} files consumed; "
+          f"{n_dups} within-prefix dup groups collapsed by keeping newest):")
+    print(f"  unique (epoch, model_short) pairs consumed: {len(consumed_models)}")
+    epochs = sorted({e for e, _ in consumed_models if e is not None})
+    if epochs:
+        print(f"  epochs observed: {epochs}")
+        for e in epochs:
+            for _, ms in sorted([(ee, mm) for ee, mm in consumed_models if ee == e]):
+                print(f"    epoch={e}  {ms}")
+        none_models = sorted([mm for ee, mm in consumed_models if ee is None])
+        if none_models:
+            print("  (no-epoch models — likely base HF ckpts)")
+            for ms in none_models:
+                print(f"    {ms}")
+    if n_dups > 0:
+        used_csv = METRICS_DIR / f"{tag}_files_used.csv"
+        dup_csv = METRICS_DIR / f"{tag}_dups_collapsed.csv"
+        pd.DataFrame(PROVENANCE_USED).to_csv(used_csv, index=False)
+        pd.DataFrame(PROVENANCE_DUPS).to_csv(dup_csv, index=False)
+        print(f"  files-used CSV: [{used_csv.relative_to(REPO)}]({used_csv.relative_to(REPO)})")
+        print(f"  dups-collapsed CSV: [{dup_csv.relative_to(REPO)}]({dup_csv.relative_to(REPO)})")
 
 
 if __name__ == "__main__":

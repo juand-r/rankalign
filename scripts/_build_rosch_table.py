@@ -37,6 +37,11 @@ OUT_DIR = REPO / "outputs"
 METRICS_DIR = REPO / "metrics-from-scores"
 METRICS_DIR.mkdir(exist_ok=True)
 
+# End-of-run provenance: every (file consumed) and every (collapsed dup
+# group, kept newest) is recorded here. Summarized at the end of main().
+PROVENANCE_USED: list[dict] = []
+PROVENANCE_DUPS: list[dict] = []
+
 # Rosch eval tasks (all OOD).
 EVAL_TASKS = [
     "rosch-bird", "rosch-carpenters-tool", "rosch-clothing", "rosch-fruit",
@@ -184,6 +189,18 @@ NA_COLS = {
 }
 
 
+# Most specific first so `basetyp-` doesn't match `basetypneg-`.
+_EVAL_PREFIXES_ORDERED = ("basetypneg-", "basetyp-", "self-", "neg-")
+
+
+def _extract_eval_prefix(filename: str) -> str:
+    after = filename[len("scores_"):] if filename.startswith("scores_") else filename
+    for p in _EVAL_PREFIXES_ORDERED:
+        if after.startswith(p):
+            return p
+    return ""
+
+
 def find_score_files(method: dict, eval_prefix: str | list[str]) -> dict[str, list[Path]]:
     if isinstance(eval_prefix, str):
         prefixes = [eval_prefix]
@@ -222,7 +239,30 @@ def cell_value(method: dict, eval_prefix, variant: str):
         candidates = files_by_task.get(task, [])
         if not candidates:
             continue
-        path = sorted(candidates)[-1]
+        from collections import defaultdict
+        buckets: dict[str, list[Path]] = defaultdict(list)
+        for c in candidates:
+            buckets[_extract_eval_prefix(c.name)].append(c)
+        for pfx, fs in buckets.items():
+            if len(fs) > 1:
+                fs_sorted = sorted(fs)
+                kept = fs_sorted[-1]
+                dropped = fs_sorted[:-1]
+                PROVENANCE_DUPS.append(dict(
+                    method_num=method.get("num"),
+                    method=method.get("label"),
+                    task=task, prefix=pfx,
+                    kept=str(kept),
+                    dropped=";".join(str(d) for d in dropped),
+                ))
+                buckets[pfx] = [kept]
+        single_candidates = [fs[0] for fs in buckets.values()]
+        path = sorted(single_candidates)[0]
+        PROVENANCE_USED.append(dict(
+            method_num=method.get("num"),
+            method=method.get("label"),
+            task=task, file=path.name,
+        ))
         try:
             df = load_scores(path)
             metrics = compute_all_metrics(df)
@@ -323,6 +363,48 @@ def main():
         print(f"| {r['num']} {r['label']}{suf} | " + " | ".join(cells_display) + " |")
 
     print(f"\nCSVs:\n- [{long_csv.relative_to(REPO)}]({long_csv.relative_to(REPO)})\n- [{cells_csv.relative_to(REPO)}]({cells_csv.relative_to(REPO)})")
+
+    _print_provenance(f"rosch_{MODEL}_{METRIC}")
+
+
+def _print_provenance(tag: str):
+    """Show what was actually consumed and which dups were collapsed."""
+    n_used = len(PROVENANCE_USED)
+    n_dups = len(PROVENANCE_DUPS)
+
+    consumed_models = set()
+    for r in PROVENANCE_USED:
+        name = r["file"]
+        after = name[len("scores_"):] if name.startswith("scores_") else name
+        pfx = _extract_eval_prefix(after) or ""
+        rest = after[len(pfx):]
+        m = re.search(r"^(.+?)_rosch-[\w\-]+_test_log-odds", rest)
+        ms = m.group(1) if m else rest
+        ep_m = re.search(r"epoch(\d+)", ms)
+        ep = int(ep_m.group(1)) if ep_m else None
+        consumed_models.add((ep, ms))
+
+    print(f"\nProvenance ({n_used} files consumed; "
+          f"{n_dups} within-prefix dup groups collapsed by keeping newest):")
+    print(f"  unique (epoch, model_short) pairs consumed: {len(consumed_models)}")
+    epochs = sorted({e for e, _ in consumed_models if e is not None})
+    if epochs:
+        print(f"  epochs observed: {epochs}")
+        for e in epochs:
+            for _, ms in sorted([(ee, mm) for ee, mm in consumed_models if ee == e]):
+                print(f"    epoch={e}  {ms}")
+    none_models = sorted([mm for ee, mm in consumed_models if ee is None])
+    if none_models:
+        print("  (no-epoch models — likely base HF ckpts)")
+        for ms in none_models:
+            print(f"    {ms}")
+    if n_dups > 0:
+        used_csv = METRICS_DIR / f"{tag}_files_used.csv"
+        dup_csv = METRICS_DIR / f"{tag}_dups_collapsed.csv"
+        pd.DataFrame(PROVENANCE_USED).to_csv(used_csv, index=False)
+        pd.DataFrame(PROVENANCE_DUPS).to_csv(dup_csv, index=False)
+        print(f"  files-used CSV: [{used_csv.relative_to(REPO)}]({used_csv.relative_to(REPO)})")
+        print(f"  dups-collapsed CSV: [{dup_csv.relative_to(REPO)}]({dup_csv.relative_to(REPO)})")
 
 
 if __name__ == "__main__":
