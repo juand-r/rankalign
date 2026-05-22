@@ -1600,33 +1600,18 @@ def main(args):
             self.max_length = max_length
             self.device = device
             self.use_full_completion = use_full_completion
-
-            # Debug print first pair
-            #print("\nDebugging PairwiseDataset initialization:")
-            #print("First pair:", pairs[0])
-            #print("Token types:", type(pairs[0][1][0]), type(pairs[0][1][1]))
-            #print("Tokens:", pairs[0][1][0], pairs[0][1][1])
-
-            # Try to encode the tokens
-            #print("\nTrying to encode tokens:")
-            #try:
-            #    print("Encoding first token:", tokenizer.encode(pairs[0][1][0]))
-            #    print("Encoding second token:", tokenizer.encode(pairs[0][1][1]))
-            #except Exception as e:
-            #    print("Error encoding tokens:", e)
-
-        def __len__(self):
-            return len(self.pairs)
+            # FIX1 (val-NLL position fix, 2026-05-22): once-only truncation
+            # warning flag for the disc input. With padding='max_length' +
+            # truncation=True the tokenizer right-truncates inputs that exceed
+            # max_length, which would silently chop off the " Yes" tail and
+            # leave pred_pos = -2 pointing into disc_prompt rather than the
+            # answer slot. We catch this by comparing the last `comp_len`
+            # tokens of the encoded disc input to the expected tail.
+            self._disc_trunc_warned = False
 
         def __getitem__(self, idx):
             if train_g_or_d == 'both':
-                # 5-element structure: (disc_pair, gen_pair, labels, typicality, is_labeled)
-                ((prompt_i_disc, prompt_j_disc), (completion_i_disc, completion_j_disc)), ((prompt_i_gen, prompt_j_gen), (completion_i_gen, completion_j_gen)), (label_i, label_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j) = self.pairs[idx]
-                if not self.use_full_completion:
-                    completion_i_disc = self.tokenizer.decode(self.tokenizer.encode(completion_i_disc)[-1])
-                    completion_j_disc = self.tokenizer.decode(self.tokenizer.encode(completion_j_disc)[-1])
-                    completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
-                    completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
+                raise NotImplementedError("Not implemented in fix1")
             else:
                 # FIX1 (val-NLL position fix, 2026-05-22): 8-element pair structure.
                 # 8th element (disc_prompt_i, disc_prompt_j) is the discriminator
@@ -1639,27 +1624,12 @@ def main(args):
                 #                  disc_prompts)
                 (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j), (disc_prompt_i, disc_prompt_j) = self.pairs[idx]
                 
-                if not self.use_full_completion:
-                    completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
-                    completion_j = self.tokenizer.decode(self.tokenizer.encode(completion_j)[-1])
-                    correct_i = self.tokenizer.decode(self.tokenizer.encode(correct_i)[-1])
-                    correct_j = self.tokenizer.decode(self.tokenizer.encode(correct_j)[-1])
-                    gen_completion_i = self.tokenizer.decode(self.tokenizer.encode(gen_completion_i)[-1])
-                    gen_completion_j = self.tokenizer.decode(self.tokenizer.encode(gen_completion_j)[-1])
-            # Debug print
-            #print(f"\nProcessing item {idx}:")
-            #print("Token types:", type(token_i), type(token_j))
-            #print("Tokens:", token_i, token_j)
-
             # Optionally append EOS token text to all completions so both the
             # full-sequence encoding and the separate completion encoding include it.
             if args.include_eos and self.tokenizer.eos_token is not None:
                 _eos = self.tokenizer.eos_token
                 if train_g_or_d == 'both':
-                    completion_i_disc += _eos
-                    completion_j_disc += _eos
-                    completion_i_gen += _eos
-                    completion_j_gen += _eos
+                    raise NotImplementedError("Not implemented in fix1")
                 else:
                     completion_i += _eos
                     completion_j += _eos
@@ -1736,38 +1706,33 @@ def main(args):
                 # compute_logodds_simple to compute pred_pos = -(comp_len+1)).
                 token_yes_disc = self.tokenizer.encode(disc_yes_tail, add_special_tokens=False, return_tensors='pt')
 
-                # DEBUG: Check for tokenization mismatch (enabled with --debug flag)
-                if debug:
-                    print("\n" + "="*60)
-                    print("DEBUG: TOKENIZATION MISMATCH CHECK")
-                    print("="*60)
-                    print(f"Completion text: '{completion_i}'")
-                    separately_tokenized_completion = token_i.squeeze().tolist()
-                    if not isinstance(separately_tokenized_completion, list):
-                        separately_tokenized_completion = [separately_tokenized_completion]
-                    print(f"Separately tokenized completion: {separately_tokenized_completion}")
-                    
-                    # Find actual tokens in full sequence
-                    full_tokens = enc_i['input_ids'].squeeze().tolist()
-                    # Remove padding tokens (usually 0 or pad_token_id)
-                    pad_id = self.tokenizer.pad_token_id
-                    actual_tokens = [t for t in full_tokens if t != pad_id]
-                    
-                    # Get last N tokens where N = len(completion tokens)
-                    comp_len = token_i.squeeze().shape[0] if token_i.squeeze().dim() > 0 else 1
-                    actual_completion_tokens = actual_tokens[-comp_len:]
-                    
-                    print(f"Actual tokens at end of full sequence: {actual_completion_tokens}")
-                    do_they_match = separately_tokenized_completion == actual_completion_tokens
-                    print(f"Do they match? {do_they_match}")
-                    if not do_they_match:
-                        print("*** MISMATCH DETECTED! ***")
-                        breakpoint()
-                    
-                    # Decode both to see what text they represent
-                    print(f"\nDecoded separately tokenized: '{self.tokenizer.decode(token_i.squeeze())}'")
-                    print(f"Decoded from full sequence: '{self.tokenizer.decode(actual_completion_tokens)}'")
-                    print("="*60)
+                # FIX1 (val-NLL position fix, 2026-05-22): once-only check that
+                # the disc input wasn't right-truncated. With left-padding +
+                # right-truncation, an over-long input loses its tail, so the
+                # last comp_len tokens would no longer equal the " Yes" tail
+                # and val-NLL would read at the wrong slot (silently). We
+                # compare and warn loudly the first time we see a mismatch.
+                if not self._disc_trunc_warned:
+                    expected_tail = token_yes_disc.squeeze(0)  # [comp_len]
+                    comp_len_tail = expected_tail.size(0)
+                    actual_tail_i = enc_i_disc['input_ids'].squeeze(0)[-comp_len_tail:]
+                    actual_tail_j = enc_j_disc['input_ids'].squeeze(0)[-comp_len_tail:]
+                    if not (torch.equal(actual_tail_i, expected_tail) and torch.equal(actual_tail_j, expected_tail)):
+                        print(
+                            "\n" + "!" * 70 + "\n"
+                            f"[FIX1 WARNING] disc input truncation detected at idx={idx}.\n"
+                            f"  expected tail tokens: {expected_tail.tolist()} "
+                            f"(decoded: {self.tokenizer.decode(expected_tail)!r})\n"
+                            f"  actual tail (i):      {actual_tail_i.tolist()} "
+                            f"(decoded: {self.tokenizer.decode(actual_tail_i)!r})\n"
+                            f"  actual tail (j):      {actual_tail_j.tolist()} "
+                            f"(decoded: {self.tokenizer.decode(actual_tail_j)!r})\n"
+                            f"  max_length={self.max_length}; consider raising it.\n"
+                            f"  val-NLL log-odds will read at the wrong slot for this batch.\n"
+                            "  (this warning fires only once per dataset; suppressing further occurrences.)\n"
+                            + "!" * 70 + "\n"
+                        )
+                        self._disc_trunc_warned = True
 
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
