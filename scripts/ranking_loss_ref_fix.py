@@ -115,124 +115,6 @@ def compute_optimal_threshold(scores, labels):
     
     return optimal_threshold, best_accuracy
 
-# good_pair, alpha_fun_1, get_alpha are used for "both" mode
-def good_pair(log_prob_i, log_prob_j, label_i, label_j):
-    """Determine if a pair is good based on log probabilities and labels."""
-    if log_prob_i > log_prob_j and label_i == 1 and label_j == 0:
-        return True
-    elif log_prob_i <= log_prob_j and label_i == 0 and label_j == 1:
-        return True
-    else:
-        return False
-
-def alpha_fun_1(gen_log_prob_i, gen_log_prob_j, disc_log_prob_i, disc_log_prob_j, label_i, label_j):
-    """Determine alpha based on which model has the good pair."""
-    if good_pair(gen_log_prob_i, gen_log_prob_j, label_i, label_j) and not good_pair(disc_log_prob_i, disc_log_prob_j, label_i, label_j):
-        return 1.0  # g->v direction
-    elif good_pair(disc_log_prob_i, disc_log_prob_j, label_i, label_j) and not good_pair(gen_log_prob_i, gen_log_prob_j, label_i, label_j):
-        return 0.0  # v->g direction
-    else:
-        return 0.5  # equal weighting
-
-def get_alpha(alpha_arg, gen_log_prob_i, gen_log_prob_j, disc_log_prob_i, disc_log_prob_j, label_i, label_j):
-    """Get alpha value based on argument and sample characteristics."""
-    if isinstance(alpha_arg, (int, float)):
-        return float(alpha_arg)
-    elif alpha_arg == "alpha_fun_1":
-        return alpha_fun_1(gen_log_prob_i, gen_log_prob_j, disc_log_prob_i, disc_log_prob_j, label_i, label_j)
-    else:
-        raise ValueError(f"Unknown alpha function: {alpha_arg}")
-
-def compute_gpt2_typicality(completions, tokenizer_gpt2, model_gpt2, device):
-    """
-    Compute GPT-2 unconditional log probability P(completion) for typicality correction.
-    
-    Args:
-        completions: List of completion texts
-        tokenizer_gpt2: GPT-2 tokenizer
-        model_gpt2: GPT-2 model
-        device: Device to run on
-        
-    Returns:
-        List of log probabilities, one per completion
-    """
-    import numpy as np
-    
-    typicality_scores = []
-    
-    print("Computing GPT-2 typicality scores...")
-    for completion in tqdm(completions, desc="GPT-2 typicality"):
-        with torch.no_grad():
-            # Tokenize without special tokens
-            input_ids = tokenizer_gpt2.encode(completion, add_special_tokens=False)
-            
-            if len(input_ids) == 0:
-                typicality_scores.append(float('-inf'))
-                continue
-            
-            # For single token, compute P(token)
-            # KNOWN BUG: GPT-2 tokenizer returns [] for encode("", add_special_tokens=True)
-            # (no BOS token), so this computes P(next | token) not P(token | BOS).
-            # Not an issue now: we use --self-typicality (model scores itself), not GPT-2.
-            if len(input_ids) == 1:
-                context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)
-                full_ids = context_ids + input_ids
-                
-                input_tensor = torch.tensor([full_ids]).to(device)
-                outputs = model_gpt2(input_tensor)
-                logits = outputs.logits
-                
-                target_logits = logits[0, len(context_ids) - 1, :]
-                probs = torch.softmax(target_logits, dim=-1)
-                token_prob = probs[input_ids[0]].item()
-                
-                typicality_scores.append(math.log(token_prob + 1e-12))
-            else:
-                # For multi-token, compute product of conditional probabilities
-                log_prob_sum = 0.0
-                
-                for i in range(len(input_ids)):
-                    if i == 0:
-                        context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)
-                    else:
-                        context_ids = tokenizer_gpt2.encode("", add_special_tokens=True)[:-1] + input_ids[:i]
-                    
-                    # Assert: context_ids for i > 0 should also start with BOS like i == 0
-                    # If this fails, the [:-1] slice is removing the BOS token incorrectly
-                    bos_tokens = tokenizer_gpt2.encode("", add_special_tokens=True)
-                    if i == 0:
-                        assert context_ids == bos_tokens, f"i=0 context should be BOS: {context_ids} vs {bos_tokens}"
-                    else:
-                        # Check if context starts with BOS (it should for consistency)
-                        expected_context = bos_tokens + input_ids[:i]
-                        assert context_ids == expected_context, (
-                            f"Context mismatch at i={i}: got {context_ids}, expected {expected_context}. "
-                            f"The [:-1] slice removes BOS, making contexts inconsistent between i=0 and i>0."
-                        )
-                    
-                    max_ctx = 1024
-                    if len(context_ids) > max_ctx - 1:
-                        context_ids = context_ids[-(max_ctx - 1):]
-                    
-                    full_ids = context_ids + [input_ids[i]]
-                    input_tensor = torch.tensor([full_ids]).to(device)
-                    outputs = model_gpt2(input_tensor)
-                    logits = outputs.logits
-                    
-                    target_logits = logits[0, len(context_ids) - 1, :]
-                    probs = torch.softmax(target_logits, dim=-1)
-                    token_prob = probs[input_ids[i]].item()
-                    
-                    log_prob_sum += math.log(token_prob + 1e-12)
-                
-                typicality_scores.append(log_prob_sum)
-    
-    print(f"  ✓ Computed {len(typicality_scores)} typicality scores")
-    if len(typicality_scores) > 0:
-        print(f"  Mean typicality: {sum(typicality_scores)/len(typicality_scores):.4f}")
-    
-    return typicality_scores
-
 
 def compute_self_typicality_training(completions, model, tokenizer, device,
                                      is_chat=False, has_system_role=False, include_eos=False,
@@ -295,234 +177,6 @@ def compute_neg_typicality_training(L_train_all, task, make_prompt_fn,
         print(f"  Mean neg-typicality: {sum(neg_scores)/len(neg_scores):.4f}")
 
     return neg_scores
-
-
-# KNOWN BUG: is_chat/has_system_role are accepted but ignored — tokenization
-# below uses plain tokenizer(), not apply_chat_template, so tracked scores
-# won't match chat-mode training. Not an issue now: we don't use these
-# tracked scores for anything besides optional debugging.
-def track_all_scores(model, tokenizer, L_train_all, task, device, yestoks, notoks, 
-                     length_normalize=False, use_full_completion=True, task_config=None,
-                     validator_log_odds=True, is_chat=False, has_system_role=False,
-                     batch_size=16):
-    """
-    Compute generator and validator scores for all datapoints in L_train_all.
-    
-    BATCHED VERSION for speed - processes multiple items per forward pass.
-    
-    Args:
-        validator_log_odds: If True, return log(P(Yes)/P(No)). If False, return log(P(Yes)).
-        is_chat: Whether to use chat template for prompts.
-        has_system_role: Whether the model supports system role in chat template.
-        batch_size: Number of items to process per batch.
-    
-    Returns a list of dicts with keys: noun1, noun2, gen_score, val_score
-    """
-    model.eval()
-    
-    # Determine how to get noun1, noun2, completion based on task
-    def get_noun1(item):
-        if hasattr(item, 'noun1'):
-            return item.noun1
-        elif task_config and 'get_noun1' in task_config:
-            return task_config['get_noun1'](item)
-        return str(item)[:50]  # fallback
-    
-    def get_noun2(item):
-        if hasattr(item, 'noun2'):
-            return item.noun2
-        elif task_config and 'get_completion' in task_config:
-            return task_config['get_completion'](item)
-        return ""
-    
-    def get_item_completion(item):
-        """Get the generator completion - must match what make_prompt returns for consistency."""
-        if task_config:
-            result = task_config['make_prompt'](item, style='generator')
-            if hasattr(result, 'completion'):
-                return result.completion.lstrip()
-        if hasattr(item, 'fixed_hypernym_generator'):
-            return item.fixed_hypernym_generator
-        elif hasattr(item, 'noun2'):
-            return item.noun2
-        return ""
-    
-    def get_val_prompt(item):
-        """Get the validator/discriminator prompt."""
-        if task_config:
-            result = task_config['make_prompt'](item, style='discriminator')
-            return result.prompt if hasattr(result, 'prompt') else str(item)
-        elif task in ['hypernym', 'hypernym-car']:
-            few_shot_prefix = (
-                "Do you think bees are furniture? Answer: No\n\n"
-                "Do you think corgis are dogs? Answer: Yes\n\n"
-                "Do you think trucks are a fruit? Answer: No\n\n"
-                "Do you think robins are birds? Answer: Yes\n\n"
-            )
-            return few_shot_prefix + f"Do you think {item.noun1} are a {item.noun2}? Answer:"
-        return ""
-    
-    def get_gen_prompt(item):
-        """Get the generator prompt."""
-        if task_config:
-            result = task_config['make_prompt'](item, style='generator')
-            return result.prompt if hasattr(result, 'prompt') else str(item)
-        elif task in ['hypernym', 'hypernym-car']:
-            return f"A {item.noun1} is a kind of"
-        return ""
-    
-    # Pre-compute all prompts and metadata
-    all_data = []
-    for item in L_train_all:
-        all_data.append({
-            'noun1': get_noun1(item),
-            'noun2': get_noun2(item),
-            'completion': get_item_completion(item),
-            'gen_prompt': get_gen_prompt(item),
-            'val_prompt': get_val_prompt(item),
-        })
-    
-    # Initialize results
-    gen_scores = [None] * len(all_data)
-    val_scores = [None] * len(all_data)
-    
-    # Convert yestoks/notoks to tensors for batched indexing
-    yestoks_tensor = torch.tensor(yestoks, device=device)
-    notoks_tensor = torch.tensor(notoks, device=device)
-    
-    with torch.no_grad():
-        # === BATCHED VALIDATOR SCORING ===
-        print("  Computing validator scores (batched)...")
-        for batch_start in tqdm(range(0, len(all_data), batch_size), desc="Val scores"):
-            batch_end = min(batch_start + batch_size, len(all_data))
-            batch_prompts = [all_data[i]['val_prompt'] for i in range(batch_start, batch_end)]
-            
-            # Tokenize batch with left padding
-            tokenizer.padding_side = 'left'
-            encoded = tokenizer(batch_prompts, return_tensors='pt', padding=True, truncation=True)
-            input_ids = encoded['input_ids'].to(device)
-            attention_mask = encoded['attention_mask'].to(device)
-            
-            # Forward pass
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-            logits = outputs.logits  # [batch, seq_len, vocab]
-            
-            # Get probabilities at last position for each item
-            # With left padding, last position is always the prediction position
-            last_logits = logits[:, -1, :]  # [batch, vocab]
-            probs = torch.softmax(last_logits, dim=-1)  # [batch, vocab]
-            
-            # Compute yes/no probabilities
-            p_yes = probs[:, yestoks_tensor].sum(dim=-1)  # [batch]
-            p_no = probs[:, notoks_tensor].sum(dim=-1)  # [batch]
-            
-            # Compute log-odds or log-prob
-            if validator_log_odds:
-                batch_val_scores = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
-            else:
-                batch_val_scores = torch.log(p_yes + 1e-12)
-            
-            # Store results
-            for i, score in enumerate(batch_val_scores.cpu().tolist()):
-                val_scores[batch_start + i] = score
-        
-        # === BATCHED GENERATOR SCORING ===
-        print("  Computing generator scores (batched)...")
-        for batch_start in tqdm(range(0, len(all_data), batch_size), desc="Gen scores"):
-            batch_end = min(batch_start + batch_size, len(all_data))
-            batch_items = [all_data[i] for i in range(batch_start, batch_end)]
-            
-            if use_full_completion:
-                # For full completion, we need prompt + completion together
-                # Tokenize each separately to know completion boundaries
-                batch_gen_scores = []
-                for item in batch_items:
-                    prompt = item['gen_prompt']
-                    completion = " " + item['completion']
-                    
-                    # Tokenize prompt and full sequence
-                    prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
-                    full_text = prompt + completion
-                    full_ids = tokenizer.encode(full_text, add_special_tokens=True)
-                    
-                    # The completion tokens are those after the prompt
-                    completion_start = len(prompt_ids)
-                    completion_ids = full_ids[completion_start:]
-                    
-                    if len(completion_ids) == 0:
-                        batch_gen_scores.append(float('-inf'))
-                        continue
-                    
-                    # Forward pass on full sequence
-                    input_tensor = torch.tensor([full_ids], device=device)
-                    outputs = model(input_ids=input_tensor)
-                    logits = outputs.logits[0]  # [seq_len, vocab]
-                    log_probs = torch.log_softmax(logits, dim=-1)
-                    
-                    # Sum log probs for completion tokens
-                    # logits[t] predicts token t+1, so for completion starting at position completion_start,
-                    # we need log_probs[completion_start-1:completion_start-1+len(completion_ids)]
-                    total_log_prob = 0.0
-                    for i, tok_id in enumerate(completion_ids):
-                        pos = completion_start - 1 + i
-                        if pos < log_probs.shape[0]:
-                            total_log_prob += log_probs[pos, tok_id].item()
-                    
-                    if length_normalize and len(completion_ids) > 0:
-                        total_log_prob = total_log_prob / len(completion_ids)
-                    
-                    batch_gen_scores.append(total_log_prob)
-                
-                for i, score in enumerate(batch_gen_scores):
-                    gen_scores[batch_start + i] = score
-            else:
-                # First token only - can be batched more efficiently
-                batch_prompts = [item['gen_prompt'] for item in batch_items]
-                batch_completions = [" " + item['completion'] for item in batch_items]
-                
-                # Get first token of each completion
-                first_tokens = []
-                for comp in batch_completions:
-                    toks = tokenizer.encode(comp, add_special_tokens=False)
-                    first_tokens.append(toks[0] if toks else 0)
-                
-                # Tokenize prompts
-                tokenizer.padding_side = 'left'
-                encoded = tokenizer(batch_prompts, return_tensors='pt', padding=True, truncation=True)
-                input_ids = encoded['input_ids'].to(device)
-                attention_mask = encoded['attention_mask'].to(device)
-                
-                # Forward pass
-                outputs = model(input_ids=input_ids, attention_mask=attention_mask)
-                last_logits = outputs.logits[:, -1, :]
-                log_probs = torch.log_softmax(last_logits, dim=-1)
-                
-                # Get log prob for each completion's first token
-                for i, tok_id in enumerate(first_tokens):
-                    gen_scores[batch_start + i] = log_probs[i, tok_id].item()
-    
-    # Build results
-    results = []
-    for i, data in enumerate(all_data):
-        results.append({
-            'noun1': data['noun1'],
-            'noun2': data['noun2'],
-            'gen_score': gen_scores[i],
-            'val_score': val_scores[i],
-        })
-    
-    model.train()
-    return results
-
-
-def save_tracked_scores(results, output_path):
-    """Save tracked scores to CSV file."""
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, 'w', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=['noun1', 'noun2', 'gen_score', 'val_score'])
-        writer.writeheader()
-        writer.writerows(results)
-    print(f"  Saved tracked scores to {output_path}")
 
 
 def split_prompts_labeled_unlabeled(prompts, ratio, seed):
@@ -621,17 +275,7 @@ def main(args):
     
     # Setup tracking directory and base filename
     if track_scores:
-        tracking_base_name = get_tracking_base_filename(
-            model_name, task, delta, train_g_or_d, use_all, split_type, alpha,
-            args.typicality_correction, args.length_normalize, use_full_completion,
-            preference_loss_weight, nll_validator_weight, nll_generator_weight, args.force_same_x,
-            args.boost_initial_val, self_typicality=args.self_typicality, neg_typicality=args.neg_typicality,
-            semi_supervised=args.semi_supervised, labeled_only=args.labeled_only
-        )
-        tracking_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
-                                    "outputs", "training-logs")
-        os.makedirs(tracking_dir, exist_ok=True)
-        print(f"Score tracking enabled. Logs will be saved to: {tracking_dir}/{tracking_base_name}-step*.csv")
+        raise NotImplementedError("tracking scores is not supported in fix1")
 
     WITH_REF = with_ref
     
@@ -811,29 +455,7 @@ def main(args):
         print("Gradient checkpointing disabled")
 
     if WITH_REF:
-        print("Loading reference model with memory optimizations...")
-        if 'gemma' in model_name.lower():
-            model_ref = AutoModelForCausalLM.from_pretrained(
-                model_name, 
-                attn_implementation="eager", 
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-                low_cpu_mem_usage=True
-            )
-        elif 'llama' in model_name.lower() or '8B' in model_name or '7B' in model_name:
-            model_ref = AutoModelForCausalLM.from_pretrained(
-                model_name, 
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-                low_cpu_mem_usage=True
-            )
-        else:
-            model_ref = AutoModelForCausalLM.from_pretrained(
-                model_name, 
-                torch_dtype=torch.bfloat16,
-                device_map="auto",
-                low_cpu_mem_usage=True
-            )
+        raise NotImplementedError("with_ref is not supported in fix1")
     else:
         model_ref = None
 
@@ -859,6 +481,7 @@ def main(args):
         elif split_type=='random':
             L_train, L_test = utils.split_train_test(L, seed=0, subsample=False, num_train=3000)
         elif split_type=='both':
+            raise NotImplementedError("both mode is not supported in fix1")
             L_train, L_test = utils.split_train_test_no_overlap_both(L, seed=2)
         else:
             raise ValueError("Wrong value for split-type")
@@ -890,40 +513,14 @@ def main(args):
 
     # Filter for single-token completions if requested
     if args.single_token_data_only:
-        print(f"Original L_train size: {len(L_train)}")
-        # Determine the appropriate make_prompt function for the task
-        # Check task registry first (for new extensible tasks)
-        task_config = get_task(task)
-        if task_config is not None:
-            # NEW PATH: Use registered task configuration
-            make_prompt_fn = task_config['make_prompt']
-        # LEGACY PATH: Existing task implementations (unchanged)
-        elif task in ['hypernym', 'hypernym-car']:
-            make_prompt_fn = make_prompt_hypernymy
-        elif task == 'trivia-qa':
-            make_prompt_fn = make_prompt_triviaqa
-        elif task == 'swords':
-            make_prompt_fn = make_prompt_swords
-        elif task == 'lambada':
-            make_prompt_fn = make_prompt_lambada
-        else:
-            raise ValueError(f"Task {task} not supported for single_token_data_only filtering")
-        
-        filtered_L_train = []
-        for item in L_train:
-            gen_prompt_obj = make_prompt_fn(item, style="generator", shots='zero')
-            completion_tokens = tokenizer.encode(gen_prompt_obj.completion, add_special_tokens=False)
-            if len(completion_tokens) == 1:
-                filtered_L_train.append(item)
-        L_train = filtered_L_train
-        print(f"Filtered to single-token completions: {len(L_train)}")
-
+        raise NotImplementedError("single_token_data_only is not supported in fix1")
     # Drop items exceeding --max-seq-len before they hit the dataloader
     # (which would truncate input_ids but not completion token_ids, silently
     # misaligning scores in sum_completion_logprobs and risking a gather crash).
     # Measure the exact (style, shots, completion) combinations training will
     # tokenize: 'g' uses generator/zero, 'd' uses discriminator/disc_shots+" Yes",
     # 'both' tokenizes both sequences so take the max.
+
     if args.max_seq_len and args.max_seq_len > 0 and task_config is not None:
         before = len(L_train)
 
@@ -1017,6 +614,7 @@ def main(args):
                 target_text = space_prefix + "Yes"
                 target_tokens = tokenizer.encode(target_text)
             elif train_g_or_d == 'both':
+                raise NotImplementedError("both mode is not supported in fix1")
                 target_text_d = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
                 target_tokens_d = tokenizer.encode(target_text_d)
                 target_text_g = space_prefix + "Yes"
@@ -1510,80 +1108,6 @@ def main(args):
         
         print("="*60 + "\n")
 
-    # Compute val_boost_theta if requested
-    # This shifts validator scores so the optimal classification threshold is 0
-    val_boost_theta = 0.0  # Default: no boost
-    
-    if args.boost_initial_val:
-        print("\n" + "="*60)
-        print("COMPUTING VALIDATOR BOOST (--boost-initial-val)")
-        print("="*60)
-        
-        # Extract validator scores based on mode
-        if train_g_or_d == 'g':
-            # In 'g' mode, logprobs_last_layer contains validator scores directly
-            val_scores = logprobs_last_layer
-        elif train_g_or_d == 'both':
-            # In 'both' mode, logprobs_last_layer contains tuples (gen_score, val_score)
-            val_scores = [lp[1] for lp in logprobs_last_layer]
-        elif train_g_or_d == 'd':
-            # In 'd' mode, validator scores are not precomputed
-            # We need to compute them here for the purpose of finding the optimal threshold
-            print("  Computing validator scores for 'd' mode...")
-            val_scores = []
-            target_text_yes = space_prefix + "Yes"
-            target_tokens_yes = tokenizer.encode(target_text_yes)
-            target_token_yes = target_tokens_yes[0] if len(target_tokens_yes) == 1 else target_tokens_yes[1]
-            
-            model.eval()
-            with torch.no_grad():
-                for idx in tqdm(range(len(L_train_all)), desc="Computing validator scores"):
-                    # Get the discriminator prompt (which asks Yes/No)
-                    prompt = p_train_tune[idx].prompt
-                    
-                    # Compute log P("Yes") using get_final_logit_prob
-                    # Note: get_final_logit_prob returns full log-prob distribution [vocab_size]
-                    log_probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    log_prob_yes = log_probs[target_token_yes].item()
-                    val_scores.append(log_prob_yes)
-            # Note: model.train() called later in training loop (line ~1980)
-        else:
-            raise ValueError(f"Unknown mode: {train_g_or_d}")
-        
-        # Get ground truth labels
-        labels = []
-        for item in L_train_all:
-            # Check task registry first (for new extensible tasks)
-            task_config_boost = get_task(task)
-            if task_config_boost is not None:
-                label = task_config_boost['get_label'](item)
-            elif task in ['hypernym', 'hypernym-car']:
-                label = item.taxonomic.strip().lower()
-            elif task == 'trivia-qa':
-                label = item['correct'].strip().lower()
-            elif task == 'swords':
-                label = item.synonym.strip().lower()
-            elif task == 'lambada':
-                label = item['correct'].strip().lower()
-            elif task == 'ifeval':
-                label = item['correct'].strip().lower()
-            elif task == 'collie':
-                label = item['correct'].strip().lower() if 'correct' in item else 'yes'
-            else:
-                raise ValueError(f"Task {task} not supported for boost_initial_val")
-            labels.append(1 if label == 'yes' else 0)
-        
-        # Compute optimal threshold
-        optimal_threshold, best_accuracy = compute_optimal_threshold(val_scores, labels)
-        val_boost_theta = -optimal_threshold
-        
-        print(f"  Validator scores: min={min(val_scores):.4f}, max={max(val_scores):.4f}, mean={sum(val_scores)/len(val_scores):.4f}")
-        print(f"  Labels: {sum(labels)} positive, {len(labels)-sum(labels)} negative")
-        print(f"  Optimal threshold: {optimal_threshold:.4f}")
-        print(f"  Best accuracy at threshold: {best_accuracy:.4f}")
-        print(f"  val_boost_theta (= -threshold): {val_boost_theta:.4f}")
-        print("="*60 + "\n")
-
     if with_chat and has_system_role:
         # Process discriminator prompts (p_train_tune)
         # Use "assistant" role (Gemma maps it to "model" internally; Qwen/Llama use it natively)
@@ -1655,96 +1179,7 @@ def main(args):
         print(f"{'='*60}\n")
 
     if train_g_or_d == 'both':
-        # Create tuples of (discriminator_prompt, generator_prompt, logprobs, typicality, is_labeled)
-        # Note: logprobs_last_layer contains tuples of (log_prob_d, log_prob_g)
-        Z = list(zip(p_train_tune, p_train_gold, logprobs_last_layer, typ_scores_for_z, is_labeled_flags))
-        
-        # Sort based on discriminator logprob (first element of the logprobs tuple)
-        Z = sorted(Z, key=lambda i: i[2][0])  # Using i[2][0] to get the discriminator logprob
-
-        # Calculate delta based on range of discriminator logprobs
-        min_logprob = Z[0][2][0]  # Minimum discriminator logprob
-        max_logprob = Z[-1][2][0]  # Maximum discriminator logprob
-
-        print(f"Delta (minimum separation): {delta}")
-        if delta!=0:
-            NN = (max_logprob - min_logprob) / delta
-            print(f"NN: {NN}")
-        print(f"Min logprob: {min_logprob}")
-        print(f"Max logprob: {max_logprob}")
-
-        if args.force_same_x:
-            # Group indices by generator prompt (p_train_gold.prompt)
-            prompt_to_indices = defaultdict(list)
-            for idx, z in enumerate(Z):
-                gen_prompt = z[1].prompt  # z[1] is p_train_gold
-                prompt_to_indices[gen_prompt].append(idx)
-            
-            print(f"\n{'='*60}")
-            print(f"FORCE-SAME-X MODE (both)")
-            print(f"{'='*60}")
-            print(f"Found {len(prompt_to_indices)} unique generator prompts")
-            
-            # For each group: create pairs, filter by delta
-            prompt_to_valid_pairs = {}
-            total_valid_pairs = 0
-            for prompt, indices in prompt_to_indices.items():
-                group_pairs = []
-                for i, j in itertools.combinations(indices, 2):
-                    logprob_i = Z[i][2][0]  # discriminator logprob
-                    logprob_j = Z[j][2][0]
-                    if abs(logprob_i - logprob_j) > delta:
-                        # Ensure i has lower logprob than j
-                        group_pairs.append((i, j) if logprob_i < logprob_j else (j, i))
-                prompt_to_valid_pairs[prompt] = group_pairs
-                total_valid_pairs += len(group_pairs)
-            
-            print(f"Total valid pairs (after delta filter): {total_valid_pairs}")
-            
-            if total_valid_pairs == 0:
-                raise ValueError(
-                    f"No valid pairs after delta filter (delta={delta}). "
-                    f"All {len(prompt_to_valid_pairs)} prompt groups have 0 pairs. Try reducing --delta."
-                )
-            
-            if total_samples > total_valid_pairs:
-                print(f"\nWARNING: Reducing total_samples from {total_samples} to {total_valid_pairs} "
-                      f"(not enough valid pairs)")
-                total_samples = total_valid_pairs
-            
-            # Sample proportionally to each group's available pairs
-            pair_inds = []
-            remaining_budget = total_samples
-            print(f"\nPairs in train set per category:")
-            sorted_groups = sorted(prompt_to_valid_pairs.items(), key=lambda x: len(x[1]))
-            remaining_groups = len(sorted_groups)
-            for prompt, pairs in sorted_groups:
-                fair_share = remaining_budget // remaining_groups
-                n_samples = min(len(pairs), fair_share)
-                print(f"{prompt[:80]}...\t{n_samples}/{len(pairs)}")
-                pair_inds.extend(random.sample(pairs, n_samples))
-                remaining_budget -= n_samples
-                remaining_groups -= 1
-            
-            random.shuffle(pair_inds)
-            print(f"\nTotal pairs sampled: {len(pair_inds)}")
-            
-            # Debug: show sample pairs
-            print(f"\n--- Sample pairs (first 3) ---")
-            for pi, (i, j) in enumerate(pair_inds[:3]):
-                print(f"Pair {pi+1}:")
-                print(f"  Prompt: '{Z[i][1].prompt[:80]}...'")
-                print(f"  Completion A: '{Z[i][1].completion}' (logprob={Z[i][2][0]:.3f})")
-                print(f"  Completion B: '{Z[j][1].completion}' (logprob={Z[j][2][0]:.3f})")
-            print(f"{'='*60}\n")
-        else:
-            indices = range(len(Z))
-            pair_inds = list(itertools.product(indices, repeat=2))
-            pair_inds = [i for i in pair_inds if i[0] < i[1]]
-            pair_inds = random.sample(pair_inds, total_samples)
-        
-        # Create pairs with all the information
-        pairs_ = [(Z[i[0]], Z[i[1]]) for i in pair_inds]
+        raise NotImplementedError("both mode is not supported in fix1")
     else:
         # FIX1: g-mode pair construction with the 4-shape consistent-pair pool.
         # See docs/comb_loss_g_mode_concerns.md "Locked design" section.
@@ -2092,35 +1527,7 @@ def main(args):
 
 
     if train_g_or_d=='d':
-        #NOTE in this case the tokens we are targeting are the "Yes" tokens in both cases.
-        completion_text = space_prefix +"Yes"
-
-        if with_chat:
-             pairs = [
-                 (
-                     (format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)),  # prompts
-                     (completion_text, completion_text),  # completion for ranking (always "Yes")
-                     (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
-                     (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                     (pair[0][3], pair[1][3]),  # typicality scores
-                     (pair[0][4], pair[1][4]),  # is_labeled flags
-                 )
-                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
-             ]
-        else:
-            pairs = [
-                (
-                    (pair[0][0].prompt, pair[1][0].prompt),  # prompts
-                    (completion_text, completion_text),  # completion for ranking (always "Yes")
-                    (get_correct_answer(pair[0][2], task), get_correct_answer(pair[1][2], task)),  # validator correct answers
-                    (get_generator_completion(pair[0][2], task), get_generator_completion(pair[1][2], task)),  # generator completions
-                    (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
-                    (pair[0][3], pair[1][3]),  # typicality scores
-                    (pair[0][4], pair[1][4]),  # is_labeled flags
-                )
-                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
-            ]
+        raise NotImplementedError("d mode is not supported in fix1")
     elif train_g_or_d=='g':
         #NOTE in this case the ranking is derived from the log-probs of Yes under both prompts but we are targetting
         # the log-odds (hopefully log-prob is fine here) of the *generator completion*, so not the same in each item of the pair!
@@ -2151,34 +1558,7 @@ def main(args):
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
     elif train_g_or_d == 'both':
-        # For both mode, we create pairs for both generator and discriminator training
-        # First create discriminator pairs (targeting "Yes" tokens)
-        completion_text = space_prefix +"Yes"
-        if with_chat:
-            # Create pairs with both discriminator and generator prompts, applying chat formatting
-            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality, is_labeled)
-            pairs = [
-                (
-                    ((format_with_inst(pair[0][0].prompt), format_with_inst(pair[1][0].prompt)), (completion_text, completion_text)),  # discriminator pair
-                    ((format_with_inst(pair[0][1].prompt), format_with_inst(pair[1][1].prompt)), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
-                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
-                    (pair[0][3], pair[1][3]),  # typicality scores
-                    (pair[0][4], pair[1][4]),  # is_labeled flags
-                ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
-            ]
-        else:
-            # Create pairs with both discriminator and generator prompts
-            # Z structure: (p_train_tune, p_train_gold, logprobs, typicality, is_labeled)
-            pairs = [
-                (
-                    ((pair[0][0].prompt, pair[1][0].prompt), (completion_text, completion_text)),  # discriminator pair
-                    ((pair[0][1].prompt, pair[1][1].prompt), (pair[0][1].completion, pair[1][1].completion)),  # generator pair
-                    (pair[0][0].completion.strip().lower()   , pair[1][0].completion.strip().lower()   ),  # labels
-                    (pair[0][3], pair[1][3]),  # typicality scores
-                    (pair[0][4], pair[1][4]),  # is_labeled flags
-                ) for pair in pairs_ if pair[1][2][0] - pair[0][2][0] > delta
-            ]
-
+        raise NotImplementedError("both mode is not supported in fix1")
     else:
         raise ValueError("TODO!")
 
@@ -2270,57 +1650,7 @@ def main(args):
                     gen_completion_j += _eos
 
             if train_g_or_d == 'both':
-                # Tokenize discriminator prompts
-                input_i_disc = prompt_i_disc + completion_i_disc
-                input_j_disc = prompt_j_disc + completion_j_disc
-
-                enc_i_disc = self.tokenizer(
-                    input_i_disc,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt'
-                )
-                enc_j_disc = self.tokenizer(
-                    input_j_disc,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt'
-                )
-                
-                # Tokenize generator prompts
-                input_i_gen = prompt_i_gen + completion_i_gen
-                input_j_gen = prompt_j_gen + completion_j_gen
-
-                enc_i_gen = self.tokenizer(
-                    input_i_gen,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt'
-                )
-                enc_j_gen = self.tokenizer(
-                    input_j_gen,
-                    padding='max_length',
-                    truncation=True,
-                    max_length=self.max_length,
-                    return_tensors='pt'
-                )
-
-                # Tokenize completions
-
-                token_i_disc = self.tokenizer.encode(completion_i_disc, add_special_tokens=False, return_tensors='pt')
-                token_j_disc = self.tokenizer.encode(completion_j_disc, add_special_tokens=False, return_tensors='pt')
-
-                token_i_gen = self.tokenizer.encode(completion_i_gen, add_special_tokens=False, return_tensors='pt')
-                token_j_gen = self.tokenizer.encode(completion_j_gen, add_special_tokens=False, return_tensors='pt')
-            # Get labels from prompts
-            #    label_i = "yes" if "yes" in prompt_i.lower() else "no"
-            #    label_j = "yes" if "yes" in prompt_j.lower() else "no"
-
-
-
+                raise NotImplementedError("Not implemented in fix1")
             else:
                 # Tokenize prompt i
                 input_i = prompt_i + completion_i
@@ -2432,80 +1762,13 @@ def main(args):
                     'is_labeled_j': torch.tensor(1.0 if is_labeled_j else 0.0, dtype=torch.float),
                 }
             else:
-                # FIX1 (2026-05-22): 'both'-mode branch is dead in fix1 (guard
-                # at top of main() raises on train_g_or_d != 'g'). Commenting
-                # out the AND-gate computation here for consistency with the
-                # g-mode branch above. Restore in tandem with the matching
-                # `'is_labeled'` key below if 'both' mode is ever reinstated.
-                # pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
-                item = {
-                    'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
-                    'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
-                    'token_id_i_disc': token_i_disc.squeeze(0),
-                    'input_ids_j_disc': enc_j_disc['input_ids'].squeeze(0),
-                    'attention_mask_j_disc': enc_j_disc['attention_mask'].squeeze(0),
-                    'token_id_j_disc': token_j_disc.squeeze(0),
-                    'input_ids_i_gen': enc_i_gen['input_ids'].squeeze(0),
-                    'attention_mask_i_gen': enc_i_gen['attention_mask'].squeeze(0),
-                    'token_id_i_gen': token_i_gen.squeeze(0),
-                    'input_ids_j_gen': enc_j_gen['input_ids'].squeeze(0),
-                    'attention_mask_j_gen': enc_j_gen['attention_mask'].squeeze(0),
-                    'token_id_j_gen': token_j_gen.squeeze(0),
-                    'label_i': torch.tensor(1.0 if label_i == "yes" else 0.0, dtype=torch.float),
-                    'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float),
-                    'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
-                    'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
-                    # FIX1 (2026-05-22): commented out alongside the AND-gate
-                    # computation above. Dead code in fix1 (g-only guard).
-                    # 'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
-                }
-            return item
-
+                raise NotImplementedError("Not implemented in fix1")
 
     #18 fine for zero-shot
     if use_full_completion:
         batch_size = 1 #TODO: allow actual batches
     else:
-        # Check task registry first (for new extensible tasks)
-        task_config = get_task(task)
-        if task_config is not None:
-            # NEW PATH: Use registered task configuration
-            batch_sizes = task_config.get('batch_size', {'with_ref': 1, 'without_ref': 2})
-            batch_size = batch_sizes['with_ref'] if with_ref else batch_sizes['without_ref']
-        # LEGACY PATH: Existing task implementations (unchanged)
-        elif with_ref:
-            if task=='swords':
-                batch_size = 2
-            elif task=='trivia-qa':
-                batch_size = 2
-            elif task=='lambada':
-                batch_size = 2
-            elif task in ['hypernym', 'hypernym-car']:
-                batch_size = 1 #4
-            elif task == 'ifeval':
-                batch_size = 1
-            elif task =='collie':
-                batch_size = 2
-            else:
-                raise ValueError("define batch size for this case")
-        else:
-            if task=='swords':
-                batch_size = 1#6
-            elif task=='trivia-qa':
-                batch_size = 2#6
-            elif task=='lambada':
-                batch_size = 2#6
-            elif task in ['hypernym', 'hypernym-car']:
-                batch_size = 2#6#1  # Reduced from 32 to 1 for large models
-            elif task == 'ifeval':
-                batch_size = 1
-            elif task =='collie':
-                batch_size = 2
-            else:
-                raise ValueError("define batch size for this case")
-
-    # if max_context_length > 90:
-    #     max_context_length = 90
+        raise NotImplementedError("Not implemented in fix1")
 
     # FIX1 (batch-size patch, 2026-05-21): apply --batch-size override AFTER the
     # per-task auto-pick block above. Default behavior (no override) is unchanged
@@ -2535,19 +1798,7 @@ def main(args):
 
     # Track scores at step 0 (before any training)
     if track_scores:
-        print(f"\n  [Step 0] Tracking initial scores for all datapoints...")
-        task_config_for_tracking = get_task(task)
-        tracked_results = track_all_scores(
-            model, tokenizer, L_train_all, task, device, yestoks, notoks,
-            length_normalize=args.length_normalize,
-            use_full_completion=use_full_completion,
-            task_config=task_config_for_tracking,
-            validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
-            is_chat=with_chat,
-            has_system_role=has_system_role
-        )
-        tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step0.csv")
-        save_tracked_scores(tracked_results, tracking_path)
+        raise NotImplementedError("tracking scores is not supported in fix1")
 
     for epoch in range(num_epochs):
         model.train()
@@ -2584,167 +1835,7 @@ def main(args):
 
             # Move all inputs to device
             if train_g_or_d == 'both':
-                # Get discriminator inputs
-                input_ids_i_disc = batch["input_ids_i_disc"].to(device)
-                attention_mask_i_disc = batch["attention_mask_i_disc"].to(device)
-                token_id_i_disc = batch["token_id_i_disc"].to(device)
-                input_ids_j_disc = batch["input_ids_j_disc"].to(device)
-                attention_mask_j_disc = batch["attention_mask_j_disc"].to(device)
-                token_id_j_disc = batch["token_id_j_disc"].to(device)
-
-                # Get generator inputs
-                input_ids_i_gen = batch["input_ids_i_gen"].to(device)
-                attention_mask_i_gen = batch["attention_mask_i_gen"].to(device)
-                token_id_i_gen = batch["token_id_i_gen"].to(device)
-                input_ids_j_gen = batch["input_ids_j_gen"].to(device)
-                attention_mask_j_gen = batch["attention_mask_j_gen"].to(device)
-                token_id_j_gen = batch["token_id_j_gen"].to(device)
-
-                label_i = batch["label_i"].to(device)
-                label_j = batch["label_j"].to(device)
-
-                # Forward pass for discriminator prompts
-                outputs_i_disc = model(input_ids=input_ids_i_disc, attention_mask=attention_mask_i_disc)
-                outputs_j_disc = model(input_ids=input_ids_j_disc, attention_mask=attention_mask_j_disc)
-                
-                # Forward pass for generator prompts
-                outputs_i_gen = model(input_ids=input_ids_i_gen, attention_mask=attention_mask_i_gen)
-                outputs_j_gen = model(input_ids=input_ids_j_gen, attention_mask=attention_mask_j_gen)
-
-                # Compute log probabilities
-                log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
-                log_probs_j_disc = F.log_softmax(outputs_j_disc.logits, dim=-1)
-                log_probs_i_gen = F.log_softmax(outputs_i_gen.logits, dim=-1)
-                log_probs_j_gen = F.log_softmax(outputs_j_gen.logits, dim=-1)
-
-                # Get discriminator scores
-                if validator_log_odds:
-                    # Log-odds: log(sum P(yes_tokens)) - log(sum P(no_tokens))
-                    # Look at position before completion (last position predicts first completion token)
-                    def compute_logodds(log_probs, token_ids):
-                        """Compute log-odds for yes vs no at the position predicting the completion."""
-                        batch_size = log_probs.shape[0]
-                        logodds_list = []
-                        for b in range(batch_size):
-                            comp_len = token_ids[b].size(0)
-                            # Position that predicts first completion token
-                            pred_pos = -(comp_len + 1)
-                            probs_at_pos = torch.exp(log_probs[b, pred_pos, :])  # [vocab]
-                            p_yes = probs_at_pos[yestoks].sum()
-                            p_no = probs_at_pos[notoks].sum()
-                            logodds = torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)
-                            logodds_list.append(logodds)
-                        return torch.stack(logodds_list)
-                    
-                    score_i_disc = compute_logodds(log_probs_i_disc, token_id_i_disc)
-                    score_j_disc = compute_logodds(log_probs_j_disc, token_id_j_disc)
-                else:
-                    # Log-probs: log(P(completion))
-                    score_i_disc = sum_completion_logprobs(log_probs_i_disc, token_id_i_disc)   
-                    score_j_disc = sum_completion_logprobs(log_probs_j_disc, token_id_j_disc)
-                
-                # Apply validator boost (shift scores so optimal threshold is 0)
-                if args.boost_initial_val:
-                    score_i_disc = score_i_disc + val_boost_theta
-                    score_j_disc = score_j_disc + val_boost_theta
-                
-                # Generator always uses log-probs (completion can be multi-token)
-                # Apply length normalization if flag is set
-                score_i_gen = sum_completion_logprobs(log_probs_i_gen, token_id_i_gen, length_normalize=args.length_normalize)
-                score_j_gen = sum_completion_logprobs(log_probs_j_gen, token_id_j_gen, length_normalize=args.length_normalize)
-                
-                # Apply typicality correction to generator scores (online, during training)
-                if args.typicality_correction:
-                    typicality_i = batch["typicality_i"].to(device)
-                    typicality_j = batch["typicality_j"].to(device)
-                    score_i_gen = score_i_gen - typicality_i
-                    score_j_gen = score_j_gen - typicality_j
-
-                # Use frozen reference model if needed
-                if WITH_REF:
-                    raise ValueError("Do LATER")
-                else:
-                    diff_ref = 0
-
-                # Compute both G->V and V->G losses
-                g2v_diff = score_j_disc - score_i_disc - diff_ref
-                v2g_diff = score_j_gen - score_i_gen - diff_ref
-
-                # Get alpha for each sample in the batch
-                alphas = []
-                for b in range(batch["input_ids_i_disc"].size(0)):
-                    alpha_val = get_alpha(alpha, 
-                                    score_i_gen[b].item(), score_j_gen[b].item(),
-                                    score_i_disc[b].item(), score_j_disc[b].item(),
-                                    label_i[b].item(), label_j[b].item())
-                    alphas.append(alpha_val)
-                alphas = torch.tensor(alphas, device=device)
-
-                # Compute weighted loss
-                g2v_loss = -torch.log(torch.sigmoid(g2v_diff) + 1e-12)
-                v2g_loss = -torch.log(torch.sigmoid(v2g_diff) + 1e-12)
-                preference_loss = (alphas * g2v_loss + (1 - alphas) * v2g_loss).mean()
-                
-                # Note: NLL loss not yet implemented for 'both' mode
-                # Use 'd' or 'g' mode with --nll_validator_weight or --nll_generator_weight
-                loss = preference_loss_weight * preference_loss
-
-                loss.backward()
-                optimizer.step()
-                total_loss += loss.item()
-                global_step += 1
-                
-                # Log to wandb
-                if use_wandb:
-                    wandb.log({
-                        "train/loss": loss.item(),
-                        "train/preference_loss": preference_loss.item(),
-                        "train/g2v_loss": g2v_loss.mean().item(),
-                        "train/v2g_loss": v2g_loss.mean().item(),
-                        "train/score_j_disc": score_j_disc.mean().item(),
-                        "train/score_i_disc": score_i_disc.mean().item(),
-                        "train/score_j_gen": score_j_gen.mean().item(),
-                        "train/score_i_gen": score_i_gen.mean().item(),
-                        "train/epoch": epoch,
-                        "train/global_step": global_step,
-                    })
-                
-                # Track scores for all datapoints at specified frequency (both mode)
-                if track_scores and global_step % track_scores_freq == 0:
-                    print(f"\n  [Step {global_step}] Tracking scores for all datapoints...")
-                    
-                    task_config_for_tracking = get_task(task)
-                    tracked_results = track_all_scores(
-                        model, tokenizer, L_train_all, task, device, yestoks, notoks,
-                        length_normalize=args.length_normalize,
-                        use_full_completion=use_full_completion,
-                        task_config=task_config_for_tracking,
-                        validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
-                        is_chat=with_chat,
-                        has_system_role=has_system_role
-                    )
-                    
-                    tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}.csv")
-                    save_tracked_scores(tracked_results, tracking_path)
-                    
-                    # Decode completions for 'both' mode
-                    completion_i_disc_text = tokenizer.decode(token_id_i_disc[0] if token_id_i_disc.dim() > 1 else token_id_i_disc, skip_special_tokens=True).strip()
-                    completion_j_disc_text = tokenizer.decode(token_id_j_disc[0] if token_id_j_disc.dim() > 1 else token_id_j_disc, skip_special_tokens=True).strip()
-                    completion_i_gen_text = tokenizer.decode(token_id_i_gen[0] if token_id_i_gen.dim() > 1 else token_id_i_gen, skip_special_tokens=True).strip()
-                    completion_j_gen_text = tokenizer.decode(token_id_j_gen[0] if token_id_j_gen.dim() > 1 else token_id_j_gen, skip_special_tokens=True).strip()
-                    
-                    pair_info_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}-pair.csv")
-                    with open(pair_info_path, 'w', newline='') as f:
-                        writer = csv.writer(f)
-                        writer.writerow(['item', 'disc_completion', 'gen_completion', 'val_score_after', 'gen_score_after', 'label', 'note'])
-                        label_i = 'positive' if label_i.mean().item() > 0.5 else 'negative'
-                        label_j = 'positive' if label_j.mean().item() > 0.5 else 'negative'
-                        writer.writerow(['i (lower gold)', completion_i_disc_text, completion_i_gen_text, f'{score_i_disc.mean().item():.4f}', f'{score_i_gen.mean().item():.4f}', label_i, 'should be pushed DOWN'])
-                        writer.writerow(['j (higher gold)', completion_j_disc_text, completion_j_gen_text, f'{score_j_disc.mean().item():.4f}', f'{score_j_gen.mean().item():.4f}', label_j, 'should be pushed UP'])
-                    print(f"  Saved pair info to {pair_info_path}")
-                
-                # Clear cache to prevent memory accumulation
-                torch.cuda.empty_cache()
+                raise NotImplementedError("both mode is not supported in fix1")
             else:
                 input_ids_i = batch["input_ids_i"].to(device)
                 attention_mask_i = batch["attention_mask_i"].to(device)
@@ -2806,9 +1897,7 @@ def main(args):
                 
                 # Compute scores - use log-odds for discriminator mode if flag is set
                 if train_g_or_d == 'd' and validator_log_odds:
-                    # Log-odds: log(sum P(yes_tokens)) - log(sum P(no_tokens))
-                    score_i = compute_logodds_simple(log_probs_i, token_id_i)
-                    score_j = compute_logodds_simple(log_probs_j, token_id_j)
+                    raise NotImplementedError("validator_log_odds is not supported in fix1")
                 else:
                     # Log-probs (default) - apply length normalization for generator mode
                     use_lenorm = args.length_normalize and train_g_or_d == 'g'
@@ -2822,58 +1911,10 @@ def main(args):
                     typicality_j = batch["typicality_j"].to(device)
                     score_i = score_i - typicality_i
                     score_j = score_j - typicality_j
-                
-                # Apply validator boost (shift scores so optimal threshold is 0)
-                # Only for 'd' mode where score_i/score_j are validator scores
-                if args.boost_initial_val and train_g_or_d == 'd':
-                    score_i = score_i + val_boost_theta
-                    score_j = score_j + val_boost_theta
 
                 # Use frozen reference model
                 if WITH_REF:
-                    # KNOWN BUG: this dim check is wrong for batched single-token data.
-                    # DataLoader stacks [1]-shaped tensors into [B,1] (dim=2), which
-                    # triggers the error even for valid single-token batches.
-                    # Not an issue now: --with_ref is unused in current training runs.
-                    if token_id_i.dim() > 1 or (token_id_i.dim() == 1 and token_id_i.size(0) != batch["input_ids_i"].size(0)):
-                        raise NotImplementedError(
-                            "Reference model scoring (WITH_REF) currently only supports single-token completions. "
-                            f"Got token_id_i with shape {token_id_i.shape}. "
-                            "Use --use-full-completion without --with_ref, or ensure completions are single tokens."
-                        )
-                    if token_id_j.dim() > 1 or (token_id_j.dim() == 1 and token_id_j.size(0) != batch["input_ids_j"].size(0)):
-                        raise NotImplementedError(
-                            "Reference model scoring (WITH_REF) currently only supports single-token completions. "
-                            f"Got token_id_j with shape {token_id_j.shape}. "
-                            "Use --use-full-completion without --with_ref, or ensure completions are single tokens."
-                        )
-                    
-                    with torch.no_grad():
-                        outputs_i_ref = model_ref(input_ids=input_ids_i, attention_mask=attention_mask_i, use_cache = False)
-                        # logits_i: [batch_size, seq_len, vocab_size]
-                        logits_i_ref = outputs_i_ref.logits
-                        last_idx_i = attention_mask_i.size(1) - 1
-                        selected_logits_i_ref = []
-                        for b in range(logits_i_ref.size(0)):
-                            selected_logits_i_ref.append(logits_i_ref[b, last_idx_i, :].unsqueeze(0))
-                        selected_logits_i_ref = torch.cat(selected_logits_i_ref, dim=0)
-                        log_probs_i_ref = F.log_softmax(selected_logits_i_ref, dim=-1)  # [B, vocab_size]
-                        #score_i_ref = log_probs_i_ref[torch.arange(log_probs_i_ref.size(0)), token_id_i]
-                        score_i_ref = log_probs_i_ref[torch.arange(log_probs_i_ref.size(0), device=device), token_id_i]
-
-                        # Forward pass for prompt j
-                        outputs_j_ref = model_ref(input_ids=input_ids_j, attention_mask=attention_mask_j, use_cache = False)
-                        logits_j_ref = outputs_j_ref.logits
-
-                        last_idx_j = attention_mask_j.size(1) - 1 # assumes LEFT padding
-                        selected_logits_j_ref = []
-                        for b in range(logits_j_ref.size(0)):
-                            selected_logits_j_ref.append(logits_j_ref[b, last_idx_j, :].unsqueeze(0))
-                        selected_logits_j_ref = torch.cat(selected_logits_j_ref, dim=0)
-                        log_probs_j_ref = F.log_softmax(selected_logits_j_ref, dim=-1)  # [B, vocab_size]
-                        #score_j_ref = log_probs_j_ref[torch.arange(log_probs_j_ref.size(0)), token_id_j]
-                        score_j_ref = log_probs_j_ref[torch.arange(log_probs_j_ref.size(0), device=device), token_id_j]
-                    diff_ref = score_j_ref - score_i_ref
+                    raise NotImplementedError("with_ref is not supported in fix1")
                 else:
                     diff_ref = 0
 
@@ -2909,18 +1950,28 @@ def main(args):
                     # bit-identical (verified by unit test).
                     logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
                     logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
+                    # FIX1 (2026-05-22): no /2. Each pair contributes per-item
+                    # NLL on whichever side(s) are labeled; the surrounding
+                    # .mean() already averages across the batch. The legacy /2
+                    # was inherited from a parent whose /2 averaged "two items
+                    # per pair", but in fix1 most shapes fire on 0 or 1 sides,
+                    # so /2 just halved the term for no good reason. Removing
+                    # it changes the effective val-NLL scale ~2x relative to
+                    # earlier v7 runs -- intentional, the v7 scale wasn't
+                    # principled to begin with.
                     nll_validator_loss = (
                         is_labeled_i_t * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i, reduction='none') +
                         is_labeled_j_t * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j, reduction='none')
-                    ).mean() / 2
+                    ).mean()
                     # For logging, compute score_correct as log-odds (signed by correct answer)
-                    score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
-                    score_correct_j = logodds_correct_j * (2 * indicator_j - 1)
+                    #score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
+                    #score_correct_j = logodds_correct_j * (2 * indicator_j - 1)
                 else:
                     # Original: -log P(correct_answer | prompt) for both items
+                    # FIX1 (2026-05-22): no /2 (see comment in log-odds branch above).
                     score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
                     score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                    nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean() / 2
+                    nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
 
                 # FIX1: Generator NLL is per-item, fires only for labeled positives.
                 # No pair_is_labeled outer gate. The per-item weighting is:
@@ -2929,13 +1980,18 @@ def main(args):
                 # For unlabeled items: is_labeled = 0 -> weight = 0.
                 # For labeled negatives: indicator = 0 -> weight = 0.
                 # For labeled positives: weight = 1.
-                # Division by 2 keeps the gradient scale matching legacy code
-                # (where /2 averaged over the two items in a pair).
+                # FIX1 (2026-05-22): no /2. With the 4-shape consistent-pair
+                # filter, gen-NLL fires on at most ONE side per pair (j on
+                # case_A and mixed_pos; nowhere on mixed_neg / both_U). The
+                # legacy /2 made sense when the parent could fire on both sides
+                # of a case_B (L+/L+) pair, but fix1 drops case_B at
+                # construction time. Removing /2 doubles the effective gen-NLL
+                # weight relative to v7 fix1 runs -- intentional.
                 score_gen_i = sum_completion_logprobs(log_probs_i, token_gen_i)
                 score_gen_j = sum_completion_logprobs(log_probs_j, token_gen_j)
                 gen_w_i = is_labeled_i_t * indicator_i
                 gen_w_j = is_labeled_j_t * indicator_j
-                nll_generator_loss = -(gen_w_i * score_gen_i + gen_w_j * score_gen_j).mean() / 2
+                nll_generator_loss = -(gen_w_i * score_gen_i + gen_w_j * score_gen_j).mean()
 
                 # FIX1: Total loss is the sum of pref + (per-item gen-NLL)
                 # + (per-item val-NLL). No more "labeled pair vs unlabeled pair"
@@ -2967,9 +2023,9 @@ def main(args):
                         "train/epoch": epoch,
                         "train/global_step": global_step,
                     }
-                    if nll_validator_weight > 0:
-                        log_dict["train/score_correct_i"] = score_correct_i.mean().item()
-                        log_dict["train/score_correct_j"] = score_correct_j.mean().item()
+                    #if nll_validator_weight > 0:
+                    #    log_dict["train/score_correct_i"] = score_correct_i.mean().item()
+                    #    log_dict["train/score_correct_j"] = score_correct_j.mean().item()
                     if nll_generator_weight > 0:
                         log_dict["train/score_gen_i"] = score_gen_i.mean().item()
                         log_dict["train/score_gen_j"] = score_gen_j.mean().item()
@@ -2979,45 +2035,8 @@ def main(args):
                 
                 # Track scores for all datapoints at specified frequency
                 if track_scores and global_step % track_scores_freq == 0:
-                    print(f"\n  [Step {global_step}] Tracking scores for all datapoints...")
-                    
-                    # Get task_config for tracking
-                    task_config_for_tracking = get_task(task)
-                    
-                    # Track all scores
-                    tracked_results = track_all_scores(
-                        model, tokenizer, L_train_all, task, device, yestoks, notoks,
-                        length_normalize=args.length_normalize,
-                        use_full_completion=use_full_completion,
-                        task_config=task_config_for_tracking,
-                        validator_log_odds=True,  # Always use log-odds for tracking (consistent with eval.py)
-                        is_chat=with_chat,
-                        has_system_role=has_system_role
-                    )
-                    
-                    # Save to CSV
-                    tracking_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}.csv")
-                    save_tracked_scores(tracked_results, tracking_path)
-                    
-                    # Also save info about the sampled pair
-                    # Decode completions to get noun2 (the completion text)
-                    completion_i_text = tokenizer.decode(token_id_i[0] if token_id_i.dim() > 1 else token_id_i, skip_special_tokens=True).strip()
-                    completion_j_text = tokenizer.decode(token_id_j[0] if token_id_j.dim() > 1 else token_id_j, skip_special_tokens=True).strip()
-                    gen_completion_i_text = tokenizer.decode(token_gen_i[0] if token_gen_i.dim() > 1 else token_gen_i, skip_special_tokens=True).strip()
-                    gen_completion_j_text = tokenizer.decode(token_gen_j[0] if token_gen_j.dim() > 1 else token_gen_j, skip_special_tokens=True).strip()
-                    
-                    pair_info_path = os.path.join(tracking_dir, f"{tracking_base_name}-step{global_step}-pair.csv")
-                    with open(pair_info_path, 'w', newline='') as f:
-                        writer = csv.writer(f)
-                        writer.writerow(['item', 'completion', 'gen_completion', 'score_after', 'label', 'note'])
-                        # item i has LOWER gold score (should have lower score after training)
-                        # item j has HIGHER gold score (should have higher score after training)
-                        label_i = 'positive' if indicator_i.mean().item() > 0.5 else 'negative'
-                        label_j = 'positive' if indicator_j.mean().item() > 0.5 else 'negative'
-                        writer.writerow(['i (lower gold)', completion_i_text, gen_completion_i_text, f'{score_i.mean().item():.4f}', label_i, 'should be pushed DOWN'])
-                        writer.writerow(['j (higher gold)', completion_j_text, gen_completion_j_text, f'{score_j.mean().item():.4f}', label_j, 'should be pushed UP'])
-                    print(f"  Saved pair info to {pair_info_path}")
-                
+                    raise NotImplementedError("tracking scores is not supported in fix1")
+               
                 # Clear cache to prevent memory accumulation
                 torch.cuda.empty_cache()
         avg_loss = total_loss / len(train_loader)
@@ -3033,8 +2052,10 @@ def main(args):
             elif train_g_or_d == 'g':
                 direction_str = '--d2g'
             elif train_g_or_d == 'iter':
+                raise NotImplementedError("iter mode is not supported in fix1")
                 direction_str = '--iter'
             elif train_g_or_d == 'both':
+                raise NotImplementedError("both mode is not supported in fix1")
                 direction_str = '--both'
             else:
                 raise ValueError("not supported")

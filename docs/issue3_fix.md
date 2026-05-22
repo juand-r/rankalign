@@ -200,6 +200,17 @@ suppress negatives via gen NLL). Val NLL fires for both labeled
 positives and labeled negatives — BCE handles the asymmetry correctly
 (positive items pull `Yes` up, negative items pull `No` up).
 
+### Normalization (no `/2` factor)
+
+Both NLL terms are batch-averaged via `.mean()` and **not** further
+divided by 2. Earlier fix1 commits had a `/2` factor inherited from the
+parent code (where it averaged "two items per pair"), but with the
+4-shape filter most pairs fire on 0 or 1 sides — never 2 for gen-NLL,
+since case_B (L+/L+) is dropped at construction. The `/2` was a leftover
+that systematically halved the term. Removed 2026-05-22; this doubles
+the effective NLL weights relative to v7 fix1 runs, which is fine since
+the v7 scale wasn't principled to begin with.
+
 ## Files
 
 - [`scripts/ranking_loss_ref_fix.py`](../scripts/ranking_loss_ref_fix.py)

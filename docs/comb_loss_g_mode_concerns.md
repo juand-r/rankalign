@@ -453,10 +453,16 @@ Then `total_loss = mean over batch of per_pair_loss`.
 
 Notes on normalization:
 
-- `gen_nll` is divided by 2 to match the existing `nllg=1.0` scale
-  (current code uses `(score_gen_i * indicator_i + score_gen_j *
-  indicator_j) / 2`). With the per-item framing the `indicator` is
-  exactly `1[label == pos]` per side; for unlabeled items it is 0.
+- **No `/2` factor.** Earlier fix1 versions divided gen_nll and val_nll
+  by 2, ostensibly to match the parent's "two items per pair" average.
+  That justification doesn't hold under the 4-shape filter: gen-NLL
+  fires on at most 1 side per pair (j on case_A and mixed_pos, nowhere
+  on mixed_neg / both_U); val-NLL fires on 0, 1, or 2 sides depending
+  on shape. The `.mean()` over the batch already does the right thing.
+  The `/2` was a leftover from before case_B (L+/L+) pairs were
+  filtered out at construction time. Removed 2026-05-22; this changes
+  the effective NLL weights ~2× relative to v7 runs, which is fine
+  since the v7 scale wasn't principled to begin with.
 - The previous `pair_is_labeled` outer gate (which zeroed the entire
   NLL contribution unless **both** items were labeled) is removed.
   Pairs where exactly one side is labeled now contribute partial NLL
