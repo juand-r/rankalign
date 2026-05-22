@@ -38,8 +38,13 @@ Differences from the parent ranking_loss_ref.py:
   4. Generator NLL fires PER ITEM (not per pair). Weight per item =
      is_labeled_item * indicator_item, so it only fires for labeled
      positives. The legacy pair_is_labeled outer gate is removed.
-  5. Validator NLL behavior is UNCHANGED from the parent (per-pair
-     pair_is_labeled gate). The val-NLL position bug is out of scope.
+  5. Validator NLL also fires PER ITEM (not per pair). Weight per
+     item = is_labeled_item, so it fires on every labeled item
+     regardless of its partner -- both labeled positives and labeled
+     negatives. The val-NLL POSITION bug (where in the sequence we
+     read the Yes/No log-odds; concern #1 in
+     docs/comb_loss_g_mode_concerns.md) is a separate issue, out of
+     scope; only the gating is changed here.
   6. Trained checkpoints + tracking CSVs get a --fix1 suffix so they
      can't collide with parent-script outputs.
 
@@ -2834,16 +2839,27 @@ def main(args):
                 diff = score_j - score_i - diff_ref
                 preference_loss = -torch.log(torch.sigmoid(diff) + 1e-12).mean()
 
-                # Validator NLL loss (UNCHANGED from parent ranking_loss_ref.py;
-                # the val-NLL position bug is intentionally out of scope for fix1
-                # -- see docs/comb_loss_g_mode_concerns.md, concern #1).
+                # FIX1: Validator NLL is PER ITEM, not per pair. The legacy
+                # pair_is_labeled outer gate (which fired only when BOTH items
+                # were labeled, i.e. only on case_A pairs) is replaced with
+                # per-item is_labeled_i_t / is_labeled_j_t masks. Now val NLL
+                # fires on every labeled item regardless of its partner:
+                #   case_A    -> on both i (L_neg) and j (L_pos)
+                #   mixed_neg -> on i only (L_neg; j is unlabeled)
+                #   mixed_pos -> on j only (L_pos; i is unlabeled)
+                #   both_U    -> nowhere
+                # The val-NLL position bug (concern #1 in
+                # docs/comb_loss_g_mode_concerns.md) is a separate issue --
+                # we still read log-odds at the parent's (incorrect) position
+                # in g-mode. Fixing the position needs a 2nd forward pass and
+                # is out of scope here. Only the gating is changed.
                 if validator_log_odds:
                     # Use log-odds with binary cross-entropy (aligns training with evaluation)
                     logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
                     logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
                     nll_validator_loss = (
-                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
-                        pair_is_labeled * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
+                        is_labeled_i_t * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i) +
+                        is_labeled_j_t * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j)
                     ).mean() / 2
                     # For logging, compute score_correct as log-odds (signed by correct answer)
                     score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
@@ -2852,7 +2868,7 @@ def main(args):
                     # Original: -log P(correct_answer | prompt) for both items
                     score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
                     score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
-                    nll_validator_loss = -(pair_is_labeled * (score_correct_i + score_correct_j)).mean() / 2
+                    nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean() / 2
 
                 # FIX1: Generator NLL is per-item, fires only for labeled positives.
                 # No pair_is_labeled outer gate. The per-item weighting is:
@@ -2869,13 +2885,12 @@ def main(args):
                 gen_w_j = is_labeled_j_t * indicator_j
                 nll_generator_loss = -(gen_w_i * score_gen_i + gen_w_j * score_gen_j).mean() / 2
 
-                # FIX1: Total loss is always the sum of pref + (per-item gen-NLL)
-                # + (per-pair val-NLL). No more "labeled pair vs unlabeled pair"
+                # FIX1: Total loss is the sum of pref + (per-item gen-NLL)
+                # + (per-item val-NLL). No more "labeled pair vs unlabeled pair"
                 # outer branch -- pairs are pre-filtered for consistency at
                 # construction time, so preference fires on every pair, gen-NLL
-                # fires per-item on labeled positives, and val-NLL fires only on
-                # both-labeled (case_A) pairs via the inner pair_is_labeled gate
-                # (parent behavior preserved).
+                # fires per-item on labeled positives, and val-NLL fires
+                # per-item on every labeled item (positive or negative).
                 loss = (
                     preference_loss_weight * preference_loss
                     + nll_validator_weight * nll_validator_loss

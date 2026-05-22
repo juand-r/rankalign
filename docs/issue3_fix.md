@@ -12,10 +12,16 @@ actually implement.
 ## Scope
 
 - Only `--train_g_or_d g` is supported. d / both / iter raise.
-- Validator-NLL position bug (concern #1) and `--force-same-x`
-  no-op-on-persona observation (concern #2) are intentionally
-  out of scope. Val-NLL behavior matches the parent script
-  exactly (per-pair `pair_is_labeled` gate).
+- Validator-NLL **position** bug (concern #1) is out of scope: the
+  Yes/No log-odds are still read at the same (incorrect-for-g-mode)
+  position the parent uses. Fixing the position needs a 2nd forward
+  pass on the discriminator prompt and will be a separate fix.
+- Validator-NLL **gating**, however, is changed: matched to gen NLL,
+  it now fires per item (every labeled item), not per pair. See
+  "Loss block" below.
+- `--force-same-x` no-op-on-persona observation (concern #2) is
+  out of scope; fsx behaves identically to the parent except now
+  composes with the 4-shape filter.
 
 ## Definitions
 
@@ -168,32 +174,31 @@ trade.
 > revisit and add `--shape-backfill {within-prompt, within-shape, none}`
 > as a CLI flag.
 
-## Loss block (unchanged from current `ranking_loss_ref_fix.py`)
-
-For completeness — the loss block is what we already have, and is
-**not** part of this re-design:
+## Loss block
 
 ```
-preference_loss   = -log σ(score_j - score_i)              # every pair
-gen_NLL_per_item  = -score_gen * (is_labeled * indicator)  # per item, fires only on L+
-val_NLL           = parent's per-pair BCE (unchanged)      # only fires on case_A
-loss = w_pref * preference_loss + w_g * gen_NLL_per_item + w_v * val_NLL
+preference_loss  = -log σ(score_j - score_i)               # every pair
+gen_NLL_per_item = -score_gen * (is_labeled * indicator)   # per item; fires on L+
+val_NLL_per_item = -P(correct | prompt) * is_labeled       # per item; fires on L+ AND L-
+                   (or BCE-with-log-odds version when --validator-log-odds is on)
+loss = w_pref * preference_loss + w_g * gen_NLL_per_item + w_v * val_NLL_per_item
 ```
 
 Per-shape effective contribution:
 
-| Shape       | preference | gen NLL fires | val NLL fires (current code) |
-|-------------|------------|---------------|------------------------------|
-| `case_A`    | yes        | on j          | yes (both items)             |
-| `mixed_pos` | yes        | on j          | no (mixed-pair → pair_is_labeled=0) |
-| `mixed_neg` | yes        | none          | no                           |
-| `both_U`    | yes        | none          | no                           |
+| Shape       | preference | gen NLL fires | val NLL fires |
+|-------------|------------|---------------|---------------|
+| `case_A`    | yes        | on j (L+)     | on i (L−) AND j (L+) |
+| `mixed_pos` | yes        | on j (L+)     | on j (L+) |
+| `mixed_neg` | yes        | nowhere       | on i (L−) |
+| `both_U`    | yes        | nowhere       | nowhere |
 
-> NOTE: a separate question — should val NLL be per-item gated like
-> gen NLL is? — was raised on 2026-05-21 and is currently UNDECIDED.
-> If we move to per-item val NLL, val NLL would also fire on
-> `mixed_pos` (the L_pos item) and `mixed_neg` (the L_neg item).
-> Tracked separately; not part of this fix.
+Both NLLs are gated by `is_labeled_*` per item. Gen NLL additionally
+multiplies by `indicator_*` so it only fires for labeled **positives**
+(this is the "one-sided" property — we want to boost positives, not
+suppress negatives via gen NLL). Val NLL fires for both labeled
+positives and labeled negatives — BCE handles the asymmetry correctly
+(positive items pull `Yes` up, negative items pull `No` up).
 
 ## Files
 
