@@ -25,12 +25,18 @@
 #     means no second model is ever resident, so 3 × A40 = 144 GB is plenty
 #     of headroom. 2 × A40 = 96 GB would also fit but is the floor.
 #
+# Why allnodes (not p-gdurret):
+#   - p-gdurret is one node; if it's busy the job sits in PENDING(Resources).
+#     allnodes has 11 nodes (gdurrett account allowed); much better queue
+#     times. 120 GB CPU RAM / 8 CPUs is well within the partition cap (prior
+#     allnodes jobs ran with the same shape).
+#
 #SBATCH --job-name=g4-eval-base
-#SBATCH --partition=p-gdurret
+#SBATCH --partition=allnodes
 #SBATCH --account=gdurrett
 #SBATCH --gres=gpu:3
 #SBATCH --cpus-per-task=8
-#SBATCH --mem=200G
+#SBATCH --mem=120G
 #SBATCH --time=12:00:00
 #SBATCH --output=/datastor2/jdr/logs/slurm-%x-%j.log
 set -uo pipefail
