@@ -2391,6 +2391,16 @@ def main(args):
 
             if train_g_or_d != 'both':
                 # Squeeze to remove the batch dimension (shape: [seq_len])
+                # NOTE/TRAP: this AND-gate is the legacy semantics from the parent
+                # script (RP-1 in IMPORTANT-RESEARCH-PLAN §7). It treats a mixed
+                # pair (1 labeled + 1 unlabeled) as fully unlabeled, which would
+                # silently drop NLL signal that should fire on the labeled side.
+                # Fix1's loss block does NOT use this; it uses per-item
+                # `is_labeled_i_t` / `is_labeled_j_t` masks instead (set just
+                # below). The only reason `pair_is_labeled` survives here is
+                # to keep the `'is_labeled'` batch key around for diagnostics /
+                # backward compat. If you ever wire the loss block back to
+                # `pair_is_labeled`, you re-introduce RP-1.
                 pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
                 item = {
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
@@ -2734,6 +2744,15 @@ def main(args):
                 token_correct_j = batch["token_correct_j"].to(device)  # validator correct answer
                 token_gen_j = batch["token_gen_j"].to(device)  # generator completion
                 indicator_j = batch["indicator_j"].to(device)  # 1 if positive, 0 if negative
+                # NOTE/TRAP: `pair_is_labeled` is the legacy AND-gate
+                # (`is_labeled_i AND is_labeled_j`) inherited from the parent
+                # script (RP-1 in IMPORTANT-RESEARCH-PLAN §7). Fix1 does NOT
+                # use it in any active loss term -- it's pulled here only for
+                # diagnostics / backward compat. Wiring this back into a loss
+                # multiplier re-introduces RP-1: mixed pairs (1 labeled + 1
+                # unlabeled) get treated as fully unlabeled and silently drop
+                # NLL signal that should fire on the labeled side. Always use
+                # `is_labeled_i_t` / `is_labeled_j_t` (per-item) below instead.
                 pair_is_labeled = batch["is_labeled"].to(device)  # 1.0 if both items labeled, 0.0 otherwise (kept for diagnostics)
                 # FIX1: per-item is_labeled flags. The fix-mode NLL fires per item, not per pair.
                 is_labeled_i_t = batch["is_labeled_i"].to(device)

@@ -437,7 +437,20 @@ investigation; revisit when we run out of higher-priority work.
 
 ### Issue #1 — `pair_is_labeled` drops mixed pairs in non-fsx semi-supervised
 
-**Where.** `scripts/ranking_loss_ref.py` line 2161:
+**STATUS (2026-05-22): RESOLVED in `scripts/ranking_loss_ref_fix.py`
+(g-mode only).** Per-item gating via `is_labeled_i_t` / `is_labeled_j_t`
+masks replaces the AND-gate in both val-NLL and gen-NLL terms. The
+`pair_is_labeled` AND-gate variable still exists in fix1's
+`PairwiseDataset.__getitem__` and gets shipped in the batch dict, but
+NO active loss path reads it; in-code `# NOTE/TRAP` comments at both
+spots (the `__getitem__` definition and the train-loop pickup) warn
+against ever wiring it back into a loss multiplier. Parent
+`scripts/ranking_loss_ref.py` is unchanged and still has the bug;
+backporting is parked (see TODO list). The original analysis below is
+preserved for reference / for the parent-code backport when we get to
+it.
+
+**Where (in parent / unfixed).** `scripts/ranking_loss_ref.py` line 2161:
 `pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0`,
 then used to gate `nll_validator_loss` and `nll_generator_loss` in the
 semi-supervised branch (lines 2615, 2620, 2632).
