@@ -384,10 +384,14 @@ unmodified path or raise.)
    slightly oversample labeled-touching pairs (concrete value below).
 6. **Validator-NLL position bug is out of scope.** In `g` mode the
    current val-NLL reads Yes/No log-odds at a position inside the
-   statement (concern #1 of this doc). Fixing it requires a second
-   forward pass on the discriminator prompt. For now, **`g`-mode
-   val-NLL is hard-disabled** in the fix file (weight forced to 0 with
-   a warning) until a separate refactor lands.
+   statement (concern #1 of this doc). Fixing the *position* requires
+   a second forward pass on the discriminator prompt and is deferred.
+   What fix1 *does* change is the **gating**: val-NLL is now per-item
+   (`is_labeled_i * BCE(...)` and `is_labeled_j * BCE(...)`) instead
+   of the parent's per-pair `pair_is_labeled` AND-gate, so val-NLL
+   fires on every labeled item regardless of partner. See "Loss
+   block" in [`docs/issue3_fix.md`](issue3_fix.md) for the per-shape
+   contribution table.
 7. **Generator NLL stays one-sided.** Only fires for labeled positives;
    no negative-suppression term. (Adding `-log(1-P(stmt))` for
    negatives is unbounded and out of scope.)
