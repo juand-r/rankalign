@@ -2401,7 +2401,11 @@ def main(args):
                 # to keep the `'is_labeled'` batch key around for diagnostics /
                 # backward compat. If you ever wire the loss block back to
                 # `pair_is_labeled`, you re-introduce RP-1.
-                pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
+                # FIX1 (2026-05-22): commented out for stronger guarantee. The
+                # value was never read post-line-2756 anyway. Restore by
+                # uncommenting both this and the matching `'is_labeled'`
+                # entry in `item` below + the load in the train loop.
+                # pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
                 item = {
                     'input_ids_i': enc_i['input_ids'].squeeze(0),
                     'attention_mask_i': enc_i['attention_mask'].squeeze(0),
@@ -2418,13 +2422,22 @@ def main(args):
                     'label': torch.tensor(1.0, dtype=torch.float),
                     'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
                     'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
-                    'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
+                    # FIX1 (2026-05-22): legacy AND-gate batch key commented out
+                    # in tandem with `pair_is_labeled` above. Was unused by the
+                    # active loss block but kept reachable. Restore both lines
+                    # together if you ever need the diagnostic.
+                    # 'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
                     # FIX1: per-item labeled flags (used by per-item NLL in fix)
                     'is_labeled_i': torch.tensor(1.0 if is_labeled_i else 0.0, dtype=torch.float),
                     'is_labeled_j': torch.tensor(1.0 if is_labeled_j else 0.0, dtype=torch.float),
                 }
             else:
-                pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
+                # FIX1 (2026-05-22): 'both'-mode branch is dead in fix1 (guard
+                # at top of main() raises on train_g_or_d != 'g'). Commenting
+                # out the AND-gate computation here for consistency with the
+                # g-mode branch above. Restore in tandem with the matching
+                # `'is_labeled'` key below if 'both' mode is ever reinstated.
+                # pair_is_labeled = 1.0 if (is_labeled_i and is_labeled_j) else 0.0
                 item = {
                     'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
                     'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
@@ -2442,7 +2455,9 @@ def main(args):
                     'label_j': torch.tensor(1.0 if label_j == "yes" else 0.0, dtype=torch.float),
                     'typicality_i': torch.tensor(typicality_i, dtype=torch.float),  # GPT-2 P(completion) for item i
                     'typicality_j': torch.tensor(typicality_j, dtype=torch.float),  # GPT-2 P(completion) for item j
-                    'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
+                    # FIX1 (2026-05-22): commented out alongside the AND-gate
+                    # computation above. Dead code in fix1 (g-only guard).
+                    # 'is_labeled': torch.tensor(pair_is_labeled, dtype=torch.float),
                 }
             return item
 
@@ -2753,7 +2768,11 @@ def main(args):
                 # unlabeled) get treated as fully unlabeled and silently drop
                 # NLL signal that should fire on the labeled side. Always use
                 # `is_labeled_i_t` / `is_labeled_j_t` (per-item) below instead.
-                pair_is_labeled = batch["is_labeled"].to(device)  # 1.0 if both items labeled, 0.0 otherwise (kept for diagnostics)
+                # FIX1 (2026-05-22): commented out for stronger guarantee --
+                # the `'is_labeled'` key is no longer in the batch dict, so
+                # this load would KeyError anyway. Restore alongside the two
+                # `__getitem__` writes if you ever need the diagnostic.
+                # pair_is_labeled = batch["is_labeled"].to(device)  # 1.0 if both items labeled, 0.0 otherwise (kept for diagnostics)
                 # FIX1: per-item is_labeled flags. The fix-mode NLL fires per item, not per pair.
                 is_labeled_i_t = batch["is_labeled_i"].to(device)
                 is_labeled_j_t = batch["is_labeled_j"].to(device)
