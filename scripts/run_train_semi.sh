@@ -64,6 +64,11 @@ MAX_SEQ_LEN=""
 # Default keeps the historical behavior (ranking_loss_ref.py).
 SCRIPT="ranking_loss_ref.py"
 SHAPE_WEIGHTS=""
+# Default training params (unchanged from original behavior). Both can be
+# overridden via --epochs N / --batch-size N flags below. Defaults preserved
+# so existing callers (parent script, older launchers) see no change.
+EPOCHS_OVERRIDE=""
+BATCH_SIZE_FLAG=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -82,6 +87,8 @@ while [[ $# -gt 0 ]]; do
         --no-force-same-x) FORCE_SAME_X=""; shift ;;
         --max-seq-len) MAX_SEQ_LEN="--max-seq-len $2"; shift 2 ;;
         --script) SCRIPT=$2; shift 2 ;;
+        --epochs) EPOCHS_OVERRIDE=$2; shift 2 ;;
+        --batch-size) BATCH_SIZE_FLAG="--batch-size $2"; shift 2 ;;
         --shape-weights)
             # Format: "case_a,mixed_neg,mixed_pos,both_u" e.g. "0.2,0.2,0.2,0.4"
             IFS=',' read -ra _SW <<< "$2"
@@ -153,6 +160,7 @@ SAMPLES_FLAG=""
 [ -n "$SAMPLES_OVERRIDE" ] && SAMPLES_FLAG="--total_samples $SAMPLES_OVERRIDE"
 
 NUM_EPOCHS=3
+[ -n "$EPOCHS_OVERRIDE" ] && NUM_EPOCHS=$EPOCHS_OVERRIDE
 LORA_FLAG=""
 # TODO: extend this check if we ever use a smaller Qwen (e.g. Qwen3.5-2B) or any
 # model that names its size with uppercase "-2B" — currently the substring match
@@ -207,7 +215,8 @@ python "$SCRIPT" \
     $INCLUDE_EOS \
     $MODELS_DIR \
     $MAX_SEQ_LEN \
-    $SHAPE_WEIGHTS
+    $SHAPE_WEIGHTS \
+    $BATCH_SIZE_FLAG
 
 STATUS=$?
 echo ""

@@ -40,6 +40,11 @@ CPUS="${CPUS:-6}"
 MEM="${MEM:-60G}"
 TASK=persona-v1
 DISC_SHOTS="${DISC_SHOTS:-zero}"
+# Both default to empty -> no override -> falls through to run_train_semi.sh's
+# defaults (NUM_EPOCHS=3, no --batch-size flag = python's per-task auto-pick = 1
+# for full-completion mode). Set EPOCHS=N or BATCH_SIZE=N to override per call.
+EPOCHS="${EPOCHS:-}"
+BATCH_SIZE="${BATCH_SIZE:-}"
 
 # Default to all 3 variants if no variant args.
 if [ "$#" -eq 0 ]; then
@@ -53,6 +58,8 @@ if [ "$DISC_SHOTS" = "auto" ]; then
 else
     COMMON="--disc-shots $DISC_SHOTS --max-seq-len 512 --no-force-same-x --script ranking_loss_ref_fix.py"
 fi
+[ -n "$EPOCHS" ]     && COMMON="$COMMON --epochs $EPOCHS"
+[ -n "$BATCH_SIZE" ] && COMMON="$COMMON --batch-size $BATCH_SIZE"
 
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
