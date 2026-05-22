@@ -59,9 +59,10 @@ pip install --quiet hf_transfer
 echo "=== install rankalign requirements.txt (--ignore-installed sidesteps the blinker distutils issue) ==="
 pip install --quiet --ignore-installed -r /workspace/rankalign/requirements.txt
 
-echo "=== upgrade transformers/huggingface_hub/tokenizers to main (overrides the gemma-4-incompatible pin) ==="
-pip install --quiet --upgrade huggingface_hub tokenizers \
-    "git+https://github.com/huggingface/transformers.git"
+echo "=== upgrade transformers/huggingface_hub/tokenizers (pin verified-working releases — NOT git main) ==="
+# transformers==5.8.1 supports gemma-4 and works on torch>=2.5 (the 2.5.1 image).
+# git+main is a moving target and broke the 2.4 image overnight 2026-05-18.
+pip install --quiet "transformers==5.8.1" "tokenizers==0.22.2" "huggingface_hub==1.15.0"
 
 echo "=== verify full import chain ==="
 python <<'PYEOF'
