@@ -13,30 +13,33 @@ NLL conflicts with preference loss on inconsistent pairs). Other
 concerns from that doc -- e.g. the validator-NLL position bug -- are
 intentionally OUT OF SCOPE here and will be addressed separately.
 
+See docs/issue3_fix.md for the full algorithm + design rationale.
+
 Differences from the parent ranking_loss_ref.py:
 
   1. Only --train_g_or_d g is supported. d / both / iter raise.
-     (g-mode is the only path the loss-block edits below cover; d /
-     both / iter are unmodified but simply not exposed via this fork.)
   2. Pairs are restricted to a 4-shape consistent pool:
        case_A     = (L_neg, L_pos)
        mixed_neg  = (L_neg, U)
        mixed_pos  = (U,     L_pos)
        both_U     = (U,     U)
      Any pair where a labeled item is on its "wrong" natural side is
-     dropped at construction time. --force-same-x composes with this
-     filter (when on, the L+/L-/U partition is done within each
-     prompt group; parent fsx semantics preserved).
-  3. Sampling is stratified by pair shape via 4 CLI knobs:
-       --shape-weight-case-a / --shape-weight-mixed-neg /
-       --shape-weight-mixed-pos / --shape-weight-both-u
-     (defaults: 0.20 / 0.20 / 0.20 / 0.40, normalized internally)
+     dropped at construction time.
+  3. Sampling is per-prompt x per-shape with within-prompt backfill:
+       - Per-prompt budget = total_samples * n_p / N_total
+         (proportional to completion count -> equal expected exposure
+          per completion, regardless of which prompt it lives in).
+       - Within each prompt, shape budgets follow --shape-weight-*
+         CLI flags (defaults: 0.20 / 0.20 / 0.20 / 0.40).
+       - When fsx is OFF, the entire dataset is one virtual prompt
+         (so per-prompt logic collapses to the global stratified case).
+       - Within-prompt backfill (only) for cells that are smaller than
+         their target.
   4. Generator NLL fires PER ITEM (not per pair). Weight per item =
      is_labeled_item * indicator_item, so it only fires for labeled
      positives. The legacy pair_is_labeled outer gate is removed.
-  5. Validator NLL behavior is UNCHANGED from the parent. The
-     val-NLL position bug (concern #1 in the doc) is out of scope for
-     this fix and will be addressed separately.
+  5. Validator NLL behavior is UNCHANGED from the parent (per-pair
+     pair_is_labeled gate). The val-NLL position bug is out of scope.
   6. Trained checkpoints + tracking CSVs get a --fix1 suffix so they
      can't collide with parent-script outputs.
 
@@ -1816,129 +1819,157 @@ def main(args):
             return pairs
 
         print(f"\n{'='*60}")
-        print(f"FIX1 G-MODE PAIR CONSTRUCTION (consistent-pair pool)")
+        print(f"FIX1 G-MODE PAIR CONSTRUCTION (per-prompt x per-shape)")
         print(f"  force_same_x={args.force_same_x}")
         print(f"{'='*60}")
+        # See docs/issue3_fix.md for the full algorithm + rationale.
 
+        # 1. Group indices by prompt. When fsx is OFF the entire dataset is
+        #    treated as one "virtual prompt" (key=None). This unifies the two
+        #    code paths so per-prompt allocation logic runs identically.
         if args.force_same_x:
-            # Group indices by prompt (z[0].prompt is p_train_tune.prompt) and
-            # partition each group into (L+, L-, U). Enumerate the 4 shapes
-            # within each group; concatenate across groups.
             prompt_to_indices = defaultdict(list)
             for idx, z in enumerate(Z):
-                prompt = z[0].prompt
-                prompt_to_indices[prompt].append(idx)
-            print(f"Found {len(prompt_to_indices)} unique generator prompts")
-
-            pool_by_shape = {'case_A': [], 'mixed_neg': [], 'mixed_pos': [], 'both_U': []}
-            n_lpos = n_lneg = n_u = 0
-            for prompt, indices in prompt_to_indices.items():
-                grp_lpos, grp_lneg, grp_u = [], [], []
-                for k in indices:
-                    cls = _label_class_for_z(Z[k])
-                    if cls == 'L_pos':
-                        grp_lpos.append(k)
-                    elif cls == 'L_neg':
-                        grp_lneg.append(k)
-                    else:
-                        grp_u.append(k)
-                n_lpos += len(grp_lpos); n_lneg += len(grp_lneg); n_u += len(grp_u)
-                pool_by_shape['case_A'].extend(_enumerate_shape_subset(grp_lneg, grp_lpos))
-                pool_by_shape['mixed_neg'].extend(_enumerate_shape_subset(grp_lneg, grp_u))
-                pool_by_shape['mixed_pos'].extend(_enumerate_shape_subset(grp_u,    grp_lpos))
-                pool_by_shape['both_U'].extend(_enumerate_shape_subset(grp_u,       grp_u))
-            print(f"|L+| = {n_lpos}  |L-| = {n_lneg}  |U| = {n_u}  (of {len(Z)} total)")
+                prompt_to_indices[z[0].prompt].append(idx)
+            prompt_groups = dict(prompt_to_indices)
         else:
-            # Global partition (no per-prompt grouping).
-            L_pos_ix, L_neg_ix, U_ix = [], [], []
-            for k, z in enumerate(Z):
-                cls = _label_class_for_z(z)
+            prompt_groups = {None: list(range(len(Z)))}
+        print(f"Prompts: {len(prompt_groups)} group(s) "
+              f"({'fsx on' if args.force_same_x else 'fsx off -> 1 virtual group'})")
+
+        # 2. Per-prompt x per-shape enumeration.
+        pool_by_prompt: dict = {}      # pool_by_prompt[prompt][shape] -> list of (i, j)
+        prompt_n: dict = {}             # prompt_n[prompt] -> num completions in this group
+        n_lpos_total = n_lneg_total = n_u_total = 0
+        for prompt, indices in prompt_groups.items():
+            grp_lpos, grp_lneg, grp_u = [], [], []
+            for k in indices:
+                cls = _label_class_for_z(Z[k])
                 if cls == 'L_pos':
-                    L_pos_ix.append(k)
+                    grp_lpos.append(k)
                 elif cls == 'L_neg':
-                    L_neg_ix.append(k)
+                    grp_lneg.append(k)
                 else:
-                    U_ix.append(k)
-            print(f"|L+| = {len(L_pos_ix)}  |L-| = {len(L_neg_ix)}  |U| = {len(U_ix)}  "
-                  f"(of {len(Z)} total)")
-            pool_by_shape = {
-                'case_A':    _enumerate_shape_subset(L_neg_ix, L_pos_ix),
-                'mixed_neg': _enumerate_shape_subset(L_neg_ix, U_ix),
-                'mixed_pos': _enumerate_shape_subset(U_ix,     L_pos_ix),
-                'both_U':    _enumerate_shape_subset(U_ix,     U_ix),
+                    grp_u.append(k)
+            n_lpos_total += len(grp_lpos)
+            n_lneg_total += len(grp_lneg)
+            n_u_total += len(grp_u)
+            pool_by_prompt[prompt] = {
+                'case_A':    _enumerate_shape_subset(grp_lneg, grp_lpos),
+                'mixed_neg': _enumerate_shape_subset(grp_lneg, grp_u),
+                'mixed_pos': _enumerate_shape_subset(grp_u,    grp_lpos),
+                'both_U':    _enumerate_shape_subset(grp_u,    grp_u),
             }
+            prompt_n[prompt] = len(indices)
 
-        for shape, pool in pool_by_shape.items():
-            print(f"  {shape:10s}: {len(pool):8d} valid pairs (after delta filter)")
+        print(f"|L+| = {n_lpos_total}  |L-| = {n_lneg_total}  |U| = {n_u_total}  "
+              f"(of {len(Z)} total)")
 
-        total_valid_pairs = sum(len(p) for p in pool_by_shape.values())
+        # Aggregate diagnostics: per-shape totals across all prompts.
+        agg_pool = {s: 0 for s in ('case_A', 'mixed_neg', 'mixed_pos', 'both_U')}
+        for prompt in pool_by_prompt:
+            for s in agg_pool:
+                agg_pool[s] += len(pool_by_prompt[prompt][s])
+        for s in ('case_A', 'mixed_neg', 'mixed_pos', 'both_U'):
+            print(f"  {s:10s}: {agg_pool[s]:8d} valid pairs (after delta filter)")
+        total_valid_pairs = sum(agg_pool.values())
         print(f"  total     : {total_valid_pairs:8d}")
         if total_valid_pairs == 0:
             raise ValueError(
                 f"No valid pairs after delta + consistency filters (delta={delta}). "
-                f"Pool sizes: { {k: len(v) for k, v in pool_by_shape.items()} }. "
-                f"Try reducing --delta or check label distribution."
+                f"Pool sizes: {agg_pool}. Try reducing --delta or check label distribution."
             )
 
-        # Stratified sampling per --shape-weight-* CLI flags.
+        # 3. Per-prompt budget allocation, proportional to completion count
+        #    (every completion gets equal expected exposure to training).
+        N_total = len(Z)
+        if total_samples > total_valid_pairs:
+            print(f"\nWARNING: Reducing total_samples from {total_samples} to {total_valid_pairs} "
+                  f"(not enough valid pairs across all prompts/shapes)")
+            total_samples = total_valid_pairs
+
         shape_weights = {
             'case_A':    args.shape_weight_case_a,
             'mixed_neg': args.shape_weight_mixed_neg,
             'mixed_pos': args.shape_weight_mixed_pos,
             'both_U':    args.shape_weight_both_u,
         }
-        # Zero out weights for empty pools so they don't claim budget.
-        active_weights = {s: w for s, w in shape_weights.items() if w > 0 and len(pool_by_shape[s]) > 0}
-        if not active_weights:
-            raise ValueError("All shape weights are zero or all shape pools are empty.")
-        w_sum = sum(active_weights.values())
+        sw_sum = sum(shape_weights.values())
+        if sw_sum <= 0:
+            raise ValueError(f"All shape weights are zero or negative: {shape_weights}")
 
-        if total_samples > total_valid_pairs:
-            print(f"\nWARNING: Reducing total_samples from {total_samples} to {total_valid_pairs} "
-                  f"(not enough valid pairs across all shapes)")
-            total_samples = total_valid_pairs
-
+        # 4. Sample per (prompt, shape) with within-prompt backfill.
+        #    See docs/issue3_fix.md "Backfill policy" section.
+        # TODO: if multi-prompt tasks with many empty shapes start drifting the
+        # global per-shape ratio noticeably, add --shape-backfill flag with
+        # {within-prompt (default), within-shape, none} options. For now,
+        # within-prompt only.
         pair_inds = []
-        sampled_per_shape = {}
-        for shape, w in active_weights.items():
-            target = int(round(total_samples * w / w_sum))
-            avail = pool_by_shape[shape]
-            take = min(target, len(avail))
-            if take > 0:
-                pair_inds.extend(random.sample(avail, take))
-            sampled_per_shape[shape] = take
+        sampled_per_shape = {s: 0 for s in shape_weights}
+        per_prompt_log: list = []  # (prompt, n_p, prompt_budget, n_sampled) for diagnostics
+        for prompt in pool_by_prompt:
+            n_p = prompt_n[prompt]
+            prompt_budget = int(round(total_samples * n_p / N_total))
+            prompt_pool = pool_by_prompt[prompt]
+            prompt_sampled: list = []
 
-        # Backfill if rounding/exhaustion left us under-budget.
-        deficit = total_samples - len(pair_inds)
-        if deficit > 0:
-            already = set(pair_inds)
-            leftover = []
-            for shape, pool in pool_by_shape.items():
-                # Skip shapes with zero weight (user explicitly excluded).
-                if shape_weights[shape] == 0:
-                    continue
-                for p in pool:
-                    if p not in already:
-                        leftover.append(p)
-            if leftover:
-                fill = random.sample(leftover, min(deficit, len(leftover)))
-                pair_inds.extend(fill)
-                # Annotate shapes for printout.
-                fill_set = set(fill)
-                for shape, pool in pool_by_shape.items():
-                    overlap = sum(1 for p in pool if p in fill_set)
-                    sampled_per_shape[shape] = sampled_per_shape.get(shape, 0) + overlap
+            # First pass: shape-stratified sampling within this prompt.
+            for shape, w in shape_weights.items():
+                target = int(round(prompt_budget * w / sw_sum))
+                avail = prompt_pool[shape]
+                take = min(target, len(avail))
+                if take > 0:
+                    picked = random.sample(avail, take)
+                    prompt_sampled.extend(picked)
+                    sampled_per_shape[shape] += take
+
+            # Within-prompt backfill: any deficit relative to prompt_budget is
+            # filled from this prompt's remaining pool, weighted uniformly by
+            # leftover size (cross-shape within the prompt).
+            deficit = prompt_budget - len(prompt_sampled)
+            if deficit > 0:
+                already = set(prompt_sampled)
+                leftover = []  # (shape, pair_tuple)
+                for shape, pool in prompt_pool.items():
+                    for p in pool:
+                        if p not in already:
+                            leftover.append((shape, p))
+                if leftover:
+                    fill = random.sample(leftover, min(deficit, len(leftover)))
+                    for shape, p in fill:
+                        prompt_sampled.append(p)
+                        sampled_per_shape[shape] += 1
+
+            pair_inds.extend(prompt_sampled)
+            per_prompt_log.append((prompt, n_p, prompt_budget, len(prompt_sampled)))
 
         random.shuffle(pair_inds)
-        print(f"\nSampled per shape:")
+
+        # Diagnostics.
+        print(f"\nSampled per shape (aggregated across prompts):")
         for shape in ('case_A', 'mixed_neg', 'mixed_pos', 'both_U'):
-            n = sampled_per_shape.get(shape, 0)
-            avail = len(pool_by_shape[shape])
+            n = sampled_per_shape[shape]
+            avail = agg_pool[shape]
             w = shape_weights[shape]
             print(f"  {shape:10s}: {n:6d}/{avail:8d}  (weight={w})")
         print(f"Total sampled: {len(pair_inds)}/{total_samples}")
 
-        # Debug: show 3 sample pairs from different shapes if available.
+        # Per-prompt summary (only print details if there are >1 prompts).
+        if len(prompt_groups) > 1:
+            sorted_log = sorted(per_prompt_log, key=lambda r: r[3], reverse=True)
+            print(f"\nPer-prompt sampling (top 3 by sample count, then bottom 3):")
+            for r in sorted_log[:3]:
+                p, n_p, b, s = r
+                p_str = (p[:60] + '...') if isinstance(p, str) and len(p) > 60 else str(p)
+                print(f"  n_p={n_p:5d}  budget={b:5d}  sampled={s:5d}  prompt={p_str!r}")
+            if len(sorted_log) > 6:
+                print(f"  ... ({len(sorted_log) - 6} prompts in middle) ...")
+            for r in sorted_log[-3:]:
+                p, n_p, b, s = r
+                p_str = (p[:60] + '...') if isinstance(p, str) and len(p) > 60 else str(p)
+                print(f"  n_p={n_p:5d}  budget={b:5d}  sampled={s:5d}  prompt={p_str!r}")
+
+        # Debug: show 3 sample pairs.
         print(f"\n--- Sample pairs (first 3) ---")
         for pi, (i, j) in enumerate(pair_inds[:3]):
             ci = _label_class_for_z(Z[i])
@@ -2153,7 +2184,7 @@ def main(args):
         # In fix1 g-mode the upstream guard at line ~1864 raises before this
         # point, so this branch is unreachable in practice. Defensive print
         # protects the d/both code paths and any future g-mode refactors.
-        print("WARNING: pairs is empty after delta filter!")
+        raise ValueError("WARNING: pairs is empty after delta filter!")
     else:
         print(pairs[0])
         print("\n\n")
@@ -2971,7 +3002,7 @@ def main(args):
             # FIX1: append --fix1 suffix so trained checkpoints / score CSVs
             # from the fixed code path are unambiguous.
             fix_str = "--fix1"
-            save_directory = args.models_dir + "/v6-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str + fix_str
+            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str + fix_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -3073,7 +3104,7 @@ if __name__ == "__main__":
     parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
     parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
     parser.add_argument("--include-eos", action="store_true", default=False, help="Append EOS token to completions during training (scores log P(completion+EOS|prompt))")
-    parser.add_argument("--models-dir", type=str, default="../models", help="Directory to save model checkpoints (default: ../models)")
+    parser.add_argument("--models-dir", type=str, default="../models2", help="Directory to save model checkpoints (default: ../models)")
     parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
     parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
     parser.add_argument("--experiment-notes-dir", type=str, default="", help="Path to experiment notes dir for updating HUGGINGFACE_REPOS.md")
