@@ -1198,8 +1198,14 @@ def main(args):
         # partition into L+/L-/U is done WITHIN each prompt group, and pairs
         # never cross prompts (parent fsx semantics preserved).
 
-        # (p_train_tune, logprobs, L_train_all, typicality, is_labeled)
-        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z, is_labeled_flags))
+        # FIX1 (val-NLL position fix, 2026-05-22): Z now also carries
+        # p_train_gold (= discriminator prompts in g-mode) as element 5.
+        # Used in the dataset to tokenize a 2nd input sequence
+        # `disc_prompt + " Yes"` so the val-NLL term reads log-odds at
+        # the actual answer slot, not at a position inside the generator
+        # statement. See concern #1 in docs/comb_loss_g_mode_concerns.md.
+        # (p_train_tune, logprobs, L_train_all, typicality, is_labeled, p_train_gold)
+        Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z, is_labeled_flags, p_train_gold))
         Z = sorted(Z, key=lambda i: i[1])  # sort ascending by validator logprob
 
         min_logprob = Z[0][1]
@@ -1531,6 +1537,9 @@ def main(args):
     elif train_g_or_d=='g':
         #NOTE in this case the ranking is derived from the log-probs of Yes under both prompts but we are targetting
         # the log-odds (hopefully log-prob is fine here) of the *generator completion*, so not the same in each item of the pair!
+        # FIX1 (val-NLL position fix, 2026-05-22): pair tuple now also carries
+        # the **discriminator** prompt (8th element). The dataset uses it to
+        # tokenize a 2nd input `disc_prompt + " Yes"` for val-NLL.
         if with_chat:
             pairs = [
                 (
@@ -1541,6 +1550,7 @@ def main(args):
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
                     (pair[0][3], pair[1][3]),  # typicality scores
                     (pair[0][4], pair[1][4]),  # is_labeled flags
+                    (format_with_inst(pair[0][5].prompt), format_with_inst(pair[1][5].prompt)),  # FIX1: discriminator prompts (chat-templated)
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1554,6 +1564,7 @@ def main(args):
                     (get_indicator(pair[0][2], task), get_indicator(pair[1][2], task)),  # indicators (1=positive, 0=negative)
                     (pair[0][3], pair[1][3]),  # typicality scores
                     (pair[0][4], pair[1][4]),  # is_labeled flags
+                    (pair[0][5].prompt, pair[1][5].prompt),  # FIX1: discriminator prompts
                 )
                 for pair in pairs_ if pair[1][1] - pair[0][1] > delta
             ]
@@ -1617,8 +1628,16 @@ def main(args):
                     completion_i_gen = self.tokenizer.decode(self.tokenizer.encode(completion_i_gen)[-1])
                     completion_j_gen = self.tokenizer.decode(self.tokenizer.encode(completion_j_gen)[-1])
             else:
-                # 7-element pair structure: (prompts, ranking_completions, validator_correct, gen_completions, indicators, typicality, is_labeled)
-                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j) = self.pairs[idx]
+                # FIX1 (val-NLL position fix, 2026-05-22): 8-element pair structure.
+                # 8th element (disc_prompt_i, disc_prompt_j) is the discriminator
+                # prompt for each item, used to build a 2nd input sequence
+                # `disc_prompt + " Yes"` so val-NLL reads log-odds at the answer
+                # slot instead of inside the generator statement. See concern #1
+                # in docs/comb_loss_g_mode_concerns.md.
+                # Pair structure: (gen_prompts, ranking_completions, validator_correct,
+                #                  gen_completions, indicators, typicality, is_labeled,
+                #                  disc_prompts)
+                (prompt_i, prompt_j), (completion_i, completion_j), (correct_i, correct_j), (gen_completion_i, gen_completion_j), (indicator_i, indicator_j), (typicality_i, typicality_j), (is_labeled_i, is_labeled_j), (disc_prompt_i, disc_prompt_j) = self.pairs[idx]
                 
                 if not self.use_full_completion:
                     completion_i = self.tokenizer.decode(self.tokenizer.encode(completion_i)[-1])
@@ -1685,6 +1704,37 @@ def main(args):
                 # Tokenize generator completions (for generator NLL loss)
                 token_gen_i = self.tokenizer.encode(gen_completion_i, add_special_tokens=False, return_tensors='pt')
                 token_gen_j = self.tokenizer.encode(gen_completion_j, add_special_tokens=False, return_tensors='pt')
+
+                # FIX1 (val-NLL position fix, 2026-05-22): tokenize the
+                # discriminator-side input `disc_prompt + " Yes"`. Always
+                # use " Yes" as the tail (matches `both`-mode pattern); we only
+                # need a fixed-length tail to define the answer slot position.
+                # `compute_logodds_simple` reads log-odds at pred_pos = -2 from
+                # this sequence, which is the slot where the model predicts the
+                # first token of the answer (i.e. P(Yes)/P(No) at the answer
+                # slot of a properly-formed discriminator prompt). The 2nd
+                # forward pass on this sequence happens in the train loop, gated
+                # on nll_validator_weight > 0 to avoid the cost on pref-only runs.
+                disc_yes_tail = space_prefix + "Yes"
+                input_i_disc = disc_prompt_i + disc_yes_tail
+                input_j_disc = disc_prompt_j + disc_yes_tail
+                enc_i_disc = self.tokenizer(
+                    input_i_disc,
+                    padding='max_length',
+                    truncation=True,
+                    max_length=self.max_length,
+                    return_tensors='pt',
+                )
+                enc_j_disc = self.tokenizer(
+                    input_j_disc,
+                    padding='max_length',
+                    truncation=True,
+                    max_length=self.max_length,
+                    return_tensors='pt',
+                )
+                # Tokenize the " Yes" tail (typically 1 token; used by
+                # compute_logodds_simple to compute pred_pos = -(comp_len+1)).
+                token_yes_disc = self.tokenizer.encode(disc_yes_tail, add_special_tokens=False, return_tensors='pt')
 
                 # DEBUG: Check for tokenization mismatch (enabled with --debug flag)
                 if debug:
@@ -1760,6 +1810,16 @@ def main(args):
                     # FIX1: per-item labeled flags (used by per-item NLL in fix)
                     'is_labeled_i': torch.tensor(1.0 if is_labeled_i else 0.0, dtype=torch.float),
                     'is_labeled_j': torch.tensor(1.0 if is_labeled_j else 0.0, dtype=torch.float),
+                    # FIX1 (val-NLL position fix, 2026-05-22): discriminator-side
+                    # input for the 2nd forward pass that computes val-NLL log-odds
+                    # at the actual answer slot.
+                    'input_ids_i_disc': enc_i_disc['input_ids'].squeeze(0),
+                    'attention_mask_i_disc': enc_i_disc['attention_mask'].squeeze(0),
+                    'input_ids_j_disc': enc_j_disc['input_ids'].squeeze(0),
+                    'attention_mask_j_disc': enc_j_disc['attention_mask'].squeeze(0),
+                    # token_id_disc is the same for i and j (always " Yes" tail);
+                    # only the length matters for compute_logodds_simple.
+                    'token_id_disc': token_yes_disc.squeeze(0),
                 }
             else:
                 raise NotImplementedError("Not implemented in fix1")
@@ -1868,6 +1928,16 @@ def main(args):
                 is_labeled_i_t = batch["is_labeled_i"].to(device)
                 is_labeled_j_t = batch["is_labeled_j"].to(device)
 
+                # FIX1 (val-NLL position fix, 2026-05-22): discriminator-side
+                # batch tensors. Loaded unconditionally (cheap), but the 2nd
+                # forward pass below is gated on nll_validator_weight > 0 so
+                # pref-only runs don't pay the 2x compute cost.
+                input_ids_i_disc = batch["input_ids_i_disc"].to(device)
+                attention_mask_i_disc = batch["attention_mask_i_disc"].to(device)
+                input_ids_j_disc = batch["input_ids_j_disc"].to(device)
+                attention_mask_j_disc = batch["attention_mask_j_disc"].to(device)
+                token_id_disc = batch["token_id_disc"].to(device)
+
                 label = batch["label"].to(device)
 
                 # Forward pass for prompt i
@@ -1879,6 +1949,18 @@ def main(args):
                 # Forward pass for prompt j
                 outputs_j = model(input_ids=input_ids_j, attention_mask=attention_mask_j)
                 log_probs_j = F.log_softmax(outputs_j.logits, dim=-1)  # [B, seq_len, vocab_size]
+
+                # FIX1 (val-NLL position fix, 2026-05-22): 2nd forward pass on
+                # discriminator-side inputs. Only runs when val-NLL is on; otherwise
+                # log_probs_*_disc are None and the val-NLL block returns 0.0.
+                if nll_validator_weight > 0:
+                    outputs_i_disc = model(input_ids=input_ids_i_disc, attention_mask=attention_mask_i_disc)
+                    log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
+                    outputs_j_disc = model(input_ids=input_ids_j_disc, attention_mask=attention_mask_j_disc)
+                    log_probs_j_disc = F.log_softmax(outputs_j_disc.logits, dim=-1)
+                else:
+                    log_probs_i_disc = None
+                    log_probs_j_disc = None
                 
                 # Helper function to compute log-odds for yes vs no
                 def compute_logodds_simple(log_probs, token_ids):
@@ -1935,21 +2017,30 @@ def main(args):
                 #   mixed_neg -> on i only (L_neg; j is unlabeled)
                 #   mixed_pos -> on j only (L_pos; i is unlabeled)
                 #   both_U    -> nowhere
-                # The val-NLL position bug (concern #1 in
-                # docs/comb_loss_g_mode_concerns.md) is a separate issue --
-                # we still read log-odds at the parent's (incorrect) position
-                # in g-mode. Fixing the position needs a 2nd forward pass and
-                # is out of scope here. Only the gating is changed.
-                if validator_log_odds:
-                    # Use log-odds with binary cross-entropy (aligns training with evaluation)
+                # FIX1 (val-NLL position fix, 2026-05-22): val-NLL now reads
+                # log-odds from `log_probs_*_disc` (the 2nd forward pass on
+                # `disc_prompt + " Yes"`), not from `log_probs_*` (the generator
+                # forward pass). This fixes concern #1 in
+                # docs/comb_loss_g_mode_concerns.md: pred_pos = -2 of the disc
+                # sequence is the actual answer slot where the model predicts
+                # Yes/No, instead of a position inside the generator statement.
+                # Gated on nll_validator_weight > 0; when 0, the disc forward
+                # pass is skipped above and this branch contributes 0.0.
+                if nll_validator_weight == 0:
+                    nll_validator_loss = torch.tensor(0.0, device=device)
+                elif validator_log_odds:
+                    # Use log-odds with binary cross-entropy (aligns training with evaluation).
                     # FIX1 (batch-size patch, 2026-05-21): use reduction='none' so the
                     # per-item is_labeled mask is applied PER-ELEMENT, not after the
                     # batch-mean. With reduction='mean' (the default) and B>1 the BCE
                     # collapses to a scalar before the mask, giving every example the
                     # same value -- the mask becomes meaningless. At B=1 the two are
                     # bit-identical (verified by unit test).
-                    logodds_correct_i = compute_logodds_simple(log_probs_i, token_correct_i)
-                    logodds_correct_j = compute_logodds_simple(log_probs_j, token_correct_j)
+                    # FIX1 (val-NLL position fix, 2026-05-22): logits come from
+                    # log_probs_i_disc / log_probs_j_disc (disc-prompt forward),
+                    # and token_id_disc (= " Yes" tail) defines the slot length.
+                    logodds_correct_i = compute_logodds_simple(log_probs_i_disc, token_id_disc)
+                    logodds_correct_j = compute_logodds_simple(log_probs_j_disc, token_id_disc)
                     # FIX1 (2026-05-22): no /2. Each pair contributes per-item
                     # NLL on whichever side(s) are labeled; the surrounding
                     # .mean() already averages across the batch. The legacy /2
@@ -1967,10 +2058,13 @@ def main(args):
                     #score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
                     #score_correct_j = logodds_correct_j * (2 * indicator_j - 1)
                 else:
-                    # Original: -log P(correct_answer | prompt) for both items
-                    # FIX1 (2026-05-22): no /2 (see comment in log-odds branch above).
-                    score_correct_i = sum_completion_logprobs(log_probs_i, token_correct_i)
-                    score_correct_j = sum_completion_logprobs(log_probs_j, token_correct_j)
+                    # FIX1 (val-NLL position fix, 2026-05-22): non-log-odds branch
+                    # also reads from log_probs_*_disc. Score is now log P(correct_answer | disc_prompt),
+                    # i.e. log P("Yes"|disc_prompt) for L+ items and log P("No"|disc_prompt)
+                    # for L- items, evaluated AT THE ANSWER SLOT (not somewhere
+                    # inside the generator statement, which is what the parent did).
+                    score_correct_i = sum_completion_logprobs(log_probs_i_disc, token_correct_i)
+                    score_correct_j = sum_completion_logprobs(log_probs_j_disc, token_correct_j)
                     nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
 
                 # FIX1: Generator NLL is per-item, fires only for labeled positives.

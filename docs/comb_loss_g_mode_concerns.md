@@ -19,11 +19,11 @@ verify before reading more into the persona-v1 method ranking.
 
 ## TL;DR ranked concerns
 
-| # | Concern | Severity | Affects |
-|---|---------|----------|---------|
-| 1 | Validator NLL is computed at the wrong position in the wrong sequence | **HIGH** | #3, #4, #7 (every `comb` variant) |
-| 2 | `--force-same-x` is mathematically a no-op for persona-v1 | **HIGH** | #3, #4, #5, #7, #8 — the entire `+fsx` ablation column |
-| 3 | Generator NLL adds a one-sided "boost positives" signal on top of a label-blind preference loss, which can hurt on weak-validator tasks | **MEDIUM** | #3, #4, #7 |
+| # | Concern | Severity | Affects | Status |
+|---|---------|----------|---------|--------|
+| 1 | Validator NLL is computed at the wrong position in the wrong sequence | **HIGH** | #3, #4, #7 (every `comb` variant) + #1 SFT-lo | **FIXED** in `ranking_loss_ref_fix.py` (2026-05-22) — adds 2nd forward pass on `disc_prompt + " Yes"` and reads log-odds at the answer slot. Parent `ranking_loss_ref.py` still has the bug. |
+| 2 | `--force-same-x` is mathematically a no-op for persona-v1 | **HIGH** | #3, #4, #5, #7, #8 — the entire `+fsx` ablation column | task-property issue, not code bug |
+| 3 | Generator NLL adds a one-sided "boost positives" signal on top of a label-blind preference loss, which can hurt on weak-validator tasks | **MEDIUM** | #3, #4, #7 | open (medium) |
 
 The first two are structural (the loss is not computing what we think
 it's computing). The third is a more subtle interaction effect that
@@ -118,6 +118,44 @@ and compute `compute_logodds_simple` on **that** pass. This is a
 non-trivial patch; cheaper alternative is to gate `nll_validator_weight`
 to 0 unless `train_g_or_d in ('d', 'both')` (i.e. accept that comb in
 g-mode = preference + generator-NLL, not + validator-NLL).
+
+### Status: FIXED in `ranking_loss_ref_fix.py` (2026-05-22)
+
+Implemented the "second forward pass" fix sketch above. Concretely:
+
+1. `Z` now also carries `p_train_gold` (the discriminator prompts, in
+   g-mode) as a 6th element.
+2. The g-mode pair builder threads disc prompts into the pair tuple as
+   an 8th element (`(disc_prompt_i, disc_prompt_j)`), chat-templated via
+   `format_with_inst` when `with_chat=True`.
+3. `PairwiseDataset.__getitem__` tokenizes a 2nd input sequence
+   `disc_prompt + " Yes"` for each side. The `" Yes"` tail is constant
+   regardless of gold label (matches the `both`-mode pattern); we only
+   need a fixed-length tail to define the answer slot position.
+4. The train loop runs a 2nd forward pass on `input_ids_*_disc`, gated
+   on `nll_validator_weight > 0` so pref-only runs don't pay the 2x
+   compute cost. The val-NLL block reads `log_probs_*_disc` (not
+   `log_probs_*`) for both `validator_log_odds=True` and `=False`
+   branches.
+
+After the fix, `compute_logodds_simple(log_probs_*_disc, token_id_disc)`
+reads at `pred_pos = -2` of the disc sequence, which is the slot where
+the model predicts the first token of the answer — i.e. P(Yes) and
+P(No) at the actual discriminator answer slot. Same for
+`sum_completion_logprobs(log_probs_*_disc, token_correct_*)` in the
+non-log-odds branch: it now computes log P(token_correct | disc_prompt)
+at the answer slot instead of "log P('Yes' literally appears at end of
+generator statement)".
+
+**Cost.** ~2x training step time when val-NLL is on (one extra forward
+pass per pair side per step). Pref-only runs (#5, #6, #8, #9) are
+unaffected by the gate.
+
+**Affects which experiments.** All `comb` g-mode runs (#3, #4, #7) and
+SFT-lo (#1) — they need to be re-run on top of `ranking_loss_ref_fix.py`
+to pick up the corrected val-NLL signal. Pref-only runs (#5/#6/#8/#9)
+and pure-RankAlign (#2) are unaffected because they don't use the
+val-NLL term.
 
 ---
 
