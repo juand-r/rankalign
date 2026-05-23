@@ -44,7 +44,16 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
-OUT_DIR = REPO / "outputs"
+OUT_DIR = REPO / "outputs"  # kept for back-compat; SEARCH_DIRS is the truth
+# Multiple search locations: local outputs/ plus the datastor2 mirror where
+# trained-adapter persona-v1 score files actually live (Base-row files are
+# symlinked into outputs/, but trained-method files are not). Order matters
+# only for the (rare) case where the same exact basename exists in both:
+# first hit wins, then duplicates are collapsed by keeping the newest filename.
+SEARCH_DIRS = [
+    OUT_DIR,
+    Path("/datastor2/jdr/rankalign/outputs"),
+]
 METRICS_DIR = REPO / "metrics-from-scores"
 METRICS_DIR.mkdir(exist_ok=True)
 
@@ -237,25 +246,34 @@ def _check_disc_match(df: pd.DataFrame) -> bool:
 def _build_index() -> list[tuple[str, str, str, Path]]:
     KNOWN_PREFIXES = ("self-", "neg-", "basetyp-", "basetypneg-")
     index: list[tuple[str, str, str, Path]] = []
-    # Persona-v1-specific glob narrows from ~10k files to ~hundreds.
-    for p in OUT_DIR.glob("scores_*persona-v1-*_test_log-odds*.csv"):
-        name = p.name
-        after_prefix = name[len("scores_"):]
-        pfx = ""
-        for kp in KNOWN_PREFIXES:
-            if after_prefix.startswith(kp):
-                pfx = kp
-                break
-        rest = after_prefix[len(pfx):]
-        chosen_task = None
-        for t in EVAL_TASKS:
-            if f"_{t}_test_log-odds" in rest:
-                chosen_task = t
-                break
-        if chosen_task is None:
+    seen_basenames: set[str] = set()
+    # Persona-v1-specific glob narrows from ~10k files to ~hundreds per dir.
+    for d in SEARCH_DIRS:
+        if not d.is_dir():
             continue
-        model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
-        index.append((pfx, model_short, chosen_task, p))
+        for p in d.glob("scores_*persona-v1-*_test_log-odds*.csv"):
+            name = p.name
+            # Same basename present in a later dir: skip (avoids double-counting
+            # if the file is also symlinked locally).
+            if name in seen_basenames:
+                continue
+            after_prefix = name[len("scores_"):]
+            pfx = ""
+            for kp in KNOWN_PREFIXES:
+                if after_prefix.startswith(kp):
+                    pfx = kp
+                    break
+            rest = after_prefix[len(pfx):]
+            chosen_task = None
+            for t in EVAL_TASKS:
+                if f"_{t}_test_log-odds" in rest:
+                    chosen_task = t
+                    break
+            if chosen_task is None:
+                continue
+            model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
+            index.append((pfx, model_short, chosen_task, p))
+            seen_basenames.add(name)
     return index
 
 
