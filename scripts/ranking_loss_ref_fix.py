@@ -581,9 +581,25 @@ def main(args):
         )
         prompts_gold = [i.prompt for i in p_train_gold]
 
-        # Compute log-probabilities for gold prompts
+        # Compute validator scores for pair selection.
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
+            if train_g_or_d == 'g' and validator_log_odds:
+                probs = get_final_logit_prob(
+                    prompt, model, tokenizer, device,
+                    is_chat=with_chat, has_system_role=has_system_role,
+                    disable_thinking=disable_thinking,
+                )
+                p_yes = probs[yestoks].sum()
+                p_no = probs[notoks].sum()
+                val_score = float((torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)).item())
+                if debug and idx < 3:
+                    dbg(f"pair-score idx={idx} style={gold_prompt_style} metric=validator_logodds")
+                    dbg(f"pair-score prompt={prompt[:300]!r}")
+                    dbg(f"pair-score p_yes={float(p_yes.item()):.6f} p_no={float(p_no.item()):.6f} logodds={val_score:.6f}")
+                logprobs_last_layer.append(val_score)
+                continue
+
             if train_g_or_d == 'd':
                 target_text = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
                 target_tokens = tokenizer.encode(target_text)
@@ -664,7 +680,7 @@ def main(args):
         task_config = get_task(task)
         if task_config is not None:
             # NEW PATH: Use registered task configuration
-            completions = [task_config['get_completion'](item).strip() for item in L_train_all]
+            completions = [task_config['get_completion'](item) for item in L_train_all]
         else:
             raise NotImplementedError("Legacy tasks no longer supported in fix1")
         
@@ -818,9 +834,9 @@ def main(args):
         # `disc_prompt + " Yes"` so the val-NLL term reads log-odds at
         # the actual answer slot, not at a position inside the generator
         # statement. See concern #1 in docs/comb_loss_g_mode_concerns.md.
-        # (p_train_tune, logprobs, L_train_all, typicality, is_labeled, p_train_gold)
+        # (p_train_tune, validator_score, L_train_all, typicality, is_labeled, p_train_gold)
         Z = list(zip(p_train_tune, logprobs_last_layer, L_train_all, typ_scores_for_z, is_labeled_flags, p_train_gold))
-        Z = sorted(Z, key=lambda i: i[1])  # sort ascending by validator logprob
+        Z = sorted(Z, key=lambda i: i[1])  # sort ascending by validator score
 
         min_logprob = Z[0][1]
         max_logprob = Z[-1][1]
@@ -828,8 +844,9 @@ def main(args):
         if delta != 0:
             NN = (max_logprob - min_logprob) / delta
             print(f"NN: {NN}")
-        print(f"Min logprob: {min_logprob}")
-        print(f"Max logprob: {max_logprob}")
+        score_name = "validator log-odds" if validator_log_odds else "validator logprob"
+        print(f"Min {score_name}: {min_logprob}")
+        print(f"Max {score_name}: {max_logprob}")
 
         # Per-item label lookup (used here for pair-shape partitioning; the
         # downstream pairs[] builder uses get_indicator with the same logic).
