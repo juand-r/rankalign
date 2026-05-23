@@ -397,6 +397,26 @@ confound.
 
 ## 6. Findings log (append below as we learn)
 
+### 2026-05-23 — Default `--delta-bins 10` for fix1 / log-odds runs
+
+Sweep on `persona-v1` variant 4 (`comb` + `--self-typcorr` + `--log-odds`
++ disc-shots=few) over bins ∈ {5, 10, 30, 50, 100} × {gemma-2-2b, 2b-it,
+9b-it}, evaluated with `--self-typcorr --base-typcorr --log-odds`:
+
+- **bins=10 is the best gen_roc(tc) on ID for all 3 bases** (2b 0.942,
+  2b-it 0.952, 9b-it 0.958), and best `pearson(tc)` ID for 2b-it / 9b-it.
+- bins=5 / 30 are competitive on OOD; OOD `gen_roc` < 0.5 across the
+  whole sweep regardless of bins (structural for persona-v1 OOD, not a
+  bins-tuning issue).
+- bins=10 = (p95 − p5) / 10 of the validator-log-odds distribution at
+  startup; concrete deltas were 0.475 (2b), 1.567 (2b-it), 2.493 (9b-it).
+
+Going forward use `--delta-bins 10` as the default for fix1-style runs
+(supersedes the historical hard-coded `delta=0.15`). Full sweep tables:
+[docs/delta_bins_sweep_results.md](delta_bins_sweep_results.md). The
+follow-up 9-job main run (3 bases × #3/#4/#7, all bins=10) results are
+in [docs/main9_results.md](main9_results.md).
+
 ### 2026-05-10 — Train-time TC is a per-pair reweighter, not a gradient-direction injector
 
 Verified by code-read of `scripts/ranking_loss_ref.py` and gradient
