@@ -584,7 +584,7 @@ def main(args):
         # Compute validator scores for pair selection.
         logprobs_last_layer = []
         for idx, prompt in enumerate(tqdm(prompts_gold)):
-            if train_g_or_d == 'g' and validator_log_odds:
+            if validator_log_odds:
                 probs = get_final_logit_prob(
                     prompt, model, tokenizer, device,
                     is_chat=with_chat, has_system_role=has_system_role,
@@ -592,64 +592,25 @@ def main(args):
                 )
                 p_yes = probs[yestoks].sum()
                 p_no = probs[notoks].sum()
-                val_score = float((torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)).item())
+                score = float((torch.log(p_yes + 1e-12) - torch.log(p_no + 1e-12)).item())
                 if debug and idx < 3:
                     dbg(f"pair-score idx={idx} style={gold_prompt_style} metric=validator_logodds")
                     dbg(f"pair-score prompt={prompt[:300]!r}")
-                    dbg(f"pair-score p_yes={float(p_yes.item()):.6f} p_no={float(p_no.item()):.6f} logodds={val_score:.6f}")
-                logprobs_last_layer.append(val_score)
-                continue
-
-            if train_g_or_d == 'd':
-                target_text = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d == 'g':
+                    dbg(f"pair-score p_yes={float(p_yes.item()):.6f} p_no={float(p_no.item()):.6f} logodds={score:.6f}")
+            else:
                 target_text = space_prefix + "Yes"
-                target_tokens = tokenizer.encode(target_text)
-            elif train_g_or_d == 'both':
-                raise NotImplementedError("both mode is not supported in fix1")
-                target_text_d = space_prefix + task_config['get_completion'](L_train_all[idx]).strip()
-                target_tokens_d = tokenizer.encode(target_text_d)
-                target_text_g = space_prefix + "Yes"
-                target_tokens_g = tokenizer.encode(target_text_g)
-            else:
-                raise ValueError("No.")
+                log_prob = get_completion_token_logprobs(
+                    prompt, target_text, model, tokenizer, device,
+                    is_chat=with_chat, has_system_role=has_system_role,
+                    disable_thinking=disable_thinking,
+                )
+                score = float(log_prob.sum().item())
+                if debug and idx < 3:
+                    dbg(f"pair-score idx={idx} style={gold_prompt_style} target={target_text!r}")
+                    dbg(f"pair-score prompt={prompt[:300]!r}")
+                    dbg(f"pair-score target_ids={tokenizer.encode(target_text, add_special_tokens=False)} token_logprobs={log_prob.tolist()} sum={score:.6f}")
 
-            if use_full_completion:
-                if train_g_or_d == 'both':
-                    log_prob_d = get_completion_token_logprobs(prompt, target_text_d, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    log_prob_g = get_completion_token_logprobs(prompt, target_text_g, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    total_log_prob_d = float(log_prob_d.sum().item())
-                    total_log_prob_g = float(log_prob_g.sum().item())
-                    logprobs_last_layer.append((total_log_prob_d, total_log_prob_g))
-                else:
-                    log_prob = get_completion_token_logprobs(prompt, target_text, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                    total_log_prob = float(log_prob.sum().item())
-                    if debug and idx < 3:
-                        dbg(f"pair-score idx={idx} style={gold_prompt_style} target={target_text!r}")
-                        dbg(f"pair-score prompt={prompt[:300]!r}")
-                        dbg(f"pair-score target_ids={tokenizer.encode(target_text, add_special_tokens=False)} token_logprobs={log_prob.tolist()} sum={total_log_prob:.6f}")
-                    logprobs_last_layer.append(total_log_prob)
-            else:
-                probs = get_final_logit_prob(prompt, model, tokenizer, device, is_chat=with_chat, has_system_role=has_system_role, disable_thinking=disable_thinking)
-                if train_g_or_d == 'both':
-                    ind_d = target_tokens_d[0] if len(target_tokens_d) == 1 else target_tokens_d[1]
-                    ind_g = target_tokens_g[0] if len(target_tokens_g) == 1 else target_tokens_g[1]
-                    # Assert that heuristic matches correct approach
-                    ind_d_correct = tokenizer.encode(target_text_d, add_special_tokens=False)[0]
-                    ind_g_correct = tokenizer.encode(target_text_g, add_special_tokens=False)[0]
-                    assert ind_d == ind_d_correct, f"Token index mismatch (d): heuristic={ind_d}, correct={ind_d_correct}, target_text='{target_text_d}'"
-                    assert ind_g == ind_g_correct, f"Token index mismatch (g): heuristic={ind_g}, correct={ind_g_correct}, target_text='{target_text_g}'"
-                    log_prob_d = math.log(probs[ind_d].item() + 1e-12)
-                    log_prob_g = math.log(probs[ind_g].item() + 1e-12)
-                    logprobs_last_layer.append((log_prob_d, log_prob_g))
-                else:
-                    ind = target_tokens[0] if len(target_tokens) == 1 else target_tokens[1]
-                    # Assert that heuristic matches correct approach (tokenize without special tokens)
-                    ind_correct = tokenizer.encode(target_text, add_special_tokens=False)[0]
-                    assert ind == ind_correct, f"Token index mismatch: heuristic={ind}, correct={ind_correct}, target_text='{target_text}', tokens_with_special={target_tokens}, tokens_without_special={tokenizer.encode(target_text, add_special_tokens=False)}"
-                    log_prob = math.log(probs[ind].item() + 1e-12)
-                    logprobs_last_layer.append(log_prob)
+            logprobs_last_layer.append(score)
 
         # Generate tune prompts
         p_train_tune, hf_train, _ = utils.make_and_format_data(
@@ -715,29 +676,7 @@ def main(args):
 
         print(f"  Computed typicality scores for {len(typicality_scores)} examples")
         print(f"  Typicality mean: {sum(typicality_scores)/len(typicality_scores):.4f}")
-        
-        # Apply correction to logprobs_last_layer ONLY for pair selection in 'd' and 'both' modes
-        # (In 'g' mode, logprobs_last_layer contains validator scores, not generator scores)
-        if train_g_or_d in ['d', 'both']:
-            print("\nApplying correction to pair selection scores (for 'd'/'both' modes)")
-            if train_g_or_d == 'both':
-                logprobs_original = logprobs_last_layer.copy()
-                logprobs_last_layer = [(lp[0] - typicality_scores[i], lp[1]) for i, lp in enumerate(logprobs_last_layer)]
-                original_means_d = sum([lp[0] for lp in logprobs_original]) / len(logprobs_original)
-                corrected_means_d = sum([lp[0] for lp in logprobs_last_layer]) / len(logprobs_last_layer)
-                print(f"  Original generator mean (d): {original_means_d:.4f}")
-                print(f"  Corrected generator mean (d): {corrected_means_d:.4f}")
-            else:
-                logprobs_original = logprobs_last_layer.copy()
-                logprobs_last_layer = [lp - typicality_scores[i] for i, lp in enumerate(logprobs_last_layer)]
-                original_mean = sum(logprobs_original) / len(logprobs_original)
-                corrected_mean = sum(logprobs_last_layer) / len(logprobs_last_layer)
-                print(f"  Original generator mean: {original_mean:.4f}")
-                print(f"  Corrected generator mean: {corrected_mean:.4f}")
-            print(f"  Correction applied to {len(logprobs_last_layer)} examples for pair selection")
-        else:
-            print("\n  (In 'g' mode: typicality will be applied during training, not pair selection)")
-        
+
         print("="*60 + "\n")
 
     if with_chat and has_system_role:
@@ -864,6 +803,7 @@ def main(args):
                 raise NotImplementedError("Legacy tasks no longer supported in fix1")
             return 'L_pos' if ind >= 0.5 else 'L_neg'
 
+        #TODO later make this more efficient
         def _enumerate_shape_subset(lo_pool, hi_pool):
             """All (i, j) with i in lo_pool, j in hi_pool, i != j,
             val(i) < val(j), |val(j) - val(i)| > delta.
@@ -1214,6 +1154,7 @@ def main(args):
             # Optionally append EOS token text to all completions so both the
             # full-sequence encoding and the separate completion encoding include it.
             if args.include_eos and self.tokenizer.eos_token is not None:
+                raise NotImplementedError("Not implemented in fix1")
                 _eos = self.tokenizer.eos_token
                 if train_g_or_d == 'both':
                     raise NotImplementedError("Not implemented in fix1")
@@ -1385,6 +1326,7 @@ def main(args):
                     })
             else:
                 raise NotImplementedError("Not implemented in fix1")
+            return item
 
     #18 fine for zero-shot
     if use_full_completion:
