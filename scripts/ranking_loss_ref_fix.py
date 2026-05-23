@@ -67,6 +67,8 @@ import re
 import random
 import argparse
 import wandb
+import numpy as np
+from datetime import datetime
 
 from datasets import load_dataset
 from sklearn.metrics import roc_curve
@@ -828,13 +830,55 @@ def main(args):
 
         min_logprob = Z[0][1]
         max_logprob = Z[-1][1]
-        print(f"Delta (minimum separation): {delta}")
+        score_name = "validator log-odds" if validator_log_odds else "validator logprob"
+
+        # Auto-delta (fix1, 2026-05-22): if --delta-bins N is set, override
+        # --delta with (p95-p5)/N of the validator-score distribution. This
+        # rescales delta to whatever score metric is in use (log-odds vs
+        # log-prob) and to the model/task spread. p5-p95 (not min-max) keeps
+        # outliers from blowing up the spread. See "Delta calibration" in
+        # docs/comb_loss_g_mode_concerns.md.
+        scores_arr = np.asarray([z[1] for z in Z], dtype=float)
+        p5_score, p95_score = np.percentile(scores_arr, [5, 95])
+        spread_5_95 = float(p95_score - p5_score)
+        delta_auto = None
+        if args.delta_bins is not None:
+            if args.delta_bins <= 0:
+                raise ValueError(f"--delta-bins must be > 0, got {args.delta_bins}")
+            delta_auto = spread_5_95 / args.delta_bins
+            print(f"Auto-delta: spread(p5-p95)={spread_5_95:.4f}, "
+                  f"bins={args.delta_bins}, score_metric={score_name}")
+            print(f"Auto-delta: overriding --delta {delta} -> {delta_auto:.4f}")
+            delta = float(delta_auto)
+        else:
+            print(f"Delta (minimum separation, fixed): {delta}  "
+                  f"(spread(p5-p95)={spread_5_95:.4f}, score_metric={score_name})")
         if delta != 0:
             NN = (max_logprob - min_logprob) / delta
-            print(f"NN: {NN}")
-        score_name = "validator log-odds" if validator_log_odds else "validator logprob"
+            print(f"NN (full min-max range / delta): {NN}")
         print(f"Min {score_name}: {min_logprob}")
         print(f"Max {score_name}: {max_logprob}")
+
+        # Append auto-delta info to a log file in the models directory so we
+        # can audit/compare across runs after-the-fact.
+        try:
+            os.makedirs(args.models_dir, exist_ok=True)
+            log_path = os.path.join(args.models_dir, "auto_delta_log.csv")
+            log_exists = os.path.exists(log_path)
+            with open(log_path, "a") as f:
+                if not log_exists:
+                    f.write("timestamp,model,task,score_metric,n_items,"
+                            "min,p5,p95,max,spread_p5_p95,delta_bins,"
+                            "delta_used,delta_arg\n")
+                ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                f.write(f"{ts},{model_name},{task},{score_name},"
+                        f"{len(scores_arr)},{min_logprob:.6f},"
+                        f"{p5_score:.6f},{p95_score:.6f},{max_logprob:.6f},"
+                        f"{spread_5_95:.6f},{args.delta_bins},"
+                        f"{delta:.6f},{args.delta:.6f}\n")
+            print(f"Auto-delta log appended to {log_path}")
+        except Exception as e:
+            print(f"[warn] could not write auto-delta log: {e}")
 
         # Per-item label lookup (used here for pair-shape partitioning; the
         # downstream pairs[] builder uses get_indicator with the same logic).
@@ -1862,6 +1906,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", type=int, default=3, help="Number of epochs to train")
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")
     parser.add_argument("--delta", type=float, default=10, help="Delta")
+    parser.add_argument("--delta-bins", type=int, default=None, metavar="N", help="If set, override --delta with auto-computed delta = (p95-p5)/N of validator scores. Logged to <models-dir>/auto_delta_log.csv.")
     parser.add_argument("--total_samples", type=int, default=5110, help="Total samples")
     parser.add_argument("--save_steps", type=int, default=1, help="Save steps")
     parser.add_argument("--all", default=True, action="store_true", help="Whether to use all examples or just positive ones")
