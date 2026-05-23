@@ -71,6 +71,25 @@ Last update: 2026-05-23 00:55 UTC-5 (start)
   - Built 6-table results doc: [docs/delta_bins_sweep_results.md](docs/delta_bins_sweep_results.md).
   - **Picked bins=10** as best delta-bins value (best gen_roc(tc) ID across all 3 bases;
     best pearson(tc) ID for 2b-it and 9b-it; competitive on OOD).
-- **2026-05-23 03:??** — launching 9 main training jobs with DELTA_BINS=10:
-  - persona-v1 × {gemma-2-9b-it (8h), gemma-2-2b-it (4h), gemma-2-2b (4h)}
-    × {#3 New, #4 New+selfTC, #7 New+negTC}, all disc-shots=few.
+- **2026-05-23 03:06** — launched 9 main training jobs with DELTA_BINS=10:
+  - 41491-93: gemma-2-9b-it #3, #4, #7  (8h walltime)
+  - 41494-96: gemma-2-2b-it #3, #4, #7  (4h walltime)
+  - 41497-99: gemma-2-2b #3, #4, #7      (4h walltime)
+- **2026-05-23 04:30** — 41499 (2b #7) was 9x slower on overloaded node-006
+  (9.4 s/it vs 1.05 s/it on its siblings). Cancelled, resubmitted as 41500
+  with `--exclude=slurm-node-006`. 41500 landed on node-005 and started fresh.
+  - Active main jobs: 41491-98, 41500.
+- **2026-05-23 07:35** — 2b/2b-it main9 jobs (41494-98) hit 4h TIMEOUT with
+  epoch1 saved (= 2 epochs trained). 41500 still RUNNING.
+- **2026-05-23 07:37** — submitted main9 evals for 2b-it (#3, #4, #7) -> 41501-04.
+  - Caught a bug in `run_eval_main9_fix1.sh`: when sweep + main9 share the
+    `--tc-self` suffix (variant 4 only), the launcher picked the wrong delta
+    (alphabetically first sweep dir). Cancelled 41503; fixed launcher to
+    prefer the most-recently-modified internal file on epoch ties.
+- **2026-05-23 07:37** — resubmitted 2b-it #4 (41505) and submitted 2b #3+#4
+  (41506-08) with the corrected launcher.
+- **2026-05-23 08:02** — all 7 2b/2b-it main9 evals COMPLETED (~20 min/job).
+  - 41500 (2b #7 RESUB) still mid-epoch-3, will TIMEOUT with epoch1 saved.
+  - Submitted 2b #7 eval as 41509 using epoch1.
+  - Wrote `scripts/_main9_table.py` to build final results table.
+  - Partial table OK: 2b-it complete (4 rows); 2b missing #7; 9b-it pending.
