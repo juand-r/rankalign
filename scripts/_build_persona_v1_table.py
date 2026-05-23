@@ -303,6 +303,15 @@ def cell_value(method: dict, eval_prefix, variant: str):
             break
         if chosen_path is None:
             continue
+        # Sanity: a Base-row file should never contain training-checkpoint
+        # markers. `delta<lr>-epoch<N>` is appended to model_short by the
+        # training pipeline for every fine-tuned adapter; its presence in a
+        # filename matched to method #0 means our matcher leaked.
+        if method.get("num") == 0 and "delta" in chosen_path.name.lower():
+            raise SystemExit(
+                f"[persona-v1 Base contamination] file matched to Base row "
+                f"contains 'delta' (fine-tuned adapter marker):\n  {chosen_path}"
+            )
         try:
             metrics = compute_all_metrics(chosen_df)
         except Exception:
