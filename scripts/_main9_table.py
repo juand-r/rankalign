@@ -129,8 +129,11 @@ def main():
 
     files = sorted(glob(str(args.outputs_dir / "scores_basetyp*-v7-*persona-v1*tc_*.csv")))
 
-    # rows[(base, variant, eval_kind, persona)] = metrics dict
-    rows = {}
+    # First pass: collect candidate files per (base, variant, eval_kind, persona)
+    # along with their epoch and date so we can pick the LATEST one (epoch first,
+    # then date). This avoids mixing sweep epoch0 with main9 epoch1 outputs that
+    # share the same delta (variant 4 case).
+    candidates = defaultdict(list)
     skipped_wrong_delta = 0
     skipped_unparsable = 0
     for path in files:
@@ -149,7 +152,6 @@ def main():
         target_delta = bins10.get(base_model)
         if target_delta is None:
             continue
-        # Tolerate small float-formatting differences.
         if abs(delta - target_delta) / max(abs(target_delta), 1e-9) > 1e-6:
             skipped_wrong_delta += 1
             continue
@@ -160,15 +162,24 @@ def main():
         if variant is None or eval_kind is None:
             continue
         persona = m.group("persona")
+        epoch = int(m.group("epoch"))
+        date = m.group("date")
 
+        key = (base_model, variant, eval_kind, persona)
+        candidates[key].append((epoch, date, path))
+
+    # Pick latest (epoch DESC, date DESC) per key.
+    rows = {}
+    for key, lst in candidates.items():
+        lst.sort(key=lambda t: (t[0], t[1]), reverse=True)
+        path = lst[0][2]
         try:
             df = load_scores(path)
             metrics = compute_all_metrics(df)
         except Exception as exc:
-            print(f"# WARN: skipping {name}: {exc}", file=sys.stderr)
+            print(f"# WARN: skipping {Path(path).name}: {exc}", file=sys.stderr)
             continue
-
-        rows[(base_model, variant, eval_kind, persona)] = metrics
+        rows[key] = metrics
 
     # Build aggregations.
     METRIC_FIELDS = ["gen_roc", "val_roc", "val_acc", "pearson"]

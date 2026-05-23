@@ -92,4 +92,41 @@ Last update: 2026-05-23 00:55 UTC-5 (start)
   - 41500 (2b #7 RESUB) still mid-epoch-3, will TIMEOUT with epoch1 saved.
   - Submitted 2b #7 eval as 41509 using epoch1.
   - Wrote `scripts/_main9_table.py` to build final results table.
-  - Partial table OK: 2b-it complete (4 rows); 2b missing #7; 9b-it pending.
+- **2026-05-23 08:30** — 41500 (2b #7) TIMEOUT'd with epoch1 saved.
+  41509 (2b #7 eval) COMPLETED.
+- **2026-05-23 09:58** — 9b-it (41491-93) saved epoch1 (2 epochs trained).
+  Submitted 4 main9 evals for 9b-it: 41510-13.
+- **2026-05-23 10:39** — all 4 9b-it main9 evals COMPLETED (~32 min/job).
+- **2026-05-23 10:40** — final results table built:
+  [docs/main9_results.md](docs/main9_results.md). Full coverage:
+  9 models × 12 (variant × eval_kind) cells × 6 personas = 72 score files
+  consumed; 72 sweep score files correctly filtered out by bins=10 delta match.
+- **2026-05-23 ~11:06** — 9b-it main9 trains will hit 8h walltime
+  (auto-terminate). Evals already done — no further action needed.
+
+## Summary of jobs
+
+- 15 sweep trains (41454–68): TIMEOUT, all saved.
+- 15 sweep evals (41476–90): COMPLETED.
+- 9 main9 trains (41491–99 + 41500 RESUB): 6 TIMEOUT confirmed, 3 (9b-it)
+  still running — will TIMEOUT at 11:06am with epoch1 saved.
+- 12 main9 evals (41501–13): COMPLETED.
+
+44 jobs total. No failures, full data coverage.
+
+## Top-level findings
+
+- **bins=10** picked from sweep (best gen_roc(tc) ID for all 3 bases; best
+  pearson(tc) ID for 2b-it/9b-it; competitive on OOD).
+- **ID gen_roc(tc) winners**: variant #3 (New, no TC at train) generally
+  outperforms #4 (selfTC) and #7 (negTC). Especially clear on 2b-it
+  (0.979–0.980 vs 0.941–0.942) and 2b (0.951–0.959 vs 0.910–0.922).
+- **OOD gen_roc(tc) winners**: neg+base TC at eval beats self+base TC at
+  eval, regardless of training variant. E.g. 9b-it: #3 neg+base 0.632 vs
+  #3 self+base 0.486. Pattern is consistent across all 3 bases.
+- **Val side is at ceiling** on ID (val_roc=1.000 across all 9 models),
+  meaning gen_roc < 1.0 reflects gen-vs-val misalignment, not val failure.
+
+See [docs/main9_results.md](docs/main9_results.md) for the full per-base
+ID/OOD tables, and [docs/delta_bins_sweep_results.md](docs/delta_bins_sweep_results.md)
+for the bins sweep that motivated bins=10.
