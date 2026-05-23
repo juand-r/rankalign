@@ -69,6 +69,7 @@ SHAPE_WEIGHTS=""
 # so existing callers (parent script, older launchers) see no change.
 EPOCHS_OVERRIDE=""
 BATCH_SIZE_FLAG=""
+DELTA_BINS_FLAG=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -80,6 +81,7 @@ while [[ $# -gt 0 ]]; do
         --log-odds) LOG_ODDS="--validator-log-odds"; shift ;;
         --split-seed) SPLIT_SEED="--split-seed $2"; shift 2 ;;
         --delta) DELTA_OVERRIDE=$2; shift 2 ;;
+        --delta-bins) DELTA_BINS_FLAG="--delta-bins $2"; shift 2 ;;
         --samples) SAMPLES_OVERRIDE=$2; shift 2 ;;
         --disc-shots) DISC_SHOTS="--disc-shots $2"; shift 2 ;;
         --include-eos) INCLUDE_EOS="--include-eos"; shift ;;
@@ -216,7 +218,8 @@ python "$SCRIPT" \
     $MODELS_DIR \
     $MAX_SEQ_LEN \
     $SHAPE_WEIGHTS \
-    $BATCH_SIZE_FLAG
+    $BATCH_SIZE_FLAG \
+    $DELTA_BINS_FLAG
 
 STATUS=$?
 echo ""

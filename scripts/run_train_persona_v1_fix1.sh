@@ -60,11 +60,14 @@ else
 fi
 [ -n "$EPOCHS" ]     && COMMON="$COMMON --epochs $EPOCHS"
 [ -n "$BATCH_SIZE" ] && COMMON="$COMMON --batch-size $BATCH_SIZE"
+[ -n "$DELTA_BINS" ] && COMMON="$COMMON --delta-bins $DELTA_BINS"
 
 OVERNIGHT_DIR="$(dirname "$0")/../overnight"
 mkdir -p "$OVERNIGHT_DIR"
 MODEL_TAG=$(basename "$MODEL" | sed 's/--/_/g; s/[/]/_/g')
-JOBID_FILE="$OVERNIGHT_DIR/persona_v1_train_jobids_${MODEL_TAG}_fix1.txt"
+SUFFIX=""
+[ -n "$DELTA_BINS" ] && SUFFIX="_dbins${DELTA_BINS}"
+JOBID_FILE="$OVERNIGHT_DIR/persona_v1_train_jobids_${MODEL_TAG}_fix1${SUFFIX}.txt"
 : > "$JOBID_FILE"
 
 echo "========================================"
