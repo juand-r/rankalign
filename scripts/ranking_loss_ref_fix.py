@@ -1561,6 +1561,46 @@ def main(args):
                     # i.e. log P("Yes"|disc_prompt) for L+ items and log P("No"|disc_prompt)
                     # for L- items, evaluated AT THE ANSWER SLOT (not somewhere
                     # inside the generator statement, which is what the parent did).
+                    #
+                    # KNOWN INCONSISTENCY (2026-05-22): the current single-token
+                    # gather only credits ONE specific token (e.g. " Yes" for non-chat
+                    # or "Yes" for chat models, depending on space_prefix), whereas
+                    # eval_by_claude.py aggregates probability across ALL Yes/No
+                    # variants in `yestoks` / `notoks` (= ["Yes", " Yes", "YES", ...]).
+                    # So train pushes one variant up while eval credits any. The
+                    # affected setting is #1 SFT-lo (the only setting in IRP §2 where
+                    # val-NLL fires AND --validator-log-odds is OFF). Variants #3, #4,
+                    # #7, #11, #12 use --log-odds and go through the branch above which
+                    # already aggregates correctly. Variants #2, #5, #6, #8, #9, #10 use
+                    # pref-only so val-NLL doesn't fire at all.
+                    #
+                    # The aggregated version (commented out) below would match eval
+                    # semantics. Left disabled to avoid silently changing the SFT-lo
+                    # signal mid-experiment. Re-enable by uncommenting the helper +
+                    # the three lines below it AND deleting the current two
+                    # sum_completion_logprobs calls.
+                    #
+                    # def _logsumexp_yesno_at_slot(log_probs, token_id_disc, indicator):
+                    #     """For each batch element b: return log Σ P(yes_variants) at
+                    #     pred_pos when indicator[b]==1, else log Σ P(no_variants).
+                    #     Position is identical to compute_logodds_simple, but here we
+                    #     gather the gold-side aggregated probability instead of
+                    #     log-odds."""
+                    #     batch_size = log_probs.shape[0]
+                    #     scores = []
+                    #     for b in range(batch_size):
+                    #         comp_len = token_id_disc[b].size(0)
+                    #         pred_pos = -(comp_len + 1)
+                    #         probs_at_pos = torch.exp(log_probs[b, pred_pos, :])
+                    #         p_yes = probs_at_pos[yestoks].sum()
+                    #         p_no = probs_at_pos[notoks].sum()
+                    #         p = p_yes if indicator[b].item() >= 0.5 else p_no
+                    #         scores.append(torch.log(p + 1e-12))
+                    #     return torch.stack(scores)
+                    #
+                    # score_correct_i = _logsumexp_yesno_at_slot(log_probs_i_disc, token_id_disc, indicator_i)
+                    # score_correct_j = _logsumexp_yesno_at_slot(log_probs_j_disc, token_id_disc, indicator_j)
+                    # nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
                     score_correct_i = sum_completion_logprobs(log_probs_i_disc, token_correct_i)
                     score_correct_j = sum_completion_logprobs(log_probs_j_disc, token_correct_j)
                     nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
