@@ -301,7 +301,9 @@ def main(args):
                 semi_str = f"-labelonly{args.labeled_only}"
             else:
                 semi_str = ""
-            run_name = f"{task}-{train_g_or_d}-delta{delta}-nllv{nll_validator_weight}-nllg{nll_generator_weight}{pref_str}{semi_str}-lr{lr}"
+            model_short = model_name.split('/')[-1]
+            bins_str = f"-bins{args.delta_bins}" if args.delta_bins is not None else ""
+            run_name = f"{model_short}-{task}-{train_g_or_d}-delta{delta}{bins_str}-nllv{nll_validator_weight}-nllg{nll_generator_weight}{pref_str}{semi_str}-lr{lr}"
         
         wandb.init(
             project="rankalign",
@@ -879,6 +881,24 @@ def main(args):
             print(f"Auto-delta log appended to {log_path}")
         except Exception as e:
             print(f"[warn] could not write auto-delta log: {e}")
+
+        # Update wandb config with the post-override delta and spread so the
+        # dashboard reflects what was actually used (wandb.init ran before
+        # auto-delta override).
+        if use_wandb and wandb.run is not None:
+            try:
+                wandb.config.update(
+                    {
+                        "delta": delta,
+                        "delta_bins": args.delta_bins,
+                        "validator_score_spread_p5_p95": spread_5_95,
+                        "validator_score_min": min_logprob,
+                        "validator_score_max": max_logprob,
+                    },
+                    allow_val_change=True,
+                )
+            except Exception as e:
+                print(f"[warn] wandb.config.update failed: {e}")
 
         # Per-item label lookup (used here for pair-shape partitioning; the
         # downstream pairs[] builder uses get_indicator with the same logic).
