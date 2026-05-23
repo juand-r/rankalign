@@ -82,6 +82,22 @@ from utils import get_final_logit_prob, get_completion_token_logprobs
 
 from task_registry import get_task, get_all_task_names
 
+
+def _chat_template_input_ids(enc):
+    """Unwrap apply_chat_template output (tensor or BatchEncoding) for transformers >=5.
+
+    Older versions and some tokenizers (Gemma) return a raw tensor when
+    return_tensors='pt'; newer versions and some tokenizers (Qwen) return a
+    BatchEncoding (dict-like with .input_ids). This wrapper makes downstream
+    `.shape[1]` / subscript access work for both cases.
+    """
+    if hasattr(enc, "input_ids"):
+        return enc.input_ids
+    if isinstance(enc, dict):
+        return enc["input_ids"]
+    return enc
+
+
 def compute_optimal_threshold(scores, labels):
     """
     Compute the threshold that maximizes accuracy for binary classification.
@@ -559,8 +575,8 @@ def main(args):
                     [{"role": "system", "content": "You are a helpful assistant."}]
                     if has_system_role else []
                 ) + [{"role": "user", "content": prompt_text}]
-                n_prompt = len(tokenizer.apply_chat_template(
-                    msgs, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs)[0])
+                n_prompt = len(_chat_template_input_ids(tokenizer.apply_chat_template(
+                    msgs, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs))[0])
                 n_completion = len(tokenizer.encode(completion_text, add_special_tokens=False))
                 return n_prompt + n_completion
             return len(tokenizer.encode(prompt_text + completion_text, add_special_tokens=False))
@@ -737,22 +753,22 @@ def main(args):
         # Use "assistant" role (Gemma maps it to "model" internally; Qwen/Llama use it natively)
         ms_tune = [ [ {"role": "system", "content": "You are a helpful assistant."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
-        max_context_length = toks_tune.shape[1]
+        max_context_length = _chat_template_input_ids(toks_tune).shape[1]
         
         if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             ms_gold = [ [ {"role": "system", "content": "You are a helpful assistant."},  {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
-            max_context_length = max(max_context_length, toks_gold.shape[1])
+            max_context_length = max(max_context_length, _chat_template_input_ids(toks_gold).shape[1])
     elif with_chat:
         # Process discriminator prompts (p_train_tune)
         ms_tune = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_tune]
         toks_tune = tokenizer.apply_chat_template(ms_tune, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
-        max_context_length = toks_tune.shape[1]
+        max_context_length = _chat_template_input_ids(toks_tune).shape[1]
         
         if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             ms_gold = [ [ {"role": "user", "content": i.prompt.strip()}, {"role": "assistant", "content": i.completion.strip()} ] for i in p_train_gold]
             toks_gold = tokenizer.apply_chat_template(ms_gold, add_generation_prompt=True, padding=True, truncation=True, return_tensors='pt', **chat_template_kwargs)
-            max_context_length = max(max_context_length, toks_gold.shape[1])
+            max_context_length = max(max_context_length, _chat_template_input_ids(toks_gold).shape[1])
     else:
         #TODO later should make this cleaner in utils.make_and_format_data
         max_context_length = len(hf_train[0]['input_ids'])
@@ -1116,7 +1132,8 @@ def main(args):
         else:
             message = [
                 {"role": "user", "content": prompt},]
-        toks = tokenizer.apply_chat_template(message, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs)[0]
+        toks = _chat_template_input_ids(tokenizer.apply_chat_template(
+            message, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs))[0]
         # Strip leading BOS if present (Gemma/Llama prepend BOS; Qwen does not)
         has_leading_bos = (
             tokenizer.bos_token_id is not None
