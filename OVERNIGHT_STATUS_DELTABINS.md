@@ -54,4 +54,23 @@ Last update: 2026-05-23 00:55 UTC-5 (start)
 
 ## Progress log
 
-(appended below as I work)
+- **2026-05-23 00:55** — start. Setup done. Plan/launchers/extractor verified.
+  - Wrote `scripts/run_eval_deltabins_sweep.sh` (eval launcher for sweep models).
+  - Wrote `scripts/_deltabins_table.py` (results table builder; scratch).
+  - Sanity-checked `summarize_scores_file.py` integration.
+  - 9b-it `--merged` suffix vs 2b/2b-it plain-dir convention preserved (matches existing fix1 launcher).
+- **2026-05-23 02:14** — all 15 sweep jobs hit TIMEOUT at exactly 4h walltime.
+  - 9b-it (41454–58): 1 epoch trained, `epoch0` dirs + `_merged` saved.
+  - 2b (41459–63), 2b-it (41464–68): 2 epochs trained, `epoch1` dirs saved.
+- **2026-05-23 02:17** — submitted 15 eval jobs (41476–41490).
+  - 5 9b-it use `_merged` epoch0; 5 2b + 5 2b-it use plain epoch1.
+  - Flags: `--self-typcorr --base-typcorr --base-model <BASE> --log-odds`, disc-shots=few.
+  - 6 persona-v1 tasks each. 2h walltime per job. All started PENDING.
+- **2026-05-23 03:04** — all 15 evals COMPLETED (exit 0).
+  - 2b: ~21 min/job; 2b-it: ~22-30 min/job; 9b-it: ~38 min/job.
+  - Built 6-table results doc: [docs/delta_bins_sweep_results.md](docs/delta_bins_sweep_results.md).
+  - **Picked bins=10** as best delta-bins value (best gen_roc(tc) ID across all 3 bases;
+    best pearson(tc) ID for 2b-it and 9b-it; competitive on OOD).
+- **2026-05-23 03:??** — launching 9 main training jobs with DELTA_BINS=10:
+  - persona-v1 × {gemma-2-9b-it (8h), gemma-2-2b-it (4h), gemma-2-2b (4h)}
+    × {#3 New, #4 New+selfTC, #7 New+negTC}, all disc-shots=few.
