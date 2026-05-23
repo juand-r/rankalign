@@ -83,21 +83,36 @@ echo "  Jobid log:   $JOBID_FILE"
 echo "========================================"
 
 # Find latest epoch dir for a given variant suffix.
-# Echoes path or empty if not found.
+# When multiple deltas have the same epoch level (e.g. sweep models share the
+# same suffix as main9 models for variant 4 only), prefer the most recently
+# modified dir (use the mtime of an internal file like model.safetensors.index.json
+# which is rewritten every save -- dir mtime alone is unreliable across overwrites).
 find_latest_epoch() {
     local var_suffix="$1"
     local pattern="${MODELS_DIR}/v7-${BASE_REPL}-delta*-epoch*--persona-v1-all--d2g--random--alpha1.0${var_suffix}${MERGED_SUFFIX}"
-    # Sort by epoch number descending so the first match is the highest epoch.
-    # We rely on lexical sort + a small awk to extract epoch.
     local best_path=""
     local best_epoch=-1
+    local best_mtime=-1
     shopt -s nullglob
     for path in $pattern; do
-        # Extract epoch from the dirname
         local name=$(basename "$path")
         local ep=$(echo "$name" | grep -oE 'epoch[0-9]+' | head -1 | sed 's/epoch//')
-        if [ -n "$ep" ] && [ "$ep" -gt "$best_epoch" ]; then
+        # Use the mtime of an internal file (safer than dir mtime).
+        local probe_file=""
+        for cand in config.json model.safetensors.index.json adapter_config.json; do
+            if [ -f "${path}/${cand}" ]; then
+                probe_file="${path}/${cand}"
+                break
+            fi
+        done
+        local mt=0
+        [ -n "$probe_file" ] && mt=$(stat -c '%Y' "$probe_file" 2>/dev/null || echo 0)
+        if [ -z "$ep" ]; then continue; fi
+        # Decision: prefer higher epoch; ties broken by more recent mtime.
+        if [ "$ep" -gt "$best_epoch" ] \
+           || { [ "$ep" -eq "$best_epoch" ] && [ "$mt" -gt "$best_mtime" ]; }; then
             best_epoch="$ep"
+            best_mtime="$mt"
             best_path="$path"
         fi
     done
