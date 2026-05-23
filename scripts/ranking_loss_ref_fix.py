@@ -434,6 +434,55 @@ def main(args):
     notoks = [tokenizer.encode(w)[-1] for w in no_words]
     if validator_log_odds:
         print(f"Using log-odds for validator: yestoks={yestoks}, notoks={notoks}")
+
+        # Fail-fast: the log-odds path (both pair selection and val-NLL) assumes
+        #   (a) the disc tail "{space_prefix}Yes" tokenizes to exactly 1 token,
+        #       so compute_logodds_simple's pred_pos = -(comp_len + 1) = -2 lines
+        #       up with the answer slot in `disc_prompt + tail`, AND
+        #   (b) every variant in yes_words / no_words tokenizes to exactly 1
+        #       token, so yestoks / notoks (built via tokenizer.encode(w)[-1])
+        #       capture the model's full "say yes" / "say no" probability mass
+        #       at the answer slot.
+        # Both hold for Gemma-2 ("Yes"=3553, " Yes"=6287). For other tokenizers
+        # (e.g. some Qwen variants) a multi-token tail would silently mis-index
+        # the position lookup, and multi-token variants in yes_words/no_words
+        # would silently undercount aggregated mass (only the last sub-token
+        # would be in yestoks/notoks). Catch both at startup, before any GPU
+        # work, with an actionable error.
+        disc_yes_tail = space_prefix + "Yes"
+        disc_yes_ids = tokenizer.encode(disc_yes_tail, add_special_tokens=False)
+        if len(disc_yes_ids) != 1:
+            raise ValueError(
+                f"--validator-log-odds requires the disc tail {disc_yes_tail!r} "
+                f"to tokenize to exactly 1 token (got {len(disc_yes_ids)}: "
+                f"{disc_yes_ids} -> {[tokenizer.decode([t]) for t in disc_yes_ids]!r}). "
+                f"compute_logodds_simple uses pred_pos = -(comp_len + 1) and "
+                f"assumes comp_len == 1; a multi-token tail would read the wrong "
+                f"position. Generalize compute_logodds_simple to be robust to "
+                f"multi-token tails (read at the slot predicting the FIRST tail "
+                f"token and aggregate over yes/no variants there), OR run without "
+                f"--validator-log-odds (the non-log-odds val-NLL path uses "
+                f"sum_completion_logprobs and is already robust to multi-token "
+                f"completions)."
+            )
+        for word_list, name in [(yes_words, "yes_words"), (no_words, "no_words")]:
+            for w in word_list:
+                ids = tokenizer.encode(w, add_special_tokens=False)
+                if len(ids) != 1:
+                    raise ValueError(
+                        f"--validator-log-odds requires every variant in {name} "
+                        f"to tokenize to exactly 1 token. {w!r} -> {ids} "
+                        f"({[tokenizer.decode([t]) for t in ids]!r}). yestoks / "
+                        f"notoks are built via tokenizer.encode(w)[-1] which "
+                        f"silently drops the prefix sub-tokens of multi-token "
+                        f"variants, so probs[yestoks].sum() at the answer slot "
+                        f"misses mass that the model actually puts on this "
+                        f"variant. Either (1) drop {w!r} from {name} above (line "
+                        f"~287-288) so we only aggregate single-token variants, "
+                        f"or (2) generalize the aggregation to handle multi-"
+                        f"token variants (e.g. compute log P(variant) by "
+                        f"summing logprobs over its full token sequence)."
+                    )
     if debug:
         dbg(f"with_chat={with_chat} has_system_role={has_system_role} space_prefix={space_prefix!r} disc_shots={disc_shots}")
         dbg(f"yes token variants: {[(w, tokenizer.encode(w, add_special_tokens=False), tokenizer.decode([tokenizer.encode(w)[-1]])) for w in yes_words]}")
