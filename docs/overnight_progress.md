@@ -225,3 +225,58 @@ jobid→cell is in `overnight/_overnight_jobids.txt`.
 Queue after: 1 running (41973 = persona × 2b-it × s4), 71 pending = 36
 train + 36 eval (persona-v1 and membership-sans-rosch-v0 only, 9
 settings × 2 models = 18 cells × 2 jobs each).
+
+### 11:54 — Cancel + resubmit all non-running 2b-it jobs at WALLTIME=5
+
+User: "I also want you to cancel and resubmit all the still non-running
+jobs that use 2b or 2b-it, and re-launch with less resources. I think
+these would only need 5 hours to train."
+
+Currently running: 41973 (persona × 2b-it × s4) — kept untouched. Its
+paired eval 41974 (PD) was also kept since it depends on 41973.
+
+Cancelled 17 trains + 17 evals (34 jobs):
+```
+scancel 41975 41983 41985 41993 41995 42003 42005 42013 42015 42023 \
+        42025 42033 42035 42043 42045 42053 42055 \
+        41976 41984 41986 41994 41996 42004 42006 42014 42016 42024 \
+        42026 42034 42036 42044 42046 42054 42056
+```
+
+Resubmitted same 17 cells with WALLTIME=5 via:
+```
+for cell in "membership s4" "persona s7" "membership s7" "persona s2" "membership s2" \
+            "persona s3" "membership s3" "persona s1" "membership s1" \
+            "persona s5" "membership s5" "persona s6" "membership s6" \
+            "persona s11" "membership s11" "persona s12" "membership s12"; do
+  read -r DATASET SETTING <<< "$cell"
+  WALLTIME=5 bash scripts/_overnight_launch.sh "$DATASET" "gemma-2-2b-it" "$SETTING"
+done
+```
+
+New train jobids (PD, 5h walltime, 1 GPU, 64 GB):
+- membership×s4: 42064 (eval 42065)
+- persona×s7:    42066 (eval 42067)
+- membership×s7: 42068 (eval 42069)
+- persona×s2:    42070 (eval 42071)
+- membership×s2: 42072 (eval 42073)
+- persona×s3:    42074 (eval 42075)
+- membership×s3: 42076 (eval 42077)
+- persona×s1:    42078 (eval 42079)
+- membership×s1: 42080 (eval 42081)
+- persona×s5:    42082 (eval 42083)
+- membership×s5: 42084 (eval 42085)
+- persona×s6:    42086 (eval 42087)
+- membership×s6: 42088 (eval 42089)
+- persona×s11:   42090 (eval 42091)
+- membership×s11: 42092 (eval 42093)
+- persona×s12:   42094 (eval 42095)
+- membership×s12: 42096 (eval 42097)
+
+Queue after: 1 running + 71 pending = 72 total.
+- 1 R + 1 PD eval = persona × 2b-it × s4 (in flight, walltime=9h)
+- 34 PD = the new 2b-it cells at walltime=5h
+- 36 PD = 9b-it cells at walltime=9h (untouched)
+
+Note: only walltime was reduced; CPU=4 and MEM=64G are unchanged. The
+2b-it × ifeval-concat MEM=96G case is no longer in scope (cancelled).
