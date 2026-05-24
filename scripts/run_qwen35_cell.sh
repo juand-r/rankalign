@@ -63,6 +63,7 @@ case "$DATASET" in
             persona-v1-interest-in-music persona-v1-interest-in-science
         )
         MAX_SEQ=""
+        GRAD_CKP=""
         ;;
     membership)
         TASK="membership-sans-rosch-v0"
@@ -72,12 +73,15 @@ case "$DATASET" in
             rosch-vegetable rosch-weapon
         )
         MAX_SEQ=""
+        GRAD_CKP=""
         ;;
     ifeval)
         TASK="ifeval-concat"
         EVAL_TASKS=()
         for n in $(seq 1 21); do EVAL_TASKS+=("ifeval-prompt_$n"); done
         MAX_SEQ="--max-seq-len 1024"
+        # ifeval sequences are long — gradient checkpointing prevents OOM on 9B models
+        GRAD_CKP="--gradient_checkpointing"
         ;;
     *)
         echo "Unknown DATASET: $DATASET (persona|membership|ifeval)"; exit 1 ;;
@@ -170,6 +174,7 @@ else
         $PPD_FLAGS \
         $LORA_FLAG \
         $MAX_SEQ \
+        $GRAD_CKP \
         --no-upload-hf --no-wandb
 
     MODEL_DIR=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
