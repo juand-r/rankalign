@@ -81,6 +81,153 @@ def task_stats(name: str):
     return by_prompt, len(L_train)
 
 
+def ifeval_concat_split_stats():
+    """Return dict with ID-train, ID-test, OOD-test breakdowns for ifeval-concat.
+
+    Mirrors the routing logic in src/tasks/ifeval_concat.py:
+      - prompts named prompt_1 through prompt_21: OOD, all items go to test
+      - all other prompts: ID, 50/50 train/test split
+
+    For each bucket, returns: total items, distinct prompts, pos, neg.
+    """
+    cfg = get_task("ifeval-concat")
+    if cfg is None:
+        return None
+    # Reuse load_data so train/test routing matches exactly. Then re-derive
+    # which prompts are OOD vs ID by inspecting items in each bucket.
+    with contextlib.redirect_stdout(sys.stderr):
+        L_train, L_test = cfg["load_data"](seed=0, split_type="random")
+
+    # Lazy import to access the task module's helpers.
+    from tasks import ifeval_concat as ifc
+
+    def bucket(items):
+        by_prompt = defaultdict(lambda: {"total": 0, "yes": 0, "no": 0})
+        for item in items:
+            pc = cfg["make_prompt"](
+                item, style="generator", shots="zero", neg=False
+            )
+            label = str(cfg["get_label"](item)).lower()
+            d = by_prompt[pc.prompt]
+            d["total"] += 1
+            if label == "yes":
+                d["yes"] += 1
+            elif label == "no":
+                d["no"] += 1
+            d["_raw_prompt_name"] = item.get("dataset_source") or \
+                item.get("prompt_name") or ""
+        return by_prompt
+
+    # Identify each item's source prompt by re-loading raw per-prompt data
+    # and matching items. Cheaper: just re-run discover + per-prompt load and
+    # bucket items there.
+    prompts = ifc.discover_ifeval_datasets()
+    id_train = defaultdict(lambda: {"total": 0, "yes": 0, "no": 0})
+    id_test = defaultdict(lambda: {"total": 0, "yes": 0, "no": 0})
+    ood_test = defaultdict(lambda: {"total": 0, "yes": 0, "no": 0})
+
+    import math as _math
+    import utils as _utils  # noqa: F401  (already on sys.path via repo src)
+    for prompt_name in prompts:
+        dataset = ifc.load_ifeval_data_raw(prompt_name)
+        if not dataset:
+            continue
+        if ifc.is_test_only_prompt(prompt_name):
+            target = ood_test[prompt_name]
+            for item in dataset:
+                target["total"] += 1
+                lab = str(cfg["get_label"](item)).lower()
+                if lab == "yes":
+                    target["yes"] += 1
+                elif lab == "no":
+                    target["no"] += 1
+        else:
+            num_train = _math.floor(len(dataset) * 0.5)
+            train_items, test_items = _utils.split_train_test(
+                dataset, seed=ifc.SEED, subsample=False, num_train=num_train
+            )
+            if not train_items or not test_items:
+                continue
+            for item in train_items:
+                d = id_train[prompt_name]
+                d["total"] += 1
+                lab = str(cfg["get_label"](item)).lower()
+                if lab == "yes":
+                    d["yes"] += 1
+                elif lab == "no":
+                    d["no"] += 1
+            for item in test_items:
+                d = id_test[prompt_name]
+                d["total"] += 1
+                lab = str(cfg["get_label"](item)).lower()
+                if lab == "yes":
+                    d["yes"] += 1
+                elif lab == "no":
+                    d["no"] += 1
+
+    return {
+        "id_train": id_train,
+        "id_test": id_test,
+        "ood_test": ood_test,
+        "n_train_total": len(L_train),
+        "n_test_total": len(L_test),
+    }
+
+
+def render_ifeval_split_section(stats):
+    """Markdown lines for the ifeval-concat OOD/ID breakdown."""
+    out = []
+    out.append("### `ifeval-concat`: ID / OOD breakdown\n")
+    out.append(
+        "ifeval-concat routes prompts named `prompt_1` through `prompt_21` "
+        "entirely into the test set (OOD), and 50/50-splits all other "
+        "prompts between train and test (ID). The train-side row in the "
+        "summary table above is therefore **ID-only by construction**.\n"
+    )
+
+    def summarize(name, by_prompt):
+        n_prompts = len(by_prompt)
+        n_total = sum(p["total"] for p in by_prompt.values())
+        n_pos = sum(p["yes"] for p in by_prompt.values())
+        n_neg = sum(p["no"] for p in by_prompt.values())
+        denom = n_pos + n_neg
+        frac = (n_pos / denom) if denom > 0 else float("nan")
+        frac_str = "n/a" if denom == 0 else f"{frac:.3f}"
+        return name, n_total, n_prompts, n_pos, n_neg, frac_str
+
+    rows = [
+        summarize("ID-train", stats["id_train"]),
+        summarize("ID-test",  stats["id_test"]),
+        summarize("OOD-test", stats["ood_test"]),
+    ]
+    out.append("| Split | Items | Distinct prompts | Pos | Neg | Pos/(Pos+Neg) |")
+    out.append("|---|---:|---:|---:|---:|---:|")
+    for name, n_total, n_prompts, n_pos, n_neg, frac_str in rows:
+        out.append(
+            f"| {name} | {n_total} | {n_prompts} | {n_pos} | {n_neg} | {frac_str} |"
+        )
+    out.append("")
+
+    # Sanity totals.
+    out.append(
+        f"Cross-check: ID-train + ID-test + OOD-test items = "
+        f"{rows[0][1] + rows[1][1] + rows[2][1]}; "
+        f"L_train (load_data) = {stats['n_train_total']}, "
+        f"L_test (load_data) = {stats['n_test_total']}.\n"
+    )
+
+    # OOD per-prompt table (small, all 21).
+    out.append("**OOD-test per-prompt** (held-out, no train items):\n")
+    out.append("| Prompt name | Items | Pos | Neg |")
+    out.append("|---|---:|---:|---:|")
+    for pname in sorted(stats["ood_test"].keys(),
+                        key=lambda s: int(s.split("_")[1]) if s.startswith("prompt_") and s.split("_")[1].isdigit() else 99999):
+        d = stats["ood_test"][pname]
+        out.append(f"| `{pname}` | {d['total']} | {d['yes']} | {d['no']} |")
+    out.append("")
+    return out
+
+
 def fmt_prompt(prompt: str, max_len: int = 100) -> str:
     """Single-line, table-cell-safe prompt, truncated."""
     p = prompt.replace("\n", " ").replace("\r", " ").replace("|", "\\|")
@@ -198,6 +345,11 @@ def main():
                 f"{stats['total']} | {stats['yes']} | {stats['no']} |"
             )
         out.append("")
+
+        if name == "ifeval-concat":
+            split_stats = ifeval_concat_split_stats()
+            if split_stats is not None:
+                out.extend(render_ifeval_split_section(split_stats))
 
     text = "\n".join(out)
     if args.out:

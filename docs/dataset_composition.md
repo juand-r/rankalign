@@ -646,6 +646,43 @@ Items-per-prompt: min=40, median=40, mean=40.0, max=40.
 | 78 | `Expand the riddle into a story with a funny tone:  What can you catch but not throw? A cold  Use ...` | 40 | 29 | 11 |
 | 79 | `Create a 5 day itinerary for a trip to Mesa, Arizona. Wrap your entire response with double quote...` | 40 | 27 | 13 |
 
+### `ifeval-concat`: ID / OOD breakdown
+
+ifeval-concat routes prompts named `prompt_1` through `prompt_21` entirely into the test set (OOD), and 50/50-splits all other prompts between train and test (ID). The train-side row in the summary table above is therefore **ID-only by construction**.
+
+| Split | Items | Distinct prompts | Pos | Neg | Pos/(Pos+Neg) |
+|---|---:|---:|---:|---:|---:|
+| ID-train | 3160 | 79 | 1602 | 1558 | 0.507 |
+| ID-test | 3160 | 79 | 1523 | 1637 | 0.482 |
+| OOD-test | 1600 | 20 | 700 | 900 | 0.438 |
+
+Cross-check: ID-train + ID-test + OOD-test items = 7920; L_train (load_data) = 3160, L_test (load_data) = 4760.
+
+**OOD-test per-prompt** (held-out, no train items):
+
+| Prompt name | Items | Pos | Neg |
+|---|---:|---:|---:|
+| `prompt_1` | 80 | 47 | 33 |
+| `prompt_2` | 80 | 18 | 62 |
+| `prompt_3` | 80 | 23 | 57 |
+| `prompt_4` | 80 | 26 | 54 |
+| `prompt_5` | 80 | 47 | 33 |
+| `prompt_6` | 80 | 48 | 32 |
+| `prompt_7` | 80 | 50 | 30 |
+| `prompt_8` | 80 | 30 | 50 |
+| `prompt_9` | 80 | 40 | 40 |
+| `prompt_10` | 80 | 39 | 41 |
+| `prompt_11` | 80 | 36 | 44 |
+| `prompt_12` | 80 | 15 | 65 |
+| `prompt_13` | 80 | 29 | 51 |
+| `prompt_15` | 80 | 38 | 42 |
+| `prompt_16` | 80 | 42 | 38 |
+| `prompt_17` | 80 | 11 | 69 |
+| `prompt_18` | 80 | 46 | 34 |
+| `prompt_19` | 80 | 35 | 45 |
+| `prompt_20` | 80 | 40 | 40 |
+| `prompt_21` | 80 | 40 | 40 |
+
 ## `hypernym-concat-bananas-to-dogs-v2`
 
 - **Total train items**: 1424
