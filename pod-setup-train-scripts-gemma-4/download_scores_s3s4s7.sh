@@ -17,7 +17,7 @@
 #   cu-s3: port 11962 @ 213.181.122.162  (TAUR account)
 #   cu-s4: port 15930 @ 216.243.220.217  (TAUR account)
 #   cu-s7: port 12542 @ 103.207.149.163  (TAUR account)
-#   cm-s3: port 11793 @ 205.196.17.114   (personal account)
+#   cm-s3: port 18452 @ 205.196.17.170   (personal account, pod shtzfssr257ojh)
 #   cm-s4: port 11320 @ 205.196.17.114   (personal account)
 #   cm-s7: port 10528 @ 103.207.149.86   (personal account)
 #
@@ -36,7 +36,7 @@ declare -A POD_IP
 POD_PORT[cu-3]=11962;  POD_IP[cu-3]=213.181.122.162
 POD_PORT[cu-4]=15930;  POD_IP[cu-4]=216.243.220.217
 POD_PORT[cu-7]=12542;  POD_IP[cu-7]=103.207.149.163
-POD_PORT[cm-3]=11793;  POD_IP[cm-3]=205.196.17.114
+POD_PORT[cm-3]=18452;  POD_IP[cm-3]=205.196.17.170  # shtzfssr257ojh, replaced broken ydi885kuq0un8j
 POD_PORT[cm-4]=11320;  POD_IP[cm-4]=205.196.17.114
 POD_PORT[cm-7]=10528;  POD_IP[cm-7]=103.207.149.86
 
