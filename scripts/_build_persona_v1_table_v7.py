@@ -55,7 +55,9 @@ import pandas as pd
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
+sys.path.insert(0, str(REPO / "src"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
+from checkpoint_name_parser import matches_v7_setting  # noqa: E402
 
 OUT_DIR = REPO / "outputs"  # kept for back-compat; SEARCH_DIRS is the truth
 # Multiple search locations: local outputs/ plus the datastor2 mirror where
@@ -175,21 +177,17 @@ METRIC_LABEL = {
     "spearman": "Spearman(gen, val)", "val_roc": "ValROC", "val_acc": "ValAcc",
 }[METRIC]
 
-# v7 trained-model regex prefix. v7 differences from v6:
-#   - prefix is `v7-` (was `v6-`)
-#   - `delta` is variable: `--delta-bins 10` auto-computes (p95-p5)/10 per
-#     (model, dataset) cell, truncated to 2 decimal places.
-#   - `epoch` may be 0/1/2: walltime-killed runs only save through whichever
-#     epoch completed; the dispatcher's eval glob picks the most recent.
-# Persona-v1 filenames use `--` as the in-name separator (build_model_short
-# preserves `--` for absolute-path basenames).
-CP_RE = (rf"v7-google--gemma-2-{BASE_KEY}-delta\d+\.\d{{1,2}}-epoch[012]"
-         rf"--persona-v1-all--d2g--random--alpha1\.0")
-
-# All v7 trained dirs end in `--fix1` (or `--fix1_merged` for LoRA).
-FIX_TAIL = rf"--fix1{re.escape(MERGED_TAG)}" if MERGED_TAG else r"--fix1"
-# When MERGED_TAG is "_merged" the closing tail is `--fix1_merged`.
-# When empty the tail is just `--fix1`. We anchor with `$` in the matcher.
+# Trained-model identification is now structural (parse → field-compare),
+# handled by `matches_v7_setting()` from checkpoint_name_parser. This works
+# uniformly across the three on-disk filename formats:
+#   (A) legacy abs-path-embedded: `v6-_datastor2_..._v7-google--gemma-...-fix1`
+#   (B) un-abbreviated:           `v7-google--gemma-2-9b-it-delta1.42-...-fix1[_merged]`
+#   (C) abbreviated (>160ch):     `v7-gemma-2-9b-it-d1.42-e2-...-sm0.1-fix1`
+# (md5-truncated names are no longer produced by build_model_short — we now
+# fall back to `to_hf_repo_name()` instead — but the dir-index resolution
+# below still helps if a CSV happened to be written before that change.)
+TASK_SEG = "persona-v1-all"
+GEMMA_MODEL = f"gemma-2-{BASE_KEY}"
 
 COLUMNS = [
     ("Raw",      ["self-", "neg-", "basetyp-", "basetypneg-", ""], "raw"),
@@ -219,58 +217,75 @@ COLUMNS = [
 # Each suffix is followed by FIX_TAIL (`--fix1[_merged]`).
 
 
-def _make_match(suffix: str):
-    """Build a matcher for a method. Resolves model_short (possibly
-    truncated by build_model_short) back to its full basename via the
-    DIR_INDEX, then runs the canonical regex against the full basename.
+def _setting_match(**expected):
+    """Build a structural matcher closing over `expected`. Resolves
+    md5-truncated model_shorts (legacy artefact) via the DIR_INDEX before
+    parsing — for non-truncated names this is identity.
     """
-    pattern = re.compile(rf"^{CP_RE}{re.escape(suffix)}{FIX_TAIL}$")
-
-    def m(s, _p=pattern):
+    def m(s):
         full = _resolve_full_basename(s)
-        return bool(_p.match(full))
-
-    m.__doc__ = f"{CP_RE}{suffix}{FIX_TAIL}"
+        return matches_v7_setting(
+            full, model=GEMMA_MODEL, task_segment=TASK_SEG, **expected,
+        )
     return m
 
 
+# Each METHODS entry declares ONLY the flags that distinguish that setting.
+# Defaults in matches_v7_setting (pref=1.0, nll_v=0.0, nll_g=0.0, vlo/fsx/
+# ppd/cft=False, tc/semi/labelonly=UNSET, fix1=True) cover the rest.
 METHODS: list[dict] = [
     dict(
         num=0, label="Base",
         # Base HF path → "v6-google_gemma-2-<base>" with `_` separator.
         match=lambda s: s == f"v6-google_gemma-2-{BASE_KEY}",
     ),
+    # 1 SFT-lo: sft + labelonly. No fsx, no tc, no vlo.
     dict(num=1, label="SFT labelonly 10%",
-         match=_make_match("--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1")),
+         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0, labelonly=0.1)),
+    # 2 RankAlign: pref-only + semi, no fsx, no TC, no vlo.
     dict(num=2, label="RankAlign",
-         match=_make_match("--full-completion--semi0.1")),
-    # s3, s4, s5, s7, s8 (fsx settings) include `--ppd` (per-prompt-delta).
+         match=_setting_match(semi=0.1)),
+    # 3 New + fsx [-TC]: comb + fsx (+ ppd) + vlo, no TC.
     dict(num=3, label="New + fsx [-TC]",
-         match=_make_match("--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1")),
+         match=_setting_match(nll_v=1.0, nll_g=1.0, force_same_x=True,
+                              ppd=True, vallogodds=True, semi=0.1)),
+    # 4 New + PMI + fsx: comb + fsx (+ ppd) + tc-self + vlo.
     dict(num=4, label="New + PMI + fsx",
-         match=_make_match("--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1")),
-    # s5: pref-only + fsx (+ ppd) + tc-self, NO vlo (per IRP §1 / dispatcher).
+         match=_setting_match(tc='self', nll_v=1.0, nll_g=1.0,
+                              force_same_x=True, ppd=True, vallogodds=True,
+                              semi=0.1)),
+    # 5 RA + PMI + fsx [-NLL]: pref-only + fsx (+ ppd) + tc-self, NO vlo.
     dict(num=5, label="RA + PMI + fsx [-NLL]",
-         match=_make_match("--tc-self--full-completion--force-same-x--ppd--semi0.1")),
+         match=_setting_match(tc='self', force_same_x=True, ppd=True,
+                              semi=0.1)),
+    # 6 RA + PMI [+TC]: pref-only + tc-self, no fsx, no NLL, no vlo.
     dict(num=6, label="RA + PMI [+TC]",
-         match=_make_match("--tc-self--full-completion--semi0.1")),
+         match=_setting_match(tc='self', semi=0.1)),
+    # 7 New + NegTC + fsx: comb + fsx (+ ppd) + tc-neg + vlo.
     dict(num=7, label="New + NegTC + fsx",
-         match=_make_match("--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1")),
-    # s8: pref-only + fsx (+ ppd) + tc-neg, NO vlo. Not in v7 launcher's
-    # setting list; defined for forward-compat (will be empty unless you
-    # train an s8 cell yourself).
+         match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
+                              force_same_x=True, ppd=True, vallogodds=True,
+                              semi=0.1)),
+    # 8 RA + NegTC + fsx [-NLL]: pref-only + fsx (+ ppd) + tc-neg, NO vlo.
+    # (Not in the v7 overnight launcher; forward-compat.)
     dict(num=8, label="RA + NegTC + fsx [-NLL]",
-         match=_make_match("--tc-neg--full-completion--force-same-x--ppd--semi0.1")),
-    # s9: pref-only + tc-neg, no fsx. Also not in v7 launcher.
+         match=_setting_match(tc='neg', force_same_x=True, ppd=True,
+                              semi=0.1)),
+    # 9 RA + NegTC [+TC]: pref-only + tc-neg, no fsx, no NLL, no vlo.
     dict(num=9, label="RA + NegTC [+TC]",
-         match=_make_match("--tc-neg--full-completion--semi0.1")),
-    # ---- Defined for forward-compat; not in v7 launcher's setting list. ----
+         match=_setting_match(tc='neg', semi=0.1)),
+    # 10 RankAlign + fsx: pref-only + fsx (+ ppd), no TC, no NLL, no vlo.
+    # (Forward-compat; not in v7 launcher.)
     dict(num=10, label="RankAlign + fsx",
-         match=_make_match("--full-completion--force-same-x--ppd--semi0.1")),
+         match=_setting_match(force_same_x=True, ppd=True, semi=0.1)),
+    # 11 New + PMI [-fsx]: comb + tc-self + vlo, no fsx.
     dict(num=11, label="New + PMI [-fsx]",
-         match=_make_match("--tc-self--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1")),
+         match=_setting_match(tc='self', nll_v=1.0, nll_g=1.0,
+                              vallogodds=True, semi=0.1)),
+    # 12 New + NegTC [-fsx]: comb + tc-neg + vlo, no fsx.
     dict(num=12, label="New + NegTC [-fsx]",
-         match=_make_match("--tc-neg--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1")),
+         match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
+                              vallogodds=True, semi=0.1)),
 ]
 
 # Persona-v1 NA structure:

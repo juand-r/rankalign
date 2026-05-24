@@ -42,7 +42,9 @@ import pandas as pd
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
+sys.path.insert(0, str(REPO / "src"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
+from checkpoint_name_parser import matches_v7_setting  # noqa: E402
 
 OUT_DIR = REPO / "outputs"
 SEARCH_DIRS = [
@@ -84,22 +86,15 @@ METRIC_LABEL = {
 # `build_model_short`) regardless of fix1, because that prefix is hard-coded
 # for HF-style "org/name" inputs.
 BASE_HF = f"v6-google_gemma-2-{MODEL}"
-# 9b-it ckpts have `_merged` suffix; 2b/2b-it do not.
-MERGED_OPT = r"(_merged)?"
 
-# Common prefix for trained-model regex. v7 differences from v6:
-#   - prefix is `v7-` (was `v6-`)
-#   - `delta` is variable: `--delta-bins 10` auto-computes (p95-p5)/10 per
-#     (model, dataset) cell, so each cell may have a distinct delta value
-#     truncated to 2 decimal places by ranking_loss_ref_fix.py L2182
-#     `f"-delta{delta:.2f}"`.
-#   - `epoch` may be 0/1/2: a walltime-killed run only saves through
-#     whichever epoch completed; the dispatcher's eval glob picks the most
-#     recent saved one. So we accept `epoch[012]` here.
-CP = rf"v7-google_gemma-2-{MODEL}-delta\d+\.\d{{1,2}}-epoch[012]_membership-sans-rosch-v0-all_d2g_random_alpha1\.0"
-
-# All v7 trained dirs end in `_fix1` (or `_fix1_merged` for LoRA).
-FIX_TAIL = rf"_fix1{MERGED_OPT}"
+# Trained-model identification is now structural (parse → field-compare),
+# handled by `matches_v7_setting()` from checkpoint_name_parser. This works
+# uniformly across the three on-disk filename formats:
+#   (A) legacy abs-path-embedded: `v6-_datastor2_..._v7-google--gemma-...-fix1`
+#   (B) un-abbreviated:           `v7-google--gemma-2-9b-it-delta2.69-...-fix1[_merged]`
+#   (C) abbreviated (>160ch):     `v7-gemma-2-9b-it-d2.69-e2-...-sm0.1-fix1`
+TASK_SEG = "membership-sans-rosch-v0-all"
+GEMMA_MODEL = f"gemma-2-{MODEL}"  # what parse_checkpoint_name returns as model_short
 
 COLUMNS = [
     ("Raw",      ["self-", "neg-", "basetyp-", "basetypneg-"], "raw"),
@@ -120,104 +115,64 @@ COLUMNS = [
 #     case "s5"/case "s8").
 #   - 2b-it cells run for ~5h walltime; some may save only epoch 0/1
 #     before the walltime kills them. CP allows any of {0,1,2}.
+def _setting_match(**expected):
+    """Build a match-lambda for a v7 setting. Closes over `expected` so the
+    METHODS list can declare each row's structured fingerprint inline."""
+    return lambda s: matches_v7_setting(
+        s, model=GEMMA_MODEL, task_segment=TASK_SEG, **expected,
+    )
+
+
+# Each METHODS entry declares ONLY the flags that distinguish that setting.
+# Defaults in matches_v7_setting (pref=1.0, nll_v=0.0, nll_g=0.0, vlo/fsx/
+# ppd/cft=False, tc/semi/labelonly=UNSET, fix1=True) cover the rest.
 METHODS: list[dict] = [
     dict(
         num=0, label="Base",
         match=lambda s: s == BASE_HF,
     ),
-    # 1 SFT-lo: sft + labelonly. v7 dispatcher always FSX_FLAG="--no-force-same-x"
-    # for s1, so `_force-same-x` should NOT appear. Drop the optional fsx
-    # branch from v6 since we're emitting v7-only files now.
-    dict(
-        num=1, label="SFT labelonly 10%",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_full-completion_pref0\.0_nllv1\.0_nllg1\.0_labelonly0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    # 1 SFT-lo: sft + labelonly. No fsx, no tc, no vlo.
+    dict(num=1, label="SFT labelonly 10%",
+         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0, labelonly=0.1)),
     # 2 RankAlign: pref-only + semi, no fsx, no TC, no vlo.
-    dict(
-        num=2, label="RankAlign",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_full-completion_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=2, label="RankAlign",
+         match=_setting_match(semi=0.1)),
     # 3 New + fsx [-TC]: comb + fsx (+ ppd) + vlo, no TC.
-    dict(
-        num=3, label="New + fsx [-TC]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_full-completion_nllv1\.0_nllg1\.0_force-same-x_ppd_vallogodds_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=3, label="New + fsx [-TC]",
+         match=_setting_match(nll_v=1.0, nll_g=1.0, force_same_x=True,
+                              ppd=True, vallogodds=True, semi=0.1)),
     # 4 New + PMI + fsx: comb + fsx (+ ppd) + tc-self + vlo.
-    dict(
-        num=4, label="New + PMI + fsx",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-self_full-completion_nllv1\.0_nllg1\.0_force-same-x_ppd_vallogodds_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=4, label="New + PMI + fsx",
+         match=_setting_match(tc='self', nll_v=1.0, nll_g=1.0,
+                              force_same_x=True, ppd=True, vallogodds=True,
+                              semi=0.1)),
     # 5 RA + PMI + fsx [-NLL]: pref-only + fsx (+ ppd) + tc-self, NO vlo.
-    dict(
-        num=5, label="RA + PMI + fsx [-NLL]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-self_full-completion_force-same-x_ppd_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=5, label="RA + PMI + fsx [-NLL]",
+         match=_setting_match(tc='self', force_same_x=True, ppd=True,
+                              semi=0.1)),
     # 6 RA + PMI [+TC]: pref-only + tc-self, no fsx, no NLL, no vlo.
-    dict(
-        num=6, label="RA + PMI [+TC]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-self_full-completion_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=6, label="RA + PMI [+TC]",
+         match=_setting_match(tc='self', semi=0.1)),
     # 7 New + NegTC + fsx: comb + fsx (+ ppd) + tc-neg + vlo.
-    dict(
-        num=7, label="New + NegTC + fsx",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-neg_full-completion_nllv1\.0_nllg1\.0_force-same-x_ppd_vallogodds_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=7, label="New + NegTC + fsx",
+         match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
+                              force_same_x=True, ppd=True, vallogodds=True,
+                              semi=0.1)),
     # 8 RA + NegTC + fsx [-NLL]: pref-only + fsx (+ ppd) + tc-neg, NO vlo.
-    # (Not in the v7 overnight launcher's setting list; defined here for
-    # forward-compat. Will be empty until s8 is trained.)
-    dict(
-        num=8, label="RA + NegTC + fsx [-NLL]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-neg_full-completion_force-same-x_ppd_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=8, label="RA + NegTC + fsx [-NLL]",
+         match=_setting_match(tc='neg', force_same_x=True, ppd=True,
+                              semi=0.1)),
     # 9 RA + NegTC [+TC]: pref-only + tc-neg, no fsx, no NLL, no vlo.
-    # (Also not in the v7 overnight launcher; forward-compat only.)
-    dict(
-        num=9, label="RA + NegTC [+TC]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-neg_full-completion_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=9, label="RA + NegTC [+TC]",
+         match=_setting_match(tc='neg', semi=0.1)),
     # 11 New + PMI [-fsx]: comb + tc-self + vlo, no fsx, no ppd.
-    dict(
-        num=11, label="New + PMI [-fsx]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-self_full-completion_nllv1\.0_nllg1\.0_vallogodds_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=11, label="New + PMI [-fsx]",
+         match=_setting_match(tc='self', nll_v=1.0, nll_g=1.0,
+                              vallogodds=True, semi=0.1)),
     # 12 New + NegTC [-fsx]: comb + tc-neg + vlo, no fsx, no ppd.
-    dict(
-        num=12, label="New + NegTC [-fsx]",
-        match=lambda s: bool(re.fullmatch(
-            rf"{CP}_tc-neg_full-completion_nllv1\.0_nllg1\.0_vallogodds_semi0\.1{FIX_TAIL}",
-            s,
-        )),
-    ),
+    dict(num=12, label="New + NegTC [-fsx]",
+         match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
+                              vallogodds=True, semi=0.1)),
 ]
 
 # v7 NA structure: the dispatcher only runs ONE TC variant per setting at
