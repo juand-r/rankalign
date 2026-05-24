@@ -83,11 +83,11 @@ case "$SETTING" in
         SEMI_FLAG="--labeled-only 0.1"
         FSX_FLAG=""
         TC_FLAG=""
-        VLO_FLAG=""
+        VLO_FLAG="--validator-log-odds"
         PPD_FLAGS=""
         # No training TC → evaluate with both modes (matches run_settings_v21correct_multi.sh)
         EVAL_MODES="--self-typicality --neg-typicality"
-        DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1--fix1"
+        DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds--labelonly0.1--fix1"
         ;;
     s2)
         # RankAlign: pref-only, semi
@@ -95,10 +95,10 @@ case "$SETTING" in
         SEMI_FLAG="--semi-supervised 0.1"
         FSX_FLAG=""
         TC_FLAG=""
-        VLO_FLAG=""
+        VLO_FLAG="--validator-log-odds"
         PPD_FLAGS=""
         EVAL_MODES="--self-typicality --neg-typicality"
-        DIR_SUFFIX="--full-completion--semi0.1--fix1"
+        DIR_SUFFIX="--full-completion--vallogodds--semi0.1--fix1"
         ;;
     s3)
         # New+fsx: comb + force-same-x + log-odds + ppd
@@ -123,15 +123,15 @@ case "$SETTING" in
         DIR_SUFFIX="--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
         ;;
     s5)
-        # RankAlign+fsx+selfTC (no validator log-odds — was historical bug)
+        # RankAlign+fsx+selfTC
         LOSS_FLAGS="--nll_validator_weight 0 --nll_generator_weight 0 --preference_loss_weight 1"
         SEMI_FLAG="--semi-supervised 0.1"
         FSX_FLAG="--force-same-x"
         TC_FLAG="--self-typicality"
-        VLO_FLAG=""
+        VLO_FLAG="--validator-log-odds"
         PPD_FLAGS="--per-prompt-delta --shape-budget-mode global"
         EVAL_MODES="--self-typicality"
-        DIR_SUFFIX="--tc-self--full-completion--force-same-x--ppd--semi0.1--fix1"
+        DIR_SUFFIX="--tc-self--full-completion--force-same-x--ppd--vallogodds--semi0.1--fix1"
         ;;
     s6)
         # RankAlign+selfTC (no fsx)
@@ -139,10 +139,10 @@ case "$SETTING" in
         SEMI_FLAG="--semi-supervised 0.1"
         FSX_FLAG=""
         TC_FLAG="--self-typicality"
-        VLO_FLAG=""
+        VLO_FLAG="--validator-log-odds"
         PPD_FLAGS=""
         EVAL_MODES="--self-typicality"
-        DIR_SUFFIX="--tc-self--full-completion--semi0.1--fix1"
+        DIR_SUFFIX="--tc-self--full-completion--vallogodds--semi0.1--fix1"
         ;;
     s7)
         # New+fsx+negTC
