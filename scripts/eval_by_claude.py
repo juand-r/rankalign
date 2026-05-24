@@ -1627,7 +1627,9 @@ def main(args):
 
             timestamp = datetime.now().strftime("%Y%m%d")
             if '/' in modelname and not modelname.startswith('.'):
-                model_short = 'v6-' + modelname.replace('/', '_')
+                # Use basename only — full path embeds /workspace/models2/ which makes
+                # filenames exceed 255 chars for settings with long DIR_SUFFIX (s3/s4/s7)
+                model_short = 'v6-' + os.path.basename(modelname)
             else:
                 model_short = modelname.split('/')[-1].replace('--', '_')
             split = "train"
