@@ -44,6 +44,15 @@ export HF_HUB_CACHE=$HF_HOME/hub
 export HF_HUB_DISABLE_XET=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
+# Guard: ensure moe.py is patched (idempotent — setup does this but may have been skipped)
+MOE_FILE=$(python -c "import transformers, os; print(os.path.join(os.path.dirname(transformers.__file__), 'integrations', 'moe.py'))" 2>/dev/null || true)
+if [ -n "$MOE_FILE" ] && [ -f "$MOE_FILE" ]; then
+    if grep -q "^from __future__ import annotations" "$MOE_FILE"; then
+        sed -i "s/^from __future__ import annotations$/# from __future__ import annotations (patched: torch 2.4.1 compat)/" "$MOE_FILE"
+        echo "[$(date -u +%FT%TZ)] Applied moe.py patch"
+    fi
+fi
+
 # --- Dataset config ---
 case "$DATASET" in
     persona)
