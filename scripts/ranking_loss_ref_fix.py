@@ -2328,6 +2328,11 @@ if __name__ == "__main__":
         if args.delta_bins is None:
             parser.error("--per-prompt-delta requires --delta-bins N (the per-prompt delta "
                          "is (local_p95 - local_p5) / N; without --delta-bins there is no N).")
+    if args.shape_budget_mode == "global" and not args.force_same_x:
+        parser.error("--shape-budget-mode global requires --force-same-x. With fsx off "
+                     "there is one virtual prompt group, so 'global' and 'per-prompt' "
+                     "produce essentially the same allocation; if you really want to "
+                     "run fsx-off, use the default --shape-budget-mode per-prompt.")
     if args.self_typicality:
         args.typicality_correction = True
     if args.neg_typicality:
