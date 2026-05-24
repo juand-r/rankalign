@@ -1636,7 +1636,14 @@ def main(args):
             metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
             eval_tc_suffix = "_tc" if args.typicality_correction else ""
             eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+            # Dynamically cap model_short so the filename component stays under Linux's
+            # 255-char limit (s4/s7 basenames are 190 chars, overflowing without this)
+            _fname_prefix = f"scores_{self_prefix}"
+            _fname_suffix = f"_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+            _max_model_short = 255 - len(_fname_prefix) - len(_fname_suffix)
+            if len(model_short) > _max_model_short:
+                model_short = model_short[:_max_model_short]
+            scores_csv_filename = f"{outputs_dir}/{_fname_prefix}{model_short}{_fname_suffix}"
 
             with open(scores_csv_filename, 'w', newline='') as f:
                 writer = csv.writer(f)
