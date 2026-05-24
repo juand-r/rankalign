@@ -6,6 +6,55 @@ on top; don't rewrite history.
 
 ---
 
+## 2026-05-24 (evening)
+
+### Fix: `OSError: [Errno 36] File name too long` in eval CSV saves
+
+**Symptom.** Job `41982` (s4 / membership-sans-rosch / gemma-2-9b-it) failed
+to save score CSVs for all 10 rosch test tasks with `OSError: [Errno 36] File
+name too long`. The filename came out as 287+ chars (over Linux's 255-byte
+NAME_MAX). Same bug latent for every 9b-it cell with the long
+fsx+ppd+vallogodds+tc-self/neg signature (s3, s4, s5, s7).
+
+**Root cause.** `scripts/eval_by_claude.py` had **8 separate** save-to-CSV
+sites for the four task-types (ifeval / ambigqa+plausibleqa / membership+rosch
+/ registry-based) × the two eval branches (logitlens vs final-layer). Only
+**one** of them (the rosch site at the old line ~1610) had an inline filename
+truncation. The other 7 used a raw f-string `f".../scores_{prefix}{model_short}_..."`
+with `model_short = 'v6-' + modelname.replace('/', '_')`, which embeds the
+full `/datastor2/jdr/...` path into the filename and overflows for long
+fix1 model dirs.
+
+**Fix.** `scripts/eval_by_claude.py` — switched all 8 save sites to use the
+existing shared helper `tasks.common.build_csv_filename()` (which already
+calls `build_model_short()` to cap model_short at 160 chars with an 8-char
+md5 hash suffix when needed). One commit, ~70 lines deleted, ~30 lines added.
+The helper handles absolute paths via `os.path.basename()` instead of
+`replace('/', '_')`, which kills the `_datastor2_jdr_...` prefix and saves
+~30 chars per filename even before truncation.
+
+**Verified.** For the failing 41982 modelname, `build_csv_filename(...)` now
+emits a 216-char filename (well under 255), with the truncated model_short
+ending in `..._92c5a9fe` (8-char hash for uniqueness across cells).
+
+**Side effect on table builders.** Because the new pathway no longer prepends
+`'v6-'` to absolute-path-derived model_shorts, eval CSVs from re-runs after
+this fix will start with `v7-google--gemma-2-...` rather than
+`v6-_datastor2_jdr_rankalign_models2_v7-google--gemma-2-...`. The v7 table
+builders (`scripts/_build_rosch_table_v7.py`, `_build_persona_v1_table_v7.py`)
+use regex patterns that already expect the un-prefixed `v7-...` form, so this
+is a *step toward* what they want. (They likely had a separate bug expecting
+single-`_` between `google` and `gemma` where the actual format is `--`; that
+is a separate issue, not introduced by this fix — flagged here so it isn't
+forgotten.)
+
+**Re-runs needed.** Any cell whose Slurm eval job exited with `OSError 36`
+needs an eval re-run (model checkpoints are saved on disk; only the eval CSV
+write failed). Confirmed cases include 41982. Other cells using
+`fsx+ppd+vallogodds+tc-self/neg` on 9b-it likely affected as well.
+
+---
+
 ## 2026-05-24 (afternoon)
 
 ### New training flag: `--consistency-ft` (and new setting s13)

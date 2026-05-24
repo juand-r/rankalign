@@ -1410,18 +1410,11 @@ def main(args):
         
         elif args.save_scores_csv and is_ifeval_task(task):
             import csv
-            from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d")
-            if '/' in modelname and not modelname.startswith('.'):
-                model_short = 'v6-' + modelname.replace('/', '_')
-            else:
-                model_short = modelname.split('/')[-1].replace('--', '_')
-            split = "train"
-            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_tc" if args.typicality_correction else ""
-            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+            # Use shared helper (caps model_short to keep filename <= NAME_MAX)
+            scores_csv_filename = build_csv_filename(
+                outputs_dir, self_prefix, modelname, task, "train", args, eos_suffix
+            )
 
             strategy = f"gen:{gen_shots}_disc:{disc_shots}"
             if use_full_completion_logprobs:
@@ -1500,18 +1493,11 @@ def main(args):
 
         elif args.save_scores_csv and (is_ambigqa_task(task) or is_plausibleqa_task(task)):
             import csv
-            from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d")
-            if '/' in modelname and not modelname.startswith('.'):
-                model_short = 'v6-' + modelname.replace('/', '_')
-            else:
-                model_short = modelname.split('/')[-1].replace('--', '_')
-            split = "train"
-            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_tc" if args.typicality_correction else ""
-            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+            # Use shared helper (caps model_short to keep filename <= NAME_MAX)
+            scores_csv_filename = build_csv_filename(
+                outputs_dir, self_prefix, modelname, task, "train", args, eos_suffix
+            )
 
             strategy = f"gen:{gen_shots}_disc:{disc_shots}"
             if use_full_completion_logprobs:
@@ -1623,27 +1609,13 @@ def main(args):
 
         elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
             import csv
-            from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d")
-            if '/' in modelname and not modelname.startswith('.'):
-                # Use basename only — full path embeds /workspace/models2/ which makes
-                # filenames exceed 255 chars for settings with long DIR_SUFFIX (s3/s4/s7)
-                model_short = 'v6-' + os.path.basename(modelname)
-            else:
-                model_short = modelname.split('/')[-1].replace('--', '_')
-            split = "train"
-            metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-            eval_tc_suffix = "_tc" if args.typicality_correction else ""
-            eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-            # Dynamically cap model_short so the filename component stays under Linux's
-            # 255-char limit (s4/s7 basenames are 190 chars, overflowing without this)
-            _fname_prefix = f"scores_{self_prefix}"
-            _fname_suffix = f"_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
-            _max_model_short = 255 - len(_fname_prefix) - len(_fname_suffix)
-            if len(model_short) > _max_model_short:
-                model_short = model_short[:_max_model_short]
-            scores_csv_filename = f"{outputs_dir}/{_fname_prefix}{model_short}{_fname_suffix}"
+            # Use shared helper (caps model_short at 160 + 8-char hash to keep
+            # filename under Linux's NAME_MAX of 255 -- s3/s4/s7 fix1 dirs
+            # are ~190 chars and overflow without this).
+            scores_csv_filename = build_csv_filename(
+                outputs_dir, self_prefix, modelname, task, "train", args, eos_suffix
+            )
 
             with open(scores_csv_filename, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -1855,19 +1827,12 @@ def main(args):
 
     elif args.save_scores_csv and is_ifeval_task(task):
         import csv
-        from datetime import datetime
 
-        timestamp = datetime.now().strftime("%Y%m%d")
-        if '/' in modelname and not modelname.startswith('.'):
-            model_short = 'v6-' + modelname.replace('/', '_')
-        else:
-            model_short = modelname.split('/')[-1].replace('--', '_')
-        split = "train" if args.train else "test"
-        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        # Add eval setting suffixes
-        eval_tc_suffix = "_tc" if args.typicality_correction else ""
-        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+        # Use shared helper (caps model_short to keep filename <= NAME_MAX)
+        _split = "train" if args.train else "test"
+        scores_csv_filename = build_csv_filename(
+            outputs_dir, self_prefix, modelname, task, _split, args, eos_suffix
+        )
 
         # Determine strategy string (kept for debugging/repro; not a required column for IFEval)
         strategy = f"gen:{gen_shots}_disc:{disc_shots}"
@@ -1951,18 +1916,12 @@ def main(args):
 
     elif args.save_scores_csv and (is_ambigqa_task(task) or is_plausibleqa_task(task)):
         import csv
-        from datetime import datetime
 
-        timestamp = datetime.now().strftime("%Y%m%d")
-        if '/' in modelname and not modelname.startswith('.'):
-            model_short = 'v6-' + modelname.replace('/', '_')
-        else:
-            model_short = modelname.split('/')[-1].replace('--', '_')
-        split = "train" if args.train else "test"
-        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        eval_tc_suffix = "_tc" if args.typicality_correction else ""
-        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+        # Use shared helper (caps model_short to keep filename <= NAME_MAX)
+        _split = "train" if args.train else "test"
+        scores_csv_filename = build_csv_filename(
+            outputs_dir, self_prefix, modelname, task, _split, args, eos_suffix
+        )
 
         strategy = f"gen:{gen_shots}_disc:{disc_shots}"
         if use_full_completion_logprobs:
@@ -2083,18 +2042,14 @@ def main(args):
 
     elif args.save_scores_csv and (is_membership_task(task) or is_rosch_task(task)):
         import csv
-        from datetime import datetime
 
-        timestamp = datetime.now().strftime("%Y%m%d")
-        if '/' in modelname and not modelname.startswith('.'):
-            model_short = 'v6-' + modelname.replace('/', '_')
-        else:
-            model_short = modelname.split('/')[-1].replace('--', '_')
-        split = "train" if args.train else "test"
-        metric_suffix = "_log-odds" if args.validator_log_odds else "_log-probs"
-        eval_tc_suffix = "_tc" if args.typicality_correction else ""
-        eval_lenorm_suffix = "_evallenorm" if args.length_normalize else ""
-        scores_csv_filename = f"{outputs_dir}/scores_{self_prefix}{model_short}_{task}_{split}{metric_suffix}{eval_tc_suffix}{eval_lenorm_suffix}{eos_suffix}_{timestamp}.csv"
+        # Use the shared helper (caps model_short at 160 + 8-char hash to keep
+        # filename under Linux's NAME_MAX of 255 -- s3/s4/s7 fix1 model dirs
+        # are ~190 chars and overflow without this).
+        _split = "train" if args.train else "test"
+        scores_csv_filename = build_csv_filename(
+            outputs_dir, self_prefix, modelname, task, _split, args, eos_suffix
+        )
 
         strategy = f"gen:{gen_shots}_disc:{disc_shots}"
         if use_full_completion_logprobs:
