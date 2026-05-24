@@ -1467,11 +1467,13 @@ def main(args):
     # FIX1 (batch-size patch, 2026-05-21): apply --batch-size override AFTER the
     # per-task auto-pick block above. Default behavior (no override) is unchanged
     # because args.batch_size is None by default.
-    if args.batch_size is not None and args.batch_size > 0:
-        raise NotImplementedError("batch size has some issues, so not supported yet")
-        #if args.batch_size != batch_size:
-        #    print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
-        #batch_size = args.batch_size
+    # [DISABLED 2026-05-23] --batch-size flag is commented out in argparse
+    # (see ~line 1999). Whole block is dead until we revisit batch_size>1.
+    #if args.batch_size is not None and args.batch_size > 0:
+    #    raise NotImplementedError("batch size has some issues, so not supported yet")
+    #    #if args.batch_size != batch_size:
+    #    #    print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
+    #    #batch_size = args.batch_size
 
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -1996,14 +1998,18 @@ if __name__ == "__main__":
                         help="[fix1] Sampling weight for mixed_pos pairs (U lo, L_pos hi).")
     parser.add_argument("--shape-weight-both-u", type=float, default=0.40,
                         help="[fix1] Sampling weight for both_U pairs (U lo, U hi).")
-    parser.add_argument("--batch-size", type=int, default=None, metavar="N",
-                        help="[fix1] Override training batch size after the per-task auto-pick. "
-                             "Default: per-task default (usually 1 for full-completion mode). "
-                             "Lifted the parent's batch_size>1 + semi-supervised guard for fix1 "
-                             "g-mode -- bug 2 (loss scalar/[B] mixing) was eliminated by fix1's "
-                             "single-sum loss block; bug 1 (BCE batch-mean masking) was eliminated "
-                             "by the reduction='none' patch. Use B=2 or B=4 for ~1.5-2x speedup "
-                             "on 9b-it / 2b-it persona-v1; verify VRAM headroom first.")
+    # [DISABLED 2026-05-23] --batch-size is commented out for now: the
+    # per-task auto-pick (default 1 for full-completion mode) is the only
+    # supported value. The batch_size>1 path has known issues (see line ~1470)
+    # so we don't expose the flag. Re-enable later when those are fixed.
+    #parser.add_argument("--batch-size", type=int, default=None, metavar="N",
+    #                    help="[fix1] Override training batch size after the per-task auto-pick. "
+    #                         "Default: per-task default (usually 1 for full-completion mode). "
+    #                         "Lifted the parent's batch_size>1 + semi-supervised guard for fix1 "
+    #                         "g-mode -- bug 2 (loss scalar/[B] mixing) was eliminated by fix1's "
+    #                         "single-sum loss block; bug 1 (BCE batch-mean masking) was eliminated "
+    #                         "by the reduction='none' patch. Use B=2 or B=4 for ~1.5-2x speedup "
+    #                         "on 9b-it / 2b-it persona-v1; verify VRAM headroom first.")
     args = parser.parse_args()
 
     if args.semi_supervised is not None and args.labeled_only is not None:

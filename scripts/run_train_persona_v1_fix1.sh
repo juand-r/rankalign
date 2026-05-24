@@ -10,11 +10,12 @@
 #
 # Differences vs scripts/run_train_persona_v1.sh:
 #   - Calls ranking_loss_ref_fix.py instead of ranking_loss_ref.py.
-#   - Drops --force-same-x (fix1 ignores it; keeping it would only put a
-#     misleading "force-same-x" token in the model name). Variants are
-#     re-labeled "3.New" / "4.New+selfTC" / "7.New+negTC" accordingly.
+#   - Variants re-labeled "3.New" / "4.New+selfTC" / "7.New+negTC".
 #   - Trained checkpoints land with a `--fix1` suffix (added inside
 #     ranking_loss_ref_fix.py); they cannot collide with parent outputs.
+#   - persona-v1 is single-prompt, so --force-same-x is a no-op behavior-wise.
+#     We let run_train_semi.sh's default (--force-same-x ON) flow through
+#     rather than hardcoding --no-force-same-x.
 #
 # Defaults to all 3 variants. To run a subset, pass them as positional args:
 #   bash scripts/run_train_persona_v1_fix1.sh google/gemma-2-9b-it 4 7
@@ -54,9 +55,9 @@ else
 fi
 
 if [ "$DISC_SHOTS" = "auto" ]; then
-    COMMON="--max-seq-len 512 --no-force-same-x --script ranking_loss_ref_fix.py"
+    COMMON="--max-seq-len 512 --script ranking_loss_ref_fix.py"
 else
-    COMMON="--disc-shots $DISC_SHOTS --max-seq-len 512 --no-force-same-x --script ranking_loss_ref_fix.py"
+    COMMON="--disc-shots $DISC_SHOTS --max-seq-len 512 --script ranking_loss_ref_fix.py"
 fi
 [ -n "$EPOCHS" ]     && COMMON="$COMMON --epochs $EPOCHS"
 [ -n "$BATCH_SIZE" ] && COMMON="$COMMON --batch-size $BATCH_SIZE"
