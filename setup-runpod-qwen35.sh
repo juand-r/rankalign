@@ -64,6 +64,22 @@ fi
 echo "=== upgrade bitsandbytes for triton 3.x compatibility ==="
 pip install --quiet "bitsandbytes>=0.49.2"
 
+# transformers 5.8.1 integrations/moe.py uses `from __future__ import annotations` which
+# makes all type annotations strings. torch 2.4.1's custom_op() infer_schema() can't handle
+# string annotations — peft import fails. Patch out the annotation import.
+echo "=== patch transformers/integrations/moe.py for torch 2.4.1 compatibility ==="
+MOE_FILE=$(python -c "import transformers; import os; print(os.path.join(os.path.dirname(transformers.__file__), 'integrations', 'moe.py'))" 2>/dev/null)
+if [ -n "$MOE_FILE" ] && [ -f "$MOE_FILE" ]; then
+    if grep -q "^from __future__ import annotations" "$MOE_FILE"; then
+        sed -i "s/^from __future__ import annotations$/# from __future__ import annotations (patched: torch 2.4.1 infer_schema compat)/" "$MOE_FILE"
+        echo "  patched: $MOE_FILE"
+    else
+        echo "  no patch needed (already patched or not present)"
+    fi
+else
+    echo "  moe.py not found — skipping"
+fi
+
 echo "=== verify imports ==="
 python - <<'PYEOF'
 import torch, transformers, peft, accelerate
