@@ -69,7 +69,7 @@ configure_setting() {
     local S="$1"
     local pref_w=1 nll_v_w=0 nll_g_w=0
     local semi_flag="--semi-supervised 0.1"
-    local fsx="" vlo="" tc_train="" ppd=""
+    local fsx="" vlo="" tc_train="" ppd="" sbm=""
 
     case "$S" in
         1)
@@ -133,11 +133,15 @@ configure_setting() {
 --all --delta 0.15 $semi_flag --disc-shots zero \
 --lora --gradient_checkpointing \
 --models-dir $MODELS_DIR --total_samples 5110 --no-upload-hf"
-    # --per-prompt-delta is mandatory with --force-same-x: global delta is too
-    # coarse when pairs are restricted to the same prompt (narrower score spread).
-    [ -n "$fsx" ] && ppd="--per-prompt-delta"
+    # --per-prompt-delta and --shape-budget-mode global are both mandatory with
+    # --force-same-x: pairs are within-prompt, so global delta/budget is too coarse.
+    if [ -n "$fsx" ]; then
+        ppd="--per-prompt-delta"
+        sbm="--shape-budget-mode global"
+    fi
     [ -n "$fsx" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $fsx"
     [ -n "$ppd" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $ppd"
+    [ -n "$sbm" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $sbm"
     [ -n "$vlo" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $vlo"
     [ -n "$tc_train" ] && TRAIN_FLAGS="$TRAIN_FLAGS $tc_train"
 }
@@ -180,6 +184,8 @@ run_setting() {
             > "$TRAIN_LOG" 2>&1
         local rc=$?
         echo "[$(date -u +%H:%M:%S)] training exit=$rc" | tee -a "$LOG"
+        # Refresh ad2: delta was auto-computed, so path was unknown before training.
+        ad2=$(adapter_dir_for 2)
         if [ ! -d "$ad2" ]; then
             echo "[$(date -u +%H:%M:%S)] FATAL: epoch2 adapter missing after training (setting $S). See $TRAIN_LOG" | tee -a "$LOG"
             exit 1
