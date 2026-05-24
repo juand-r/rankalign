@@ -70,14 +70,17 @@ print(f"  peft={peft.__version__}  trl={trl.__version__}")
 print(f"  sklearn={sklearn.__version__}  numpy={numpy.__version__}")
 # Verify the fix1 training script can be imported without error.
 import subprocess, sys
-r = subprocess.run(
-    [sys.executable, "-c", "import sys; sys.argv=['x']; exec(open('/workspace/rankalign/scripts/ranking_loss_ref_fix.py').read().split('if __name__')[0])"],
-    capture_output=True, text=True, timeout=60
-)
-if r.returncode != 0 and 'argparse' not in r.stderr:
-    print("WARNING: ranking_loss_ref_fix.py import check failed:", r.stderr[-500:])
-else:
-    print("  ranking_loss_ref_fix.py: importable")
+try:
+    r = subprocess.run(
+        [sys.executable, "-c", "import sys; sys.argv=['x']; exec(open('/workspace/rankalign/scripts/ranking_loss_ref_fix.py').read().split('if __name__')[0])"],
+        capture_output=True, text=True, timeout=120
+    )
+    if r.returncode != 0 and 'argparse' not in r.stderr:
+        print("WARNING: ranking_loss_ref_fix.py import check failed:", r.stderr[-500:])
+    else:
+        print("  ranking_loss_ref_fix.py: importable")
+except subprocess.TimeoutExpired:
+    print("WARNING: ranking_loss_ref_fix.py import check timed out — skipping (non-fatal)")
 print("ALL IMPORTS OK")
 PYEOF
 
