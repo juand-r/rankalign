@@ -203,3 +203,25 @@ State on entry:
   perf fix.
 - 41730 (baseline reference): RUNNING ~3h41m / 5h.
 - No other agent jobs in queue.
+
+### 11:52 — Cancel all ifeval-concat jobs (per user)
+
+User asked to cancel all `ifeval-concat` jobs (both 2b-it and 9b-it). The
+9b-it × ifeval set was already skipped this morning; this round removes
+the 2b-it × ifeval set too.
+
+Cancelled (9 trains + 9 dependent evals = 18 total):
+
+```
+scancel 41977 41987 41997 42007 42017 42027 42037 42047 42057 \
+        41978 41988 41998 42008 42018 42028 42038 42048 42058
+```
+
+Train jobs (one per setting): 41977 (s2), 41987 (s7), 41997 (s2), 42007
+(s3), 42017 (s1), 42027 (s5), 42037 (s6), 42047 (s11), 42057 (s12). The
+overnight log records the (setting, model, dataset) mapping; mapping
+jobid→cell is in `overnight/_overnight_jobids.txt`.
+
+Queue after: 1 running (41973 = persona × 2b-it × s4), 71 pending = 36
+train + 36 eval (persona-v1 and membership-sans-rosch-v0 only, 9
+settings × 2 models = 18 cells × 2 jobs each).
