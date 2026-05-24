@@ -81,6 +81,14 @@ def build_model_short(modelname):
 
     For absolute filesystem paths, uses just the basename to avoid exceeding
     Linux's 255-char filename limit when the adapter path is long.
+
+    When the basename overflows the cap (>160 chars), the function falls back
+    to the abbreviated form produced by `checkpoint_name_parser.to_hf_repo_name`,
+    which preserves every flag in human-readable shorthand
+    (e.g. ``v7-gemma-2-9b-it-d2.69-e2-...-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1``).
+    Hashing is only used as a last-resort safety net if even the abbreviated
+    form exceeds the cap (should never happen with current settings; max
+    observed abbreviated length is ~100 chars).
     """
     if os.path.isabs(modelname):
         # Local absolute path: use basename (avoids path-length explosion)
@@ -93,9 +101,31 @@ def build_model_short(modelname):
     # Cap at 160 chars so total filename stays within Linux's 255-byte limit
     # (task + suffix overhead is ~90 chars; 160+90 = 250 < 255)
     MAX_LEN = 160
-    if len(raw) > MAX_LEN:
-        h = hashlib.md5(raw.encode()).hexdigest()[:8]
-        raw = raw[:MAX_LEN - 9] + '_' + h
+    if len(raw) <= MAX_LEN:
+        return raw
+
+    # Overflow: try human-readable abbreviation first.
+    try:
+        # Local import to avoid a circular dependency at module load time.
+        from checkpoint_name_parser import (
+            parse_checkpoint_name,
+            to_hf_repo_name,
+        )
+        parsed = parse_checkpoint_name(raw)
+        # Drop the "rankalign-" prefix (8+ chars saved; we know the folder is
+        # outputs/scores_*.csv from rankalign already) and relax the 96-char
+        # HF cap (we only need to fit MAX_LEN here, not HF repo IDs).
+        short = to_hf_repo_name(parsed, prefix='', max_len=None)
+        if len(short) <= MAX_LEN:
+            return short
+    except Exception:
+        # Names that don't fit the rankalign checkpoint format fall through
+        # to the hash truncation below.
+        pass
+
+    # Last-resort: deterministic hash truncation.
+    h = hashlib.md5(raw.encode()).hexdigest()[:8]
+    raw = raw[:MAX_LEN - 9] + '_' + h
     return raw
 
 
