@@ -14,6 +14,110 @@ overnight. Most recent entries on top. Companion to
 
 ## Commands and events (newest first)
 
+### 10:50 — Loop tick #15: slurm predicted 10:26 START but didn't materialize
+
+41855's `StartTime` field still says 15:26 UTC but it's now 15:50 UTC
+and the job is still PENDING. Slurm prediction was a best-estimate,
+not a guarantee. node-001 and node-002 each have 2 GPUs free but
+slurm reserves them for higher-priority pending jobs (backfill
+protection). chizhang's array still has ~2h to go. Nothing else
+freeing up imminently.
+
+Action: continuing to hold. No forward progress in 7h. If still
+nothing by tick #20 (~13:20), I'll cancel a few mid-priority jobs to
+free fair-share weight on the high-priority ones.
+
+### 07:20 — Loop tick #8: still 0 R, 108 PD; predictions stable
+
+41855 still predicted to start at 10:26 CT (~3h). No state changes in
+the last hour. Action: none.
+
+### 06:50 — Loop tick #7: nothing changed; predictions stable
+
+- 0 R, 108 PD. Predicted start times unchanged.
+- Next big GPU release: pier 41712_48 ends ~9:30 CT (2.6h);
+  chizhang array ends ~13:00 CT (6h). Consistent with slurm's
+  predicted 10:26 CT start for my 41855.
+- Action: none, wait.
+
+### 06:20 — Loop tick #6: slurm StartTime predictions are LATE
+
+`scontrol show job` reveals slurm's planned start times for my first
+queued jobs:
+- 41855 (persona × 2b-it × s4): 10:26 CT today (4h from now)
+- 41857 (persona × 2b-it × s7): 17:08 CT today (11h)
+- 41859 (persona × 2b-it × s2): 20:27 CT today (14h)
+- 41861-41869: ~9:42 CT MONDAY morning (22h)
+
+User probably wakes ~7-9am CT, so only a handful of trains will have
+*started* by then. Cause: chizhang's job array (2-day walltime, ~7h
+left) and jocelyn's 15 jobs (2-day walltime, 38h+ left) own most GPU
+slots. Backfill can't easily fit my 10-30h jobs into the remaining
+small windows.
+
+Decision: do NOT cancel+resubmit. Cancelling resets age-priority and
+would push StartTimes EVEN later. Trust slurm's plan; wait it out.
+
+### 05:50 — Loop tick #5: cluster contended; still 0 R, 108 PD
+
+- All 108 jobs still PD with reason "Priority". My priority value:
+  `12026` (uniform across my batch).
+- Cluster: 6 nodes in `mixed-` (draining, won't accept new jobs);
+  5 nodes in `mixed` saturated by other users (chizhang at 8 GPUs/job
+  on multiple nodes, jocelyn at 12 GPUs/job, qdf76 at 8 GPU/job).
+  Total cluster jobs: 34.
+- Action: nothing to do. Wait for other users' jobs to finish.
+  My longer walltimes hurt backfill chances slightly but they're
+  necessary so no point shortening.
+
+### 05:25 — Loop tick #4: walltimes were too short. Cancelled+resubmitted.
+
+Discovered 41747 was at ~2s/it after 41m, ETA ~8.5h for 3 epochs but
+walltime was only 4h. ALL queued jobs had similar undersized walltimes
+=> they would all walltime-TIMEOUT before epoch2 saved, and their
+eval-globs (hardcoded `epoch2`) would SKIP. Both bugs needed fixing.
+
+Actions:
+- Updated [`scripts/_overnight_launch.sh`](../scripts/_overnight_launch.sh):
+  bumped walltimes 2-3x, loosened eval glob to `epoch[012]`.
+- Cancelled all 107 PD jobs + cancelled the running 41747 (cost ~45m
+  of progress; necessary to get a properly-sized walltime).
+- Resubmitted Phase 1A + 1B + 2 with new launcher.
+- Committed `d50cf2c4`/`fea681ef` to origin/longform.
+
+New job IDs: 41855-41962 (108 jobs, all PD). Slurm picks up scheduling
+again from priority queue.
+
+### 04:50 — Loop tick #3: smoke PASSED, first job RUNNING
+
+- 41730 TIMEOUT @ 5h walltime (expected, baseline ref preserved at epoch1).
+- **41745 smoke COMPLETED in 3:55** — `--shape-budget-mode global` +
+  per-item disc-gating perf fix validated end-to-end. Smoke saved to
+  `/datastor2/jdr/rankalign/models2-smoke-bc-global/` (we can ignore /
+  delete that later).
+- **41747 RUNNING for 10m** (persona × 2b-it × s4: fsx+ppd+sbm-global).
+  Loaded data (5110 samples), made dataloader, no errors. Per-run JSON
+  log written. The riskiest new-flag combo is happily training.
+- Cluster: many nodes in `mixed-` (drain-after-current) state; only
+  5 nodes accepting new jobs. GPU bottleneck is the only thing
+  slowing us. Slurm will start more as GPUs free.
+- Queue: 108 (1 R, 107 PD).
+- No failures.
+
+### 04:20 — Loop tick #2: still waiting on 41730
+
+- 41730 at 4:45:05 / 5:00:00; ~15m until walltime kill.
+- Queue unchanged: 1 R, 109 PD. No failures.
+- Action: none.
+
+### 03:49 — Loop tick #1: nothing has started yet
+
+- Queue: 1 R (41730 baseline at 4:14h / 5h walltime, ~45m left), 109 PD.
+- No failed/cancelled jobs in the last hour.
+- /datastor1 481G free; /datastor2 132T free. Disk fine.
+
+Action: none. Wait for 41730 walltime kill at ~04:35 to free node-007.
+
 ### 03:34 — User said "go greedy". Phase 1B + Phase 2 submitted.
 
 User went to bed; relaxed the 32-job cap with "submit many things and

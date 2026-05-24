@@ -220,6 +220,13 @@ build_setting() {
 
 build_setting
 
+# Optional WALLTIME env var overrides the per-task heuristic. Useful when
+# the dispatcher caller knows the cluster is contended and a shorter
+# walltime is more likely to backfill into a small slot.
+if [ -n "${WALLTIME:-}" ]; then
+    TRAIN_HOURS="$WALLTIME"
+fi
+
 # All the universal flags for fix1 overnight runs.
 COMMON_FLAGS=( --script ranking_loss_ref_fix.py
                --disc-shots few
