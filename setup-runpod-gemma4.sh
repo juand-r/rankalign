@@ -1,10 +1,9 @@
 #!/bin/bash
 # setup-runpod-gemma4.sh — one-shot setup for a fresh OR resumed RunPod pod.
 #
-# Installs the full rankalign requirements.txt INSIDE a venv (so system
-# distutils-installed packages like blinker 1.4 don't break the install), then
-# upgrades transformers/huggingface_hub/tokenizers from main for gemma-4
-# compatibility.
+# Installs requirements-gemma4.txt inside a venv that inherits the pod image's
+# torch 2.5.1+cu124 via --system-site-packages.  torch is NOT in the
+# requirements file — it must come from the base image.
 #
 # Fails loud (set -e). Idempotent — safe to re-run after a pod resume.
 #
@@ -56,13 +55,10 @@ echo "=== upgrade pip + install hf_transfer ==="
 pip install --quiet --upgrade pip
 pip install --quiet hf_transfer
 
-echo "=== install rankalign requirements.txt (--ignore-installed sidesteps the blinker distutils issue) ==="
-pip install --quiet --ignore-installed -r /workspace/rankalign/requirements.txt
-
-echo "=== upgrade transformers/huggingface_hub/tokenizers (pin verified-working releases — NOT git main) ==="
-# transformers==5.8.1 supports gemma-4 and works on torch>=2.5 (the 2.5.1 image).
-# git+main is a moving target and broke the 2.4 image overnight 2026-05-18.
-pip install --quiet "transformers==5.8.1" "tokenizers==0.22.2" "huggingface_hub==1.15.0"
+echo "=== install requirements-gemma4.txt (pinned deps; torch comes from pod image) ==="
+# --ignore-installed sidesteps the blinker distutils issue on some images.
+# torch is NOT in this file — inherited via --system-site-packages.
+pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
 
 echo "=== verify full import chain ==="
 python <<'PYEOF'

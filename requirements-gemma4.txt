@@ -1,0 +1,46 @@
+# requirements-gemma4.txt — pinned deps for gemma-4-31B-it pods (training + eval)
+#
+# Source of truth for all RunPod/gemma-4 setup. Used by setup-runpod-gemma4.sh.
+# DO NOT edit transformers/tokenizers/huggingface_hub versions here without
+# testing on a torch>=2.5 pod; gemma-4 requires the specific combination below.
+#
+# torch is NOT listed here — it comes from the pod base image (torch 2.5.1+cu124)
+# via --system-site-packages in the venv. Installing torch from PyPI would pull
+# the CPU build. On a fresh pod, always choose a torch>=2.5 base image.
+#
+# Key constraint: transformers>=5.0 requires torch>=2.5 (device_mesh / infer_schema).
+# The runpod/pytorch:2.4 base image is TOO OLD for gemma-4.
+# See docs/gemma4-31b-pod-setup.md for the full story.
+
+# --- HuggingFace stack (exact, tested combination) ---
+transformers==5.8.1
+tokenizers==0.22.2
+huggingface_hub==1.15.0
+hf_transfer==0.1.9
+accelerate==1.1.0
+safetensors==0.4.5
+datasets==3.1.0
+
+# --- training / LoRA ---
+peft==0.14.0
+bitsandbytes==0.45.0
+wandb>=0.19.0
+
+# --- data / ML ---
+numpy==2.1.3
+scipy==1.14.1
+pandas==3.0.3
+scikit-learn==1.5.2
+pyarrow>=14.0.0
+
+# --- misc ---
+tqdm
+libcst>=1.1.0
+sentencepiece
+protobuf
+matplotlib
+plotly
+seaborn>=0.13.2
+ipython[all]
+immutabledict
+dash

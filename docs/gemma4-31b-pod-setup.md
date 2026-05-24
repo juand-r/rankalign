@@ -62,8 +62,10 @@ source /workspace/.venv/bin/activate
 python -c "import torch; assert torch.__version__ >= '2.5', torch.__version__; print(torch.__version__)"
 
 # --- PINNED deps (NEVER git+main — see gotchas) ---
-pip install -r /workspace/rankalign/scripts-more/correct_multi/requirements-canary.txt
-# committed authoritative pins ^ ; full 312-pkg lockfile:
+pip install -r /workspace/rankalign/requirements-gemma4.txt
+# committed authoritative pins ^ (transformers==5.8.1, tokenizers==0.22.2,
+# huggingface_hub==1.15.0, accelerate==1.1.0, peft==0.14.0, etc.)
+# Full 312-pkg lockfile (older, still useful as reference):
 #   scripts-more/correct_multi/canary_env.freeze.txt
 
 # --- verify the ACTUAL modules import (not just libs) ---
@@ -84,17 +86,19 @@ snapshot_download('google/gemma-4-31B-it', cache_dir='$HF_HUB_CACHE')"
 du -sh $HF_HUB_CACHE/models--google--gemma-4-31B-it   # expect ~59 GB
 ```
 
-Or just run the committed one-shot: `bash
-scripts-more/correct_multi/setup_canary_lean.sh` (idempotent, fail-loud,
-installs the pinned reqs, pre-downloads the model). Reproducible scripts:
-`setup_canary_lean.sh`, `run_full_canary.sh`.
+Or just run the committed one-shot (idempotent, fail-loud, installs pinned
+reqs, pre-downloads the model):
+
+```bash
+bash /workspace/rankalign/setup-runpod-gemma4.sh
+```
 
 ## 4. Versioned package list (the ones that matter)
 
 Source of truth (committed, prefer these if this doc drifts):
-`scripts-more/correct_multi/requirements-canary.txt` (pins) and
-`canary_env.freeze.txt` (full 312-pkg lockfile of the interpreter that
-actually runs gemma-4-31b).
+`requirements-gemma4.txt` in the repo root (canonical pins for gemma-4 pods).
+Legacy reference: `scripts-more/correct_multi/requirements-canary.txt` and
+`canary_env.freeze.txt` (full 312-pkg lockfile, older but still useful).
 
 | package | version | note |
 |---|---|---|
@@ -132,7 +136,7 @@ inference — the torchaudio cu124 tag mismatch with torch 2.5.1 is harmless.)
 - [ ] **Verify by importing the ACTUAL scripts**, not just libraries — an incomplete install passes `import torch` but breaks `transforms`/`ranking_loss_ref`.
 - [ ] **`venv --system-site-packages`** so the image's torch/CUDA is used (don't reinstall torch).
 - [ ] **`ssh pod 'pgrep -f PATTERN'` self-matches** — use file markers / GPU util / `ps` (not the ssh-arg-matching pgrep) to check job liveness.
-- [ ] **pip on some pods is very slow** (full requirements with `--ignore-installed` can take ~50 min) — the lean pinned set is ~minutes; use it for inference-only/canary work.
+- [ ] **pip on some pods is very slow** — `requirements-gemma4.txt` is lean (no torch, no trl); install should take a few minutes, not 50.
 
 ## 6. Verification it actually works
 
