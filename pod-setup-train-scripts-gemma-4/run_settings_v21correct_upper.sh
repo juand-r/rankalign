@@ -61,7 +61,8 @@ ADAPTER_SUFFIX=""
 EVAL_MODES=""
 TRAIN_FLAGS=""
 
-# Adapter suffix values are derived from ranking_loss_ref_gemma4.py line ~2771
+# Adapter suffix values are derived from ranking_loss_ref_fix.py (updated 2026-05-22;
+# previously referenced ranking_loss_ref_gemma4.py line ~2771).
 # (verified against TRAINING_PLAN_v21correct_upper.md and the correct-multi run).
 configure_setting() {
     local S="$1"
@@ -144,7 +145,10 @@ run_setting() {
     else
         echo "[$(date -u +%H:%M:%S)] training: starting (log: $TRAIN_LOG)" | tee -a "$LOG"
         # shellcheck disable=SC2086
-        python ranking_loss_ref_gemma4.py $TRAIN_FLAGS \
+        # Updated 2026-05-22: use ranking_loss_ref_fix.py (bug fixes; handles gemma-4/gemma-2/qwen-3)
+        # with --delta-bins 10 (new default for fix1/log-odds runs) and --gemma4-lora (required for gemma-4 LoRA).
+        # Old: python ranking_loss_ref_gemma4.py $TRAIN_FLAGS
+        python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
             > "$TRAIN_LOG" 2>&1
         local rc=$?
         echo "[$(date -u +%H:%M:%S)] training exit=$rc" | tee -a "$LOG"
