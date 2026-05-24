@@ -248,13 +248,19 @@ fi
 echo "[$(date -u +%FT%TZ)] === EVAL: ${#EVAL_TASKS[@]} tasks, modes='$EVAL_MODES' ==="
 echo "[$(date -u +%FT%TZ)] model dir: $MODEL_DIR"
 
+# Symlink MODEL_DIR to a short path so eval_by_claude.py produces filenames
+# under Linux's 255-char limit (long DIR_SUFFIX in s3/s4/s7 overflows otherwise).
+EVAL_MODEL_DIR="/workspace/eval_model_${SETTING}"
+ln -sfn "$MODEL_DIR" "$EVAL_MODEL_DIR"
+echo "[$(date -u +%FT%TZ)] eval model symlink: $EVAL_MODEL_DIR -> $MODEL_DIR"
+
 for MODE in $EVAL_MODES; do
     echo "[$(date -u +%FT%TZ)] --- eval mode: $MODE ---"
     for EVAL_TASK in "${EVAL_TASKS[@]}"; do
         echo "[$(date -u +%FT%TZ)] eval: $EVAL_TASK"
         # eval_by_claude.py skips tasks whose score CSV already exists.
         python eval_by_claude.py \
-            --model "$MODEL_DIR" \
+            --model "$EVAL_MODEL_DIR" \
             --task "$EVAL_TASK" \
             --split_type random \
             $DISC_SHOTS_EVAL \
