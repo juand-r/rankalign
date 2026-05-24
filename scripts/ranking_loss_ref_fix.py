@@ -1837,10 +1837,41 @@ def main(args):
                     attention_mask_j_disc = batch["attention_mask_j_disc"].to(device)
                     token_id_disc = batch["token_id_disc"].to(device)
 
-                    outputs_i_disc = model(input_ids=input_ids_i_disc, attention_mask=attention_mask_i_disc)
-                    log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
-                    outputs_j_disc = model(input_ids=input_ids_j_disc, attention_mask=attention_mask_j_disc)
-                    log_probs_j_disc = F.log_softmax(outputs_j_disc.logits, dim=-1)
+                    # FIX1 (perf, 2026-05-24): per-item gating of the disc forward
+                    # pass. The val-NLL term is `is_labeled_i_t * BCE_i +
+                    # is_labeled_j_t * BCE_j` (and analogous in the non-log-odds
+                    # branch), so for an unlabeled item the disc-side contribution
+                    # is multiplied by zero. Skipping the forward when there is
+                    # no labeled item in the batch saves one model(...) call per
+                    # such item per training step. Math is bit-identical: zero
+                    # times anything (including a non-computed value, here
+                    # represented as `None`) is zero.
+                    #
+                    # Cost: one tiny CPU sync per side (`.any().item()`). Worth
+                    # it because we're skipping a full forward+backward pass.
+                    #
+                    # Expected savings (membership-sans-rosch, semi=0.1):
+                    #   per-prompt mode: ~92% both_U + ~8% case_A
+                    #     -> ~0.16 disc forwards / pair (down from 2)
+                    #     -> ~46% reduction of total (4) forwards per pair
+                    #   global mode (default weights): ~67% both_U + ~33% case_A
+                    #     -> ~0.66 disc forwards / pair
+                    #     -> ~33% reduction of total forwards per pair
+                    # For persona-v1 (single prompt, all labeled) and any
+                    # task/regime where every item is labeled, the gate is
+                    # always taken and behavior is unchanged from before.
+                    need_i_disc = bool(is_labeled_i_t.any().item())
+                    need_j_disc = bool(is_labeled_j_t.any().item())
+                    if need_i_disc:
+                        outputs_i_disc = model(input_ids=input_ids_i_disc, attention_mask=attention_mask_i_disc)
+                        log_probs_i_disc = F.log_softmax(outputs_i_disc.logits, dim=-1)
+                    else:
+                        log_probs_i_disc = None
+                    if need_j_disc:
+                        outputs_j_disc = model(input_ids=input_ids_j_disc, attention_mask=attention_mask_j_disc)
+                        log_probs_j_disc = F.log_softmax(outputs_j_disc.logits, dim=-1)
+                    else:
+                        log_probs_j_disc = None
                 else:
                     log_probs_i_disc = None
                     log_probs_j_disc = None
@@ -1922,8 +1953,21 @@ def main(args):
                     # FIX1 (val-NLL position fix, 2026-05-22): logits come from
                     # log_probs_i_disc / log_probs_j_disc (disc-prompt forward),
                     # and token_id_disc (= " Yes" tail) defines the slot length.
-                    logodds_correct_i = compute_logodds_simple(log_probs_i_disc, token_id_disc)
-                    logodds_correct_j = compute_logodds_simple(log_probs_j_disc, token_id_disc)
+                    # FIX1 (perf, 2026-05-24): when log_probs_*_disc is None
+                    # (per-item gated above because the item is unlabeled), the
+                    # corresponding bce term would have been multiplied by
+                    # is_labeled_*_t == 0 anyway. Use a zero placeholder; same
+                    # numerical result as computing the bce and then zeroing it.
+                    if log_probs_i_disc is not None:
+                        logodds_correct_i = compute_logodds_simple(log_probs_i_disc, token_id_disc)
+                        bce_i = F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i, reduction='none')
+                    else:
+                        bce_i = torch.zeros_like(indicator_i)
+                    if log_probs_j_disc is not None:
+                        logodds_correct_j = compute_logodds_simple(log_probs_j_disc, token_id_disc)
+                        bce_j = F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j, reduction='none')
+                    else:
+                        bce_j = torch.zeros_like(indicator_j)
                     # FIX1 (2026-05-22): no /2. Each pair contributes per-item
                     # NLL on whichever side(s) are labeled; the surrounding
                     # .mean() already averages across the batch. The legacy /2
@@ -1934,8 +1978,7 @@ def main(args):
                     # earlier v7 runs -- intentional, the v7 scale wasn't
                     # principled to begin with.
                     nll_validator_loss = (
-                        is_labeled_i_t * F.binary_cross_entropy_with_logits(logodds_correct_i, indicator_i, reduction='none') +
-                        is_labeled_j_t * F.binary_cross_entropy_with_logits(logodds_correct_j, indicator_j, reduction='none')
+                        is_labeled_i_t * bce_i + is_labeled_j_t * bce_j
                     ).mean()
                     # For logging, compute score_correct as log-odds (signed by correct answer)
                     #score_correct_i = logodds_correct_i * (2 * indicator_i - 1)
@@ -1986,8 +2029,17 @@ def main(args):
                     # score_correct_i = _logsumexp_yesno_at_slot(log_probs_i_disc, token_id_disc, indicator_i)
                     # score_correct_j = _logsumexp_yesno_at_slot(log_probs_j_disc, token_id_disc, indicator_j)
                     # nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
-                    score_correct_i = sum_completion_logprobs(log_probs_i_disc, token_correct_i)
-                    score_correct_j = sum_completion_logprobs(log_probs_j_disc, token_correct_j)
+                    # FIX1 (perf, 2026-05-24): mirror the log-odds branch --
+                    # skip score computation if the disc forward was gated off
+                    # (log_probs_*_disc is None for unlabeled items).
+                    if log_probs_i_disc is not None:
+                        score_correct_i = sum_completion_logprobs(log_probs_i_disc, token_correct_i)
+                    else:
+                        score_correct_i = torch.zeros_like(indicator_i)
+                    if log_probs_j_disc is not None:
+                        score_correct_j = sum_completion_logprobs(log_probs_j_disc, token_correct_j)
+                    else:
+                        score_correct_j = torch.zeros_like(indicator_j)
                     nll_validator_loss = -(is_labeled_i_t * score_correct_i + is_labeled_j_t * score_correct_j).mean()
 
                 # FIX1: Generator NLL is per-item, fires only for labeled positives.
