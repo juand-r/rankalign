@@ -205,24 +205,34 @@ METHODS: list[dict] = [
 #     `Neg self` are NA.
 #   - Plus the standard per-TC-type masking: methods that train with a
 #     specific TC are only meaningfully evaluable with that TC.
-_TRAINED_NA = {"PMI self", "Neg self"}
+# Updated 2026-05-23: PMI self / Neg self are no longer blanket-NA for
+# trained methods. After run_eval_persona_v1_trained_no_basetc.sh ran,
+# bare `self-`/`neg-` prefix files exist for the methods whose eval-time
+# TC policy includes them. Mask reflects "this column structurally cannot
+# exist given the method's TC policy at training+eval time":
+#
+#   policy `both` (#1, #2, #3, #10):     all four TC columns valid.
+#   policy `self` (#4, #5, #6, #11):     Neg* columns are N/A
+#                                          (no neg-TC eval ever runs).
+#   policy `neg`  (#7, #8, #9, #12):     PMI* columns are N/A
+#                                          (no self-TC eval ever runs).
 NA_COLS = {
     0: {"PMI base", "Neg base"},
-    # No-TC training (#1, #2, #3, #10): both PMI base and Neg base are valid.
-    1:  _TRAINED_NA,
-    2:  _TRAINED_NA,
-    3:  _TRAINED_NA,
-    10: _TRAINED_NA,
-    # self-TC training: Neg base is N/A.
-    4:  _TRAINED_NA | {"Neg base"},
-    5:  _TRAINED_NA | {"Neg base"},
-    6:  _TRAINED_NA | {"Neg base"},
-    11: _TRAINED_NA | {"Neg base"},
-    # neg-TC training: PMI base is N/A.
-    7:  _TRAINED_NA | {"PMI base"},
-    8:  _TRAINED_NA | {"PMI base"},
-    9:  _TRAINED_NA | {"PMI base"},
-    12: _TRAINED_NA | {"PMI base"},
+    # No-TC training: all four TC columns are valid.
+    1:  set(),
+    2:  set(),
+    3:  set(),
+    10: set(),
+    # self-TC training: Neg self AND Neg base are N/A.
+    4:  {"Neg self", "Neg base"},
+    5:  {"Neg self", "Neg base"},
+    6:  {"Neg self", "Neg base"},
+    11: {"Neg self", "Neg base"},
+    # neg-TC training: PMI self AND PMI base are N/A.
+    7:  {"PMI self", "PMI base"},
+    8:  {"PMI self", "PMI base"},
+    9:  {"PMI self", "PMI base"},
+    12: {"PMI self", "PMI base"},
 }
 
 
