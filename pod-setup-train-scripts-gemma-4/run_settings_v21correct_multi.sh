@@ -56,84 +56,86 @@ ADAPTER_SUFFIX=""
 EVAL_MODES=""
 TRAIN_FLAGS=""
 
-# Adapter suffix values are derived from ranking_loss_ref_gemma4.py line ~2771
-# (verified against TRAINING_PLAN_v21correct_multi.md and prior v2.1correct-upper runs).
+# Adapter suffix values derived from ranking_loss_ref_fix.py save_directory (updated 2026-05-24).
+# All runs use v7- prefix and --fix1 suffix. fsx settings also get --ppd (per-prompt-delta).
 configure_setting() {
     local S="$1"
     local pref_w=1 nll_v_w=0 nll_g_w=0
     local semi_flag="--semi-supervised 0.1"
-    local fsx="" vlo="" tc_train=""
+    local fsx="" vlo="" tc_train="" ppd="" sbm=""
 
     case "$S" in
         1)
             SETTING_NAME="SFT-lo"
             pref_w=0; nll_v_w=1; nll_g_w=1; semi_flag="--labeled-only 0.1"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1--fix1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         2)
             SETTING_NAME="RankAlign"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         3)
             SETTING_NAME="New+fsx"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
-            EVAL_MODES="--self-typicality --neg-typicality"  # needs both for "#7 vs #3 (neg)" comparison in training plan
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
+            EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         4)
             SETTING_NAME="New+fsx+tc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         5)
             SETTING_NAME="RankAlign+fsx+tc"
+            # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--ppd--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         6)
             SETTING_NAME="RankAlign+tc"
             tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         7)
             SETTING_NAME="New+fsx+negtc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         8)
             SETTING_NAME="RankAlign+fsx+negtc"
+            # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--ppd--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         9)
             SETTING_NAME="RankAlign+negtc"
             tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         10)
             SETTING_NAME="RankAlign+fsx"
             fsx="--force-same-x"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--force-same-x--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--force-same-x--ppd--semi0.1--fix1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         11)
             SETTING_NAME="New+tc"
             nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         12)
             SETTING_NAME="New+negtc"
             nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         *)
@@ -147,13 +149,26 @@ configure_setting() {
 --all --delta 0.15 $semi_flag --disc-shots zero \
 --lora --gradient_checkpointing \
 --models-dir $MODELS_DIR --total_samples 5110 --no-upload-hf"
+    # --per-prompt-delta and --shape-budget-mode global are both mandatory with
+    # --force-same-x: pairs are within-prompt, so global delta/budget is too coarse.
+    if [ -n "$fsx" ]; then
+        ppd="--per-prompt-delta"
+        sbm="--shape-budget-mode global"
+    fi
     [ -n "$fsx" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $fsx"
+    [ -n "$ppd" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $ppd"
+    [ -n "$sbm" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $sbm"
     [ -n "$vlo" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $vlo"
     [ -n "$tc_train" ] && TRAIN_FLAGS="$TRAIN_FLAGS $tc_train"
 }
 
 adapter_dir_for() {
-    echo "${MODELS_DIR}/v6-google--gemma-4-31B-it-delta0.15-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}"
+    # --delta-bins auto-computes delta at runtime, so the exact value in the
+    # directory name is unknown until training runs. Glob on delta* and use
+    # the (unique) match; returns empty string if none found yet.
+    local found
+    found=$(ls -d "${MODELS_DIR}/v7-google--gemma-4-31B-it-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}" 2>/dev/null | head -1)
+    echo "${found}"
 }
 
 run_setting() {
@@ -178,10 +193,12 @@ run_setting() {
     else
         echo "[$(date -u +%H:%M:%S)] training: starting (log: $TRAIN_LOG)" | tee -a "$LOG"
         # shellcheck disable=SC2086
-        python ranking_loss_ref_gemma4.py $TRAIN_FLAGS \
+        python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
             > "$TRAIN_LOG" 2>&1
         local rc=$?
         echo "[$(date -u +%H:%M:%S)] training exit=$rc" | tee -a "$LOG"
+        # Refresh ad2: delta was auto-computed, so path was unknown before training.
+        ad2=$(adapter_dir_for 2)
         if [ ! -d "$ad2" ]; then
             echo "[$(date -u +%H:%M:%S)] FATAL: epoch2 adapter missing after training (setting $S). See $TRAIN_LOG" | tee -a "$LOG"
             exit 1
