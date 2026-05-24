@@ -53,6 +53,12 @@ echo "=== install requirements.txt (torch excluded — comes from pod image) ===
 grep -v '^torch' /workspace/rankalign/requirements.txt > /tmp/req-gemma2-notorch.txt
 pip install --quiet --ignore-installed -r /tmp/req-gemma2-notorch.txt
 
+# bitsandbytes 0.45.x ships triton.ops imports that were removed in triton 3.x
+# (which is bundled with torch 2.4+). Upgrade to >=0.49.2 which handles triton 3.x.
+# See: memory feedback_runpod_pod_setup_gotchas.md item 12.
+echo "=== upgrade bitsandbytes for triton 3.x compatibility ==="
+pip install --quiet "bitsandbytes>=0.49.2"
+
 echo "=== verify imports ==="
 python - <<'PYEOF'
 import torch, transformers, peft, trl, accelerate

@@ -452,6 +452,7 @@ Common failure modes seen this week:
 | `argparse: % must be escaped` | `argparse` `%` in help string | Already fixed; but if a new flag is added with `%` in help, escape as `%%`. |
 | Per-prompt-delta + delta_bins=None | flag sanity check | Always pass both `--per-prompt-delta` AND `--delta-bins 10` together. |
 | Disc-shots few but task expects zero | Some tasks (codecontests, humaneval) are zero-only | Out of scope for this handoff. |
+| `ModuleNotFoundError: No module named 'triton.ops'` | `bitsandbytes==0.45.0` imports `triton.ops` which was removed in triton 3.x (bundled with torch 2.4+). peft triggers this unconditionally when creating LoRA modules, even without 8-bit quantization. | `pip install "bitsandbytes>=0.49.2"`. Already applied in `setup-runpod-gemma2.sh` and `requirements.txt`. If hitting this on an existing venv: `source /workspace/.venv/bin/activate && pip install "bitsandbytes>=0.49.2"`. |
 
 ---
 
