@@ -8,8 +8,9 @@
 #   nohup bash /workspace/rankalign/pod-setup-train-scripts-gemma-4/run_settings_v21correct_upper.sh 1 4 \
 #       > /workspace/logs/train_s1_s4.log 2>&1 &
 #
-# Settings available in this script:
-#   1=SFT-lo  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc
+# Settings available in this script (all produce v7- adapters with --fix1 suffix via ranking_loss_ref_fix.py):
+#   1=SFT-lo  3=New+fsx  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc
+#   11=New+tc  12=New+negtc
 #
 # Previously done on correct-upper: s2 (RankAlign), s6 (RankAlign+tc), s9 (RankAlign+negtc).
 #
@@ -74,37 +75,55 @@ configure_setting() {
         1)
             SETTING_NAME="SFT-lo"
             pref_w=0; nll_v_w=1; nll_g_w=1; semi_flag="--labeled-only 0.1"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1--fix1"
+            EVAL_MODES="--self-typicality --neg-typicality"
+            ;;
+        3)
+            SETTING_NAME="New+fsx"
+            nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         4)
             SETTING_NAME="New+fsx+tc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         5)
             SETTING_NAME="RankAlign+fsx+tc"
             # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         7)
             SETTING_NAME="New+fsx+negtc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         8)
             SETTING_NAME="RankAlign+fsx+negtc"
             # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--semi0.1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--semi0.1--fix1"
+            EVAL_MODES="--neg-typicality"
+            ;;
+        11)
+            SETTING_NAME="New+tc"
+            nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--self-typicality"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1--fix1"
+            EVAL_MODES="--self-typicality"
+            ;;
+        12)
+            SETTING_NAME="New+negtc"
+            nll_v_w=1; nll_g_w=1; vlo="--validator-log-odds"; tc_train="--neg-typicality"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--vallogodds--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         *)
-            echo "FATAL: unknown setting '$S' — this script handles settings 1, 4, 5, 7, 8 on correct-upper"; exit 2 ;;
+            echo "FATAL: unknown setting '$S' — this script handles settings 1, 3, 4, 5, 7, 8, 11, 12 on correct-upper"; exit 2 ;;
     esac
 
     TRAIN_FLAGS="--model $MODEL --num_epochs 3 --task $HE_TASK \
@@ -120,7 +139,7 @@ configure_setting() {
 }
 
 adapter_dir_for() {
-    echo "${MODELS_DIR}/v6-google--gemma-4-31B-it-delta0.15-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}"
+    echo "${MODELS_DIR}/v7-google--gemma-4-31B-it-delta0.15-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}"
 }
 
 run_setting() {
@@ -198,7 +217,7 @@ run_setting() {
 # ---- main -------------------------------------------------------------------
 if [ $# -eq 0 ]; then
     echo "usage: run_settings_v21correct_upper.sh <SETTING_1> [SETTING_2 ...]"
-    echo "settings: 1=SFT-lo  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc"
+    echo "settings: 1=SFT-lo  3=New+fsx  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc  11=New+tc  12=New+negtc"
     exit 1
 fi
 
