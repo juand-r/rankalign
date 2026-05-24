@@ -139,7 +139,12 @@ configure_setting() {
 }
 
 adapter_dir_for() {
-    echo "${MODELS_DIR}/v7-google--gemma-4-31B-it-delta0.15-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}"
+    # --delta-bins auto-computes delta at runtime, so the exact value in the
+    # directory name is unknown until training runs. Glob on delta* and use
+    # the (unique) match; returns empty string if none found yet.
+    local found
+    found=$(ls -d "${MODELS_DIR}/v7-google--gemma-4-31B-it-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}" 2>/dev/null | head -1)
+    echo "${found}"
 }
 
 run_setting() {
