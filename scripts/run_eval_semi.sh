@@ -16,7 +16,10 @@
 # Example:
 #   run 1 2 scripts/run_eval_semi.sh ../models/v6-...-semi0.1 --self-typcorr --log-odds -- plausibleqa-nq_1109 plausibleqa-nq_1114
 
-source /u/jdr/venvs/venv_lexcons/bin/activate
+# VENV env var overrides the hardcoded venv (needed for gemma-4-31B-it which
+# requires transformers 5.x at /datastor2/jdr/venvs/gemma4/).
+VENV="${VENV:-/u/jdr/venvs/venv_lexcons}"
+source "$VENV/bin/activate"
 
 MODEL="$1"
 shift

@@ -39,7 +39,11 @@
 #   run 1 2 scripts/run_train_semi.sh google/gemma-2-9b-it ifeval-concat comb semi 0.1 --log-odds
 #   run 1 2 scripts/run_train_semi.sh Qwen/Qwen3.5-9B ambigqa comb semi 0.1 --log-odds
 
-source /u/jdr/venvs/venv_lexcons/bin/activate
+# VENV env var overrides the hardcoded venv (needed for gemma-4-31B-it which
+# requires transformers 5.x at /datastor2/jdr/venvs/gemma4/). Default is the
+# project venv at /u/jdr/venvs/venv_lexcons.
+VENV="${VENV:-/u/jdr/venvs/venv_lexcons}"
+source "$VENV/bin/activate"
 
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
@@ -84,6 +88,14 @@ PER_PROMPT_DELTA=""
 # behavior bit-for-bit. "global" enables global per-shape budgets that restore
 # meaningful shape-weight control under fsx + prompt-level labeling.
 SHAPE_BUDGET_MODE=""
+# --consistency-ft: opt-in flag for ranking_loss_ref_fix.py. SFT-only filter
+# that drops items whose binarized validator and generator scores disagree
+# (thresholds = means). Requires LOSS=sft and no --force-same-x. The python
+# script enforces this; we just plumb the flag through.
+CONSISTENCY_FT=""
+# --gradient-checkpointing: opt-in for memory-heavy models (gemma-4-31B-it).
+# Off by default; existing runs unchanged.
+GRAD_CKPT=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -113,6 +125,8 @@ while [[ $# -gt 0 ]]; do
         --gemma4-lora) GEMMA4_LORA="--gemma4-lora"; shift ;;
         --per-prompt-delta) PER_PROMPT_DELTA="--per-prompt-delta"; shift ;;
         --shape-budget-mode) SHAPE_BUDGET_MODE="--shape-budget-mode $2"; shift 2 ;;
+        --consistency-ft) CONSISTENCY_FT="--consistency-ft"; shift ;;
+        --gradient-checkpointing) GRAD_CKPT="--gradient_checkpointing"; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -239,7 +253,9 @@ python "$SCRIPT" \
     $DELTA_BINS_FLAG \
     $GEMMA4_LORA \
     $PER_PROMPT_DELTA \
-    $SHAPE_BUDGET_MODE
+    $SHAPE_BUDGET_MODE \
+    $CONSISTENCY_FT \
+    $GRAD_CKPT
 
 STATUS=$?
 echo ""

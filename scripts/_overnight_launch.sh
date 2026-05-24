@@ -3,9 +3,21 @@
 #
 # Usage:
 #   bash scripts/_overnight_launch.sh DATASET MODEL SETTING
-#     DATASET in {membership, persona, ifeval}
-#     MODEL   in {gemma-2-2b-it, gemma-2-9b-it} (or any HF id; just the bare name)
-#     SETTING in {s1, s2, s3, s4, s5, s6, s7, s11, s12}
+#     DATASET in {membership, persona, ifeval, humaneval}
+#     MODEL   in {gemma-2-2b-it, gemma-2-9b-it, gemma-4-31B-it} (or any HF id;
+#                 just the bare name; humaneval requires gemma-4-31B-it)
+#     SETTING in {s1, s2, s3, s4, s5, s6, s7, s11, s12, s13}
+#
+#   s13 = SFT + --consistency-ft (validator/generator agreement filter; argparse
+#         enforces pref=0, NLLs>0, fsx OFF). Mirrors SFT-lo (s1) flag set
+#         otherwise: --labeled-only 0.1, no fsx, no vlo, no tc.
+#
+#   humaneval + gemma-4-31B-it triggers special handling:
+#     - VENV=/datastor2/jdr/venvs/gemma4 (transformers 5.x)
+#     - --gemma4-lora (regex target_modules; skip merge_and_unload)
+#     - --gradient-checkpointing
+#     - 3 GPUs (per gemma-4 doc + user request)
+#     - Eval task list enumerated dynamically from data/humaneval/v2.1correct-upper
 #
 # Submits two slurm jobs:
 #   1. Train job via ~/.local/bin/run -> scripts/run_train_semi.sh ...
@@ -82,6 +94,35 @@ case "$DATASET" in
         # ifeval has long prompts; cap seq len to keep VRAM in check.
         MAX_SEQ_FLAG="--max-seq-len 1024"
         ;;
+    humaneval)
+        # humaneval-v2.1correct-upper: gemma-4-31B-it only (per user, 2026-05-24).
+        # Task list enumerated dynamically from data/humaneval/v2.1correct-upper/.
+        TASK="humaneval-v2.1correct-upper"
+        DATASET_DIR="v2.1correct-upper"
+        REPO_ROOT_FOR_TASKS="$(cd "$(dirname "$0")/.." && pwd)"
+        EVAL_TASKS=$(ls "$REPO_ROOT_FOR_TASKS/data/humaneval/${DATASET_DIR}/humaneval_"*.csv 2>/dev/null \
+            | xargs -n1 basename 2>/dev/null | sed 's/\.csv$//' \
+            | sed "s/^/${TASK}-/" | tr '\n' ' ')
+        EVAL_TASKS="${EVAL_TASKS% }"
+        if [ -z "$EVAL_TASKS" ]; then
+            echo "FATAL: humaneval task enumeration produced empty list (data dir missing?)"
+            exit 1
+        fi
+        # Gemma-4-31B-it is the only supported model here. Enforce.
+        case "$MODEL" in
+            *gemma-4-31B-it*|*gemma-4-31b-it*) ;;
+            *) echo "FATAL: humaneval DATASET requires google/gemma-4-31B-it (got $MODEL)"; exit 1 ;;
+        esac
+        GPUS=3
+        TRAIN_HOURS=24
+        EVAL_HOURS=8
+        TRAIN_MEM=192G
+        EVAL_MEM=128G
+        MAX_SEQ_FLAG=""
+        # Gemma-4 humaneval uses --disc-shots zero per ref script
+        # run_settings_v21correct_upper.sh; gemma-2 still defaults to "few".
+        DISC_SHOTS="${DISC_SHOTS:-zero}"
+        ;;
     *)
         echo "Unknown DATASET: $DATASET (membership|persona|ifeval)"
         exit 1
@@ -109,6 +150,8 @@ build_setting() {
     PPD_STR=""
     VLO_STR=""
     SEMI_STR=""
+    CFT_STR=""
+    CONSISTENCY_FT_FLAG=""
 
     case "$SETTING" in
         s1)   # SFT-lo: sft + labelonly + no fsx
@@ -211,6 +254,22 @@ build_setting() {
             VLO_STR="--vallogodds"
             SEMI_STR="--semi0.1"
             ;;
+        s13)  # SFT + consistency-ft: SFT-lo (s1) flag set + --consistency-ft.
+              # Argparse enforces pref=0, NLLv>0, NLLg>0, fsx OFF.
+              # CFT_STR adds --cft to the save-dir between {ppd}{cft} positions
+              # (see ranking_loss_ref_fix.py L2182, edited 2026-05-24).
+            LOSS="sft" ; SEMI_MODE="labelonly" ; RATIO="0.1"
+            FSX_FLAG="--no-force-same-x"
+            TC_FLAG="" ; TC_LABEL=""
+            LOGODDS_FLAG=""
+            TC_EVAL_LIST="self neg"
+            PREF_STR="--pref0.0" ; NLLV_STR="--nllv1.0" ; NLLG_STR="--nllg1.0"
+            FSX_STR="" ; PPD_STR=""
+            VLO_STR=""
+            SEMI_STR="--labelonly0.1"
+            CFT_STR="--cft"          # only s13 uses this
+            CONSISTENCY_FT_FLAG="--consistency-ft"
+            ;;
         *)
             echo "Unknown SETTING: $SETTING"
             exit 1
@@ -228,19 +287,37 @@ if [ -n "${WALLTIME:-}" ]; then
 fi
 
 # All the universal flags for fix1 overnight runs.
+# disc-shots default = "few" for gemma-2 settings (per project policy);
+# overridden to "zero" when the user explicitly opts in via DISC_SHOTS env
+# var (see gemma-4 humaneval branch below).
+DISC_SHOTS_FLAG="--disc-shots ${DISC_SHOTS:-few}"
 COMMON_FLAGS=( --script ranking_loss_ref_fix.py
-               --disc-shots few
+               $DISC_SHOTS_FLAG
                --delta-bins 10 )
 [ -n "$MAX_SEQ_FLAG" ] && COMMON_FLAGS+=( $MAX_SEQ_FLAG )
 [ -n "$FSX_FLAG" ]     && COMMON_FLAGS+=( $FSX_FLAG )
 [ -n "$TC_FLAG" ]      && COMMON_FLAGS+=( $TC_FLAG )
 [ -n "$LOGODDS_FLAG" ] && COMMON_FLAGS+=( $LOGODDS_FLAG )
+[ -n "$CONSISTENCY_FT_FLAG" ] && COMMON_FLAGS+=( $CONSISTENCY_FT_FLAG )
 
 # fsx settings get ppd + sbm-global. (Detect via FSX_STR which is set when the
 # setting USES fsx.)
 if [ -n "$FSX_STR" ]; then
     COMMON_FLAGS+=( --per-prompt-delta --shape-budget-mode global )
 fi
+
+# Gemma-4-31B-it special handling: different venv (transformers 5.x),
+# --gemma4-lora (regex target_modules + skip merge_and_unload), and
+# --gradient-checkpointing for VRAM. We DO NOT change anything for gemma-2.
+USE_GEMMA4_LORA=0
+case "$MODEL" in
+    *gemma-4-31B-it*|*gemma-4-31b-it*)
+        USE_GEMMA4_LORA=1
+        COMMON_FLAGS+=( --gemma4-lora --gradient-checkpointing )
+        # VENV is read by run_train_semi.sh and run_eval_semi.sh.
+        VENV_OVERRIDE="${VENV_OVERRIDE:-/datastor2/jdr/venvs/gemma4}"
+        ;;
+esac
 
 # Use absolute /datastor2 models dir to avoid /datastor1 fill-up.
 MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2}"
@@ -255,21 +332,25 @@ DELTA_PLACEHOLDER="DELTA"  # we don't know delta exactly until script runs;
                             # we'll glob-match instead.
 
 # Build the variable-suffix string the python script appends.
-# NOTE: order from ranking_loss_ref_fix.py L2182:
-#   {tc}{lenorm}{single}{full-completion}{eos}{pref}{nllv}{nllg}{fsx}{ppd}{valboost}{vallogodds}{semi}{fix1}
+# NOTE: order from ranking_loss_ref_fix.py L2182 (post-2026-05-24 cft edit):
+#   {tc}{lenorm}{single}{full-completion}{eos}{pref}{nllv}{nllg}{fsx}{ppd}{cft}{valboost}{vallogodds}{semi}{fix1}
 # with single, lenorm, eos, valboost all empty in our case.
-SUFFIX="${TC_LABEL}--full-completion${PREF_STR}${NLLV_STR}${NLLG_STR}${FSX_STR}${PPD_STR}${VLO_STR}${SEMI_STR}--fix1"
+SUFFIX="${TC_LABEL}--full-completion${PREF_STR}${NLLV_STR}${NLLG_STR}${FSX_STR}${PPD_STR}${CFT_STR}${VLO_STR}${SEMI_STR}--fix1"
 
 MODEL_REPL=$(echo "$MODEL" | sed 's|/|--|g')
 
 # Determine LoRA merge suffix: matches the python script's logic in run_train_semi.sh
-# (LoRA flag set when MODEL doesn't contain -2b- substring).
+# (LoRA flag set when MODEL doesn't contain -2b- substring), with the
+# additional rule that --gemma4-lora SKIPS merge_and_unload at save time, so
+# the eval target is the adapter dir (no _merged sibling).
 USE_LORA=1
 if [[ "$MODEL" == *"-2b"* || "$MODEL" == *"-2b-"* ]]; then
     USE_LORA=0
 fi
 MERGED_SUFFIX=""
-[ "$USE_LORA" -eq 1 ] && MERGED_SUFFIX="_merged"
+if [ "$USE_LORA" -eq 1 ] && [ "$USE_GEMMA4_LORA" -eq 0 ]; then
+    MERGED_SUFFIX="_merged"
+fi
 
 PATH_PREFIX="${MODELS_DIR}/v7-${MODEL_REPL}-delta"
 
@@ -299,14 +380,21 @@ build_eval_flags() {
 
 label="$DATASET-$(basename $MODEL)-$SETTING"
 
+# Optional venv override (set above when MODEL is gemma-4-31B-it). When set,
+# we prepend `VENV=...` to the wrapped command so run_train_semi.sh /
+# run_eval_semi.sh source the right virtualenv. Default = lexcons (unchanged).
+VENV_PREFIX=""
+[ -n "${VENV_OVERRIDE:-}" ] && VENV_PREFIX="VENV=${VENV_OVERRIDE} "
+
 echo "========================================"
 echo "Overnight launch: $label"
 echo "  TASK:          $TASK"
-echo "  MODEL:         $MODEL  (LoRA=${USE_LORA})"
-echo "  SETTING:       $SETTING (loss=$LOSS, semi_mode=$SEMI_MODE, fsx_flag='$FSX_FLAG', tc='$TC_FLAG', vlo='$LOGODDS_FLAG')"
+echo "  MODEL:         $MODEL  (LoRA=${USE_LORA}, gemma4-lora=${USE_GEMMA4_LORA})"
+echo "  SETTING:       $SETTING (loss=$LOSS, semi_mode=$SEMI_MODE, fsx_flag='$FSX_FLAG', tc='$TC_FLAG', vlo='$LOGODDS_FLAG', cft='$CONSISTENCY_FT_FLAG')"
 echo "  GPUs:          $GPUS"
 echo "  TRAIN_HOURS:   $TRAIN_HOURS"
 echo "  EVAL_HOURS:    $EVAL_HOURS"
+echo "  VENV:          ${VENV_OVERRIDE:-/u/jdr/venvs/venv_lexcons (default)}"
 echo "  COMMON_FLAGS:  ${COMMON_FLAGS[*]}"
 echo "  EVAL TC list:  $TC_EVAL_LIST"
 echo "  Expected save: ${GLOB_PATH}"
@@ -314,13 +402,20 @@ echo "========================================"
 
 if [ -n "${DRYRUN:-}" ]; then
     echo "DRYRUN. Would run:"
-    echo "  run $GPUS $TRAIN_HOURS --cpu 4 --mem $TRAIN_MEM scripts/run_train_semi.sh $MODEL $TASK $LOSS $SEMI_MODE $RATIO ${COMMON_FLAGS[*]}"
+    echo "  ${VENV_PREFIX}run $GPUS $TRAIN_HOURS --cpu 4 --mem $TRAIN_MEM scripts/run_train_semi.sh $MODEL $TASK $LOSS $SEMI_MODE $RATIO ${COMMON_FLAGS[*]}"
     exit 0
 fi
 
 # 1) Submit train.
-TRAIN_OUT=$(run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
-    scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+# When VENV_PREFIX is set, run_train_semi.sh activates the override venv via
+# its env-var hook (added 2026-05-24 alongside --consistency-ft).
+if [ -n "$VENV_PREFIX" ]; then
+    TRAIN_OUT=$(VENV="$VENV_OVERRIDE" run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
+        scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+else
+    TRAIN_OUT=$(run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
+        scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+fi
 echo "$TRAIN_OUT"
 TRAIN_JOBID=$(echo "$TRAIN_OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
 
@@ -345,8 +440,11 @@ submit_eval() {
     # WRAP_CMD picks the matching epoch2 dir at sbatch run-time. If multiple
     # match (sweep + main collision), pick the most recent by mtime.
     # If none match (training died early), exit 0 with SKIP message.
+    # Inject VENV env var when MODEL is gemma-4 (run_eval_semi.sh reads it).
+    local venv_export=""
+    [ -n "${VENV_OVERRIDE:-}" ] && venv_export="export VENV='${VENV_OVERRIDE}'; "
     local wrap_cmd
-    wrap_cmd="cd ${REPO_ROOT} && \
+    wrap_cmd="cd ${REPO_ROOT} && ${venv_export}\
 MODEL_DIR=\$(ls -dt ${GLOB_PATH} 2>/dev/null | head -1); \
 if [ -z \"\$MODEL_DIR\" ] || [ ! -d \"\$MODEL_DIR\" ]; then echo 'SKIP - no matching ${GLOB_PATH}'; exit 0; fi; \
 echo \"Eval model: \$MODEL_DIR\"; \

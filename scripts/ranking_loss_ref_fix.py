@@ -350,6 +350,7 @@ def main(args):
                 "semi_supervised": args.semi_supervised,
                 "labeled_only": args.labeled_only,
                 "split_seed": args.split_seed,
+                "consistency_ft": bool(args.consistency_ft),
             }
         )
         print(f"Weights & Biases initialized: rankalign/{run_name}")
@@ -826,6 +827,113 @@ def main(args):
             typ_scores_for_z = [typ_scores_for_z[i] for i in keep]
             is_labeled_flags = [True] * len(L_train_all)
             print(f"Filtered to {len(L_train_all)} labeled items")
+        print(f"{'='*60}\n")
+
+    # --- Consistency-FT filter (opt-in, SFT-only) ---
+    # Computes per-item generator scores (raw log P(completion|gen_prompt))
+    # in a single forward-only pass, derives mean thresholds t_v, t_g over
+    # validator/generator scores, binarizes each item, and DROPS items whose
+    # binarized labels disagree. Pass-through (no behavior change) when
+    # --consistency-ft is not set. Argparse already enforces:
+    #   pref_w == 0, nll_v_w > 0, nll_g_w > 0, force_same_x == False.
+    consistency_ft_stats = None
+    if args.consistency_ft:
+        print("\n" + "="*60)
+        print("CONSISTENCY-FT FILTER (validator/generator agreement)")
+        print("="*60)
+        print(f"Computing per-item generator scores for {len(p_train_tune)} items "
+              f"(raw log P(completion|gen_prompt), no length-norm, no typicality)...")
+        gen_scores = []
+        for idx, pc in enumerate(tqdm(p_train_tune)):
+            log_prob = get_completion_token_logprobs(
+                pc.prompt, pc.completion, model, tokenizer, device,
+                is_chat=with_chat, has_system_role=has_system_role,
+                disable_thinking=disable_thinking,
+            )
+            gen_scores.append(float(log_prob.sum().item()))
+            if debug and idx < 3:
+                dbg(f"cft idx={idx} prompt={pc.prompt[:200]!r}")
+                dbg(f"cft completion={pc.completion!r} gen_score={gen_scores[-1]:.6f}")
+
+        val_scores = list(logprobs_last_layer)
+
+        # Compute thresholds. With --semi-supervised, base means on labeled
+        # items only (so t_v, t_g reflect the supervised distribution; the
+        # filter then only consults bv/bg for labeled items anyway).
+        if args.semi_supervised is not None:
+            ref_idx = [i for i, lf in enumerate(is_labeled_flags) if lf]
+            if not ref_idx:
+                raise ValueError("--consistency-ft: no labeled items to compute thresholds")
+            v_for_mean = [val_scores[i] for i in ref_idx]
+            g_for_mean = [gen_scores[i] for i in ref_idx]
+            t_basis = "labeled-only"
+        else:
+            if not val_scores:
+                raise ValueError("--consistency-ft: no items to compute thresholds")
+            v_for_mean = val_scores
+            g_for_mean = gen_scores
+            t_basis = "all-items"
+        t_v = sum(v_for_mean) / len(v_for_mean)
+        t_g = sum(g_for_mean) / len(g_for_mean)
+
+        bv = [1 if v > t_v else 0 for v in val_scores]
+        bg = [1 if g > t_g else 0 for g in gen_scores]
+
+        cell_counts_labeled = {(0, 0): 0, (0, 1): 0, (1, 0): 0, (1, 1): 0}
+        for i in range(len(L_train_all)):
+            if is_labeled_flags[i]:
+                cell_counts_labeled[(bv[i], bg[i])] += 1
+
+        # Filter: drop labeled items where bv != bg; keep all unlabeled.
+        keep = []
+        n_unlabeled_kept = 0
+        for i in range(len(L_train_all)):
+            if not is_labeled_flags[i]:
+                keep.append(i)
+                n_unlabeled_kept += 1
+            elif bv[i] == bg[i]:
+                keep.append(i)
+
+        n_labeled_total = sum(is_labeled_flags)
+        n_labeled_kept = (cell_counts_labeled[(0, 0)] +
+                          cell_counts_labeled[(1, 1)])
+        n_labeled_dropped = n_labeled_total - n_labeled_kept
+
+        L_train_all = [L_train_all[i] for i in keep]
+        p_train_tune = [p_train_tune[i] for i in keep]
+        p_train_gold = [p_train_gold[i] for i in keep]
+        logprobs_last_layer = [logprobs_last_layer[i] for i in keep]
+        typ_scores_for_z = [typ_scores_for_z[i] for i in keep]
+        is_labeled_flags = [is_labeled_flags[i] for i in keep]
+
+        consistency_ft_stats = {
+            "t_v": float(t_v),
+            "t_g": float(t_g),
+            "threshold_basis": t_basis,
+            "n_total_pre_filter": int(len(bv)),
+            "n_labeled_total": int(n_labeled_total),
+            "n_labeled_kept": int(n_labeled_kept),
+            "n_labeled_dropped": int(n_labeled_dropped),
+            "n_unlabeled_kept": int(n_unlabeled_kept),
+            "n_kept": int(len(L_train_all)),
+            "label_cells_bv_bg": {
+                "00_low_low":   int(cell_counts_labeled[(0, 0)]),
+                "01_low_high":  int(cell_counts_labeled[(0, 1)]),
+                "10_high_low":  int(cell_counts_labeled[(1, 0)]),
+                "11_high_high": int(cell_counts_labeled[(1, 1)]),
+            },
+        }
+        print(f"Threshold basis: {t_basis}")
+        print(f"  t_v (mean validator score) = {t_v:.4f}")
+        print(f"  t_g (mean generator score) = {t_g:.4f}")
+        print(f"Labeled-item binarization cells (bv, bg):")
+        print(f"  (0,0) low-low   = {cell_counts_labeled[(0, 0)]:>5}  KEPT")
+        print(f"  (1,1) high-high = {cell_counts_labeled[(1, 1)]:>5}  KEPT")
+        print(f"  (0,1) low-high  = {cell_counts_labeled[(0, 1)]:>5}  dropped")
+        print(f"  (1,0) high-low  = {cell_counts_labeled[(1, 0)]:>5}  dropped")
+        print(f"Kept {len(L_train_all)} items: "
+              f"{n_labeled_kept} labeled-agree + {n_unlabeled_kept} unlabeled "
+              f"(dropped {n_labeled_dropped} disagreement-labeled)")
         print(f"{'='*60}\n")
 
     if train_g_or_d == 'both':
@@ -1320,7 +1428,9 @@ def main(args):
                     "semi_supervised": args.semi_supervised,
                     "labeled_only": args.labeled_only,
                     "split_seed": args.split_seed,
+                    "consistency_ft": bool(args.consistency_ft),
                 },
+                "consistency_ft": consistency_ft_stats,
                 "shape_weights": dict(shape_weights),
                 "per_shape_budget": dict(per_shape_budget),  # {} when mode='per-prompt'
                 "score_metric": score_name,
@@ -2167,6 +2277,7 @@ def main(args):
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
             ppd_str = "--ppd" if args.per_prompt_delta else ""
+            cft_str = "--cft" if args.consistency_ft else ""
             valboost_str = "--valboost" if args.boost_initial_val else ""
             vallogodds_str = "--vallogodds" if validator_log_odds else ""
             if args.semi_supervised is not None:
@@ -2179,7 +2290,7 @@ def main(args):
             # FIX1: append --fix1 suffix so trained checkpoints / score CSVs
             # from the fixed code path are unambiguous.
             fix_str = "--fix1"
-            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + f"-delta{delta:.2f}" + "-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + ppd_str + valboost_str + vallogodds_str + semi_str + fix_str
+            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + f"-delta{delta:.2f}" + "-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + ppd_str + cft_str + valboost_str + vallogodds_str + semi_str + fix_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -2329,6 +2440,20 @@ if __name__ == "__main__":
                         help="[fix1] Sampling weight for mixed_pos pairs (U lo, L_pos hi).")
     parser.add_argument("--shape-weight-both-u", type=float, default=0.40,
                         help="[fix1] Sampling weight for both_U pairs (U lo, U hi).")
+    parser.add_argument("--consistency-ft", action="store_true", default=False,
+                        help="[fix1, SFT-only] Coarse validator/generator consistency filter "
+                             "applied BEFORE training. Computes mean validator score t_v and "
+                             "mean generator score t_g (raw log P(completion|gen_prompt), no "
+                             "length norm, no typicality), binarizes each item by these "
+                             "thresholds (1 if score > threshold else 0), and DROPS items "
+                             "whose binarized validator and generator labels disagree. "
+                             "Requires the SFT setting: --preference_loss_weight 0, "
+                             "--nll_validator_weight > 0, --nll_generator_weight > 0, "
+                             "and --force-same-x OFF (enforced by argparse). With "
+                             "--semi-supervised, only labeled items are filtered; unlabeled "
+                             "items pass through unchanged. Adds --cft to save dir name. "
+                             "Stats logged to per-run training_run_logs/<...>.json. "
+                             "OFF by default (no behavior change).")
     parser.add_argument("--shape-budget-mode", type=str, default="per-prompt",
                         choices=["per-prompt", "global"],
                         help="[fix1] How to allocate the shape sampling budget. "
@@ -2385,6 +2510,17 @@ if __name__ == "__main__":
                      "there is one virtual prompt group, so 'global' and 'per-prompt' "
                      "produce essentially the same allocation; if you really want to "
                      "run fsx-off, use the default --shape-budget-mode per-prompt.")
+    if args.consistency_ft:
+        if args.preference_loss_weight != 0:
+            parser.error("--consistency-ft requires --preference_loss_weight 0 "
+                         "(SFT-only filter; preference term must be off).")
+        if args.nll_validator_weight <= 0 or args.nll_generator_weight <= 0:
+            parser.error("--consistency-ft requires --nll_validator_weight > 0 AND "
+                         "--nll_generator_weight > 0 (SFT setting; both NLL terms on).")
+        if args.force_same_x:
+            parser.error("--consistency-ft requires --force-same-x OFF "
+                         "(consistency filter is defined globally; fsx is "
+                         "incompatible by design).")
     if args.self_typicality:
         args.typicality_correction = True
     if args.neg_typicality:
