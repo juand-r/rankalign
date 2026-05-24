@@ -70,6 +70,11 @@ SHAPE_WEIGHTS=""
 EPOCHS_OVERRIDE=""
 BATCH_SIZE_FLAG=""
 DELTA_BINS_FLAG=""
+# --gemma4-lora is an opt-in flag for ranking_loss_ref_fix.py only. Off by default.
+# When set, the python script switches LoRA target_modules to a regex that finds
+# Gemma 4's Gemma4ClippableLinear-wrapped projections, and skips merge_and_unload
+# at save time (eval loads the PEFT adapter directly via eval_by_claude.py).
+GEMMA4_LORA=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -96,6 +101,7 @@ while [[ $# -gt 0 ]]; do
             IFS=',' read -ra _SW <<< "$2"
             SHAPE_WEIGHTS="--shape-weight-case-a ${_SW[0]} --shape-weight-mixed-neg ${_SW[1]} --shape-weight-mixed-pos ${_SW[2]} --shape-weight-both-u ${_SW[3]}"
             shift 2 ;;
+        --gemma4-lora) GEMMA4_LORA="--gemma4-lora"; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -219,7 +225,8 @@ python "$SCRIPT" \
     $MAX_SEQ_LEN \
     $SHAPE_WEIGHTS \
     $BATCH_SIZE_FLAG \
-    $DELTA_BINS_FLAG
+    $DELTA_BINS_FLAG \
+    $GEMMA4_LORA
 
 STATUS=$?
 echo ""
