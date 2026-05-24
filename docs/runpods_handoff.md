@@ -42,8 +42,8 @@ The `_overnight_launch.sh` dispatcher at HEAD encodes everything we
 finalized this weekend. Commits to look for:
 - `a711a1cb` — WALLTIME env override + 9h relaunch
 - `fea681ef` — bumped walltimes + loosened `epoch[012]` glob
-- `d50cf2c4` — initial overnight launchers
-- `0d86c43`  — per-item disc-forward perf gating
+- `2bdf1d95` — initial overnight launchers
+- `0d86c436` — per-item disc-forward perf gating
 
 If you make further changes, branch off `longform` to keep history clean.
 
@@ -190,6 +190,18 @@ python ranking_loss_ref_fix.py \
     --no-wandb
 ```
 
+Notes:
+- `--no-upload-hf` and `--no-wandb` are **NOT** passed by our slurm
+  dispatcher (we have wandb + HF credentials configured locally). On
+  RunPods you'll likely want to add them unless you set up `WANDB_API_KEY`
+  and `HF_TOKEN` for write access. They're safe to add either way.
+- `--num_epochs 3`, `--total_samples 5110`, `--alpha 1.0`, and
+  `--split_type random` are the python-side defaults (so they can be
+  omitted), but we pass them explicitly for clarity.
+- The `--delta 0.15` value above is a placeholder. With `--delta-bins 10`,
+  the script computes its own delta from the data (`(p95-p5)/10`); the
+  passed `--delta` is overridden. Pass any non-zero placeholder value.
+
 Per-setting flag map (substitute into the template above):
 
 | Setting | `--LOSS-flags` | `--force-same-x` | `--*-typicality` | `--validator-log-odds` | `--semi-supervised`/`--labeled-only` | extra |
@@ -276,9 +288,14 @@ python eval_by_claude.py \
     --validator-log-odds \
     --self-typicality \
     --base-typicality \
-    --base-model-name google/gemma-2-9b-it \
+    --base-model-name "$ORIGINAL_HF_MODEL_ID" \
     --save-scores-csv
 ```
+
+`$ORIGINAL_HF_MODEL_ID` is the **original** HF model id used for training
+(e.g. `google/gemma-2-2b-it` for 2b cells, `google/gemma-2-9b-it` for 9b
+cells). The dispatcher always sets `--base-model` (→
+`--base-model-name`) to the same HF id used to instantiate training.
 
 Eval task lists per training dataset:
 
@@ -298,13 +315,20 @@ EVAL_TASKS = {
 }
 ```
 
-Per-setting TC variant for eval:
+Per-setting TC variant for eval (matches `_overnight_launch.sh`'s
+`TC_EVAL_LIST`):
 
 | Setting | Eval TC variant |
 |---|---|
-| s1, s2, s3 | `--self-typicality` (also do `--neg-typicality` if time) |
-| s4, s5, s6, s11 | `--self-typicality` |
-| s7, s12 | `--neg-typicality` |
+| s1, s2, s3 | `--self-typicality` (and `--base-typicality`) |
+| s4, s5, s6, s11 | `--self-typicality` (and `--base-typicality`) |
+| s7, s12 | `--neg-typicality` (and `--base-typicality`) |
+
+(Even s1/s2/s3 — which trained without TC — still need ONE TC eval
+variant so the score CSV has the `gen_score_typcorr` column required by
+downstream analysis. `self` is the default. If time permits, also run
+`--neg-typicality` for s1/s2/s3 as a sanity check; the dispatcher does
+not currently do this.)
 
 **Always include** `--base-typicality --base-model-name <BASE_MODEL>`
 where `<BASE_MODEL>` is the original HF id (e.g. `google/gemma-2-9b-it`).
@@ -314,6 +338,21 @@ IRP §3 says we need.
 Each eval emits a CSV under `outputs/scores_<prefix><model>_<task>_test_<metric>_<tc>_<lenorm>_<eos>_<ts>.csv`. The wrapper script
 auto-skips a task if the CSV already exists (so re-running is cheap and
 idempotent).
+
+**RunPods caveat: both `run_train_semi.sh` and `run_eval_semi.sh` have
+`source /u/jdr/venvs/venv_lexcons/bin/activate` hardcoded at the top, and
+`run_eval_semi.sh` further sets
+`HF_HOME=/datastor1/jdr/.cache/huggingface`** in the python invocation.
+On RunPods, neither path exists.
+
+Recommended: **bypass both wrappers and call the python scripts
+directly** (the `python ranking_loss_ref_fix.py …` and
+`python eval_by_claude.py …` commands in §6 and §8 are exactly what the
+wrappers would call). The pod runner sketch in §9 already does this for
+training; do the same for eval. The wrapper's main values are (a)
+auto-injecting `--save-scores-csv`, (b) skipping CSVs that already
+exist, and (c) constructing the per-task `PATTERN`. You can replicate (a)
+trivially and skip (b)/(c) on RunPods.
 
 ---
 
@@ -338,7 +377,9 @@ train→eval→sync→next.
 Pros: lower overhead, better pod utilization.
 Cons: a stuck cell holds up others; needs queue logic.
 
-A simple pod-side runner:
+A simple pod-side runner (illustrative — placeholders like `<TASK>`,
+`${TC_LABEL}`, `${PREF}` etc. are meant to be substituted using the
+per-setting flag map in §6 and the dir-name table in §7):
 
 ```bash
 #!/bin/bash
@@ -353,19 +394,32 @@ cd /workspace/rankalign/scripts
 export HF_HOME=/workspace/.cache/huggingface
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-# (run the training python invocation for this cell — substitute flags)
-# ... see §6 ...
-python ranking_loss_ref_fix.py ... \
-    --models-dir /workspace/models2
+# Substitute flags from §6 per-setting table:
+python ranking_loss_ref_fix.py \
+    --model "$MODEL" \
+    --num_epochs 3 \
+    --task <TASK> \
+    --train_g_or_d g \
+    --split_type random \
+    --all \
+    --delta 0.15 \
+    --delta-bins 10 \
+    --disc-shots few \
+    --models-dir /workspace/models2 \
+    <PER_SETTING_FLAGS>          # see §6
+    <LORA_FLAG>                  # --lora unless model contains -2b
+    <MAX_SEQ_LEN_FLAG>           # --max-seq-len 1024 for ifeval
+    --no-upload-hf --no-wandb
 
-# Find the highest-numbered epoch directory that was saved
+# Find the most-recently-saved epoch dir for this run.
+# (Walltime-killed runs may save only epoch0/epoch1 — accept any.)
 MERGED_SUFFIX=""
 [[ "$MODEL" != *"-2b"* ]] && MERGED_SUFFIX="_merged"
 GLOB="/workspace/models2/v7-$(echo $MODEL | sed 's|/|--|g')-delta*-epoch[012]--<TASK>-all--d2g--random--alpha1.0${TC_LABEL}--full-completion${PREF}${NLLV}${NLLG}${FSX}${PPD}${VLO}${SEMI}--fix1${MERGED_SUFFIX}"
 MODEL_DIR=$(ls -dt $GLOB 2>/dev/null | head -1)
 [ -z "$MODEL_DIR" ] && { echo "no model saved"; exit 1; }
 
-# Eval each test task
+# Eval each test task. The wrapper auto-skips if a CSV already exists.
 for TASK in <eval task list>; do
     bash run_eval_semi.sh "$MODEL_DIR" \
         --self-typcorr --base-typcorr --base-model "$MODEL" --log-odds \
