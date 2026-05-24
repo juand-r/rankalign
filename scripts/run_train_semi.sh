@@ -79,6 +79,11 @@ GEMMA4_LORA=""
 # --force-same-x AND --delta-bins. Computes delta per prompt as
 # (local_p95 - local_p5) / N instead of using one global delta.
 PER_PROMPT_DELTA=""
+# --shape-budget-mode {per-prompt, global}: opt-in mode for ranking_loss_ref_fix.py
+# pair-budget allocation. Default (when unset / "per-prompt") matches existing
+# behavior bit-for-bit. "global" enables global per-shape budgets that restore
+# meaningful shape-weight control under fsx + prompt-level labeling.
+SHAPE_BUDGET_MODE=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -107,6 +112,7 @@ while [[ $# -gt 0 ]]; do
             shift 2 ;;
         --gemma4-lora) GEMMA4_LORA="--gemma4-lora"; shift ;;
         --per-prompt-delta) PER_PROMPT_DELTA="--per-prompt-delta"; shift ;;
+        --shape-budget-mode) SHAPE_BUDGET_MODE="--shape-budget-mode $2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -232,7 +238,8 @@ python "$SCRIPT" \
     $BATCH_SIZE_FLAG \
     $DELTA_BINS_FLAG \
     $GEMMA4_LORA \
-    $PER_PROMPT_DELTA
+    $PER_PROMPT_DELTA \
+    $SHAPE_BUDGET_MODE
 
 STATUS=$?
 echo ""

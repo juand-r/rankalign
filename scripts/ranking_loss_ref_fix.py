@@ -1097,50 +1097,156 @@ def main(args):
         if sw_sum <= 0:
             raise ValueError(f"All shape weights are zero or negative: {shape_weights}")
 
-        # 4. Sample per (prompt, shape) with within-prompt backfill.
-        #    See docs/issue3_fix.md "Backfill policy" section.
-        #TODO: if multi-prompt tasks with many empty shapes start drifting the
-        # global per-shape ratio noticeably, add --shape-backfill flag with
-        # {within-prompt (default), within-shape, none} options. For now,
-        # within-prompt only.
+        # 4. Sample pairs. Two modes:
+        #    - "per-prompt" (DEFAULT, original behavior): per-prompt budget
+        #      proportional to n_p, then within-prompt shape-stratified
+        #      sampling with within-prompt backfill. Under fsx + prompt-level
+        #      labeling, each prompt only has one nonzero shape, so the
+        #      global case_A/both_U mix is determined by the labeled-prompt
+        #      fraction (NOT by shape weights). See docs/issue3_fix.md.
+        #    - "global" (OPT-IN): per-shape global budget first (weights
+        #      renormalized over nonzero-pool shapes; deficit redistributed
+        #      to non-saturated shapes); then per-prompt allocation within
+        #      each shape proportional to that prompt's pool of that shape.
+        #      With fsx + prompt-level labeling this restores meaningful
+        #      shape-weight control of the case_A vs both_U mix and uses
+        #      ALL labeled (case_A) pairs every epoch instead of ~42%.
+        #      See chat 2026-05-24.
         pair_inds = []
         sampled_per_shape = {s: 0 for s in shape_weights}
         per_prompt_log: list = []  # (prompt, n_p, prompt_budget, n_sampled) for diagnostics
-        for prompt in pool_by_prompt:
-            n_p = prompt_n[prompt]
-            prompt_budget = int(round(total_samples * n_p / N_total))
-            prompt_pool = pool_by_prompt[prompt]
-            prompt_sampled: list = []
+        per_shape_budget: dict = {}  # shape -> int (only populated in "global" mode)
 
-            # First pass: shape-stratified sampling within this prompt.
-            for shape, w in shape_weights.items():
-                target = int(round(prompt_budget * w / sw_sum))
-                avail = prompt_pool[shape]
-                take = min(target, len(avail))
-                if take > 0:
-                    picked = random.sample(avail, take)
-                    prompt_sampled.extend(picked)
-                    sampled_per_shape[shape] += take
+        if args.shape_budget_mode == "per-prompt":
+            for prompt in pool_by_prompt:
+                n_p = prompt_n[prompt]
+                prompt_budget = int(round(total_samples * n_p / N_total))
+                prompt_pool = pool_by_prompt[prompt]
+                prompt_sampled: list = []
 
-            # Within-prompt backfill: any deficit relative to prompt_budget is
-            # filled from this prompt's remaining pool, weighted uniformly by
-            # leftover size (cross-shape within the prompt).
-            deficit = prompt_budget - len(prompt_sampled)
-            if deficit > 0:
-                already = set(prompt_sampled)
-                leftover = []  # (shape, pair_tuple)
-                for shape, pool in prompt_pool.items():
-                    for p in pool:
-                        if p not in already:
-                            leftover.append((shape, p))
-                if leftover:
-                    fill = random.sample(leftover, min(deficit, len(leftover)))
-                    for shape, p in fill:
-                        prompt_sampled.append(p)
-                        sampled_per_shape[shape] += 1
+                # First pass: shape-stratified sampling within this prompt.
+                for shape, w in shape_weights.items():
+                    target = int(round(prompt_budget * w / sw_sum))
+                    avail = prompt_pool[shape]
+                    take = min(target, len(avail))
+                    if take > 0:
+                        picked = random.sample(avail, take)
+                        prompt_sampled.extend(picked)
+                        sampled_per_shape[shape] += take
 
-            pair_inds.extend(prompt_sampled)
-            per_prompt_log.append((prompt, n_p, prompt_budget, len(prompt_sampled)))
+                # Within-prompt backfill: any deficit relative to prompt_budget is
+                # filled from this prompt's remaining pool, weighted uniformly by
+                # leftover size (cross-shape within the prompt).
+                deficit = prompt_budget - len(prompt_sampled)
+                if deficit > 0:
+                    already = set(prompt_sampled)
+                    leftover = []  # (shape, pair_tuple)
+                    for shape, pool in prompt_pool.items():
+                        for p in pool:
+                            if p not in already:
+                                leftover.append((shape, p))
+                    if leftover:
+                        fill = random.sample(leftover, min(deficit, len(leftover)))
+                        for shape, p in fill:
+                            prompt_sampled.append(p)
+                            sampled_per_shape[shape] += 1
+
+                pair_inds.extend(prompt_sampled)
+                per_prompt_log.append((prompt, n_p, prompt_budget, len(prompt_sampled)))
+
+        elif args.shape_budget_mode == "global":
+            # Step A: global per-shape budget. Renormalize weights over the
+            # shapes that actually have a nonzero pool, so the user-supplied
+            # weights behave like ratios in the regime where some shapes are
+            # structurally zero (e.g. fsx + prompt-level labeling -> only
+            # case_A and both_U have pairs).
+            nonzero_shapes = [s for s in shape_weights if agg_pool[s] > 0]
+            if not nonzero_shapes:
+                raise ValueError(
+                    "shape-budget-mode=global: no nonzero-pool shapes "
+                    "(should never happen, the upstream guard caught this)"
+                )
+            ew = {s: shape_weights[s] for s in nonzero_shapes}
+            ew_sum = sum(ew.values())
+            for s in nonzero_shapes:
+                per_shape_budget[s] = int(round(total_samples * ew[s] / ew_sum))
+
+            # Step B: cap each shape's budget by its pool, redistribute any
+            # resulting deficit proportionally to the non-saturated shapes.
+            # Loop in case redistribution itself saturates more shapes (rare
+            # but possible). Bounded by len(nonzero_shapes) iterations.
+            for _ in range(len(nonzero_shapes) + 1):
+                deficit = 0
+                for s in nonzero_shapes:
+                    if per_shape_budget[s] > agg_pool[s]:
+                        deficit += per_shape_budget[s] - agg_pool[s]
+                        per_shape_budget[s] = agg_pool[s]
+                if deficit == 0:
+                    break
+                non_saturated = [s for s in nonzero_shapes
+                                 if per_shape_budget[s] < agg_pool[s]]
+                if not non_saturated:
+                    break  # everything is at pool cap; total < total_samples
+                ns_w_sum = sum(ew[s] for s in non_saturated)
+                for s in non_saturated:
+                    add = int(round(deficit * ew[s] / ns_w_sum))
+                    per_shape_budget[s] = min(per_shape_budget[s] + add,
+                                              agg_pool[s])
+
+            # Step C: within each shape, allocate per-prompt budget proportional
+            # to that prompt's pool of that shape, then sample. This preserves
+            # "every (prompt,shape) pair gets exposure proportional to its pool
+            # size" within a shape, while the cross-shape ratio is now driven
+            # by the user's weights rather than the labeled-fraction.
+            samples_per_prompt_run: dict = defaultdict(int)
+            for shape in nonzero_shapes:
+                budget_s = per_shape_budget[shape]
+                prompts_with_shape = [p for p in pool_by_prompt
+                                      if len(pool_by_prompt[p][shape]) > 0]
+                if not prompts_with_shape or budget_s == 0:
+                    continue
+                shape_pool_total = agg_pool[shape]
+                taken: list = []
+                for p in prompts_with_shape:
+                    pool_p = pool_by_prompt[p][shape]
+                    target = int(round(budget_s * len(pool_p) / shape_pool_total))
+                    target = min(target, len(pool_p))
+                    if target > 0:
+                        picked = random.sample(pool_p, target)
+                        taken.extend((p, q) for q in picked)
+                # Backfill any rounding loss within this shape (typically a few
+                # pairs lost to int(round(...)) accumulation). Sample uniformly
+                # from the union of remaining pairs across prompts of this shape.
+                deficit_within = budget_s - len(taken)
+                if deficit_within > 0:
+                    already = {q for (_p, q) in taken}
+                    leftover = []
+                    for p in prompts_with_shape:
+                        for q in pool_by_prompt[p][shape]:
+                            if q not in already:
+                                leftover.append((p, q))
+                    if leftover:
+                        fill = random.sample(leftover,
+                                             min(deficit_within, len(leftover)))
+                        taken.extend(fill)
+                # Commit this shape's picks.
+                for (p, q) in taken:
+                    pair_inds.append(q)
+                    sampled_per_shape[shape] += 1
+                    samples_per_prompt_run[p] += 1
+
+            # Build per_prompt_log so the existing diagnostic prints + JSON-log
+            # block work unchanged. prompt_budget=None signals "global mode";
+            # n_sampled is the actual count.
+            for prompt in pool_by_prompt:
+                per_prompt_log.append((prompt, prompt_n[prompt], None,
+                                       samples_per_prompt_run[prompt]))
+
+        else:
+            raise ValueError(
+                f"Unknown --shape-budget-mode: {args.shape_budget_mode!r} "
+                f"(must be 'per-prompt' or 'global')"
+            )
 
         random.shuffle(pair_inds)
 
@@ -1153,20 +1259,29 @@ def main(args):
             print(f"  {shape:10s}: {n:6d}/{avail:8d}  (weight={w})")
         print(f"Total sampled: {len(pair_inds)}/{total_samples}")
 
+        # Global-mode per-shape budget diagnostic.
+        if args.shape_budget_mode == "global":
+            print(f"\nGlobal-mode per-shape budget (after redistribution):")
+            for s in ('case_A', 'mixed_neg', 'mixed_pos', 'both_U'):
+                bud = per_shape_budget.get(s, 0)
+                print(f"  {s:10s}: budget={bud:6d}  pool={agg_pool[s]:8d}  "
+                      f"weight={shape_weights[s]}")
+
         # Per-prompt summary (only print details if there are >1 prompts).
         if len(prompt_groups) > 1:
             sorted_log = sorted(per_prompt_log, key=lambda r: r[3], reverse=True)
             print(f"\nPer-prompt sampling (top 3 by sample count, then bottom 3):")
-            for r in sorted_log[:3]:
+            def _fmt(r):
                 p, n_p, b, s = r
                 p_str = (p[:60] + '...') if isinstance(p, str) and len(p) > 60 else str(p)
-                print(f"  n_p={n_p:5d}  budget={b:5d}  sampled={s:5d}  prompt={p_str!r}")
+                budget_str = "n/a" if b is None else f"{b:5d}"
+                return f"  n_p={n_p:5d}  budget={budget_str}  sampled={s:5d}  prompt={p_str!r}"
+            for r in sorted_log[:3]:
+                print(_fmt(r))
             if len(sorted_log) > 6:
                 print(f"  ... ({len(sorted_log) - 6} prompts in middle) ...")
             for r in sorted_log[-3:]:
-                p, n_p, b, s = r
-                p_str = (p[:60] + '...') if isinstance(p, str) and len(p) > 60 else str(p)
-                print(f"  n_p={n_p:5d}  budget={b:5d}  sampled={s:5d}  prompt={p_str!r}")
+                print(_fmt(r))
 
         # Debug: show 3 sample pairs.
         print(f"\n--- Sample pairs (first 3) ---")
@@ -1196,6 +1311,7 @@ def main(args):
                 "flags": {
                     "force_same_x": bool(args.force_same_x),
                     "per_prompt_delta": bool(args.per_prompt_delta),
+                    "shape_budget_mode": args.shape_budget_mode,
                     "delta_bins": args.delta_bins,
                     "delta_arg": float(args.delta),
                     "validator_log_odds": bool(validator_log_odds),
@@ -1205,6 +1321,8 @@ def main(args):
                     "labeled_only": args.labeled_only,
                     "split_seed": args.split_seed,
                 },
+                "shape_weights": dict(shape_weights),
+                "per_shape_budget": dict(per_shape_budget),  # {} when mode='per-prompt'
                 "score_metric": score_name,
                 "n_items_total": len(Z),
                 "global_score_stats": {
@@ -2159,6 +2277,22 @@ if __name__ == "__main__":
                         help="[fix1] Sampling weight for mixed_pos pairs (U lo, L_pos hi).")
     parser.add_argument("--shape-weight-both-u", type=float, default=0.40,
                         help="[fix1] Sampling weight for both_U pairs (U lo, U hi).")
+    parser.add_argument("--shape-budget-mode", type=str, default="per-prompt",
+                        choices=["per-prompt", "global"],
+                        help="[fix1] How to allocate the shape sampling budget. "
+                             "'per-prompt' (default, original behavior): per-prompt budget "
+                             "proportional to n_p, then within-prompt shape stratification "
+                             "with within-prompt backfill. Under fsx + prompt-level labeling "
+                             "the case_A/both_U mix is determined by the labeled-prompt "
+                             "fraction, NOT by the shape weights -- the weights become a no-op. "
+                             "'global' (opt-in): allocate per-shape global budgets first "
+                             "(weights renormalized over nonzero-pool shapes; deficit "
+                             "redistributed to non-saturated shapes); then per-prompt "
+                             "allocation within each shape proportional to that prompt's "
+                             "pool of that shape. Restores meaningful shape-weight control "
+                             "and uses ALL labeled (case_A) pairs every epoch instead of "
+                             "~42 percent. Backward-compatible: existing runs that don't pass this "
+                             "flag get 'per-prompt' (bit-for-bit unchanged).")
     # [DISABLED 2026-05-23] --batch-size is commented out for now: the
     # per-task auto-pick (default 1 for full-completion mode) is the only
     # supported value. The batch_size>1 path has known issues (see line ~1470)
