@@ -1884,7 +1884,7 @@ def main(args):
             # FIX1: append --fix1 suffix so trained checkpoints / score CSVs
             # from the fixed code path are unambiguous.
             fix_str = "--fix1"
-            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + "-delta"+str(delta)+"-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str + fix_str
+            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + f"-delta{delta:.2f}" + "-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str + fix_str
             print("Saving to ", save_directory)
             
             if use_lora:
