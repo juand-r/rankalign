@@ -69,7 +69,7 @@ configure_setting() {
     local S="$1"
     local pref_w=1 nll_v_w=0 nll_g_w=0
     local semi_flag="--semi-supervised 0.1"
-    local fsx="" vlo="" tc_train=""
+    local fsx="" vlo="" tc_train="" ppd=""
 
     case "$S" in
         1)
@@ -81,33 +81,33 @@ configure_setting() {
         3)
             SETTING_NAME="New+fsx"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality --neg-typicality"
             ;;
         4)
             SETTING_NAME="New+fsx+tc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         5)
             SETTING_NAME="RankAlign+fsx+tc"
             # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--self-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--semi0.1--fix1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--ppd--semi0.1--fix1"
             EVAL_MODES="--self-typicality"
             ;;
         7)
             SETTING_NAME="New+fsx+negtc"
             nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         8)
             SETTING_NAME="RankAlign+fsx+negtc"
             # Note: no --validator-log-odds here (bug fix vs old gemma-2 runs)
             fsx="--force-same-x"; tc_train="--neg-typicality"
-            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--semi0.1--fix1"
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--force-same-x--ppd--semi0.1--fix1"
             EVAL_MODES="--neg-typicality"
             ;;
         11)
@@ -133,7 +133,11 @@ configure_setting() {
 --all --delta 0.15 $semi_flag --disc-shots zero \
 --lora --gradient_checkpointing \
 --models-dir $MODELS_DIR --total_samples 5110 --no-upload-hf"
+    # --per-prompt-delta is mandatory with --force-same-x: global delta is too
+    # coarse when pairs are restricted to the same prompt (narrower score spread).
+    [ -n "$fsx" ] && ppd="--per-prompt-delta"
     [ -n "$fsx" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $fsx"
+    [ -n "$ppd" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $ppd"
     [ -n "$vlo" ]      && TRAIN_FLAGS="$TRAIN_FLAGS $vlo"
     [ -n "$tc_train" ] && TRAIN_FLAGS="$TRAIN_FLAGS $tc_train"
 }
