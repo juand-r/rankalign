@@ -511,10 +511,21 @@ def main(args):
     # Conditionally add LoRA for memory-efficient fine-tuning
     if use_lora:
         print("Setting up LoRA for memory-efficient fine-tuning...")
+        if args.gemma4_lora:
+            # Gemma 4 wraps each projection in Gemma4ClippableLinear, so the inner
+            # Linear lives at <projection>.linear and PEFT cannot find it by exact
+            # module name. The regex matches paths ending in q_proj/k_proj/.../down_proj
+            # for both Gemma 4 (paths ending in .linear under a projection) and Gemma 2
+            # (where the projection IS the Linear). Vision-tower modules are excluded
+            # because Gemma 4 is multimodal.
+            target_modules = r"^(?!.*vision_tower).*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)$"
+            print("  [--gemma4-lora] using regex target_modules (excludes vision_tower)")
+        else:
+            target_modules = ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]  # Llama target modules
         lora_config = LoraConfig(
             r=16,  # Low-rank dimension
             lora_alpha=32,  # LoRA scaling parameter
-            target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],  # Llama target modules
+            target_modules=target_modules,
             lora_dropout=0.1,
             bias="none",
             task_type="CAUSAL_LM"
@@ -1877,33 +1888,41 @@ def main(args):
             print("Saving to ", save_directory)
             
             if use_lora:
-                # For LoRA: Save adapters first, then merge and save full model
+                # For LoRA: Save adapters first, then optionally merge and save full model.
                 print("Saving LoRA adapters...")
                 model.save_pretrained(save_directory)
-                
-                print("Loading saved LoRA model...")
-                from peft import AutoPeftModelForCausalLM
-                model_peft = AutoPeftModelForCausalLM.from_pretrained(save_directory)
-                
-                print("Merging LoRA into base model...")
-                merged_model = model_peft.merge_and_unload()
-                
-                merge_dir = save_directory + "_merged"
-                print(f"Saving merged full model to {merge_dir}")
-                merged_model.save_pretrained(merge_dir, safe_serialization=True, max_shard_size="2GB")
-                tokenizer.save_pretrained(merge_dir)
-                
-                # Clean up merged model from memory
-                del model_peft, merged_model
-                torch.cuda.empty_cache()
+
+                if args.gemma4_lora:
+                    # Skip merge: Gemma 4 31B merge_and_unload() is memory-explosive and
+                    # eval_by_claude is configured to load the PEFT adapter directly.
+                    print("[--gemma4-lora] Skipping LoRA merge. Adapter saved at:", save_directory)
+                    merge_dir = None
+                else:
+                    print("Loading saved LoRA model...")
+                    from peft import AutoPeftModelForCausalLM
+                    model_peft = AutoPeftModelForCausalLM.from_pretrained(save_directory)
+
+                    print("Merging LoRA into base model...")
+                    merged_model = model_peft.merge_and_unload()
+
+                    merge_dir = save_directory + "_merged"
+                    print(f"Saving merged full model to {merge_dir}")
+                    merged_model.save_pretrained(merge_dir, safe_serialization=True, max_shard_size="2GB")
+                    tokenizer.save_pretrained(merge_dir)
+
+                    # Clean up merged model from memory
+                    del model_peft, merged_model
+                    torch.cuda.empty_cache()
             else:
                 # For full model fine-tuning: Save normally
                 model.save_pretrained(save_directory)
                 tokenizer.save_pretrained(save_directory)
+                merge_dir = None
 
             # Upload checkpoint to HuggingFace Hub in a background subprocess
             if not args.no_upload_hf:
-                upload_path = merge_dir if use_lora else save_directory
+                # Adapter-only upload when merge_dir is None (gemma4-lora) or no LoRA at all.
+                upload_path = merge_dir if (use_lora and merge_dir is not None) else save_directory
                 upload_script = str(Path(__file__).parent.parent / 'src' / 'upload_checkpoint.py')
                 cmd = [
                     sys.executable, upload_script,
@@ -1977,6 +1996,13 @@ if __name__ == "__main__":
     parser.add_argument("--split-seed", type=int, default=42, help="Seed for labeled/unlabeled prompt split (used by --semi-supervised and --labeled-only)")
     parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
     parser.add_argument("--include-eos", action="store_true", default=False, help="Append EOS token to completions during training (scores log P(completion+EOS|prompt))")
+    parser.add_argument("--gemma4-lora", action="store_true", default=False,
+                        help="[Gemma 4 only] Enable Gemma-4-specific LoRA adaptations: "
+                             "(a) regex target_modules to find projections wrapped in Gemma4ClippableLinear "
+                             "(inner Linear at *.linear), excluding vision_tower; "
+                             "(b) skip merge_and_unload() at save time and upload only the adapter dir. "
+                             "OFF by default; setting it changes nothing for Gemma 2 / Llama / Qwen runs. "
+                             "Required for full-finetune-style results on google/gemma-4-31b-it.")
     parser.add_argument("--models-dir", type=str, default="../models2", help="Directory to save model checkpoints (default: ../models)")
     parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
     parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
