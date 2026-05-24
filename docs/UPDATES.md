@@ -6,6 +6,83 @@ on top; don't rewrite history.
 
 ---
 
+## 2026-05-24 (afternoon)
+
+### New training flag: `--consistency-ft` (and new setting s13)
+
+Added an opt-in SFT-only data filter to `scripts/ranking_loss_ref_fix.py`.
+The full design + the 10 launch commands live in
+[`docs/s13_consistency_ft.md`](s13_consistency_ft.md). High-level:
+
+**What it does.** Before training:
+
+1. Computes per-item validator scores (already done by the existing pre-pass:
+   `logprobs_last_layer[i]`).
+2. New forward-only pass to compute per-item generator scores
+   `gen_scores[i] = log P(completion_i | gen_prompt_i)` (raw, no length-norm,
+   no typicality).
+3. Means: `t_v = mean(val)`, `t_g = mean(gen)`. Under `--semi-supervised`,
+   means are computed over labeled items only.
+4. Binarize each item by its threshold. **Drop** any *labeled* item where
+   `bv != bg`. Unlabeled items pass through unchanged.
+5. Pair construction + training proceed on the filtered set.
+
+**Argparse enforces** (verified): `--preference_loss_weight 0`,
+`--nll_validator_weight > 0`, `--nll_generator_weight > 0`, and
+`--force-same-x` OFF. `--labeled-only`, `--semi-supervised`, or neither all
+allowed. Off by default → bit-for-bit identical to today for s1–s12.
+
+**Save-dir gets a `--cft` slot** between `--ppd` and `--vallogodds` so
+trained adapters from cft runs are unambiguous.
+Per-run JSON log gets a `"consistency_ft"` object with
+`t_v`, `t_g`, `n_labeled_kept/dropped`, `n_unlabeled_kept`, and the 4-cell
+`(bv, bg)` count breakdown.
+
+### New dispatcher setting `s13` and dataset `humaneval`
+
+`scripts/_overnight_launch.sh` was extended:
+
+- **SETTING `s13`** = SFT-lo flag set (s1) + `--consistency-ft`.
+  Eval TC list = `self neg`.
+- **DATASET `humaneval`** (gemma-4-31B-it only) — task list of 82 dynamically
+  enumerated `humaneval-v2.1correct-upper-humaneval_*` from the data dir.
+- **Auto-detect of `gemma-4-31B-it`** in the model string switches:
+  - `VENV_OVERRIDE=/datastor2/jdr/venvs/gemma4` (transformers 5.x;
+    `venv_lexcons` is 4.46.x and won't load Gemma-4).
+  - `--gemma4-lora` (regex target_modules; skip `merge_and_unload` →
+    eval points at the adapter dir, not `_merged`).
+  - `--gradient-checkpointing` (VRAM).
+  - `--disc-shots zero` (matches `run_settings_v21correct_upper.sh`).
+  - 3 GPUs, 192 GB RAM, 24 h walltime.
+- `MERGED_SUFFIX` logic correctly returns "" for `--gemma4-lora` runs.
+
+### Plumbing
+
+- `scripts/run_train_semi.sh`: pass-through for `--consistency-ft` and
+  `--gradient-checkpointing`; new `VENV` env var override (default
+  `/u/jdr/venvs/venv_lexcons`).
+- `scripts/run_eval_semi.sh`: `VENV` env var override.
+- The dispatcher injects `export VENV='...'` into the eval `--wrap` so the
+  dependency-chained eval picks the right venv.
+
+### Verification (no jobs submitted)
+
+Dryrun (`DRYRUN=1`) of every s13 cell — `persona/membership/ifeval ×
+{2b, 2b-it, 9b-it} × s13` plus `humaneval × gemma-4-31B-it × s13` — produces
+the expected `Expected save:` glob with `--cft` in the right slot,
+`gemma-2-9b-it ifeval` correctly auto-allocates 2 GPUs, gemma-4-31B-it
+correctly gets 3 GPUs / venv / disc-shots zero / no `_merged` suffix.
+All three argparse guards fire on misuse. `s1/s4/s7` regression-checked:
+no spurious `--cft` injected.
+
+### Outstanding TODO
+
+[`docs/TODO_s13_launch.md`](TODO_s13_launch.md) — **launch the 10 train +
+20 eval jobs for s13** when the cluster has headroom. Currently held back
+because the overnight queue is still working through s1–s12.
+
+---
+
 ## 2026-05-02
 
 ### Added GSM8K task family (modern pattern)
