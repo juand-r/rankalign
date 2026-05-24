@@ -1,11 +1,10 @@
 #!/bin/bash
 # download_scores_s3s4s7.sh
 #
-# Downloads v7 epoch2 score CSVs from a completed training pod to mll.
-# Run from local machine (mango).
+# Downloads v7 epoch2 score CSVs from a completed training pod to mll (datastor2),
+# then adds them to the rankalign git repo on mll and pushes to GitHub.
 #
-# Usage:
-#   ./download_scores_s3s4s7.sh <pod_type> <setting>
+# Usage:  ./download_scores_s3s4s7.sh <pod_type> <setting>
 #
 #   pod_type : "cu" (correct-upper) or "cm" (correct-multi)
 #   setting  : 3, 4, or 7
@@ -22,14 +21,15 @@
 #   cm-s4: port 11320 @ 205.196.17.114   (personal account)
 #   cm-s7: port 10528 @ 103.207.149.86   (personal account)
 #
-# MLL destination:
+# MLL (slurm-submit.cs.utexas.edu) destination:
 #   correct-upper: /datastor2/jdr/rankalign/outputs_gemma4_from_pod/correct_upper_s3s4s7/
 #   correct-multi: /datastor2/jdr/rankalign/outputs_gemma4_from_pod/correct_multi_s3s4s7/
 
 set -euo pipefail
 
 SSH_KEY="${SSH_KEY:-$HOME/.runpod/ssh/RunPod-Key-Go}"
-MLL_HOST="${MLL_HOST:-mll}"  # ssh alias in ~/.ssh/config
+MLL_HOST="${MLL_HOST:-slurm-submit}"   # SSH alias for slurm-submit.cs.utexas.edu
+MLL_RANKALIGN="${MLL_RANKALIGN:-/datastor2/jdr/rankalign}"
 
 declare -A POD_PORT
 declare -A POD_IP
@@ -59,17 +59,18 @@ IP="${POD_IP[$KEY]}"
 
 if [ "$POD_TYPE" = "cu" ]; then
     DATASET="correct-upper"
-    MLL_DEST="/datastor2/jdr/rankalign/outputs_gemma4_from_pod/correct_upper_s3s4s7"
+    SUBDIR="correct_upper_s3s4s7"
 else
     DATASET="correct-multi"
-    MLL_DEST="/datastor2/jdr/rankalign/outputs_gemma4_from_pod/correct_multi_s3s4s7"
+    SUBDIR="correct_multi_s3s4s7"
 fi
 
+MLL_DEST="${MLL_RANKALIGN}/outputs_gemma4_from_pod/${SUBDIR}"
 SSH_OPT="-i $SSH_KEY -o IdentitiesOnly=yes -o IdentityAgent=none \
   -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
   -o ConnectTimeout=20 -p $PORT"
 
-echo "=== s${SETTING} ${DATASET}: ${IP}:${PORT} → mango → ${MLL_HOST}:${MLL_DEST} ==="
+echo "=== s${SETTING} ${DATASET}: ${IP}:${PORT} → ${MLL_HOST}:${MLL_DEST} ==="
 
 # Count v7 epoch2 score CSVs on pod
 N_POD=$(ssh $SSH_OPT root@"$IP" \
@@ -91,26 +92,34 @@ rsync -az \
 N_LOCAL=$(ls "$LOCAL_TMP"/*.csv 2>/dev/null | wc -l)
 echo "  Received $N_LOCAL files locally."
 
-# Step 2: ensure dest dir exists on mll
-ssh "$MLL_HOST" "mkdir -p $MLL_DEST"
+# Step 2: ensure dest dir exists on mll and git-pull to get latest
+ssh "$MLL_HOST" "mkdir -p ${MLL_DEST}"
+echo "  git pull on mll to get latest commits ..."
+ssh "$MLL_HOST" "cd ${MLL_RANKALIGN} && git pull --ff-only 2>&1 | tail -3" || true
 
 # Step 3: local → mll
 echo "  Pushing $N_LOCAL files to ${MLL_HOST}:${MLL_DEST}/ ..."
 rsync -az "$LOCAL_TMP/" "${MLL_HOST}:${MLL_DEST}/"
 
-# Step 4: verify
-N_MLL=$(ssh "$MLL_HOST" "ls $MLL_DEST/*.csv 2>/dev/null | wc -l")
+# Step 4: verify count on mll
+N_MLL=$(ssh "$MLL_HOST" "ls ${MLL_DEST}/*.csv 2>/dev/null | wc -l")
 echo "  MLL now has $N_MLL CSV files in ${MLL_DEST}/"
+
+# Step 5: git add + commit + push on mll
+echo "  Committing and pushing to GitHub from mll ..."
+ssh "$MLL_HOST" "
+  cd ${MLL_RANKALIGN}
+  git add outputs_gemma4_from_pod/${SUBDIR}/
+  git commit -m 'scores: add v7 ${DATASET} s${SETTING} epoch2 score CSVs (${N_MLL} files)
+
+Training run: humaneval-v2.1${DATASET}, setting ${SETTING} ($([ '$POD_TYPE' = cu ] && echo New+fsx || echo New+fsx)-based), v7 adapters.
+Pod: ${IP}:${PORT}
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>' || echo '(nothing to commit)'
+  git push origin longform
+" 2>&1
 
 # Cleanup tmp
 rm -rf "$LOCAL_TMP"
 
-echo "=== Done. ==="
-echo ""
-echo "To run analysis on mll (after all s3/s4/s7 are downloaded):"
-echo "  ssh $MLL_HOST"
-echo "  cd /datastor1/jdr/gv-gap/rankalign"
-echo "  python scripts-more/analyze_gemma4_tc_v7_fsx.py \\"
-echo "    --scores-v6-dir outputs_gemma4_from_pod \\"
-echo "    --scores-v7-dir /datastor2/jdr/rankalign/outputs_gemma4_from_pod/${DATASET}_s3s4s7 \\"
-echo "    --dataset ${DATASET}"
+echo "=== Done. s${SETTING} ${DATASET} scores pushed. ==="
