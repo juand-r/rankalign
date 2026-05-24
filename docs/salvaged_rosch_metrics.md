@@ -1,7 +1,71 @@
 # Rosch metrics salvaged from crashed eval logs (OSError 36)
 
-Each cell ran 10 rosch test tasks; metrics printed before the
-CSV write that crashed. mean ± stderr across the 10 tasks.
+## Background
+
+On 2026-05-24 night, eight overnight Slurm eval jobs crashed mid-run with
+`OSError: [Errno 36] File name too long`. The bug was in
+`scripts/eval_by_claude.py`: filenames for cells with long flag stacks
+exceeded Linux's 255-char `NAME_MAX` (since fixed in commit `6890d295` and
+improved with abbreviation in `a42558a9`).
+
+**What the crash actually broke.** Only the *write* of per-pair score CSVs
+into `outputs/`. The eval *itself* (loading the model, running the 10 rosch
+test tasks, computing per-task aggregate metrics) ran to completion for
+every task in every job. The aggregate metrics — `gen_roc`, `disc_roc`,
+`disc_acc`, `corr_all`, `spear_all` — were printed to the job's `.out`
+log right before the CSV write that crashed.
+
+**This document is what `scripts/_extract_rosch_metrics_from_logs.py`
+scraped out of those eight `.out` logs.** Per-task metrics + per-cell
+aggregates (mean ± stderr across the 10 rosch test tasks). All 8 cells
+have 10/10 tasks recovered, so re-running these evals is **not required**
+unless you specifically need the per-pair score CSVs (e.g. for scatter
+plots).
+
+## Setting legend
+
+The "s#" labels follow `docs/IMPORTANT-RESEARCH-PLAN.md` §2 (the canonical
+12-settings table). Reproduced here for the cells in this report:
+
+| s# | Name | Loss | Semi/lo | vlo | fsx | TC | One-line description |
+|---|---|---|---|---|---|---|---|
+| s1 | SFT-lo | sft | labelonly 0.1 | — | — | — | NLL-only baseline on the 10% labeled subset. |
+| s2 | RankAlign | pref-only | semi 0.1 | — | — | — | Last-year baseline. Pref-only on labeled+unlabeled. |
+| s3 | New+fsx | comb | semi 0.1 | ✓ | **✓** | — | All non-TC novelties: comb + fsx + vlo, no TC. |
+| s4 | New+fsx+tc | comb | semi 0.1 | ✓ | **✓** | self | All three novelties: comb + fsx + self-TC + vlo. |
+| s5 | RankAlign+fsx+tc | pref-only | semi 0.1 | ✓ (legacy bug) | **✓** | self | s4 minus comb. (vlo flag is a v6 bug — kept for v7 reproducibility on rosch.) |
+| s7 | New+fsx+negtc | comb | semi 0.1 | ✓ | **✓** | neg | s4 with neg-TC instead of self-TC. |
+| s11 | New+tc | comb | semi 0.1 | ✓ | — | self | comb + self-TC + vlo, **fsx OFF**. Isolates TC on top of new loss without fsx. |
+| s12 | New+negtc | comb | semi 0.1 | ✓ | — | neg | comb + neg-TC + vlo, **fsx OFF**. Isolates neg-TC. |
+
+**Notation convention used in this doc:**
+- "fsx ✓" = `--force-same-x` ON
+- "fsx —" = `--force-same-x` OFF (no fsx)
+- All v7 cells use `--per-prompt-delta` whenever fsx is on (separate from fsx itself).
+
+## Cross-cell summary (mean ± stderr across 10 rosch test tasks)
+
+All 8 cells trained on `membership-sans-rosch-v0-all` and evaluated on the
+10 rosch test tasks (`rosch-bird`, `rosch-carpenters-tool`, `rosch-clothing`,
+`rosch-fruit`, `rosch-furniture`, `rosch-sport`, `rosch-toy`, `rosch-vegetable`,
+`rosch-vehicle`, and one more — see per-job tables below).
+
+| job | model | s# | setting | tasks | gen_roc | disc_roc | disc_acc | corr_all (Pearson) | spear_all (Spearman) |
+|---|---|---|---|---|---|---|---|---|---|
+| 41982 | gemma-2-9b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo) | 10/10 | 0.9199 ± 0.0112 | 0.9450 ± 0.0185 | 0.8456 ± 0.0243 | 0.7376 ± 0.0234 | 0.7430 ± 0.0226 |
+| 41992 | gemma-2-9b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)  | 10/10 | 0.9232 ± 0.0156 | 0.9463 ± 0.0197 | 0.8485 ± 0.0274 | 0.7224 ± 0.0308 | 0.7592 ± 0.0302 |
+| 42052 | gemma-2-9b-it | **s11** | New+tc            (comb+self-TC+vlo, fsx OFF) | 10/10 | 0.9239 ± 0.0131 | 0.9476 ± 0.0192 | 0.8466 ± 0.0303 | 0.7368 ± 0.0242 | 0.7551 ± 0.0199 |
+| 42062 | gemma-2-9b-it | **s12** | New+negtc         (comb+neg-TC+vlo, fsx OFF)  | 10/10 | 0.9258 ± 0.0148 | 0.9469 ± 0.0191 | 0.8461 ± 0.0292 | 0.7097 ± 0.0298 | 0.7404 ± 0.0251 |
+| 42065 | gemma-2-2b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo) | 10/10 | 0.8209 ± 0.0268 | 0.8170 ± 0.0401 | 0.7262 ± 0.0358 | 0.5829 ± 0.0356 | 0.5823 ± 0.0338 |
+| 42069 | gemma-2-2b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)  | 10/10 | 0.8169 ± 0.0226 | 0.9017 ± 0.0280 | 0.7823 ± 0.0287 | 0.5804 ± 0.0300 | 0.5993 ± 0.0254 |
+| 42077 | gemma-2-2b-it | **s3**  | New+fsx           (comb+fsx+vlo, no TC)  | 10/10 | 0.8179 ± 0.0239 | 0.8807 ± 0.0293 | 0.7744 ± 0.0219 | 0.5871 ± 0.0202 | 0.5730 ± 0.0195 |
+| 42085 | gemma-2-2b-it | **s5**  | RankAlign+fsx+tc  (pref-only+fsx+self-TC, no comb) | 10/10 | 0.8234 ± 0.0241 | 0.9081 ± 0.0235 | 0.7232 ± 0.0345 | 0.6767 ± 0.0182 | 0.6723 ± 0.0177 |
+
+Per-task breakdowns follow below for each job.
+
+---
+
+## Per-job per-task tables
 
 ## job 41982  (membership-gemma-2-9b-it-s4-evaltc-self)
    tasks parsed: 10/10
@@ -180,7 +244,10 @@ CSV write that crashed. mean ± stderr across the 10 tasks.
 | 0.8234 ± 0.0241 | 0.9081 ± 0.0235 | 0.7232 ± 0.0345 | 0.6767 ± 0.0182 | 0.6723 ± 0.0177 |
 
 
-# Cross-cell summary (mean ± stderr per metric, per cell)
+# Cross-cell summary (raw extractor output)
+
+(Same numbers as the labeled summary at the top of this doc, by job ID.
+Kept in case the auto-extractor format is useful programmatically.)
 
 | jobid | label | gen_roc | disc_roc | disc_acc | corr_all | spear_all |
 |---|---|---|---|---|---|---|
