@@ -541,12 +541,17 @@ def main(args):
             model.to(device)
     
     # Enable gradient checkpointing to save memory (optional)
-    # enable_input_require_grads() is required when using LoRA + gradient_checkpointing;
-    # without it the recomputed tensors lose grad_fn (HuggingFace PEFT known issue).
+    # LoRA + gradient_checkpointing breaks grad_fn unless inputs are forced to require grads.
+    # PEFT >=0.15 has enable_input_require_grads(); older versions (e.g. 0.14 on gemma-2 pods)
+    # don't — use a forward hook on the embedding layer instead, which works for any version.
     if gradient_checkpointing and hasattr(model, 'gradient_checkpointing_enable'):
         model.gradient_checkpointing_enable()
         if hasattr(model, 'enable_input_require_grads'):
             model.enable_input_require_grads()
+        else:
+            model.get_input_embeddings().register_forward_hook(
+                lambda module, inp, out: out.requires_grad_(True)
+            )
         print("Gradient checkpointing enabled")
     else:
         print("Gradient checkpointing disabled")
