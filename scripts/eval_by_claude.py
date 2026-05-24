@@ -1235,17 +1235,17 @@ def main(args):
     # print(f"Recall: {tp / (tp + fn) if (tp + fn) > 0 else 0:.4f}")
     # print(f"F1 Score: {2 * tp / (2 * tp + fp + fn) if (2 * tp + fp + fn) > 0 else 0:.4f}\n")
 
-    disc_probs_sum = [p_yes + p_no for p_yes, p_no in disc_probs]
-    print(f"Discriminator Probabilities Avg p_yes + p_no: {np.mean(disc_probs_sum):.4f}")
-    plt.hist(disc_probs_sum)
-    plt.xlabel("Discriminator P(Yes) + P(No)")
-    plt.ylabel("Count")
-    plt.title(f"Histogram of Discriminator P(Yes) + P(No) for {task}")
-    eval_tc_str = "_tc" if args.typicality_correction else ""
-    eval_lenorm_str = "_evallenorm" if args.length_normalize else ""
-    hist_filename = f"../outputs/hist_disc_probs_{self_prefix}{task}_{modelname.split('/')[-1]}{eval_tc_str}{eval_lenorm_str}.png"
-    plt.savefig(hist_filename)
-    plt.close()
+#    disc_probs_sum = [p_yes + p_no for p_yes, p_no in disc_probs]
+#    print(f"Discriminator Probabilities Avg p_yes + p_no: {np.mean(disc_probs_sum):.4f}")
+#    plt.hist(disc_probs_sum)
+#    plt.xlabel("Discriminator P(Yes) + P(No)")
+#    plt.ylabel("Count")
+#    plt.title(f"Histogram of Discriminator P(Yes) + P(No) for {task}")
+#    eval_tc_str = "_tc" if args.typicality_correction else ""
+#    eval_lenorm_str = "_evallenorm" if args.length_normalize else ""
+#    hist_filename = f"../outputs/hist_disc_probs_{self_prefix}{task}_{modelname.split('/')[-1]}{eval_tc_str}{eval_lenorm_str}.png"
+#    plt.savefig(hist_filename)
+#    plt.close()
 
     # Compute scores via compute_logodds_final_layer (single source of truth for all scores)
     # Pass corrected scores if typicality correction was applied
