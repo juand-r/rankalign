@@ -53,6 +53,8 @@ case "$DATASET" in
             persona-v1-interest-in-music persona-v1-interest-in-science
         )
         MAX_SEQ=""
+        DISC_SHOTS_TRAIN="--disc-shots few"
+        DISC_SHOTS_EVAL="--disc-shots few"
         ;;
     membership)
         TASK="membership-sans-rosch-v0"
@@ -62,12 +64,17 @@ case "$DATASET" in
             rosch-vegetable rosch-weapon
         )
         MAX_SEQ=""
+        DISC_SHOTS_TRAIN="--disc-shots few"
+        DISC_SHOTS_EVAL="--disc-shots few"
         ;;
     ifeval)
         TASK="ifeval-concat"
         EVAL_TASKS=()
         for n in $(seq 1 21); do EVAL_TASKS+=("ifeval-prompt_$n"); done
         MAX_SEQ="--max-seq-len 1024"
+        # make_prompt_ifeval doesn't implement few-shot — use zero-shot
+        DISC_SHOTS_TRAIN="--disc-shots zero"
+        DISC_SHOTS_EVAL="--disc-shots zero"
         ;;
     *)
         echo "Unknown DATASET: $DATASET (persona|membership|ifeval)"; exit 1 ;;
@@ -210,7 +217,7 @@ else
         --all \
         --delta 0.15 \
         --delta-bins 10 \
-        --disc-shots few \
+        $DISC_SHOTS_TRAIN \
         --models-dir "$MODELS_DIR" \
         $LOSS_FLAGS \
         $SEMI_FLAG \
@@ -245,7 +252,7 @@ for MODE in $EVAL_MODES; do
             --model "$MODEL_DIR" \
             --task "$EVAL_TASK" \
             --split_type random \
-            --disc-shots few \
+            $DISC_SHOTS_EVAL \
             --gen-shots zero \
             --outputs-dir "$OUTPUTS_DIR" \
             --validator-log-odds \
