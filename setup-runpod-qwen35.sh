@@ -46,6 +46,19 @@ pip install --quiet hf_transfer
 echo "=== install requirements-gemma4.txt (torch excluded — comes from pod image) ==="
 pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
 
+# --ignore-installed can cause pip to install a newer torch as a transitive dep of
+# accelerate, shadowing the system torch and creating a torchvision mismatch.
+# Remove any venv torch so --system-site-packages provides the correct one.
+echo "=== ensuring system torch is used (not pip-installed torch) ==="
+SYS_TORCH=$(python3 -c 'import sys; sys.path = [p for p in sys.path if ".venv" not in p]; import torch; print(torch.__version__)' 2>/dev/null || echo "unknown")
+VENV_TORCH=$(pip show torch 2>/dev/null | grep '^Version:' | cut -d' ' -f2 || echo "none")
+if [ "$VENV_TORCH" != "none" ] && [ "$VENV_TORCH" != "$SYS_TORCH" ]; then
+    echo "  pip installed torch $VENV_TORCH in venv; removing (system torch is $SYS_TORCH)"
+    pip uninstall -y torch
+else
+    echo "  venv torch ok: $VENV_TORCH (system: $SYS_TORCH)"
+fi
+
 # bitsandbytes 0.45.x imports triton.ops which was removed in triton 3.x (torch 2.4+).
 # See: memory feedback_runpod_pod_setup_gotchas.md item 12.
 echo "=== upgrade bitsandbytes for triton 3.x compatibility ==="
