@@ -42,10 +42,11 @@ case "$DATASET" in
         TASK="membership-sans-rosch-v0"
         EVAL_TASKS="rosch-bird rosch-carpenters-tool rosch-clothing rosch-fruit rosch-furniture rosch-sport rosch-toy rosch-vehicle rosch-vegetable rosch-weapon"
         GPUS=1
-        # 2b-it ~3-4h, 9b-it ~6-8h. Add headroom.
+        # Observed ~2s/it for 2b on persona-v1 (similar size). Membership has
+        # 5113 samples * 3 epochs ~= 8.5h on 2b. 9b is ~3x. Add slack.
         case "$MODEL" in
-            *9b-it*) TRAIN_HOURS=10 ; EVAL_HOURS=3 ;;
-            *)       TRAIN_HOURS=5  ; EVAL_HOURS=2 ;;
+            *9b-it*) TRAIN_HOURS=24 ; EVAL_HOURS=4 ;;
+            *)       TRAIN_HOURS=12 ; EVAL_HOURS=3 ;;
         esac
         TRAIN_MEM=64G
         EVAL_MEM=48G
@@ -55,10 +56,10 @@ case "$DATASET" in
         TASK="persona-v1"
         EVAL_TASKS="persona-v1-psychopathy persona-v1-machiavellianism persona-v1-narcissism persona-v1-desire-to-create-allies persona-v1-interest-in-music persona-v1-interest-in-science"
         GPUS=1
-        # Small dataset; should be fastest.
+        # 5110 samples * 3 epochs at 2s/it -> ~8.5h for 2b; ~2-3x for 9b LoRA.
         case "$MODEL" in
-            *9b-it*) TRAIN_HOURS=8 ; EVAL_HOURS=2 ;;
-            *)       TRAIN_HOURS=4 ; EVAL_HOURS=2 ;;
+            *9b-it*) TRAIN_HOURS=20 ; EVAL_HOURS=2 ;;
+            *)       TRAIN_HOURS=10 ; EVAL_HOURS=2 ;;
         esac
         TRAIN_MEM=64G
         EVAL_MEM=48G
@@ -70,9 +71,11 @@ case "$DATASET" in
         for n in $(seq 1 21); do EVAL_TASKS="$EVAL_TASKS ifeval-prompt_$n"; done
         # Trim leading space.
         EVAL_TASKS="${EVAL_TASKS# }"
+        # ifeval-concat: ~5110 samples but longer prompts; longer wall.
+        # 9b-it on 2 GPUs (model parallel) helps but still slow.
         case "$MODEL" in
-            *9b-it*) GPUS=2 ; TRAIN_HOURS=12 ; EVAL_HOURS=4 ;;
-            *)       GPUS=1 ; TRAIN_HOURS=6  ; EVAL_HOURS=3 ;;
+            *9b-it*) GPUS=2 ; TRAIN_HOURS=30 ; EVAL_HOURS=5 ;;
+            *)       GPUS=1 ; TRAIN_HOURS=14 ; EVAL_HOURS=4 ;;
         esac
         TRAIN_MEM=96G
         EVAL_MEM=64G
@@ -237,8 +240,10 @@ MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2}"
 COMMON_FLAGS+=( --models-dir "$MODELS_DIR" )
 
 # Persona-v1 task name in the dir is "persona-v1" (matches TASK var).
-# Compute expected save dir for epoch 2 (final of 3-epoch training).
-EPOCH=2
+# Eval glob matches any saved epoch (0/1/2). The wrap uses `ls -dt | head -1`
+# to pick the most recently saved epoch dir, so even a walltime-killed run
+# (which only saved epoch0 or epoch1) is evaluable.
+EPOCH_GLOB="[012]"
 DELTA_PLACEHOLDER="DELTA"  # we don't know delta exactly until script runs;
                             # we'll glob-match instead.
 
@@ -264,7 +269,7 @@ PATH_PREFIX="${MODELS_DIR}/v7-${MODEL_REPL}-delta"
 # We don't know the exact delta until --delta-bins computes it from the data,
 # so for the expected eval path we use a glob. The eval wrapper uses `ls -d`
 # at sbatch runtime to pick the right one.
-GLOB_PATH="${PATH_PREFIX}*-epoch${EPOCH}--${TASK}-all--d2g--random--alpha1.0${SUFFIX}${MERGED_SUFFIX}"
+GLOB_PATH="${PATH_PREFIX}*-epoch${EPOCH_GLOB}--${TASK}-all--d2g--random--alpha1.0${SUFFIX}${MERGED_SUFFIX}"
 
 OVERNIGHT_DIR="$(cd "$(dirname "$0")/.." && pwd)/overnight"
 mkdir -p "$OVERNIGHT_DIR"
