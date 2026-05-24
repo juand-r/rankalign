@@ -34,6 +34,10 @@ sys.path.insert(0, str(REPO / "scripts"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
 OUT_DIR = REPO / "outputs"
+SEARCH_DIRS = [
+    OUT_DIR,
+    Path("/datastor2/jdr/rankalign/outputs"),
+]
 METRICS_DIR = REPO / "metrics-from-scores"
 METRICS_DIR.mkdir(exist_ok=True)
 
@@ -207,27 +211,34 @@ def find_score_files(method: dict, eval_prefix: str | list[str]) -> dict[str, li
     else:
         prefixes = list(eval_prefix)
     matches: dict[str, list[Path]] = {t: [] for t in EVAL_TASKS}
+    seen_basenames: set[str] = set()
     for pfx in prefixes:
         pattern = f"scores_{pfx}*_test_log-odds*.csv"
-        for p in OUT_DIR.glob(pattern):
-            name = p.name
-            after_prefix = name[len("scores_"):]
-            if pfx and not after_prefix.startswith(pfx):
+        for d in SEARCH_DIRS:
+            if not d.is_dir():
                 continue
-            if not pfx:
-                if any(after_prefix.startswith(x) for x in ("self-", "neg-", "basetyp-", "basetypneg-")):
+            for p in d.glob(pattern):
+                name = p.name
+                if name in seen_basenames:
                     continue
-            rest = after_prefix[len(pfx):] if pfx else after_prefix
-            chosen_task = None
-            for t in EVAL_TASKS:
-                if f"_{t}_test_log-odds" in rest:
-                    chosen_task = t
-                    break
-            if chosen_task is None:
-                continue
-            model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
-            if method["match"](model_short):
-                matches[chosen_task].append(p)
+                after_prefix = name[len("scores_"):]
+                if pfx and not after_prefix.startswith(pfx):
+                    continue
+                if not pfx:
+                    if any(after_prefix.startswith(x) for x in ("self-", "neg-", "basetyp-", "basetypneg-")):
+                        continue
+                rest = after_prefix[len(pfx):] if pfx else after_prefix
+                chosen_task = None
+                for t in EVAL_TASKS:
+                    if f"_{t}_test_log-odds" in rest:
+                        chosen_task = t
+                        break
+                if chosen_task is None:
+                    continue
+                model_short = rest.split(f"_{chosen_task}_test_log-odds", 1)[0]
+                if method["match"](model_short):
+                    matches[chosen_task].append(p)
+                    seen_basenames.add(name)
     return matches
 
 
