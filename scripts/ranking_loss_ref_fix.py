@@ -1997,12 +1997,14 @@ if __name__ == "__main__":
     parser.add_argument("--disc-shots", type=str, default=None, choices=["zero", "few"], help="Override discriminator shots (default: 'zero' for instruct models, 'few' for base models)")
     parser.add_argument("--include-eos", action="store_true", default=False, help="Append EOS token to completions during training (scores log P(completion+EOS|prompt))")
     parser.add_argument("--gemma4-lora", action="store_true", default=False,
-                        help="[Gemma 4 only] Enable Gemma-4-specific LoRA adaptations: "
+                        help="[Gemma 4 only] Enable Gemma-4-specific LoRA adaptations. "
+                             "REQUIRES --lora; the script errors out fast if --gemma4-lora is set "
+                             "without --lora. When both are on: "
                              "(a) regex target_modules to find projections wrapped in Gemma4ClippableLinear "
                              "(inner Linear at *.linear), excluding vision_tower; "
                              "(b) skip merge_and_unload() at save time and upload only the adapter dir. "
                              "OFF by default; setting it changes nothing for Gemma 2 / Llama / Qwen runs. "
-                             "Required for full-finetune-style results on google/gemma-4-31b-it.")
+                             "Required for LoRA training of google/gemma-4-31b-it.")
     parser.add_argument("--models-dir", type=str, default="../models2", help="Directory to save model checkpoints (default: ../models)")
     parser.add_argument("--no-upload-hf", action="store_true", default=False, help="Disable automatic HuggingFace Hub upload after each checkpoint save")
     parser.add_argument("--hf-org", type=str, default="TAUR-dev", help="HuggingFace org to upload checkpoints to")
@@ -2046,6 +2048,11 @@ if __name__ == "__main__":
 
     if args.neg_typicality and args.self_typicality:
         parser.error("--neg-typicality and --self-typicality are mutually exclusive")
+
+    if args.gemma4_lora and not args.lora:
+        parser.error("--gemma4-lora requires --lora (the gemma4-lora flag is a "
+                     "modifier for the LoRA path; without --lora the entire LoRA "
+                     "block is skipped and gemma4-lora has no effect)")
     if args.self_typicality:
         args.typicality_correction = True
     if args.neg_typicality:
