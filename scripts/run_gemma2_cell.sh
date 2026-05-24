@@ -53,6 +53,7 @@ case "$DATASET" in
             persona-v1-interest-in-music persona-v1-interest-in-science
         )
         MAX_SEQ=""
+        GRAD_CKP=""
         DISC_SHOTS_TRAIN="--disc-shots few"
         DISC_SHOTS_EVAL="--disc-shots few"
         ;;
@@ -64,6 +65,7 @@ case "$DATASET" in
             rosch-vegetable rosch-weapon
         )
         MAX_SEQ=""
+        GRAD_CKP=""
         DISC_SHOTS_TRAIN="--disc-shots few"
         DISC_SHOTS_EVAL="--disc-shots few"
         ;;
@@ -72,6 +74,8 @@ case "$DATASET" in
         EVAL_TASKS=()
         for n in $(seq 1 21); do EVAL_TASKS+=("ifeval-prompt_$n"); done
         MAX_SEQ="--max-seq-len 1024"
+        # ifeval sequences are long — gradient checkpointing prevents OOM on 9B models
+        GRAD_CKP="--gradient_checkpointing"
         # make_prompt_ifeval doesn't implement few-shot — use zero-shot
         DISC_SHOTS_TRAIN="--disc-shots zero"
         DISC_SHOTS_EVAL="--disc-shots zero"
@@ -227,6 +231,7 @@ else
         $PPD_FLAGS \
         $LORA_FLAG \
         $MAX_SEQ \
+        $GRAD_CKP \
         --no-upload-hf --no-wandb
 
     MODEL_DIR=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
