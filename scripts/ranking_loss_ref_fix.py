@@ -69,6 +69,7 @@ import argparse
 import wandb
 import numpy as np
 from datetime import datetime
+import json
 
 from datasets import load_dataset
 from sklearn.metrics import roc_curve
@@ -944,9 +945,12 @@ def main(args):
             return 'L_pos' if ind >= 0.5 else 'L_neg'
 
         #TODO later make this more efficient
-        def _enumerate_shape_subset(lo_pool, hi_pool):
+        def _enumerate_shape_subset(lo_pool, hi_pool, delta_local):
             """All (i, j) with i in lo_pool, j in hi_pool, i != j,
-            val(i) < val(j), |val(j) - val(i)| > delta.
+            val(i) < val(j), |val(j) - val(i)| > delta_local.
+
+            delta_local: scalar threshold for THIS subset (global delta when
+            --per-prompt-delta is off; per-prompt delta when it is on).
 
             TODO(perf): this is O(|lo_pool| * |hi_pool|) in time AND memory
             (the surviving pairs are materialized into a Python list). For the
@@ -956,7 +960,7 @@ def main(args):
             ranking_loss_ref.py non-fsx branch (pre-existing, not a fix1
             regression). When this becomes a bottleneck, replace with
             rejection sampling: draw random (i in lo_pool, j in hi_pool),
-            check (val_i < val_j) + delta, retry on miss, until we have
+            check (val_i < val_j) + delta_local, retry on miss, until we have
             total_samples_for_this_shape pairs. That's O(N) memory and
             O(N / acceptance_rate) time."""
             pairs = []
@@ -966,13 +970,13 @@ def main(args):
                     if i == j:
                         continue
                     v_j = Z[j][1]
-                    if v_i < v_j and (v_j - v_i) > delta:
+                    if v_i < v_j and (v_j - v_i) > delta_local:
                         pairs.append((i, j))
             return pairs
 
         print(f"\n{'='*60}")
         print(f"FIX1 G-MODE PAIR CONSTRUCTION (per-prompt x per-shape)")
-        print(f"  force_same_x={args.force_same_x}")
+        print(f"  force_same_x={args.force_same_x}  per_prompt_delta={args.per_prompt_delta}")
         print(f"{'='*60}")
         # See docs/issue3_fix.md for the full algorithm + rationale.
 
@@ -989,11 +993,40 @@ def main(args):
         print(f"Prompts: {len(prompt_groups)} group(s) "
               f"({'fsx on' if args.force_same_x else 'fsx off -> 1 virtual group'})")
 
-        # 2. Per-prompt x per-shape enumeration.
-        pool_by_prompt: dict = {}      # pool_by_prompt[prompt][shape] -> list of (i, j)
-        prompt_n: dict = {}             # prompt_n[prompt] -> num completions in this group
+        # 2. Per-prompt x per-shape enumeration. When --per-prompt-delta is on,
+        #    also compute a local delta per prompt from that prompt's score
+        #    subset. Otherwise every prompt uses the global delta.
+        pool_by_prompt: dict = {}       # pool_by_prompt[prompt][shape] -> list of (i, j)
+        prompt_n: dict = {}              # prompt_n[prompt] -> num completions in this group
+        delta_by_prompt: dict = {}       # delta_by_prompt[prompt] -> delta_local
+        per_prompt_score_stats: dict = {}  # prompt -> {min,p5,p95,max,spread,delta_local}
         n_lpos_total = n_lneg_total = n_u_total = 0
         for prompt, indices in prompt_groups.items():
+            # Per-prompt delta. Falls back to global delta when not requested
+            # OR when the prompt has too few items for percentiles to be
+            # meaningful (np.percentile works for n>=1 but is uninformative;
+            # we keep the global delta in that case for safety).
+            local_scores = np.asarray([Z[k][1] for k in indices], dtype=float)
+            if local_scores.size >= 2:
+                p5_loc, p95_loc = np.percentile(local_scores, [5, 95])
+            else:
+                p5_loc = p95_loc = float(local_scores[0]) if local_scores.size == 1 else 0.0
+            spread_loc = float(p95_loc - p5_loc)
+            if args.per_prompt_delta and args.delta_bins is not None and local_scores.size >= 2:
+                delta_loc = spread_loc / args.delta_bins
+            else:
+                delta_loc = delta  # fall back to the global delta
+            delta_by_prompt[prompt] = delta_loc
+            per_prompt_score_stats[prompt] = {
+                "n_items": int(local_scores.size),
+                "min": float(local_scores.min()) if local_scores.size else 0.0,
+                "p5": float(p5_loc),
+                "p95": float(p95_loc),
+                "max": float(local_scores.max()) if local_scores.size else 0.0,
+                "spread_p5_p95": spread_loc,
+                "delta_used": float(delta_loc),
+            }
+
             grp_lpos, grp_lneg, grp_u = [], [], []
             for k in indices:
                 cls = _label_class_for_z(Z[k])
@@ -1007,15 +1040,29 @@ def main(args):
             n_lneg_total += len(grp_lneg)
             n_u_total += len(grp_u)
             pool_by_prompt[prompt] = {
-                'case_A':    _enumerate_shape_subset(grp_lneg, grp_lpos),
-                'mixed_neg': _enumerate_shape_subset(grp_lneg, grp_u),
-                'mixed_pos': _enumerate_shape_subset(grp_u,    grp_lpos),
-                'both_U':    _enumerate_shape_subset(grp_u,    grp_u),
+                'case_A':    _enumerate_shape_subset(grp_lneg, grp_lpos, delta_loc),
+                'mixed_neg': _enumerate_shape_subset(grp_lneg, grp_u,    delta_loc),
+                'mixed_pos': _enumerate_shape_subset(grp_u,    grp_lpos, delta_loc),
+                'both_U':    _enumerate_shape_subset(grp_u,    grp_u,    delta_loc),
             }
             prompt_n[prompt] = len(indices)
 
         print(f"|L+| = {n_lpos_total}  |L-| = {n_lneg_total}  |U| = {n_u_total}  "
               f"(of {len(Z)} total)")
+
+        # Per-prompt delta diagnostic (only print when actually using per-prompt
+        # delta -- otherwise every prompt has the same global delta, no info).
+        if args.per_prompt_delta and len(prompt_groups) > 1:
+            local_deltas = [s["delta_used"] for s in per_prompt_score_stats.values()]
+            local_spreads = [s["spread_p5_p95"] for s in per_prompt_score_stats.values()]
+            print(f"Per-prompt delta: min={min(local_deltas):.4f}, "
+                  f"median={float(np.median(local_deltas)):.4f}, "
+                  f"max={max(local_deltas):.4f}  "
+                  f"(global delta would be {delta:.4f})")
+            print(f"Per-prompt spread(p5-p95): min={min(local_spreads):.4f}, "
+                  f"median={float(np.median(local_spreads)):.4f}, "
+                  f"max={max(local_spreads):.4f}  "
+                  f"(global spread is {spread_5_95:.4f})")
 
         # Aggregate diagnostics: per-shape totals across all prompts.
         agg_pool = {s: 0 for s in ('case_A', 'mixed_neg', 'mixed_pos', 'both_U')}
@@ -1132,6 +1179,78 @@ def main(args):
             print(f"  Compl  j: '{Z[j][0].completion}' (logprob={Z[j][1]:.3f})")
         print(f"{'='*60}\n")
 
+        # Per-run JSON log: a single self-contained record of the pair-
+        # construction stats for this training run. Includes global score
+        # spread, the global delta, and (when fsx is on) per-prompt stats
+        # with per-prompt deltas. Written under <models-dir>/training_run_logs/.
+        try:
+            samples_per_prompt: dict = {p: s for (p, _n, _b, s) in per_prompt_log}
+            valid_pairs_per_prompt: dict = {
+                p: {sh: len(pool_by_prompt[p][sh]) for sh in pool_by_prompt[p]}
+                for p in pool_by_prompt
+            }
+            run_log = {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "model": model_name,
+                "task": task,
+                "flags": {
+                    "force_same_x": bool(args.force_same_x),
+                    "per_prompt_delta": bool(args.per_prompt_delta),
+                    "delta_bins": args.delta_bins,
+                    "delta_arg": float(args.delta),
+                    "validator_log_odds": bool(validator_log_odds),
+                    "self_typicality": bool(args.self_typicality),
+                    "neg_typicality": bool(args.neg_typicality),
+                    "semi_supervised": args.semi_supervised,
+                    "labeled_only": args.labeled_only,
+                    "split_seed": args.split_seed,
+                },
+                "score_metric": score_name,
+                "n_items_total": len(Z),
+                "global_score_stats": {
+                    "min": float(min_logprob),
+                    "p5": float(p5_score),
+                    "p95": float(p95_score),
+                    "max": float(max_logprob),
+                    "spread_p5_p95": float(spread_5_95),
+                    "delta_used": float(delta),
+                },
+                "label_partition": {
+                    "L_pos": int(n_lpos_total),
+                    "L_neg": int(n_lneg_total),
+                    "U":     int(n_u_total),
+                },
+                "valid_pairs_by_shape": dict(agg_pool),
+                "sampled_by_shape":     dict(sampled_per_shape),
+                "total_valid_pairs": int(total_valid_pairs),
+                "total_sampled": int(len(pair_inds)),
+                "n_prompt_groups": len(prompt_groups),
+            }
+            # Per-prompt detail (only meaningful when fsx is on; we still
+            # emit the single None-keyed entry when fsx is off, for symmetry).
+            per_prompt_records = []
+            for p, stats in per_prompt_score_stats.items():
+                rec = dict(stats)  # n_items, min, p5, p95, max, spread_p5_p95, delta_used
+                rec["prompt"] = p if p is not None else "<all-prompts-fsx-off>"
+                rec["valid_pairs_by_shape"] = valid_pairs_per_prompt.get(p, {})
+                rec["n_sampled"] = int(samples_per_prompt.get(p, 0))
+                per_prompt_records.append(rec)
+            # Sort by n_items desc for readability.
+            per_prompt_records.sort(key=lambda r: -r["n_items"])
+            run_log["per_prompt"] = per_prompt_records
+
+            log_root = os.path.join(args.models_dir, "training_run_logs")
+            os.makedirs(log_root, exist_ok=True)
+            ts_safe = datetime.now().strftime("%Y%m%d-%H%M%S")
+            model_short_safe = model_name.replace("/", "--")
+            log_name = f"{ts_safe}_{model_short_safe}_{task}.json"
+            log_path = os.path.join(log_root, log_name)
+            with open(log_path, "w") as f:
+                json.dump(run_log, f, indent=2, default=str)
+            print(f"Per-run training log written to {log_path}")
+        except Exception as e:
+            print(f"[warn] could not write per-run training log: {e}")
+
         pairs_ = [(Z[i[0]], Z[i[1]]) for i in pair_inds]
 
 
@@ -1212,6 +1331,11 @@ def main(args):
         # FIX1 (val-NLL position fix, 2026-05-22): pair tuple now also carries
         # the **discriminator** prompt (8th element). The dataset uses it to
         # tokenize a 2nd input `disc_prompt + " Yes"` for val-NLL.
+        # Note: the delta filter is NOT re-applied here. Pairs in pairs_ were
+        # already filtered by _enumerate_shape_subset using the appropriate
+        # delta (global, or per-prompt under --per-prompt-delta). Re-applying
+        # a single global delta here would over-filter the per-prompt-delta
+        # case.
         if with_chat:
             pairs = [
                 (
@@ -1224,7 +1348,7 @@ def main(args):
                     (pair[0][4], pair[1][4]),  # is_labeled flags
                     (format_with_inst(pair[0][5].prompt), format_with_inst(pair[1][5].prompt)),  # FIX1: discriminator prompts (chat-templated)
                 )
-                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+                for pair in pairs_
             ]
         else:
             pairs = [
@@ -1238,7 +1362,7 @@ def main(args):
                     (pair[0][4], pair[1][4]),  # is_labeled flags
                     (pair[0][5].prompt, pair[1][5].prompt),  # FIX1: discriminator prompts
                 )
-                for pair in pairs_ if pair[1][1] - pair[0][1] > delta
+                for pair in pairs_
             ]
     elif train_g_or_d == 'both':
         raise NotImplementedError("both mode is not supported in fix1")
@@ -1872,6 +1996,7 @@ def main(args):
             nll_v_str = f"--nllv{nll_validator_weight}" if nll_validator_weight > 0 else ""
             nll_g_str = f"--nllg{nll_generator_weight}" if nll_generator_weight > 0 else ""
             force_same_x_str = "--force-same-x" if args.force_same_x else ""
+            ppd_str = "--ppd" if args.per_prompt_delta else ""
             valboost_str = "--valboost" if args.boost_initial_val else ""
             vallogodds_str = "--vallogodds" if validator_log_odds else ""
             if args.semi_supervised is not None:
@@ -1884,7 +2009,7 @@ def main(args):
             # FIX1: append --fix1 suffix so trained checkpoints / score CSVs
             # from the fixed code path are unambiguous.
             fix_str = "--fix1"
-            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + f"-delta{delta:.2f}" + "-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + valboost_str + vallogodds_str + semi_str + fix_str
+            save_directory = args.models_dir + "/v7-" + model_name.replace('/','--')  + f"-delta{delta:.2f}" + "-epoch"+str(epoch) + "--" + task + with_ref_str + all_str + direction_str + split_type_str + alpha_str + typcorr_str + lenorm_str + single_token_str + full_completion_str + eos_str + pref_str + nll_v_str + nll_g_str + force_same_x_str + ppd_str + valboost_str + vallogodds_str + semi_str + fix_str
             print("Saving to ", save_directory)
             
             if use_lora:
@@ -1965,6 +2090,14 @@ if __name__ == "__main__":
     parser.add_argument("--learning_rate", type=float, default=1e-5, help="Learning rate")
     parser.add_argument("--delta", type=float, default=10, help="Delta")
     parser.add_argument("--delta-bins", type=int, default=None, metavar="N", help="If set, override --delta with auto-computed delta = (p95-p5)/N of validator scores. Logged to <models-dir>/auto_delta_log.csv.")
+    parser.add_argument("--per-prompt-delta", action="store_true", default=False,
+                        help="[fix1, requires --force-same-x AND --delta-bins] Compute delta "
+                             "per prompt as (p95-p5)/N of THAT prompt's validator-score subset, "
+                             "instead of one global delta. Use with --force-same-x to avoid "
+                             "the global-delta-too-large problem on multi-prompt tasks "
+                             "(within-prompt score spreads are typically smaller, so a globally "
+                             "calibrated delta over-filters per-prompt pairs). Per-prompt "
+                             "deltas are written to the per-run JSON log under <models-dir>/training_run_logs/.")
     parser.add_argument("--total_samples", type=int, default=5110, help="Total samples")
     parser.add_argument("--save_steps", type=int, default=1, help="Save steps")
     parser.add_argument("--all", default=True, action="store_true", help="Whether to use all examples or just positive ones")
@@ -2053,6 +2186,14 @@ if __name__ == "__main__":
         parser.error("--gemma4-lora requires --lora (the gemma4-lora flag is a "
                      "modifier for the LoRA path; without --lora the entire LoRA "
                      "block is skipped and gemma4-lora has no effect)")
+
+    if args.per_prompt_delta:
+        if not args.force_same_x:
+            parser.error("--per-prompt-delta requires --force-same-x (per-prompt deltas "
+                         "only make sense when pairs are constructed within prompts).")
+        if args.delta_bins is None:
+            parser.error("--per-prompt-delta requires --delta-bins N (the per-prompt delta "
+                         "is (local_p95 - local_p5) / N; without --delta-bins there is no N).")
     if args.self_typicality:
         args.typicality_correction = True
     if args.neg_typicality:

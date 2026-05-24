@@ -75,6 +75,10 @@ DELTA_BINS_FLAG=""
 # Gemma 4's Gemma4ClippableLinear-wrapped projections, and skips merge_and_unload
 # at save time (eval loads the PEFT adapter directly via eval_by_claude.py).
 GEMMA4_LORA=""
+# --per-prompt-delta: opt-in flag for ranking_loss_ref_fix.py; requires
+# --force-same-x AND --delta-bins. Computes delta per prompt as
+# (local_p95 - local_p5) / N instead of using one global delta.
+PER_PROMPT_DELTA=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -102,6 +106,7 @@ while [[ $# -gt 0 ]]; do
             SHAPE_WEIGHTS="--shape-weight-case-a ${_SW[0]} --shape-weight-mixed-neg ${_SW[1]} --shape-weight-mixed-pos ${_SW[2]} --shape-weight-both-u ${_SW[3]}"
             shift 2 ;;
         --gemma4-lora) GEMMA4_LORA="--gemma4-lora"; shift ;;
+        --per-prompt-delta) PER_PROMPT_DELTA="--per-prompt-delta"; shift ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -226,7 +231,8 @@ python "$SCRIPT" \
     $SHAPE_WEIGHTS \
     $BATCH_SIZE_FLAG \
     $DELTA_BINS_FLAG \
-    $GEMMA4_LORA
+    $GEMMA4_LORA \
+    $PER_PROMPT_DELTA
 
 STATUS=$?
 echo ""
