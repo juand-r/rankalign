@@ -59,8 +59,8 @@ SOURCES = [
     # are still in flight; v7 evals for s1-s9 have not been launched. Treat
     # these rows as legacy reference, not as a v7 result.
     # Filename quirk: gen_roc CSV omits the metric infix.
-    ("gemma-2-9b-it",    "ifeval ID  [v6 legacy] (n=79 prompts \u2265 22; held-out 50% of completions for each)", "{ifevalprefix_id}",  "ifeval"),
-    ("gemma-2-9b-it",    "ifeval OOD [v6 legacy] (n=20 fully held-out prompts: prompt_1..13, 15..21)",            "{ifevalprefix_ood}", "ifeval"),
+    ("gemma-2-9b-it",    "ifeval ID  **[v6 LEGACY]** (n=79 prompts \u2265 22; held-out 50% of completions for each)", "{ifevalprefix_id}",  "ifeval"),
+    ("gemma-2-9b-it",    "ifeval OOD **[v6 LEGACY]** (n=20 fully held-out prompts: prompt_1..13, 15..21)",            "{ifevalprefix_ood}", "ifeval"),
     # humaneval
     ("gemma-4-31B-it",   "humaneval",  "humaneval_v2.1correct-upper_g4-31B-it_{m}_table_cells.csv", "humaneval"),
 ]
@@ -257,13 +257,17 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
     out.append("Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.")
     out.append("Empty cells (—): no eval CSV with that prefix yet.")
     out.append("")
-    out.append("**Provenance caveat — ifeval sections are v6, not v7.** All other sections")
-    out.append("(rosch, persona, humaneval) source from v7 (fix1) score files. The two ifeval")
-    out.append("sections below are built by the legacy `_build_ifeval_ood_table.py` which")
-    out.append("hardcodes a v6 model prefix; their cells reflect a pre-fix1 9b-it run trained")
-    out.append("on ifeval-concat-all (delta0.15, epoch2). The v7 ifeval × s13 trains are still")
-    out.append("in flight; no v7 ifeval evals have been launched for s1–s9 yet. Sections for")
-    out.append("ifeval are labeled `[v6 legacy]` to make this explicit.")
+    out.append("> **\u26a0\ufe0f IMPORTANT PROVENANCE CAVEAT — IFEVAL SECTIONS ARE V6, NOT V7.**")
+    out.append(">")
+    out.append("> All other sections (rosch, persona, humaneval) source from **v7 (fix1)** score")
+    out.append("> files. The two ifeval sections below are built by the legacy")
+    out.append("> `_build_ifeval_ood_table.py`, which hardcodes a v6 model prefix")
+    out.append("> (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). Their cells")
+    out.append("> therefore reflect a **pre-fix1 v6 9b-it run**, not the v7 models we have on")
+    out.append("> disk now. The v7 ifeval × s13 trains are still in flight; no v7 ifeval evals")
+    out.append("> have been launched for s1\u2013s9 yet. ifeval section headers are tagged")
+    out.append("> **`[v6 LEGACY]`** and each ifeval section repeats this warning right above")
+    out.append("> the table.")
     out.append("")
     out.append("**Method-row coverage.** Tables include s1–s9 and s11–s13 (s10 was never run).")
     out.append("If a row shows all `—`, the eval CSV reports `n=0/missing` for that method;")
@@ -284,6 +288,14 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
         path = METRICS_DIR / tmpl.format(**fmt_ctx)
         out.append(f"## {model} × {ds_label}")
         out.append("")
+        if ds_key == "ifeval":
+            out.append("> **\u26a0\ufe0f V6 LEGACY DATA — NOT v7.** All cells in this section come from")
+            out.append("> a pre-fix1 v6 training run "
+                       "(`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). "
+                       "No v7 ifeval evaluations have been run yet "
+                       "(v7 × s13 trains in flight; v7 × s1\u2013s9 not started). "
+                       "Treat these numbers as legacy reference, not as v7 results.")
+            out.append("")
         out.append(f"Source: [{path.name}](metrics-from-scores/{path.name})")
         out.append("")
         cells = load_table_cells(path)

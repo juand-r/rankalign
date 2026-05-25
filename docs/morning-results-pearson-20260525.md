@@ -1,4 +1,4 @@
-# Morning Results — Pearson(gen, val) — 2026-05-25T15:53:30Z
+# Morning Results — Pearson(gen, val) — 2026-05-25T15:58:15Z
 
 All cells: **Pearson(gen, val) × 100 ± SE** (mean ± SE across the eval-task split for that section).
 
@@ -14,13 +14,17 @@ sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the
 Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.
 Empty cells (—): no eval CSV with that prefix yet.
 
-**Provenance caveat — ifeval sections are v6, not v7.** All other sections
-(rosch, persona, humaneval) source from v7 (fix1) score files. The two ifeval
-sections below are built by the legacy `_build_ifeval_ood_table.py` which
-hardcodes a v6 model prefix; their cells reflect a pre-fix1 9b-it run trained
-on ifeval-concat-all (delta0.15, epoch2). The v7 ifeval × s13 trains are still
-in flight; no v7 ifeval evals have been launched for s1–s9 yet. Sections for
-ifeval are labeled `[v6 legacy]` to make this explicit.
+> **⚠️ IMPORTANT PROVENANCE CAVEAT — IFEVAL SECTIONS ARE V6, NOT V7.**
+>
+> All other sections (rosch, persona, humaneval) source from **v7 (fix1)** score
+> files. The two ifeval sections below are built by the legacy
+> `_build_ifeval_ood_table.py`, which hardcodes a v6 model prefix
+> (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). Their cells
+> therefore reflect a **pre-fix1 v6 9b-it run**, not the v7 models we have on
+> disk now. The v7 ifeval × s13 trains are still in flight; no v7 ifeval evals
+> have been launched for s1–s9 yet. ifeval section headers are tagged
+> **`[v6 LEGACY]`** and each ifeval section repeats this warning right above
+> the table.
 
 **Method-row coverage.** Tables include s1–s9 and s11–s13 (s10 was never run).
 If a row shows all `—`, the eval CSV reports `n=0/missing` for that method;
@@ -136,7 +140,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_all_pearson_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | -7.98 ± 9.99 | — | -11.10 ± 8.07 | — | 18.46 ± 2.19 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 14.04 ± 13.37 | 19.94 ± 15.53 | 14.68 ± 14.57 | 33.71 ± 11.60 | 49.65 ± 3.46 |
 | 2 RankAlign | ✓ ep=2 | 60.78 ± 12.01 | 76.01 ± 5.32 | 65.09 ± 7.21 | 79.05 ± 4.21 | 77.62 ± 3.75 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 30.68 ± 17.32 | 41.98 ± 17.98 | 33.88 ± 19.04 | 55.93 ± 11.44 | 66.78 ± 5.31 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | 30.68 ± 17.32 | 41.98 ± 17.98 | 33.88 ± 19.04 | 55.93 ± 11.44 | 66.78 ± 5.31 |
 | 4 New + PMI + fsx | ✓ ep=1 | 21.13 ± 15.49 | 33.08 ± 17.38 | 24.07 ± 17.46 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 30.00 ± 17.18 | 64.48 ± 10.89 | 44.72 ± 15.05 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 32.42 ± 17.62 | 62.66 ± 11.43 | 34.28 ± 17.02 | — | — |
@@ -196,7 +200,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_id_pearson_table_cells.csv](metrics-from-sc
 | 0 Base | (base model) | 13.50 ± 2.69 | — | 5.16 ± 2.67 | — | 20.48 ± 0.68 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 43.23 ± 3.49 | 53.37 ± 4.95 | 47.14 ± 0.93 | 56.96 ± 5.25 | 52.86 ± 3.20 |
 | 2 RankAlign | ✓ ep=2 | 83.83 ± 3.21 | 85.94 ± 2.84 | 78.07 ± 3.26 | 86.33 ± 2.76 | 81.32 ± 2.32 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 69.19 ± 0.59 | 82.16 ± 1.13 | 76.18 ± 1.74 | 80.76 ± 1.28 | 77.52 ± 0.99 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | 69.19 ± 0.59 | 82.16 ± 1.13 | 76.18 ± 1.74 | 80.76 ± 1.28 | 77.52 ± 0.99 |
 | 4 New + PMI + fsx | ✓ ep=1 | 55.00 ± 2.83 | 71.35 ± 2.90 | 62.67 ± 2.65 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 67.47 ± 2.91 | 88.07 ± 1.11 | 78.27 ± 1.47 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 70.64 ± 3.25 | 87.03 ± 2.56 | 72.22 ± 2.52 | — | — |
@@ -256,7 +260,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_pearson_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | -29.47 ± 5.49 | — | -27.37 ± 7.36 | — | 16.44 ± 4.42 |
 | 1 SFT labelonly 10% | ✓ ep=1 | -15.15 ± 5.45 | -13.49 ± 7.99 | -17.77 ± 2.66 | 10.45 ± 10.24 | 46.44 ± 6.28 |
 | 2 RankAlign | ✓ ep=2 | 37.74 ± 13.39 | 66.08 ± 5.90 | 52.11 ± 9.00 | 71.76 ± 5.30 | 73.93 ± 7.17 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | -7.84 ± 3.99 | 1.80 ± 1.12 | -8.42 ± 4.59 | 31.10 ± 6.05 | 56.05 ± 4.97 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | -7.84 ± 3.99 | 1.80 ± 1.12 | -8.42 ± 4.59 | 31.10 ± 6.05 | 56.05 ± 4.97 |
 | 4 New + PMI + fsx | ✓ ep=1 | -12.74 ± 6.67 | -5.18 ± 6.16 | -14.53 ± 5.23 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | -7.47 ± 8.02 | 40.89 ± 5.92 | 11.18 ± 2.35 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | -5.81 ± 9.01 | 38.29 ± 7.23 | -3.66 ± 1.52 | — | — |
@@ -267,7 +271,10 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_pearson_table_cells.csv](metrics-from-s
 | 12 New + NegTC [-fsx] | ✓ ep=1 | -11.65 ± 7.89 | — | — | 20.22 ± 9.99 | 49.40 ± 7.79 |
 | 13 SFT + CFT | ✓ ep=2 | -21.76 ± 6.02 | -17.75 ± 7.49 | -22.55 ± 7.92 | 11.36 ± 7.87 | 39.32 ± 7.39 |
 
-## gemma-2-9b-it × ifeval ID  [v6 legacy] (n=79 prompts ≥ 22; held-out 50% of completions for each)
+## gemma-2-9b-it × ifeval ID  **[v6 LEGACY]** (n=79 prompts ≥ 22; held-out 50% of completions for each)
+
+> **⚠️ V6 LEGACY DATA — NOT v7.** All cells in this section come from
+> a pre-fix1 v6 training run (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). No v7 ifeval evaluations have been run yet (v7 × s13 trains in flight; v7 × s1–s9 not started). Treat these numbers as legacy reference, not as v7 results.
 
 Source: [ifeval_id_pearson_table_cells.csv](metrics-from-scores/ifeval_id_pearson_table_cells.csv)
 
@@ -285,9 +292,12 @@ Source: [ifeval_id_pearson_table_cells.csv](metrics-from-scores/ifeval_id_pearso
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 PD | — | — | — | — | — |
 
-## gemma-2-9b-it × ifeval OOD [v6 legacy] (n=20 fully held-out prompts: prompt_1..13, 15..21)
+## gemma-2-9b-it × ifeval OOD **[v6 LEGACY]** (n=20 fully held-out prompts: prompt_1..13, 15..21)
+
+> **⚠️ V6 LEGACY DATA — NOT v7.** All cells in this section come from
+> a pre-fix1 v6 training run (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). No v7 ifeval evaluations have been run yet (v7 × s13 trains in flight; v7 × s1–s9 not started). Treat these numbers as legacy reference, not as v7 results.
 
 Source: [ifeval_ood_pearson_table_cells.csv](metrics-from-scores/ifeval_ood_pearson_table_cells.csv)
 
@@ -305,7 +315,7 @@ Source: [ifeval_ood_pearson_table_cells.csv](metrics-from-scores/ifeval_ood_pear
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 PD | — | — | — | — | — |
 
 ## gemma-4-31B-it × humaneval
 
@@ -325,4 +335,4 @@ Source: [humaneval_v2.1correct-upper_g4-31B-it_pearson_table_cells.csv](metrics-
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42114 R 15:45:19 (≤8:14:41) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42114 R 15:50:04 (≤8:09:56) | — | — | — | — | — |

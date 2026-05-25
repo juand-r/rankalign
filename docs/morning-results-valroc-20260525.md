@@ -1,4 +1,4 @@
-# Morning Results — ValROC — 2026-05-25T15:53:30Z
+# Morning Results — ValROC — 2026-05-25T15:58:15Z
 
 All cells: **ValROC × 100 ± SE** (mean ± SE across the eval-task split for that section).
 
@@ -14,13 +14,17 @@ sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the
 Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.
 Empty cells (—): no eval CSV with that prefix yet.
 
-**Provenance caveat — ifeval sections are v6, not v7.** All other sections
-(rosch, persona, humaneval) source from v7 (fix1) score files. The two ifeval
-sections below are built by the legacy `_build_ifeval_ood_table.py` which
-hardcodes a v6 model prefix; their cells reflect a pre-fix1 9b-it run trained
-on ifeval-concat-all (delta0.15, epoch2). The v7 ifeval × s13 trains are still
-in flight; no v7 ifeval evals have been launched for s1–s9 yet. Sections for
-ifeval are labeled `[v6 legacy]` to make this explicit.
+> **⚠️ IMPORTANT PROVENANCE CAVEAT — IFEVAL SECTIONS ARE V6, NOT V7.**
+>
+> All other sections (rosch, persona, humaneval) source from **v7 (fix1)** score
+> files. The two ifeval sections below are built by the legacy
+> `_build_ifeval_ood_table.py`, which hardcodes a v6 model prefix
+> (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). Their cells
+> therefore reflect a **pre-fix1 v6 9b-it run**, not the v7 models we have on
+> disk now. The v7 ifeval × s13 trains are still in flight; no v7 ifeval evals
+> have been launched for s1–s9 yet. ifeval section headers are tagged
+> **`[v6 LEGACY]`** and each ifeval section repeats this warning right above
+> the table.
 
 **Method-row coverage.** Tables include s1–s9 and s11–s13 (s10 was never run).
 If a row shows all `—`, the eval CSV reports `n=0/missing` for that method;
@@ -136,7 +140,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_all_val_roc_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 95.59 ± 1.49 | — | 95.59 ± 1.49 | — | 95.59 ± 1.49 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 98.07 ± 1.85 | 98.92 ± 1.08 | 98.07 ± 1.85 | 98.92 ± 1.08 | 98.07 ± 1.85 |
 | 2 RankAlign | ✓ ep=2 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 |
 | 4 New + PMI + fsx | ✓ ep=1 | 96.74 ± 3.21 | 96.74 ± 3.21 | 96.74 ± 3.21 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.41 ± 0.33 | 99.41 ± 0.33 | 99.41 ± 0.33 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.40 ± 0.36 | 99.40 ± 0.36 | 99.40 ± 0.36 | — | — |
@@ -196,7 +200,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_id_val_roc_table_cells.csv](metrics-from-sc
 | 0 Base | (base model) | 93.75 ± 1.64 | — | 93.75 ± 1.64 | — | 93.75 ± 1.64 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 |
 | 2 RankAlign | ✓ ep=2 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 |
 | 4 New + PMI + fsx | ✓ ep=1 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.45 ± 0.40 | 99.45 ± 0.40 | 99.45 ± 0.40 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.41 ± 0.55 | 99.41 ± 0.55 | 99.41 ± 0.55 | — | — |
@@ -256,7 +260,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_val_roc_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 97.44 ± 2.24 | — | 97.44 ± 2.24 | — | 97.44 ± 2.24 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 96.14 ± 3.66 | 97.84 ± 2.15 | 96.14 ± 3.66 | 97.84 ± 2.15 | 96.14 ± 3.66 |
 | 2 RankAlign | ✓ ep=2 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:11:04 (≤2:48:56) | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 |
 | 4 New + PMI + fsx | ✓ ep=1 | 93.48 ± 6.38 | 93.48 ± 6.38 | 93.48 ± 6.38 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.38 ± 0.61 | 99.38 ± 0.61 | 99.38 ± 0.61 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.39 ± 0.59 | 99.39 ± 0.59 | 99.39 ± 0.59 | — | — |
@@ -267,7 +271,10 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_val_roc_table_cells.csv](metrics-from-s
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 96.32 ± 3.68 | — | — | 96.32 ± 3.68 | 95.69 ± 4.16 |
 | 13 SFT + CFT | ✓ ep=2 | 97.77 ± 2.06 | 97.89 ± 1.96 | 97.77 ± 2.06 | 97.89 ± 1.96 | 97.77 ± 2.06 |
 
-## gemma-2-9b-it × ifeval ID  [v6 legacy] (n=79 prompts ≥ 22; held-out 50% of completions for each)
+## gemma-2-9b-it × ifeval ID  **[v6 LEGACY]** (n=79 prompts ≥ 22; held-out 50% of completions for each)
+
+> **⚠️ V6 LEGACY DATA — NOT v7.** All cells in this section come from
+> a pre-fix1 v6 training run (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). No v7 ifeval evaluations have been run yet (v7 × s13 trains in flight; v7 × s1–s9 not started). Treat these numbers as legacy reference, not as v7 results.
 
 Source: [ifeval_id_val_roc_table_cells.csv](metrics-from-scores/ifeval_id_val_roc_table_cells.csv)
 
@@ -285,9 +292,12 @@ Source: [ifeval_id_val_roc_table_cells.csv](metrics-from-scores/ifeval_id_val_ro
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 PD | — | — | — | — | — |
 
-## gemma-2-9b-it × ifeval OOD [v6 legacy] (n=20 fully held-out prompts: prompt_1..13, 15..21)
+## gemma-2-9b-it × ifeval OOD **[v6 LEGACY]** (n=20 fully held-out prompts: prompt_1..13, 15..21)
+
+> **⚠️ V6 LEGACY DATA — NOT v7.** All cells in this section come from
+> a pre-fix1 v6 training run (`v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all`). No v7 ifeval evaluations have been run yet (v7 × s13 trains in flight; v7 × s1–s9 not started). Treat these numbers as legacy reference, not as v7 results.
 
 Source: [ifeval_ood_val_roc_table_cells.csv](metrics-from-scores/ifeval_ood_val_roc_table_cells.csv)
 
@@ -305,7 +315,7 @@ Source: [ifeval_ood_val_roc_table_cells.csv](metrics-from-scores/ifeval_ood_val_
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 PD | — | — | — | — | — |
 
 ## gemma-4-31B-it × humaneval
 
@@ -325,4 +335,4 @@ Source: [humaneval_v2.1correct-upper_g4-31B-it_val_roc_table_cells.csv](metrics-
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42114 R 15:45:19 (≤8:14:41) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42114 R 15:50:04 (≤8:09:56) | — | — | — | — | — |
