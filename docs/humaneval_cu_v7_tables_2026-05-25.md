@@ -1,6 +1,6 @@
 # humaneval-v2.1correct-upper × gemma-4-31B-it — v7 epoch2 tables
 
-Snapshot: **2026-05-25 04:42 CT**
+Snapshot: **2026-05-25 10:06 CT**
 
 Model: gemma-4-31B-it, trained on humaneval-v2.1correct-upper-all, epoch 2.
 Columns = scoring method at eval time (Raw / PMI base / Neg base etc.).
