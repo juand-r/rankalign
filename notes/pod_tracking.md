@@ -75,7 +75,7 @@ restarted with the fix; s1 will use it automatically when training completes.
 | qw35-member-s2 | membership | s2 | 103.207.149.87:18679 | ✅ DONE | 20/20 | Downloaded; HF upload done |
 | qw35-member-s4 | membership | s4 | 103.207.149.87:15807 | ✅ DONE | 10/10 | Downloaded; HF upload done |
 | qw35-member-s7 | membership | s7 | 64.247.201.47:18203 | ✅ DONE | 10/10 | Downloaded; HF upload done |
-| qw35-ifeval-s1 | ifeval | s1 | 64.247.201.47:11402 | 🔄 TRAINING | 0/38 | pod 6kjhz0xt5br82m; epoch1 step 5022/5110 (~8 min!); epoch2 after; ~8.5h total |
+| qw35-ifeval-s1 | ifeval | s1 | 64.247.201.47:11402 | 🔄 TRAINING | 0/38 | pod 6kjhz0xt5br82m; epoch1 RESTARTED (step 15/5110, ~7.5h); epoch2 after; ~17h total |
 | qw35-ifeval-s2 | ifeval | s2 | 64.247.201.40:18256 | 🔄 TRAINING | 0/38 | pod q26bi7xdveduhm; epoch2 step 46/5110 (~4h remaining); eval after; ~4.5h total |
 | qw35-ifeval-s4 | ifeval | s4 | 103.207.149.154:12996 | 🔄 TRAINING | 0/19 | pod tzlbha6k04qmes; epoch1 restart step 1482/5111 (~4.3h); epoch2 after; ~10h total |
 | qw35-ifeval-s7 | ifeval | s7 | 103.207.149.154:13621 | 🔄 TRAINING | 0/19 | pod 5mg2tbaedfxu4i; epoch1 restart step 1301/5111 (~5h); epoch2 after; ~11h total |
