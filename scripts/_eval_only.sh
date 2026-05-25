@@ -16,6 +16,11 @@
 #   DRYRUN=1       print only, don't submit
 #   DEP_JOBID      if set, submit with --dependency=afterany:$DEP_JOBID
 #                  (use when the matching train is still running)
+#   NO_BASE=1      omit --base-typcorr from the eval flag stack. Gives
+#                  CSVs with `self-` (TC=self) or `neg-` (TC=neg) prefix
+#                  rather than `basetyp-` / `basetypneg-`. Use this to
+#                  populate the "PMI self" / "Neg self" columns of the
+#                  v7 GenROC tables.
 #
 # Created 2026-05-24 to backfill missing neg-TC evals for s1/s2/s3 cells
 # whose trained models already exist on disk (the v7 dispatcher previously
@@ -117,13 +122,13 @@ build_setting() {
         s5)
             TC_LABEL="--tc-self"
             PREF_STR=""; NLLV_STR=""; NLLG_STR=""
-            FSX_STR="--force-same-x"; PPD_STR="--ppd"; VLO_STR="--vallogodds"
+            FSX_STR="--force-same-x"; PPD_STR="--ppd"; VLO_STR=""
             SEMI_STR="--semi0.1"
             ;;
         s6)
             TC_LABEL="--tc-self"
             PREF_STR=""; NLLV_STR=""; NLLG_STR=""
-            FSX_STR=""; PPD_STR=""; VLO_STR="--vallogodds"
+            FSX_STR=""; PPD_STR=""; VLO_STR=""
             SEMI_STR="--semi0.1"
             ;;
         s7)
@@ -202,10 +207,22 @@ fi
 VENV_OVERRIDE=""
 [ "$USE_GEMMA4_LORA" -eq 1 ] && VENV_OVERRIDE="/datastor2/jdr/venvs/gemma4"
 
-if [ "$TC" = "self" ]; then
-    EVAL_FLAGS="--self-typcorr --base-typcorr --base-model $MODEL --log-odds"
+if [ -n "${NO_BASE:-}" ]; then
+    # No --base-typcorr → CSV prefix is "self-" or "neg-" (PMI/Neg-self columns).
+    if [ "$TC" = "self" ]; then
+        EVAL_FLAGS="--self-typcorr --log-odds"
+    else
+        EVAL_FLAGS="--neg-typcorr --log-odds"
+    fi
+    NO_BASE_TAG="-nobase"
 else
-    EVAL_FLAGS="--neg-typcorr --base-typcorr --base-model $MODEL --log-odds"
+    # With --base-typcorr → CSV prefix is "basetyp-" or "basetypneg-" (PMI/Neg-base).
+    if [ "$TC" = "self" ]; then
+        EVAL_FLAGS="--self-typcorr --base-typcorr --base-model $MODEL --log-odds"
+    else
+        EVAL_FLAGS="--neg-typcorr --base-typcorr --base-model $MODEL --log-odds"
+    fi
+    NO_BASE_TAG=""
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -224,7 +241,7 @@ if [ -n "${DRYRUN:-}" ]; then
     echo "DRYRUN. Would submit:"
     echo "  sbatch --partition=allnodes --cpus-per-task=4 --mem=$EVAL_MEM --gres=gpu:1 --time=${EVAL_HOURS}:00:00 \\"
     echo "    --output=/datastor2/jdr/logs/%j.out --error=/datastor2/jdr/logs/%j.err \\"
-    echo "    --job-name=\"eval-${SETTING}-${DATASET}-${TC}-only\" --wrap=\"<cmd>\""
+    echo "    --job-name=\"eval-${SETTING}-${DATASET}-${TC}${NO_BASE_TAG}-only\" --wrap=\"<cmd>\""
     echo "  WRAP: $WRAP_CMD"
     exit 0
 fi
@@ -244,7 +261,7 @@ EVAL_OUT=$(sbatch \
     --output=/datastor2/jdr/logs/%j.out \
     --error=/datastor2/jdr/logs/%j.err \
     ${DEP_FLAG} \
-    --job-name="eval-${SETTING}-${DATASET}-${TC}-only" \
+    --job-name="eval-${SETTING}-${DATASET}-${TC}${NO_BASE_TAG}-only" \
     --wrap="$WRAP_CMD" 2>&1) || true
 echo "$EVAL_OUT"
 EVAL_JOBID=$(echo "$EVAL_OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
