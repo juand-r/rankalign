@@ -14,7 +14,9 @@ from key_handler.key_handler import KeyHandler
 KeyHandler.set_env_key()
 API_KEY = os.environ["RUNPOD_API_KEY_TAUR"]
 
-IMAGE = "runpod/pytorch:0.7.0-cu1241-torch251-ubuntu2204"  # torch 2.5.1+cu124
+# Need BOTH torch>=2.5 (gemma-4) AND Python>=3.11 (requirements-gemma4.txt pins
+# pandas==3.0.3, which requires >=3.11). ubuntu2404 => Python 3.12; torch 2.6.0.
+IMAGE = "runpod/pytorch:0.7.0-cu1263-torch260-ubuntu2404"  # torch 2.6.0, Python 3.12
 GPU_TYPE = "NVIDIA H100 80GB HBM3"  # SXM — NVL has a safetensors CUDA-map bug for PEFT eval
 
 MUTATION = """

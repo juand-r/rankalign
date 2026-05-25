@@ -50,9 +50,16 @@ source $VENV/bin/activate
 pip install --quiet --upgrade pip
 pip install --quiet hf_transfer
 pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
-echo "[$(date -u +%H:%M:%S)] Deps installed."
+echo "[$(date -u +%H:%M:%S)] Deps install returned."
 
-# ---- STEP 2b: fail loud if torch is too old for gemma-4 ----
+# ---- STEP 2b: fail loud if deps install was incomplete ----
+# A silent `pip install` failure (e.g. a pin needing a newer Python) must abort
+# here, NOT cascade into 82 model-less eval calls. set -e is unsafe in the eval
+# loop (per-task failures are expected), so guard explicitly.
+python -c "import huggingface_hub, transformers, peft, pandas, sklearn, accelerate, safetensors" \
+    || { echo "[$(date -u +%H:%M:%S)] FATAL: requirements-gemma4.txt did not fully install (missing core deps). Check Python version vs pinned pandas/numpy/scipy." >&2; exit 1; }
+
+# ---- STEP 2c: fail loud if torch is too old for gemma-4 ----
 python - <<'PYEOF'
 import sys, torch
 ver = tuple(int(x) for x in torch.__version__.split('+')[0].split('.')[:2])
