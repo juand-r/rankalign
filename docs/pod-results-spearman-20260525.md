@@ -1,10 +1,10 @@
-# Pod Results — Spearman(gen, val) — 2026-05-25T18:36:19Z
+# Pod Results — Spearman(gen, val) — 2026-05-25T18:55:21Z
 
 All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split for that section (no ± when a single task). Scope: **v7 only** (v6 excluded), models **Qwen3.5-9B** and **gemma-2-9b-it**, evaluated on RunPod and downloaded locally.
 
 **Delta regimes** (a property of the trained model):
-- **delta-bins 10** — every model whose name encodes a non-0.15 delta (delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path.
-- **delta 0.15 (fixed)** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not in the filename, but is confirmed: the live v7b training pods run `--delta 0.15`, and these files are demonstrably not the delta-bins models (different scores), so by elimination (only two regimes) they are the delta-0.15 set.
+- **delta-bins 10** — every model whose name encodes a non-0.15 delta (delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path; reliable.
+- **delta: UNKNOWN — eval_model_sN (provenance lost; see note)** — the `eval_model_sN` runs are evaluated via a symlink that hides the training delta, and their source repos (`TAUR-dev/rankalign-v7-gemma2-9b-it-ifeval-sN-ep2`) carry only weights, no training args. **The delta of these models is NOT currently known** and is being investigated. Do NOT assume 0.15. (We separately confirmed the *still-training* v7b pods use `--delta 0.15`, but those are a different batch than these already-uploaded models.)
 
 **Columns** = scoring method at eval time. Raw = log P(y|x); basetyp-/self- = PMI vs base/self; basetypneg-/neg- = Neg vs base/self. `N/A` = that eval variant was not run for the setting (s4 ran basetyp+self only; s7 ran basetypneg+neg only).
 
@@ -12,9 +12,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 > ifeval **OOD** = prompts 1–21 (fully held out). ifeval **ID** = prompts 22–109 (50% of completions held out). These are the *data* split, independent of delta.
 
-## gemma-2-9b-it × ifeval OOD — delta 0.15 (fixed)
+## gemma-2-9b-it × ifeval OOD — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -50,9 +50,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## gemma-2-9b-it × ifeval ID — delta 0.15 (fixed)
+## gemma-2-9b-it × ifeval ID — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -70,9 +70,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## gemma-2-9b-it × persona ID — delta 0.15 (fixed)
+## gemma-2-9b-it × persona ID — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -126,9 +126,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## gemma-2-9b-it × rosch — delta 0.15 (fixed)
+## gemma-2-9b-it × rosch — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -164,9 +164,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## Qwen3.5-9B × ifeval OOD — delta 0.15 (fixed)
+## Qwen3.5-9B × ifeval OOD — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -202,9 +202,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## Qwen3.5-9B × persona ID — delta 0.15 (fixed)
+## Qwen3.5-9B × persona ID — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -240,9 +240,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## Qwen3.5-9B × persona OOD — delta 0.15 (fixed)
+## Qwen3.5-9B × persona OOD — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -278,9 +278,9 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 | 12 New + NegTC [-fsx] | – | -- | -- | -- | -- | -- |
 | 13 SFT + CFT | – | -- | -- | -- | -- | -- |
 
-## Qwen3.5-9B × rosch — delta 0.15 (fixed)
+## Qwen3.5-9B × rosch — delta: UNKNOWN — eval_model_sN (provenance lost; see note)
 
-> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
+> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|

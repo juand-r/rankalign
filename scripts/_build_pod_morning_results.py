@@ -66,6 +66,11 @@ METRIC_NAMES = {
 
 DELTA_FIXED = "delta 0.15 (fixed)"
 DELTA_BINS = "delta-bins 10"
+# eval_model_sN symlink runs: the symlink hides the training delta and the
+# TAUR-dev source repos carry only weights (no training args). We do NOT know
+# the delta — labelled UNKNOWN until provenance is recovered. (Earlier sessions
+# uploaded these under abbreviated names, losing the delta.)
+DELTA_UNKNOWN = "delta: UNKNOWN — eval_model_sN (provenance lost; see note)"
 
 # Persona splits
 PERSONA_ID = ["psychopathy", "machiavellianism", "narcissism"]
@@ -110,7 +115,7 @@ _PREFIX_ORDER = ("basetypneg-", "basetyp-", "neg-", "self-")
 # Cells whose eval is actively in flight right now -> render "soon" when absent.
 # gemma-2-9b-it ifeval ID at delta 0.15 is running on the ra9b ID pods today.
 IN_FLIGHT = {
-    ("gemma-2-9b-it", DELTA_FIXED, "ifeval ID"): {"s1", "s2", "s3", "s4", "s7"},
+    ("gemma-2-9b-it", DELTA_UNKNOWN, "ifeval ID"): {"s1", "s2", "s3", "s4", "s7"},
 }
 
 
@@ -130,7 +135,7 @@ def family(mp: str) -> str | None:
 
 def delta_group(mp: str) -> str:
     if re.search(r"/eval_model_s\d+$", mp):
-        return DELTA_FIXED
+        return DELTA_UNKNOWN  # symlink hides delta; provenance not yet recovered
     m = re.search(r"delta([0-9.]+)", mp) or re.search(r"-d([0-9.]+)-", mp)
     if not m:
         return "?"
@@ -329,11 +334,12 @@ def build_doc(records, metric):
         "",
         "**Delta regimes** (a property of the trained model):",
         f"- **{DELTA_BINS}** — every model whose name encodes a non-0.15 delta "
-        "(delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path.",
-        f"- **{DELTA_FIXED}** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not in "
-        "the filename, but is confirmed: the live v7b training pods run `--delta 0.15`, and these "
-        "files are demonstrably not the delta-bins models (different scores), so by elimination "
-        "(only two regimes) they are the delta-0.15 set.",
+        "(delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path; reliable.",
+        f"- **{DELTA_UNKNOWN}** — the `eval_model_sN` runs are evaluated via a symlink that hides the "
+        "training delta, and their source repos (`TAUR-dev/rankalign-v7-gemma2-9b-it-ifeval-sN-ep2`) "
+        "carry only weights, no training args. **The delta of these models is NOT currently known** "
+        "and is being investigated. Do NOT assume 0.15. (We separately confirmed the *still-training* "
+        "v7b pods use `--delta 0.15`, but those are a different batch than these already-uploaded models.)",
         "",
         "**Columns** = scoring method at eval time. Raw = log P(y|x); basetyp-/self- = PMI vs base/self; "
         "basetypneg-/neg- = Neg vs base/self. `N/A` = that eval variant was not run for the setting "
@@ -349,7 +355,7 @@ def build_doc(records, metric):
     # Section order: family -> eval_set -> delta
     families = ["gemma-2-9b-it", "Qwen3.5-9B"]
     eval_sets = ["ifeval OOD", "ifeval ID", "persona ID", "persona OOD", "rosch"]
-    deltas = [DELTA_FIXED, DELTA_BINS]
+    deltas = [DELTA_UNKNOWN, DELTA_FIXED, DELTA_BINS]
     present = {(f, d, e) for (f, d, e, s, p, t) in records}
     for fam in families:
         for eset in eval_sets:
@@ -361,9 +367,9 @@ def build_doc(records, metric):
                 if not any_data and not inflight:
                     continue
                 out.append(f"## {fam} × {eset} — {dlt}")
-                if dlt == DELTA_FIXED:
+                if dlt == DELTA_UNKNOWN:
                     out.append("")
-                    out.append("> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).")
+                    out.append("> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.")
                 out.append("")
                 out.append(table)
                 out.append("")
