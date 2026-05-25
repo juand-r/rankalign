@@ -19,6 +19,9 @@
 set -euo pipefail
 cd /workspace/rankalign/scripts
 
+# Activate venv so eval_by_claude.py can import tqdm, transformers, etc.
+source /workspace/.venv/bin/activate
+
 DATASET="${1:?DATASET required (persona|membership|ifeval)}"
 SETTING="${2:?SETTING required (s1|s2|s4|s7)}"
 
