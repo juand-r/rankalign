@@ -24,7 +24,7 @@ Annotations: `[42140]` = pending/running slurm eval job covering this cell.
 | gemma-2-2b-it | s7 | done(e2) | n/a | n/a | 10/10 | 10/10 |
 | gemma-2-2b-it | s11 | done(e2) | 10/10 | 10/10 | n/a | n/a |
 | gemma-2-2b-it | s12 | done(e2) | n/a | n/a | 10/10 | 10/10 |
-| gemma-2-2b-it | s13 | — | 0/10 | 0/10 | 0/10 | 0/10 |
+| gemma-2-2b-it | s13 | done(e0) | 0/10 | 0/10 | 0/10 | 0/10 |
 | gemma-2-9b-it | s1 | done(e1) | 10/10 | 10/10 | 10/10 | 10/10 |
 | gemma-2-9b-it | s2 | done(e2) | 10/10 | 10/10 | 10/10 | 10/10 |
 | gemma-2-9b-it | s3 | done(e2) | 10/10 | 10/10 | 10/10 | 10/10 |
@@ -34,7 +34,7 @@ Annotations: `[42140]` = pending/running slurm eval job covering this cell.
 | gemma-2-9b-it | s7 | done(e2) | n/a | n/a | 10/10 | 10/10 |
 | gemma-2-9b-it | s11 | done(e2) | 10/10 | 10/10 | n/a | n/a |
 | gemma-2-9b-it | s12 | done(e2) | n/a | n/a | 10/10 | 10/10 |
-| gemma-2-9b-it | s13 | — | 0/10 | 0/10 | 0/10 | 0/10 |
+| gemma-2-9b-it | s13 | running(42262) | 0/10 | 0/10 | 0/10 | 0/10 |
 
 ## persona  (N = 6 expected eval tasks per cell)
 
@@ -42,24 +42,24 @@ Annotations: `[42140]` = pending/running slurm eval job covering this cell.
 |---|---|---|---|---|---|---|
 | gemma-2-2b-it | s1 | done(e2) | 6/6 | 6/6 | 6/6 | 6/6 |
 | gemma-2-2b-it | s2 | done(e2) | 6/6 | 6/6 | 6/6 | 6/6 |
-| gemma-2-2b-it | s3 | done(e2) | 0/6 [42237] | 6/6 | 6/6 | 6/6 |
-| gemma-2-2b-it | s4 | done(e2) | 6/6 | 0/6 [42238] | n/a | n/a |
-| gemma-2-2b-it | s5 | done(e2) | 6/6 | 0/6 [42239] | n/a | n/a |
-| gemma-2-2b-it | s6 | done(e2) | 6/6 | 1/6 [42240] | n/a | n/a |
-| gemma-2-2b-it | s7 | done(e2) | n/a | n/a | 0/6 [42241] | 0/6 [42242] |
+| gemma-2-2b-it | s3 | done(e2) | 6/6 | 6/6 | 6/6 | 6/6 |
+| gemma-2-2b-it | s4 | done(e2) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-2b-it | s5 | done(e2) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-2b-it | s6 | done(e2) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-2b-it | s7 | done(e2) | n/a | n/a | 6/6 | 6/6 |
 | gemma-2-2b-it | s11 | done(e2) | 6/6 | 6/6 | n/a | n/a |
 | gemma-2-2b-it | s12 | done(e2) | n/a | n/a | 6/6 | 6/6 |
-| gemma-2-2b-it | s13 | — | 0/6 | 0/6 | 0/6 | 0/6 |
-| gemma-2-9b-it | s1 | done(e0) | 6/6 | 0/6 [42243] | 6/6 | 0/6 [42244] |
+| gemma-2-2b-it | s13 | running(42265) | 0/6 | 0/6 | 0/6 | 0/6 |
+| gemma-2-9b-it | s1 | done(e0) | 6/6 | 6/6 | 6/6 | 6/6 |
 | gemma-2-9b-it | s2 | done(e2) | 6/6 | 6/6 | 6/6 | 6/6 |
-| gemma-2-9b-it | s3 | done(e0) | 6/6 | 0/6 [42245] | 6/6 | 0/6 [42246] |
-| gemma-2-9b-it | s4 | done(e1) | 6/6 | 0/6 [42247] | n/a | n/a |
-| gemma-2-9b-it | s5 | done(e2) | 6/6 | 0/6 [42248] | n/a | n/a |
-| gemma-2-9b-it | s6 | done(e2) | 6/6 | 0/6 [42249] | n/a | n/a |
-| gemma-2-9b-it | s7 | done(e2) | n/a | n/a | 6/6 | 0/6 [42250] |
-| gemma-2-9b-it | s11 | done(e1) | 6/6 | 0/6 [42251] | n/a | n/a |
-| gemma-2-9b-it | s12 | done(e1) | n/a | n/a | 6/6 | 0/6 [42252] |
-| gemma-2-9b-it | s13 | — | 0/6 | 0/6 | 0/6 | 0/6 |
+| gemma-2-9b-it | s3 | done(e0) | 6/6 | 6/6 | 6/6 | 6/6 |
+| gemma-2-9b-it | s4 | done(e1) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-9b-it | s5 | done(e2) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-9b-it | s6 | done(e2) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-9b-it | s7 | done(e2) | n/a | n/a | 6/6 | 6/6 |
+| gemma-2-9b-it | s11 | done(e1) | 6/6 | 6/6 | n/a | n/a |
+| gemma-2-9b-it | s12 | done(e1) | n/a | n/a | 6/6 | 6/6 |
+| gemma-2-9b-it | s13 | running(42286) | 0/6 | 0/6 | 0/6 | 0/6 |
 
 ## ifeval  (N = 21 expected eval tasks per cell)
 
@@ -94,10 +94,26 @@ Annotations: `[42140]` = pending/running slurm eval job covering this cell.
 
 ## Gaps requiring submission
 
-Total: **4 (cell × prefix) gaps with no in-flight job**.
+Total: **20 (cell × prefix) gaps with no in-flight job**.
 
 | dataset | model | setting | column | csv prefix | NO_BASE? |
 |---|---|---|---|---|---|
+| membership | gemma-2-2b-it | s13 | PMI base | `basetyp-` | 0 |
+| membership | gemma-2-2b-it | s13 | PMI self | `self-` | 1 |
+| membership | gemma-2-2b-it | s13 | Neg base | `basetypneg-` | 0 |
+| membership | gemma-2-2b-it | s13 | Neg self | `neg-` | 1 |
+| membership | gemma-2-9b-it | s13 | PMI base | `basetyp-` | 0 |
+| membership | gemma-2-9b-it | s13 | PMI self | `self-` | 1 |
+| membership | gemma-2-9b-it | s13 | Neg base | `basetypneg-` | 0 |
+| membership | gemma-2-9b-it | s13 | Neg self | `neg-` | 1 |
+| persona | gemma-2-2b-it | s13 | PMI base | `basetyp-` | 0 |
+| persona | gemma-2-2b-it | s13 | PMI self | `self-` | 1 |
+| persona | gemma-2-2b-it | s13 | Neg base | `basetypneg-` | 0 |
+| persona | gemma-2-2b-it | s13 | Neg self | `neg-` | 1 |
+| persona | gemma-2-9b-it | s13 | PMI base | `basetyp-` | 0 |
+| persona | gemma-2-9b-it | s13 | PMI self | `self-` | 1 |
+| persona | gemma-2-9b-it | s13 | Neg base | `basetypneg-` | 0 |
+| persona | gemma-2-9b-it | s13 | Neg self | `neg-` | 1 |
 | humaneval | gemma-4-31B-it | s13 | PMI base | `basetyp-` | 0 |
 | humaneval | gemma-4-31B-it | s13 | PMI self | `self-` | 1 |
 | humaneval | gemma-4-31B-it | s13 | Neg base | `basetypneg-` | 0 |
