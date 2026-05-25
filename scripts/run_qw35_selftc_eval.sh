@@ -51,7 +51,7 @@ case "$DATASET" in
         for cat in bird carpenters-tool clothing fruit furniture sport toy vehicle vegetable weapon; do
             EVAL_TASKS+=("rosch-${cat}")
         done
-        EVAL_TASKS+=("membership-sans-rosch-v0")
+        # membership-sans-rosch-v0 has 0 gen-mode examples with random/zero-shot setup → skip
         ;;
     ifeval)
         TASK="ifeval-concat"
