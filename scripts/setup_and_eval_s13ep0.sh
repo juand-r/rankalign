@@ -59,6 +59,18 @@ pip install --quiet hf_transfer
 pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
 echo "[$(date -u +%H:%M:%S)] Deps install returned."
 
+# ---- STEP 2a: matching torchvision (gotcha 12a) ----
+# --ignore-installed pulls a fresh torch (2.12.x+cuXXX) into the venv, but the
+# torchvision inherited via --system-site-packages is built for the base-image
+# torch (2.4.1). The ABI mismatch makes transformers' lazy torchvision import
+# fail ("operator torchvision::nms does not exist" -> cannot import
+# BloomPreTrainedModel -> import peft dies). Install a torchvision that matches
+# the venv's torch so the import chain works.
+TORCH_CU="$($VENV/bin/python -c 'import torch;print(torch.__version__)' 2>/dev/null | grep -oE 'cu[0-9]+' || echo cu130)"
+pip install --quiet "torchvision==0.27.0" --index-url "https://download.pytorch.org/whl/${TORCH_CU}" \
+    || pip install --quiet torchvision --index-url "https://download.pytorch.org/whl/${TORCH_CU}"
+echo "[$(date -u +%H:%M:%S)] torchvision aligned to torch (${TORCH_CU})."
+
 # ---- STEP 2b: fail loud if deps install was incomplete ----
 # A silent `pip install` failure (e.g. a pin needing a newer Python) must abort
 # here, NOT cascade into 82 model-less eval calls. set -e is unsafe in the eval
