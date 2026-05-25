@@ -45,6 +45,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 sys.path.insert(0, str(REPO / "src"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 from checkpoint_name_parser import matches_v7_setting  # noqa: E402
+import hashlib  # noqa: E402
 
 OUT_DIR = REPO / "outputs"
 SEARCH_DIRS = [
@@ -53,6 +54,62 @@ SEARCH_DIRS = [
 ]
 METRICS_DIR = REPO / "metrics-from-scores"
 METRICS_DIR.mkdir(exist_ok=True)
+
+# Mirror the OLD md5-hash truncation logic from src/tasks/common.py
+# (commit 8b4c4fea, 2026-05-24). That branch wrote
+# `raw[:151] + '_' + md5(raw)[:8]` for over-160-char basenames. Some
+# CSVs from the brief window between 8b4c4fea and a42558a9 (when the
+# abbreviation fallback replaced hash truncation as the primary
+# overflow strategy) are still on disk in this form. We resolve them
+# back to their full basename via a model-dir index, then run the
+# structural matcher against the FULL form.
+_MODEL_SHORT_MAX_LEN = 160
+MODEL_DIRS = [
+    Path("/datastor2/jdr/rankalign/models2"),
+    Path("/datastor1/jdr/gv-gap/rankalign/models"),
+    Path("/datastor1/jdr/gv-gap/rankalign/models2"),
+]
+
+
+def _md5_truncate(raw: str) -> str:
+    """Reproduce the md5-hash truncation form for a too-long raw basename."""
+    if len(raw) <= _MODEL_SHORT_MAX_LEN:
+        return raw
+    h = hashlib.md5(raw.encode()).hexdigest()[:8]
+    return raw[:_MODEL_SHORT_MAX_LEN - 9] + '_' + h
+
+
+_DIR_INDEX: dict[str, str] | None = None
+
+
+def _build_dir_index() -> dict[str, str]:
+    """Map the two known long-name truncation forms back to the full
+    on-disk basename for every v7-* dir. Used to resolve a CSV's
+    model_short (which may be md5-hash-truncated, abbreviated, or full)
+    to the canonical full form for structural matching.
+    """
+    idx: dict[str, str] = {}
+    for d in MODEL_DIRS:
+        if not d.is_dir():
+            continue
+        for sub in d.glob("v7-*"):
+            full = sub.name
+            # Direct (no truncation needed)
+            idx[full] = full
+            # Md5 truncation form (legacy 8b4c4fea behavior)
+            idx[_md5_truncate(full)] = full
+    return idx
+
+
+def _resolve_full_basename(model_short: str) -> str:
+    """Return FULL on-disk basename for a model_short (handles legacy
+    md5-hash-truncated forms). Falls back to the input on cache miss —
+    structural matcher handles abs-path-embedded form (A) and
+    abbreviated form (C) directly."""
+    global _DIR_INDEX
+    if _DIR_INDEX is None:
+        _DIR_INDEX = _build_dir_index()
+    return _DIR_INDEX.get(model_short, model_short)
 
 # End-of-run provenance: every (file consumed) and every (collapsed dup
 # group, kept newest) is recorded here. Summarized at the end of main().
@@ -116,11 +173,15 @@ COLUMNS = [
 #   - 2b-it cells run for ~5h walltime; some may save only epoch 0/1
 #     before the walltime kills them. CP allows any of {0,1,2}.
 def _setting_match(**expected):
-    """Build a match-lambda for a v7 setting. Closes over `expected` so the
-    METHODS list can declare each row's structured fingerprint inline."""
-    return lambda s: matches_v7_setting(
-        s, model=GEMMA_MODEL, task_segment=TASK_SEG, **expected,
-    )
+    """Build a match-lambda for a v7 setting. Resolves md5-hash-truncated
+    model_shorts back to their full basename via DIR_INDEX before
+    structural matching (handles the brief 8b4c4fea-era CSVs)."""
+    def m(s):
+        full = _resolve_full_basename(s)
+        return matches_v7_setting(
+            full, model=GEMMA_MODEL, task_segment=TASK_SEG, **expected,
+        )
+    return m
 
 
 # Each METHODS entry declares ONLY the flags that distinguish that setting.

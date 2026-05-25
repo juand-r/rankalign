@@ -477,13 +477,15 @@ def main():
     cell_rows = []
     table_rows = []
 
-    # Row order. #10, #11, #12 commented out — re-enable when trained.
+    # Row order. s10 stays commented because it's a forward-compat method
+    # not in any v7 launcher's setting list (would never have CSVs). s11/s12
+    # re-enabled 2026-05-24 once 2b-it persona evals produced their CSVs.
     ROW_ORDER = [
         0, 1, 2, 3, 4, 5, 6,
-        # 11,
+        11,
         7, 8, 9,
-        # 12,
-        # 10,
+        12,
+        # 10,  # forward-compat only; not launched
     ]
     methods_by_num = {m["num"]: m for m in METHODS}
     ordered = [methods_by_num[n] for n in ROW_ORDER]
