@@ -71,7 +71,7 @@ restarted with the fix; s1 will use it automatically when training completes.
 | qw35-person-s2 | persona | s2 | 87.120.211.210:19946 | ✅ DONE | 12/12 | Downloaded; HF upload done |
 | qw35-person-s4 | persona | s4 | 103.207.149.99:18517 | ✅ STOPPED | 0/6 | CSVs+model done (basetyp+self both modes) |
 | qw35-person-s7 | persona | s7 | 103.207.149.99:12307 | ✅ STOPPED | 0/6 | CSVs+model done (basetyp+self both modes) |
-| qw35-member-s1 | membership | s1 | 103.207.149.99:12306 | 🔄 TRAINING | 0/20 | pod 91ja5g3th134sb; epoch1_merged done, epoch2 starting; ~5h remaining |
+| qw35-member-s1 | membership | s1 | 103.207.149.99:12306 | ✅ STOPPED | 0/20 | CSVs+model done (basetyp+self both modes) |
 | qw35-member-s2 | membership | s2 | 103.207.149.87:18679 | ✅ DONE | 20/20 | Downloaded; HF upload done |
 | qw35-member-s4 | membership | s4 | 103.207.149.87:15807 | ✅ DONE | 10/10 | Downloaded; HF upload done |
 | qw35-member-s7 | membership | s7 | 64.247.201.47:18203 | ✅ DONE | 10/10 | Downloaded; HF upload done |
