@@ -55,10 +55,11 @@ case "$DATASET" in
     ifeval)
         TASK="ifeval-concat"
         IFEVAL_DATA_DIR="/workspace/rankalign/data/fixed-prompts-ifeval"
+        # All prompts: OOD (1-21) + ID (22+) for self/neg TC
         mapfile -t _all_ns < <(
             for f in "$IFEVAL_DATA_DIR"/gpt_ifeval_results_prompt_*.jsonl; do
                 n="${f##*_prompt_}"; n="${n%.jsonl}"
-                [[ "$n" =~ ^[0-9]+$ ]] && (( n <= 21 )) && echo "$n"
+                [[ "$n" =~ ^[0-9]+$ ]] && echo "$n"
             done | sort -n
         )
         for n in "${_all_ns[@]}"; do
@@ -106,6 +107,61 @@ for MODE in $SELF_MODES; do
     done
     echo "[$(date -u +%FT%TZ)] mode $MODE complete"
 done
+
+# ── Basetyp/basetypneg on ID ifeval prompts (N > 21) ─────────────────────────
+# Cell script already ran basetyp/basetypneg on OOD (N <= 21). This covers ID.
+if [[ "$DATASET" == "ifeval" ]]; then
+    IFEVAL_DATA_DIR="/workspace/rankalign/data/fixed-prompts-ifeval"
+    mapfile -t _id_ns < <(
+        for f in "$IFEVAL_DATA_DIR"/gpt_ifeval_results_prompt_*.jsonl; do
+            n="${f##*_prompt_}"; n="${n%.jsonl}"
+            [[ "$n" =~ ^[0-9]+$ ]] && (( n > 21 )) && echo "$n"
+        done | sort -n
+    )
+    ID_TASKS=()
+    for n in "${_id_ns[@]}"; do ID_TASKS+=("ifeval-prompt_${n}"); done
+    echo "[$(date -u +%FT%TZ)] basetyp/basetypneg on ${#ID_TASKS[@]} ID tasks (N > 21)"
+
+    # basetyp (PMI): --base-typicality --self-typicality — for s1/s2/s4
+    if [[ "$SETTING" != "s7" ]]; then
+        echo "[$(date -u +%FT%TZ)] --- basetyp (PMI) on ID tasks ---"
+        for EVAL_TASK in "${ID_TASKS[@]}"; do
+            echo "[$(date -u +%FT%TZ)] basetyp: $EVAL_TASK"
+            python eval_by_claude.py \
+                --model "$EVAL_MODEL_DIR" \
+                --task "$EVAL_TASK" \
+                --split_type random \
+                --disc-shots zero \
+                --gen-shots zero \
+                --outputs-dir "$OUTPUTS_DIR" \
+                --validator-log-odds \
+                --base-typicality --self-typicality \
+                --base-model-name "$MODEL" \
+                --save-scores-csv
+        done
+        echo "[$(date -u +%FT%TZ)] basetyp ID done"
+    fi
+
+    # basetypneg (Neg): --base-typicality --neg-typicality — for s1/s2/s7
+    if [[ "$SETTING" != "s4" ]]; then
+        echo "[$(date -u +%FT%TZ)] --- basetypneg (Neg) on ID tasks ---"
+        for EVAL_TASK in "${ID_TASKS[@]}"; do
+            echo "[$(date -u +%FT%TZ)] basetypneg: $EVAL_TASK"
+            python eval_by_claude.py \
+                --model "$EVAL_MODEL_DIR" \
+                --task "$EVAL_TASK" \
+                --split_type random \
+                --disc-shots zero \
+                --gen-shots zero \
+                --outputs-dir "$OUTPUTS_DIR" \
+                --validator-log-odds \
+                --base-typicality --neg-typicality \
+                --base-model-name "$MODEL" \
+                --save-scores-csv
+        done
+        echo "[$(date -u +%FT%TZ)] basetypneg ID done"
+    fi
+fi
 
 touch "/workspace/SELFTC_${DATASET}_${SETTING}_DONE"
 echo "[$(date -u +%FT%TZ)] === SELFTC EVAL ALL DONE: DATASET=$DATASET SETTING=$SETTING ==="
