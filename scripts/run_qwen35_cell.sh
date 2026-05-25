@@ -77,8 +77,9 @@ case "$DATASET" in
         ;;
     ifeval)
         TASK="ifeval-concat"
+        # prompt_14 data file is missing — skip it; all others 1-21 exist
         EVAL_TASKS=()
-        for n in $(seq 1 21); do EVAL_TASKS+=("ifeval-prompt_$n"); done
+        for n in $(seq 1 13) $(seq 15 21); do EVAL_TASKS+=("ifeval-prompt_$n"); done
         MAX_SEQ="--max-seq-len 1024"
         # ifeval sequences are long — gradient checkpointing prevents OOM on 9B models
         GRAD_CKP="--gradient_checkpointing"
