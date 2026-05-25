@@ -314,6 +314,56 @@ def collect_score_coverage():
     return out
 
 
+JOB_LOG_PATH = REPO / "overnight" / "_overnight_jobids.txt"
+
+
+def _parse_label(label: str):
+    """Parse label like 'persona-gemma-2-9b-it-s3' or 'membership-gemma-2-2b-s13'
+    into (dataset, model, setting). Settings are sN. Datasets are persona,
+    membership, ifeval, humaneval. Returns (ds_short, model, setting) or None."""
+    # Setting is the last token sN
+    m_set = re.search(r"-s(\d+)$", label)
+    if not m_set:
+        return None
+    setting = f"s{m_set.group(1)}"
+    rest = label[: m_set.start()]
+    # Dataset is the first token
+    for ds in ("persona", "membership", "ifeval", "humaneval"):
+        if rest.startswith(ds + "-"):
+            model = rest[len(ds) + 1 :]
+            return ds, model, setting
+    return None
+
+
+def _build_jobid_index():
+    """Read the overnight JOB_LOG and build {jobid: (ds, model, setting)} map.
+    The JOB_LOG has lines like:
+        2026-05-25T09:47:11Z  persona-gemma-2-9b-it-s3  TRAIN=42377  TC_EVAL_LIST=self neg
+    We use the lines with TRAIN_JOBID + TC_EVAL_LIST (canonical train-only entries)
+    to map jobid -> (ds, model, setting).
+    """
+    idx = {}
+    if not JOB_LOG_PATH.is_file():
+        return idx
+    try:
+        for line in JOB_LOG_PATH.read_text(errors="replace").splitlines():
+            # Match a line that has "<label> TRAIN=<jobid>" - includes both the
+            # train-only line (TC_EVAL_LIST=...) and the per-eval lines (EVAL=).
+            # We don't care which, since label is the same.
+            mm = re.search(r"\s+(\S+)\s+TRAIN=(\d+)\b", line)
+            if not mm:
+                continue
+            label, jobid = mm.group(1), mm.group(2)
+            # Strip eval suffix (-evaltc-{tc}, -evaltc-{tc}-EVALONLY, etc.)
+            label = re.sub(r"-evaltc-(self|neg)(-EVALONLY)?$", "", label)
+            parsed = _parse_label(label)
+            if parsed:
+                idx[jobid] = parsed
+    except Exception:
+        pass
+    return idx
+
+
 def queue_status():
     """Return (n_jobs, list_of_(jobid, name, state, model_or_none, dataset_or_none, setting_or_none))."""
     sq = subprocess.run(
@@ -321,6 +371,7 @@ def queue_status():
         capture_output=True, text=True,
     ).stdout.splitlines()
     parsed = []
+    jobid_idx = _build_jobid_index()
     for line in sq:
         parts = line.split()
         if not parts:
@@ -328,30 +379,35 @@ def queue_status():
         jid = parts[0]; jname = parts[1] if len(parts) > 1 else ""; st = parts[2] if len(parts) > 2 else ""
         m = ds = s = None
         if jname == "wrap":
-            # train job - peek into log
-            p = LOGS_DIR / f"{jid}.out"
-            if p.is_file():
-                try:
-                    text = p.read_text(errors="replace")[:3000]
-                    mm = re.search(r"Model:\s*google/(\S+)", text)
-                    if mm:
-                        m = mm.group(1)
-                    if "persona-v1" in text: ds = "persona"
-                    elif "membership-sans-rosch" in text: ds = "membership"
-                    elif "ifeval" in text: ds = "ifeval"
-                    elif "humaneval" in text: ds = "humaneval"
-                    if "--cft" in text or "--consistency-ft" in text: s = "s13"
-                    elif "--labelonly0.1" in text and "--pref0.0" in text: s = "s1"
-                    elif "--self-typcorr" in text and "--force-same-x" in text and "--vallogodds" in text: s = "s4"
-                    elif "--self-typcorr" in text and "--force-same-x" in text: s = "s5"
-                    elif "--self-typcorr" in text and "--vallogodds" in text: s = "s11"
-                    elif "--self-typcorr" in text: s = "s6"
-                    elif "--neg-typcorr" in text and "--force-same-x" in text: s = "s7"
-                    elif "--neg-typcorr" in text: s = "s12"
-                    elif "--force-same-x" in text: s = "s3"
-                    else: s = "s2"
-                except Exception:
-                    pass
+            # PRIMARY: look up in the canonical _overnight_jobids.txt map.
+            # This is unambiguous because _overnight_launch.sh writes a
+            # `<label> TRAIN=<jobid>` line at submit time. The .out file is
+            # NOT enough on its own - many flags (--force-same-x, --cft, etc.)
+            # never appear in it.
+            if jid in jobid_idx:
+                ds, m, s = jobid_idx[jid]
+            else:
+                # FALLBACK: best-effort .out parsing for jobs submitted before
+                # the JOB_LOG existed or by external tools.
+                p = LOGS_DIR / f"{jid}.out"
+                if p.is_file():
+                    try:
+                        text = p.read_text(errors="replace")[:3000]
+                        mm = re.search(r"Model:\s*google/(\S+)", text)
+                        if mm:
+                            m = mm.group(1)
+                        if "persona-v1" in text: ds = "persona"
+                        elif "membership-sans-rosch" in text: ds = "membership"
+                        elif "ifeval" in text: ds = "ifeval"
+                        elif "humaneval" in text: ds = "humaneval"
+                        if "--cft" in text or "--consistency-ft" in text: s = "s13"
+                        elif "--labelonly0.1" in text and "--pref0.0" in text: s = "s1"
+                        # NOTE: most setting flags don't appear in .out; this
+                        # fallback collapses many settings to "s2". Pre-fer
+                        # the JOB_LOG path above.
+                        else: s = "s2"
+                    except Exception:
+                        pass
         parsed.append((jid, jname, st, m, ds, s))
     return len(parsed), parsed
 
