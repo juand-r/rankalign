@@ -191,6 +191,16 @@ EVAL_MODEL_DIR="/workspace/eval_model_${SETTING}"
 ln -sfn "$MODEL_DIR" "$EVAL_MODEL_DIR"
 echo "[$(date -u +%FT%TZ)] eval model symlink: $EVAL_MODEL_DIR -> $MODEL_DIR"
 
+# NO_BASE=1 drops --base-typicality (and the base-model reload) for ~2x faster eval.
+# Trade-off: produces self-/neg- prefixed CSVs (PMI-self / Neg-self) only; no
+# basetyp-/basetypneg- (PMI-base / Neg-base) columns.
+if [ -n "${NO_BASE:-}" ]; then
+    BASE_FLAGS=""
+    echo "[$(date -u +%FT%TZ)] NO_BASE=1 — skipping --base-typicality (faster eval, self-/neg- only)"
+else
+    BASE_FLAGS="--base-typicality --base-model-name $MODEL"
+fi
+
 for MODE in $EVAL_MODES; do
     echo "[$(date -u +%FT%TZ)] --- eval mode: $MODE ---"
     for EVAL_TASK in "${EVAL_TASKS[@]}"; do
@@ -204,8 +214,7 @@ for MODE in $EVAL_MODES; do
             --outputs-dir "$OUTPUTS_DIR" \
             --validator-log-odds \
             $MODE \
-            --base-typicality \
-            --base-model-name "$MODEL" \
+            $BASE_FLAGS \
             --save-scores-csv
         echo "[$(date -u +%FT%TZ)] done: $EVAL_TASK ($MODE)"
     done
