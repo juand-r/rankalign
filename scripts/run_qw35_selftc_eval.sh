@@ -51,9 +51,7 @@ case "$DATASET" in
         for cat in bird carpenters-tool clothing fruit furniture sport toy vehicle vegetable weapon; do
             EVAL_TASKS+=("rosch-${cat}")
         done
-        for mem in bird carpenters-tool clothing fruit furniture sport toy vehicle vegetable weapon; do
-            EVAL_TASKS+=("membership-${mem}")
-        done
+        EVAL_TASKS+=("membership-sans-rosch-v0")
         ;;
     ifeval)
         TASK="ifeval-concat"
