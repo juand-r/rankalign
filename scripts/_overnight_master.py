@@ -412,6 +412,19 @@ def queue_status():
     return len(parsed), parsed
 
 
+def _model_to_tag(model_full: str) -> str:
+    """Mirror _eval_only.sh's MODEL_TAG mapping. Used to construct the
+    expected job name for dedup."""
+    m = model_full.lower()
+    if "gemma-2-2b-it" in m:   return "2b-it"
+    if "gemma-2-9b-it" in m:   return "9b-it"
+    if "gemma-2-2b"   in m:    return "2b"
+    if "gemma-2-9b"   in m:    return "9b"
+    if "gemma-4-31b-it" in m or "gemma-4-31B-it" in model_full:
+        return "g431Bit"
+    return model_full.split("/")[-1].replace("gemma-", "")
+
+
 def fire_eval(dataset, model, setting, tc, no_base, dep_jobid=None):
     """Submit one _eval_only.sh job. Returns jobid or None on failure."""
     env = os.environ.copy()
@@ -509,13 +522,21 @@ def main():
             elif prefix == "basetypneg-": tc, nb = "neg",  False
             elif prefix == "neg-":       tc, nb = "neg",  True
             else: continue
-            # Skip if this same eval is already in queue (avoid double-fire).
-            already = False
-            for jid, jname, st, mm, dds, ss in q:
-                if jname.startswith("eval-") and dds == ds_short and ss == s:
-                    # crude — eval job names don't carry model/no_base; accept some duplication
-                    pass
-            print(f" [P1] {ds_short} × {m} × {s}: missing prefix '{prefix}' → eval {tc} no_base={nb}")
+            # Dedup: parse every eval-* job name in the queue and compare.
+            # Job name format from _eval_only.sh:
+            #   eval-${SETTING}-${DATASET}-${MODEL_TAG}-${TC}${-nobase?}-only
+            model_tag = _model_to_tag(m)
+            no_base_tag = "-nobase" if nb else ""
+            target_jname = f"eval-{s}-{ds_short}-{model_tag}-{tc}{no_base_tag}-only"
+            already_in_queue = any(
+                jname == target_jname
+                for jid, jname, st, mm, dds, ss in q
+                if jname.startswith("eval-")
+            )
+            if already_in_queue:
+                # Don't print/fire — this eval is already pending or running.
+                continue
+            print(f" [P1] {ds_short} × {m} × {s}: missing prefix '{prefix}' \u2192 eval {tc} no_base={nb}")
             if slots <= 0:
                 print(" [P1] queue full; stopping pass 1")
                 break
