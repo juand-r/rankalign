@@ -241,6 +241,13 @@ else
     NO_BASE_TAG=""
 fi
 
+# ifeval requires --disc-shots-zero: src/utils.py:make_prompt_ifeval
+# raises NotImplementedError for shots != "zero" in the discriminator branch
+# (line ~817), so each per-prompt task silently fails if this flag is absent.
+if [ "$DATASET" = "ifeval" ]; then
+    EVAL_FLAGS="$EVAL_FLAGS --disc-shots-zero"
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 

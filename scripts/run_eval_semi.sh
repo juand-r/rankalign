@@ -38,6 +38,7 @@ while [[ $# -gt 0 ]]; do
         --log-odds) EVAL_FLAGS="$EVAL_FLAGS --validator-log-odds"; shift ;;
         --include-eos) EVAL_FLAGS="$EVAL_FLAGS --include-eos"; shift ;;
         --disc-shots-zero) DISC_SHOTS="zero"; shift ;;
+        --disc-shots) DISC_SHOTS="$2"; shift 2 ;;
         --outputs-dir) OUTPUTS_DIR="$2"; shift 2 ;;
         --) shift; break ;;
         *) break ;;
