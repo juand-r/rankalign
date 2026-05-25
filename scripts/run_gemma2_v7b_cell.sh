@@ -217,4 +217,7 @@ for MODE in $EVAL_MODES; do
     echo "[$(date -u +%FT%TZ)] mode $MODE complete"
 done
 
+DATASET_UPPER="${DATASET^^}"
+SETTING_UPPER="${SETTING^^}"
+touch "/workspace/V7B_${DATASET_UPPER}_${SETTING_UPPER}_DONE"
 echo "[$(date -u +%FT%TZ)] === ALL DONE: DATASET=$DATASET SETTING=$SETTING ==="
