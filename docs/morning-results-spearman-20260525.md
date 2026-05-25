@@ -1,19 +1,20 @@
-# Morning Results — Spearman(gen, val) — 2026-05-25T15:41:08Z
+# Morning Results — Spearman(gen, val) — 2026-05-25T15:44:15Z
 
 All cells: **Spearman(gen, val) × 100 ± SE** (mean ± SE across the eval-task split for that section).
 
 Section header convention: `<model> × <eval-set label>`. The model is
 the (LoRA-finetuned base) generator under test; the eval-set label says
 which held-out task slice the cells were averaged over. For example,
-`gemma-2-9b-it × membership (eval = rosch, all 6 tasks)` means: gemma-2-9b-it
-trained on `membership-sans-rosch-v0` and evaluated on the 6 held-out Rosch
-cross-categorization tasks. `persona ID` / `persona OOD` are the 3+3 splits
-of `persona-v1` (see headers for the per-persona task names).
+`gemma-2-9b-it × membership (eval = rosch, all 10 tasks)` means: gemma-2-9b-it
+trained on `membership-sans-rosch-v0` and evaluated on the 10 held-out Rosch
+cross-categorization tasks (bird, carpenters-tool, clothing, fruit, furniture,
+sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the
+3+3 splits of `persona-v1` (see headers for the per-persona task names).
 
 Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.
 Empty cells (—): no eval CSV with that prefix yet.
 
-## gemma-2-2b × membership (eval = rosch, all 6 tasks)
+## gemma-2-2b × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_2b_spearman_table_cells.csv](metrics-from-scores/rosch_v7_2b_spearman_table_cells.csv)
 
@@ -31,7 +32,7 @@ Source: [rosch_v7_2b_spearman_table_cells.csv](metrics-from-scores/rosch_v7_2b_s
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
 | 13 SFT + CFT | ✓ ep=2 | 59.93 ± 3.94 | 63.62 ± 2.11 | — | 52.51 ± 4.23 | — |
 
-## gemma-2-2b-it × membership (eval = rosch, all 6 tasks)
+## gemma-2-2b-it × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_2b-it_spearman_table_cells.csv](metrics-from-scores/rosch_v7_2b-it_spearman_table_cells.csv)
 
@@ -49,7 +50,7 @@ Source: [rosch_v7_2b-it_spearman_table_cells.csv](metrics-from-scores/rosch_v7_2
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 54.20 ± 4.18 | — | — | 59.58 ± 2.94 | 69.39 ± 2.89 |
 | 13 SFT + CFT | ✓ ep=2 | 60.21 ± 3.80 | 57.03 ± 2.41 | 64.23 ± 2.43 | 51.59 ± 2.69 | 63.39 ± 2.57 |
 
-## gemma-2-9b-it × membership (eval = rosch, all 6 tasks)
+## gemma-2-9b-it × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_9b-it_spearman_table_cells.csv](metrics-from-scores/rosch_v7_9b-it_spearman_table_cells.csv)
 
@@ -112,7 +113,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_all_spearman_table_cells.csv](metrics-from-
 | 0 Base | (base model) | -7.20 ± 9.36 | — | -8.95 ± 7.18 | — | 19.28 ± 1.21 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 21.23 ± 15.18 | 25.04 ± 15.31 | 20.14 ± 14.06 | 40.81 ± 9.42 | 53.20 ± 3.16 |
 | 2 RankAlign | ✓ ep=2 | 58.53 ± 10.80 | 72.25 ± 3.27 | 65.42 ± 6.83 | 74.89 ± 2.13 | 79.26 ± 2.27 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 38.49 ± 17.13 | 42.44 ± 16.61 | 37.93 ± 17.93 | 54.84 ± 10.35 | 68.08 ± 4.55 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 38.49 ± 17.13 | 42.44 ± 16.61 | 37.93 ± 17.93 | 54.84 ± 10.35 | 68.08 ± 4.55 |
 | 4 New + PMI + fsx | ✓ ep=1 | 27.74 ± 16.24 | 33.76 ± 16.27 | 26.69 ± 16.80 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 33.16 ± 17.25 | 61.22 ± 9.22 | 45.82 ± 13.72 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 36.48 ± 17.51 | 59.57 ± 9.71 | 35.84 ± 15.95 | — | — |
@@ -166,7 +167,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_id_spearman_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 12.97 ± 1.22 | — | 4.65 ± 4.67 | — | 19.34 ± 0.45 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 53.46 ± 2.53 | 57.02 ± 5.34 | 50.29 ± 1.06 | 58.29 ± 5.66 | 51.56 ± 4.39 |
 | 2 RankAlign | ✓ ep=2 | 79.49 ± 1.19 | 78.67 ± 2.28 | 78.85 ± 1.66 | 78.91 ± 2.24 | 83.99 ± 1.08 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 76.57 ± 0.74 | 79.55 ± 0.85 | 77.68 ± 0.91 | 77.19 ± 0.33 | 76.82 ± 2.68 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 76.57 ± 0.74 | 79.55 ± 0.85 | 77.68 ± 0.91 | 77.19 ± 0.33 | 76.82 ± 2.68 |
 | 4 New + PMI + fsx | ✓ ep=1 | 63.65 ± 1.48 | 69.76 ± 1.34 | 63.92 ± 1.56 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 70.61 ± 2.09 | 80.56 ± 0.36 | 76.35 ± 1.46 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 74.19 ± 2.18 | 79.50 ± 0.29 | 71.33 ± 1.89 | — | — |
@@ -220,7 +221,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_spearman_table_cells.csv](metrics-from-
 | 0 Base | (base model) | -27.36 ± 5.49 | — | -22.55 ± 7.12 | — | 19.22 ± 2.66 |
 | 1 SFT labelonly 10% | ✓ ep=1 | -10.99 ± 10.40 | -13.22 ± 7.94 | -10.02 ± 8.80 | 12.62 ± 9.70 | 54.84 ± 5.29 |
 | 2 RankAlign | ✓ ep=2 | 37.56 ± 11.91 | 65.83 ± 2.63 | 51.99 ± 7.08 | 70.86 ± 1.19 | 74.54 ± 1.50 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 0.41 ± 3.97 | 5.32 ± 0.75 | -1.82 ± 5.16 | 32.49 ± 6.03 | 59.33 ± 4.47 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 0.41 ± 3.97 | 5.32 ± 0.75 | -1.82 ± 5.16 | 32.49 ± 6.03 | 59.33 ± 4.47 |
 | 4 New + PMI + fsx | ✓ ep=1 | -8.18 ± 5.11 | -2.23 ± 5.18 | -10.53 ± 4.78 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | -4.30 ± 8.94 | 41.89 ± 7.15 | 15.28 ± 2.63 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | -1.23 ± 10.27 | 39.64 ± 8.61 | 0.34 ± 2.83 | — | — |
@@ -257,4 +258,4 @@ Source: [humaneval_v2.1correct-upper_g4-31B-it_spearman_table_cells.csv](metrics
 | 7 New + NegTC + fsx | ✓ (prior run) | 63.96 ± 1.89 | — | — | 77.05 ± 1.13 | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42114 R 15:32:57 (≤8:27:03) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42114 R 15:36:04 (≤8:23:56) | — | — | — | — | — |

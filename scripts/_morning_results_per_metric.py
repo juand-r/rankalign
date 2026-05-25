@@ -33,10 +33,11 @@ SOURCES = [
     # rosch — eval set (Rosch 2b cross-categorization tasks).
     # The training data is `membership-sans-rosch-v0`; every "membership"
     # row below is therefore "trained on membership-sans-rosch, evaluated on
-    # the held-out rosch tasks". Same model, three eval-task slices.
-    ("gemma-2-2b",       "membership (eval = rosch, all 6 tasks)", "rosch_v7_2b_{m}_table_cells.csv",          "membership"),
-    ("gemma-2-2b-it",    "membership (eval = rosch, all 6 tasks)", "rosch_v7_2b-it_{m}_table_cells.csv",       "membership"),
-    ("gemma-2-9b-it",    "membership (eval = rosch, all 6 tasks)", "rosch_v7_9b-it_{m}_table_cells.csv",       "membership"),
+    # the 10 held-out rosch tasks (bird, carpenters-tool, clothing, fruit,
+    # furniture, sport, toy, vegetable, vehicle, weapon)".
+    ("gemma-2-2b",       "membership (eval = rosch, all 10 tasks)", "rosch_v7_2b_{m}_table_cells.csv",          "membership"),
+    ("gemma-2-2b-it",    "membership (eval = rosch, all 10 tasks)", "rosch_v7_2b-it_{m}_table_cells.csv",       "membership"),
+    ("gemma-2-9b-it",    "membership (eval = rosch, all 10 tasks)", "rosch_v7_9b-it_{m}_table_cells.csv",       "membership"),
     # persona — all 6 personas
     ("gemma-2-2b",       "persona (all 6 personas)",     "persona_v1_v7_gemma-2-2b_all_{m}_table_cells.csv",    "persona"),
     ("gemma-2-2b-it",    "persona (all 6 personas)",     "persona_v1_v7_gemma-2-2b-it_all_{m}_table_cells.csv", "persona"),
@@ -236,10 +237,11 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
     out.append("Section header convention: `<model> × <eval-set label>`. The model is")
     out.append("the (LoRA-finetuned base) generator under test; the eval-set label says")
     out.append("which held-out task slice the cells were averaged over. For example,")
-    out.append("`gemma-2-9b-it × membership (eval = rosch, all 6 tasks)` means: gemma-2-9b-it")
-    out.append("trained on `membership-sans-rosch-v0` and evaluated on the 6 held-out Rosch")
-    out.append("cross-categorization tasks. `persona ID` / `persona OOD` are the 3+3 splits")
-    out.append("of `persona-v1` (see headers for the per-persona task names).")
+    out.append("`gemma-2-9b-it × membership (eval = rosch, all 10 tasks)` means: gemma-2-9b-it")
+    out.append("trained on `membership-sans-rosch-v0` and evaluated on the 10 held-out Rosch")
+    out.append("cross-categorization tasks (bird, carpenters-tool, clothing, fruit, furniture,")
+    out.append("sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the")
+    out.append("3+3 splits of `persona-v1` (see headers for the per-persona task names).")
     out.append("")
     out.append("Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.")
     out.append("Empty cells (—): no eval CSV with that prefix yet.")

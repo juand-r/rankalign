@@ -1,19 +1,20 @@
-# Morning Results — ValROC — 2026-05-25T15:41:08Z
+# Morning Results — ValROC — 2026-05-25T15:44:15Z
 
 All cells: **ValROC × 100 ± SE** (mean ± SE across the eval-task split for that section).
 
 Section header convention: `<model> × <eval-set label>`. The model is
 the (LoRA-finetuned base) generator under test; the eval-set label says
 which held-out task slice the cells were averaged over. For example,
-`gemma-2-9b-it × membership (eval = rosch, all 6 tasks)` means: gemma-2-9b-it
-trained on `membership-sans-rosch-v0` and evaluated on the 6 held-out Rosch
-cross-categorization tasks. `persona ID` / `persona OOD` are the 3+3 splits
-of `persona-v1` (see headers for the per-persona task names).
+`gemma-2-9b-it × membership (eval = rosch, all 10 tasks)` means: gemma-2-9b-it
+trained on `membership-sans-rosch-v0` and evaluated on the 10 held-out Rosch
+cross-categorization tasks (bird, carpenters-tool, clothing, fruit, furniture,
+sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the
+3+3 splits of `persona-v1` (see headers for the per-persona task names).
 
 Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.
 Empty cells (—): no eval CSV with that prefix yet.
 
-## gemma-2-2b × membership (eval = rosch, all 6 tasks)
+## gemma-2-2b × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_2b_val_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b_val_roc_table_cells.csv)
 
@@ -31,7 +32,7 @@ Source: [rosch_v7_2b_val_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b_va
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
 | 13 SFT + CFT | ✓ ep=2 | 88.26 ± 3.13 | 88.26 ± 3.13 | — | 88.26 ± 3.13 | — |
 
-## gemma-2-2b-it × membership (eval = rosch, all 6 tasks)
+## gemma-2-2b-it × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_2b-it_val_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b-it_val_roc_table_cells.csv)
 
@@ -49,7 +50,7 @@ Source: [rosch_v7_2b-it_val_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 87.15 ± 2.62 | — | — | 87.15 ± 2.62 | 87.15 ± 2.62 |
 | 13 SFT + CFT | ✓ ep=2 | 89.73 ± 3.05 | 89.73 ± 3.05 | 89.73 ± 3.05 | 89.73 ± 3.05 | 89.73 ± 3.05 |
 
-## gemma-2-9b-it × membership (eval = rosch, all 6 tasks)
+## gemma-2-9b-it × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_9b-it_val_roc_table_cells.csv](metrics-from-scores/rosch_v7_9b-it_val_roc_table_cells.csv)
 
@@ -112,7 +113,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_all_val_roc_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 95.59 ± 1.49 | — | 95.59 ± 1.49 | — | 95.59 ± 1.49 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 98.07 ± 1.85 | 98.07 ± 1.85 | 98.07 ± 1.85 | 98.07 ± 1.85 | 98.07 ± 1.85 |
 | 2 RankAlign | ✓ ep=2 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 | 99.35 ± 0.43 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 | 96.92 ± 2.97 |
 | 4 New + PMI + fsx | ✓ ep=1 | 96.74 ± 3.21 | 96.74 ± 3.21 | 96.74 ± 3.21 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.41 ± 0.33 | 99.41 ± 0.33 | 99.41 ± 0.33 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.40 ± 0.36 | 99.40 ± 0.36 | 99.40 ± 0.36 | — | — |
@@ -166,7 +167,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_id_val_roc_table_cells.csv](metrics-from-sc
 | 0 Base | (base model) | 93.75 ± 1.64 | — | 93.75 ± 1.64 | — | 93.75 ± 1.64 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 |
 | 2 RankAlign | ✓ ep=2 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 | 99.20 ± 0.80 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 | 99.98 ± 0.02 |
 | 4 New + PMI + fsx | ✓ ep=1 | 100.00 ± 0.00 | 100.00 ± 0.00 | 100.00 ± 0.00 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.45 ± 0.40 | 99.45 ± 0.40 | 99.45 ± 0.40 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.41 ± 0.55 | 99.41 ± 0.55 | 99.41 ± 0.55 | — | — |
@@ -220,7 +221,7 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_val_roc_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 97.44 ± 2.24 | — | 97.44 ± 2.24 | — | 97.44 ± 2.24 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 96.14 ± 3.66 | 97.84 ± 2.15 | 96.14 ± 3.66 | 97.84 ± 2.15 | 96.14 ± 3.66 |
 | 2 RankAlign | ✓ ep=2 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 | 99.49 ± 0.51 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:53:57 (≤3:06:03) | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 | 93.86 ± 5.90 |
 | 4 New + PMI + fsx | ✓ ep=1 | 93.48 ± 6.38 | 93.48 ± 6.38 | 93.48 ± 6.38 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 99.38 ± 0.61 | 99.38 ± 0.61 | 99.38 ± 0.61 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 99.39 ± 0.59 | 99.39 ± 0.59 | 99.39 ± 0.59 | — | — |
@@ -245,7 +246,7 @@ Source: [ifeval_id_val_roc_table_cells.csv](metrics-from-scores/ifeval_id_val_ro
 | 7 New + NegTC + fsx | ✓ (prior run) | 84.65 ± 1.54 | — | — | — | 84.65 ± 1.54 |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:39:01 (≤6:20:59) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 R 7:42:08 (≤6:17:52) | — | — | — | — | — |
 
 ## gemma-2-9b-it × ifeval OOD (20 fully held-out prompts: prompt_1..13, 15..21)
 
@@ -263,7 +264,7 @@ Source: [ifeval_ood_val_roc_table_cells.csv](metrics-from-scores/ifeval_ood_val_
 | 7 New + NegTC + fsx | ✓ (prior run) | 79.21 ± 3.07 | — | — | — | 79.21 ± 3.07 |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:39:01 (≤6:20:59) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 R 7:42:08 (≤6:17:52) | — | — | — | — | — |
 
 ## gemma-4-31B-it × humaneval
 
@@ -281,4 +282,4 @@ Source: [humaneval_v2.1correct-upper_g4-31B-it_val_roc_table_cells.csv](metrics-
 | 7 New + NegTC + fsx | ✓ (prior run) | 93.22 ± 0.93 | — | — | 93.22 ± 0.93 | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42114 R 15:32:57 (≤8:27:03) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42114 R 15:36:04 (≤8:23:56) | — | — | — | — | — |
