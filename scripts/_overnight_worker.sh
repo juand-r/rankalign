@@ -31,7 +31,7 @@ while true; do
         echo ""
 
         echo "=== master scheduler ==="
-        python scripts/_overnight_master.py 2>&1 | tail -40
+        QUEUE_CAP=100 MAX_P1=12 python scripts/_overnight_master.py 2>&1 | tail -60
         echo ""
 
         # Every 3rd tick, regen tables
