@@ -1,6 +1,6 @@
 # Pod Tracking — rankalign v7 training run
 
-Last updated: 2026-05-25 ~04:15 UTC
+Last updated: 2026-05-25 ~04:30 UTC
 
 Two models × 3 datasets × 5 settings = 27 pods total.
 - **Gemma-2-9b-it** (personal RunPod account, 15 pods)
@@ -34,7 +34,7 @@ Expected CSV counts per cell:
 | ra-9b-member-s3 | membership | s3 | 216.243.220.217:18163 | ✅ STOPPED | 20/20 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s3-ep2 |
 | ra-9b-member-s4 | membership | s4 | 103.207.149.80:13362 | ✅ STOPPED | 10/10 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s4-ep2 |
 | ra-9b-member-s7 | membership | s7 | 103.207.149.80:14005 | ✅ STOPPED | 10/10 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s7-ep2 |
-| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | 🔄 EVAL | 35/40 | 19 self-TC done; neg-TC at prompt_9 (~3 remaining, ~9 min); pod ID: 0e8577cymdvkm0 |
+| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | ✅ STOPPED | 40/40 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-ifeval-s1-ep2 |
 | ra-9b-ifeval-s2 | ifeval | s2 | 64.247.201.40:11878 | ✅ STOPPED | 40/40 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-ifeval-s2-ep2 |
 | ra-9b-ifeval-s3 | ifeval | s3 | 64.247.201.40:19766 | ✅ STOPPED | 40/40 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-ifeval-s3-ep2 |
 | ra-9b-ifeval-s4 | ifeval | s4 | 216.243.220.217:16449 | ✅ STOPPED | 20/20 | CSVs done; HF: rankalign-v7-gemma2-9b-it-ifeval-s4-ep2 |
@@ -44,16 +44,17 @@ Expected CSV counts per cell:
 Stored at: `mll:/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/ra9b_persona_member/`
 Table builder: `scripts/_build_ra9b_persona_member_table.py`
 
-### Gemma-2 ifeval — s2+s3+s4+s7 DONE, s1 eval nearly done (~9 min)
-s4: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s4-ep2
+### Gemma-2 ifeval — ALL DONE ✅
+s1: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (53 CSVs = 40 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s1-ep2
 s2: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (53 CSVs = 40 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s2-ep2
 s3: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (51 CSVs = 40 canonical + 11 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s3-ep2
+s4: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s4-ep2
 s7: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s7-ep2
-s1: 35/38 canonical CSVs done (19 self-TC + 16 neg-TC); ~3 neg-TC prompts remain; expected 38 canonical + 13 old = 51 total
+Note: s1 canonical = 40 CSVs (20 self-TC + 20 neg-TC; prompt_14 has no data; prompt_21 exists in data files)
 
-### HF model uploads (as of 2026-05-25 04:15 UTC)
-DONE: g2-persona s1/s2/s3/s4/s7, g2-membership s1/s2/s3/s4/s7, g2-ifeval-s2/s3/s4/s7, qw35-persona-s2, qw35-member-s2/s4/s7
-PENDING: g2-ifeval-s1 (eval almost done), qw35-persona-s1/s4/s7, qw35-member-s1, qw35-ifeval-s1/s2/s4/s7
+### HF model uploads (as of 2026-05-25 04:30 UTC)
+DONE: g2-persona s1/s2/s3/s4/s7, g2-membership s1/s2/s3/s4/s7, g2-ifeval-s1/s2/s3/s4/s7, qw35-persona-s2, qw35-member-s2/s4/s7
+PENDING: qw35-persona-s1/s4/s7, qw35-member-s1, qw35-ifeval-s1/s2/s4/s7
 
 **Bug fixed 2026-05-25:** `run_gemma2_cell.sh` hardcoded `seq 1 21` for ifeval tasks;
 prompt_14 has no data file. Fixed to read actual data files from `fixed-prompts-ifeval/`,
@@ -102,7 +103,7 @@ Download target on mll: `/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/qw3
 - [x] HF model uploads for qw35-persona-s2, qw35-member-s2/s4/s7 — DONE
 - [x] Stop g2-ifeval-s3 (upload confirmed) — DONE 2026-05-25 04:07 UTC
 - [x] Stop g2-ifeval-s7 (upload confirmed) — DONE 2026-05-25 04:07 UTC
-- [ ] g2-ifeval-s1: ~9 min to finish neg-TC eval → download 38 canonical CSVs → commit → HF upload → stop pod
+- [x] g2-ifeval-s1: CSVs downloaded (53 total), committed, HF uploaded, pod stopped — DONE 2026-05-25 04:30 UTC
 - [ ] qw35-person-s1/s4/s7, qw35-member-s1: epoch2 training starting (~5h) → eval → download → HF upload → stop
 - [ ] qw35-ifeval-s1: epoch1 almost done → epoch2 (~8h) → eval → download → HF upload → stop (~8.5h total)
 - [ ] qw35-ifeval-s2: epoch2 in progress (~4h) → eval → download → HF upload → stop (~4.5h total)
