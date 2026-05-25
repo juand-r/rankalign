@@ -163,7 +163,11 @@ build_setting() {
 build_setting
 
 MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2}"
-EPOCH_GLOB="[012]"
+# EPOCH_GLOB controls which epoch dir gets matched. Default [012] picks the
+# latest epoch via `ls -dt | head -1`. Override (e.g. EPOCH_GLOB=0) to lock
+# the eval to a specific epoch — useful when an in-flight train is about to
+# write a newer checkpoint that you don't yet want to evaluate.
+EPOCH_GLOB="${EPOCH_GLOB:-[012]}"
 MODEL_REPL=$(echo "$MODEL" | sed 's|/|--|g')
 
 USE_LORA=1
