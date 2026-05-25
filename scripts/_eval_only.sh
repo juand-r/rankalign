@@ -169,6 +169,15 @@ MODEL_REPL=$(echo "$MODEL" | sed 's|/|--|g')
 USE_LORA=1
 [[ "$MODEL" == *"-2b"* || "$MODEL" == *"-2b-"* ]] && USE_LORA=0
 
+case "$MODEL" in
+    *gemma-2-2b-it*)   MODEL_TAG="2b-it" ;;
+    *gemma-2-2b*)      MODEL_TAG="2b" ;;
+    *gemma-2-9b-it*)   MODEL_TAG="9b-it" ;;
+    *gemma-2-9b*)      MODEL_TAG="9b" ;;
+    *gemma-4-31B-it*|*gemma-4-31b-it*) MODEL_TAG="g431Bit" ;;
+    *) MODEL_TAG=$(echo "$MODEL" | sed 's|.*/||; s|gemma-||') ;;
+esac
+
 USE_GEMMA4_LORA=0
 case "$MODEL" in
     *gemma-4-31B-it*|*gemma-4-31b-it*) USE_GEMMA4_LORA=1 ;;
@@ -241,7 +250,7 @@ if [ -n "${DRYRUN:-}" ]; then
     echo "DRYRUN. Would submit:"
     echo "  sbatch --partition=allnodes --cpus-per-task=4 --mem=$EVAL_MEM --gres=gpu:1 --time=${EVAL_HOURS}:00:00 \\"
     echo "    --output=/datastor2/jdr/logs/%j.out --error=/datastor2/jdr/logs/%j.err \\"
-    echo "    --job-name=\"eval-${SETTING}-${DATASET}-${TC}${NO_BASE_TAG}-only\" --wrap=\"<cmd>\""
+    echo "    --job-name=\"eval-${SETTING}-${DATASET}-${MODEL_TAG}-${TC}${NO_BASE_TAG}-only\" --wrap=\"<cmd>\""
     echo "  WRAP: $WRAP_CMD"
     exit 0
 fi
@@ -261,7 +270,7 @@ EVAL_OUT=$(sbatch \
     --output=/datastor2/jdr/logs/%j.out \
     --error=/datastor2/jdr/logs/%j.err \
     ${DEP_FLAG} \
-    --job-name="eval-${SETTING}-${DATASET}-${TC}${NO_BASE_TAG}-only" \
+    --job-name="eval-${SETTING}-${DATASET}-${MODEL_TAG}-${TC}${NO_BASE_TAG}-only" \
     --wrap="$WRAP_CMD" 2>&1) || true
 echo "$EVAL_OUT"
 EVAL_JOBID=$(echo "$EVAL_OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)

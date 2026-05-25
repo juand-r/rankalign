@@ -67,19 +67,45 @@ def main():
     # Track active eval jobs per (dataset, setting, tc, no_base?)
     # Names look like "eval-s4-membership-self" or "eval-s1-membership-neg-only" or
     # "eval-s5-membership-self-nobase-only".
-    eval_active = defaultdict(list)  # (dataset, setting, tc, no_base_bool) -> [(jobid,state)]
+    eval_active = defaultdict(list)  # (dataset, model, setting, tc, no_base_bool) -> [(jobid,state)]
     train_active = {}  # (dataset, model, setting) -> (jobid, state)
     import re
-    eval_re = re.compile(r"^eval-(s\d+)-(\w+?)-(self|neg)(-nobase)?(-only)?$")
+    # New format (post-2026-05-25):
+    #   eval-{setting}-{dataset}-{model_tag}-{tc}[-nobase][-only]
+    # Old format (pre-2026-05-25, can't disambiguate model):
+    #   eval-{setting}-{dataset}-{tc}[-nobase][-only]
+    # We treat dispatcher chains (no '-only' suffix) as ambiguous and apply to
+    # all models; eval-only jobs (the new ones) always have -only and the new
+    # format includes model_tag.
+    MODEL_TAG_TO_MODEL = {
+        "2b-it":   "gemma-2-2b-it",
+        "2b":      "gemma-2-2b",
+        "9b-it":   "gemma-2-9b-it",
+        "9b":      "gemma-2-9b",
+        "g431Bit": "gemma-4-31B-it",
+    }
+    eval_re_new = re.compile(
+        r"^eval-(s\d+)-(\w+?)-(2b-it|2b|9b-it|9b|g431Bit)-(self|neg)(-nobase)?(-only)?$")
+    eval_re_old = re.compile(r"^eval-(s\d+)-(\w+?)-(self|neg)(-nobase)?(-only)?$")
     for j in active_jobs:
-        m = eval_re.match(j["name"])
+        m = eval_re_new.match(j["name"])
         if m:
-            setting = m.group(1)
-            dataset = m.group(2)
-            tc = m.group(3)
+            setting = m.group(1); dataset = m.group(2)
+            mdl = MODEL_TAG_TO_MODEL[m.group(3)]
+            tc = m.group(4); no_base = bool(m.group(5))
+            eval_active[(dataset, mdl, setting, tc, no_base)].append((j["jobid"], j["state"]))
+            continue
+        m = eval_re_old.match(j["name"])
+        if m:
+            setting = m.group(1); dataset = m.group(2); tc = m.group(3)
             no_base = bool(m.group(4))
-            eval_active[(dataset, setting, tc, no_base)].append((j["jobid"], j["state"]))
-        elif j["name"] == "wrap":
+            # Old name has no model. Dispatcher (no -only) chains pair this with
+            # the matching train; we don't try to disambiguate. For our gap
+            # purposes, mark it under model=None so render() can choose to apply
+            # it broadly or skip.
+            eval_active[(dataset, None, setting, tc, no_base)].append((j["jobid"], j["state"]))
+            continue
+        if j["name"] == "wrap":
             jid = j["jobid"]
             tl = train_log_map.get(jid)
             if tl:
@@ -138,11 +164,15 @@ def main():
                         row_cells.append("n/a")
                         continue
                     cnt = len(csvs.get((ds_short, model, setting, csv_pfx), set()))
-                    # Find queued evals matching this prefix family.
-                    # Heuristic: dispatcher evals (no_base=False) yield basetyp-*/basetypneg-*.
-                    # NO_BASE=1 evals (no_base=True) yield self-*/neg-*.
+                    # Find queued evals matching this cell.
+                    # New-format job names include MODEL_TAG (post-2026-05-25):
+                    #   eval-{setting}-{dataset}-{model_tag}-{tc}[-nobase][-only]
+                    # We require an exact (dataset, model, setting, tc, no_base) match.
+                    # Old-format jobs (no model in name, stored under model=None) are
+                    # ignored here to avoid the bug where mem×9b-it×s4 was incorrectly
+                    # claimed to cover mem×2b-it×s4.
                     no_base_for_col = (csv_pfx in ("self-", "neg-"))
-                    queued = eval_active.get((ds_short, setting, tc_variant, no_base_for_col), [])
+                    queued = eval_active.get((ds_short, model, setting, tc_variant, no_base_for_col), [])
                     queued_str = ",".join(qid for qid, _ in queued) if queued else ""
                     row_cells.append(render_cell(cnt, n, True, queued_str))
                 print(f"| {model} | {setting} | {t_str} | " + " | ".join(row_cells) + " |")
@@ -170,7 +200,7 @@ def main():
                         continue
                     cnt = len(csvs.get((ds_short, model, setting, csv_pfx), set()))
                     no_base_for_col = (csv_pfx in ("self-", "neg-"))
-                    queued = eval_active.get((ds_short, setting, tc_variant, no_base_for_col), [])
+                    queued = eval_active.get((ds_short, model, setting, tc_variant, no_base_for_col), [])
                     if cnt < (n or cnt + 1) and not queued:
                         needed.append((ds_short, model, setting, col, csv_pfx, no_base_for_col))
     if not needed:
