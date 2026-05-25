@@ -3,11 +3,24 @@
 This document describes the naming convention for `scores_*.csv` files in `outputs/`,
 covering how they are produced, what each component means, and how to parse them.
 
+> **Skip ahead:** for v7/fix1-generation runs (everything trained with
+> `scripts/ranking_loss_ref_fix.py` since 2026-05-24, including all overnight
+> s1–s12 cells, gemma-4-31B-it, and s13/cft cells), see
+> [§ v7 / fix1 Generation](#v7--fix1-generation-added-2026-05-24) below
+> first. The general filename schema is unchanged; what changed is the
+> model_short construction (160-char cap + abbreviation fallback) and the
+> set of recognised model-dir flags (`--ppd`, `--cft`, `--fix1`).
+
 ## Filename Format
 
 ```
 scores_{eval_prefix}{model_short}_{task}_{split}{v2_suffix}{metric_suffix}{tc_suffix}{lenorm_suffix}{eos_suffix}_{timestamp}.csv
 ```
+
+This format is identical for v6 and v7 runs. It's emitted by
+`build_csv_filename(...)` in [`src/tasks/common.py`](../src/tasks/common.py)
+(every v7 save path now goes through this single function — see
+2026-05-24 entry in [`docs/UPDATES.md`](UPDATES.md)).
 
 ### Components
 
@@ -53,6 +66,122 @@ model should use its own pre-finetuning base model.
   column is always computed regardless of this flag. The flag only changes the filename.
   A file with `_evallenorm` and one without are functionally identical.
 
+## v7 / fix1 Generation (added 2026-05-24)
+
+All models trained with [`scripts/ranking_loss_ref_fix.py`](../scripts/ranking_loss_ref_fix.py)
+(the active training script) save under `/datastor2/jdr/rankalign/models2/`
+with a directory name prefixed `v7-` and ending in `--fix1` (or
+`--fix1_merged` for LoRA models that get merged at save time). The
+canonical v7 directory shape is:
+
+```
+v7-{model//--}-delta{delta}-epoch{epoch}--{task}-all--{direction}--{split}--alpha{alpha}{tc}{full-completion}{pref?}{nllv?}{nllg?}{fsx?}{ppd?}{cft?}{vlo?}{semi-or-labelonly}--fix1[_merged]
+```
+
+with each token glued by `--` and the trailing `_merged` only for
+LoRA-trained adapters that were merged into a full model at save time
+(gemma-2-9b-it; **not** for gemma-4-31B-it, which uses `--gemma4-lora`
+and skips the merge).
+
+### v7 flag tokens you'll see in `model_short`
+
+| Token | Source flag | Meaning |
+|---|---|---|
+| `delta{N.NN}` | `--delta` or `--delta-bins` (computed) | Pair margin. With `--delta-bins 10` it's `(p95-p5)/10`, two-decimal-truncated. |
+| `epoch{N}` | (auto, picked by eval) | Walltime-killed runs may save through 0/1 only — eval picks the latest with `ls -dt`. |
+| `tc-self` / `tc-neg` | `--self-typcorr` / `--neg-typcorr` | TC at **training** time (eval-side TC is a separate axis). |
+| `full-completion` | (always present in current runs) | Multi-token completion log-probs. |
+| `pref{N.N}` | `--preference_loss_weight` | OMITTED when value is the default 1.0. So absent ↔ pref=1.0. |
+| `nllv{N.N}` | `--nll_validator_weight` | OMITTED when 0.0. Absent ↔ nll_v=0. |
+| `nllg{N.N}` | `--nll_generator_weight` | OMITTED when 0.0. Absent ↔ nll_g=0. |
+| `force-same-x` | `--force-same-x` | Within-prompt pair sampling. |
+| `ppd` | `--per-prompt-delta` | Per-prompt p5/p95 delta computation. Only meaningful with `force-same-x`. **v7-only token.** |
+| `cft` | `--consistency-ft` | SFT-only filter: keep only labeled items where binarized validator and generator scores agree. **v7-only token.** Only valid in s13. |
+| `vallogodds` | `--validator-log-odds` | Use log-odds in validator scoring. |
+| `semi{N.N}` / `labelonly{N.N}` | `--semi 0.1` or `--labelonly 0.1` | Semi-supervised vs labeled-only. Mutually exclusive. |
+| `fix1` | (always present for v7) | Distinguishes the v7/fix1 generation from legacy v6. |
+
+The complete dir-name template lives at
+`scripts/ranking_loss_ref_fix.py` line 2182 (search for the f-string
+that joins all the `*_str` fragments).
+
+### Three on-disk forms of `model_short`
+
+Because of an early eval bug (subsequently fixed) and because long flag
+stacks blow past Linux's 255-char `NAME_MAX` filename limit, the
+`model_short` you'll see embedded in `scores_*.csv` filenames takes one of
+three shapes for v7-trained models. **All three are recognised by the
+parser at `src/checkpoint_name_parser.py`**, so the v7 table-builders
+treat them uniformly.
+
+| Form | What it looks like | When emitted |
+|---|---|---|
+| **A** legacy abs-path-embedded | `v6-_datastor2_jdr_rankalign_models2_v7-google--gemma-2-9b-it-delta1.42-epoch2--membership-sans-rosch-v0-all--d2g--random--alpha1.0--tc-self--full-completion--semi0.1--fix1[_merged]` | Pre-fix `eval_by_claude.py` (commits before `6890d295` 2026-05-24 17:47) wrote `model_short = 'v6-' + abs_path.replace('/', '_')`, embedding the whole `/datastor2/...` path. **No new files of this form will ever be written.** Existing CSVs are still on disk. |
+| **B** un-abbreviated (current default) | `v7-google--gemma-2-9b-it-delta1.42-epoch2--membership-sans-rosch-v0-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1[_merged]` | The basename of the model dir, used as-is whenever `len(basename) ≤ 160`. This is the default for short cells (e.g. RankAlign / s2 / s6). |
+| **C** abbreviated | `v7-gemma-2-9b-it-d1.42-e2-membership-sans-rosch-v0-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1` | When `len(basename) > 160`, `build_model_short` falls back to `to_hf_repo_name(parsed, prefix='', max_len=None)` which produces an abbreviated form. Used for high-flag-count cells (s4/s7 with fsx+ppd+vlo+tc). All v7 flag info is preserved — just shorter. |
+
+The abbreviation map (form B → form C) is implemented in
+[`src/checkpoint_name_parser.py:to_hf_repo_name()`](../src/checkpoint_name_parser.py):
+
+```
+delta{x}     → d{x}        nllv{x}        → nv{x}
+epoch{n}     → e{n}         nllg{x}        → ng{x}
+tc-self      → tcs          vallogodds     → vlo
+tc-neg       → tcn          force-same-x   → fsx
+tc-online    → tco          ppd            → ppd  (kept verbatim)
+lenorm       → ln           cft            → cft  (kept verbatim)
+pref{x}      → p{x}         semi{x}        → sm{x}
+                            labelonly{x}   → lo{x}
+                            fix1           → fix1 (kept verbatim)
+```
+
+### How `build_model_short()` decides which form to emit
+
+[`src/tasks/common.py:build_model_short()`](../src/tasks/common.py),
+called by every CSV-save path in `eval_by_claude.py` since
+2026-05-24 (commit `6890d295`):
+
+1. If `modelname` is an **absolute path**: `raw = basename(modelname)`.
+   *(Fixes the legacy abs-path-embedded form-A bug.)*
+2. Else if `modelname` is HF-style (`org/name`): `raw = "v6-" + name.replace("/", "_")`.
+3. If `len(raw) ≤ 160`: return `raw` verbatim → **form B**.
+4. Else: try `to_hf_repo_name(parse_checkpoint_name(raw), prefix='', max_len=None)`.
+   If that fits in 160 chars: return it → **form C**. (Currently the
+   max observed abbreviated length is ~100 chars, so this always fits.)
+5. Last-resort: `raw[:151] + '_' + md5(raw)[:8]` → an md5-suffixed
+   truncation. Should never happen with current settings; kept as a
+   safety net.
+
+The total CSV filename overhead beyond `model_short` is ~90 chars
+(eval prefix + task + suffixes + timestamp), so a 160-char `model_short`
+cap keeps everything under the 255-byte `NAME_MAX` limit.
+
+### Parsing a `model_short` programmatically
+
+Use [`src/checkpoint_name_parser.py:parse_checkpoint_name()`](../src/checkpoint_name_parser.py).
+It handles all three forms (A/B/C) transparently — strips the abs-path
+wrapper if present, dispatches to the abbreviated-form parser when
+`-d{N}-e{N}-` is detected, else parses the un-abbreviated form. Returns
+a structured dict with keys `version`, `model_short`, `delta`, `epoch`,
+`task_segment`, `tc`, `pref`, `nll_v`, `nll_g`, `force_same_x`, `ppd`,
+`cft`, `vallogodds`, `semi`, `labelonly`, `fix1`, etc.
+
+For matching against an expected setting (used by the v7 table builders),
+use `matches_v7_setting(model_short, model=..., task_segment=..., **expected_flags)`
+in the same module — it parses, compares fields, and returns bool.
+
+### v7 table builders that consume these CSVs
+
+- [`scripts/_build_rosch_table_v7.py`](../scripts/_build_rosch_table_v7.py)
+- [`scripts/_build_persona_v1_table_v7.py`](../scripts/_build_persona_v1_table_v7.py)
+
+Both refactored on 2026-05-24 to use structural matching via
+`matches_v7_setting()`, so they handle forms A/B/C uniformly without
+needing a regex pass. To add a new setting (e.g. s13/cft), append a
+METHODS row with the relevant flag kwargs.
+
+---
+
 ## Model Short Name
 
 The `model_short` portion encodes the model identity. It is derived from the model path:
@@ -64,6 +193,12 @@ The `model_short` portion encodes the model identity. It is derived from the mod
 - **Finetuned model** (e.g. `../models/v6-google--gemma-2-9b-it-delta0.15-epoch2--...`):
   - `model_short = basename(path).replace("--", "_")`
   - Example: `v6-google_gemma-2-9b-it-delta0.15-epoch2_plausibleqa-all_d2g_random_alpha1.0_full-completion_force-same-x_labelonly0.1_merged`
+
+> *Note*: the rules above describe the **legacy v6** branch of
+> `build_model_short`, kept for HF-style and relative-path inputs. For
+> v7 absolute-path inputs (the default for all overnight runs), see the
+> [v7 / fix1 Generation](#v7--fix1-generation-added-2026-05-24)
+> section above — that's the path everything currently flows through.
 
 ### Model Path Components (from `ranking_loss_ref.py`)
 
@@ -180,12 +315,49 @@ These files were moved out of `outputs/` because they are legacy or redundant:
 
 ## Scripts Reference
 
-| Script | Purpose | Filename convention |
-|--------|---------|-------------------|
-| `scripts/ranking_loss_ref.py` | Training | Determines model save path |
-| `scripts/eval.py` | Evaluation (older) | `scores_{model_short}_{task}_{split}..._evaltc_...` |
-| `scripts/eval_by_claude.py` | Evaluation (current) | `scores_{prefix}{model_short}_{task}_{split}..._tc_...` |
-| `scripts/run_eval_semi.sh` | Eval wrapper | Adds skip logic, calls `eval_by_claude.py` |
-| `scripts/run_train_semi.sh` | Train wrapper | Handles semi-supervised args, calls `ranking_loss_ref.py` |
-| `scripts/run_train_v2g.sh` | V2G baseline train | Minimal wrapper, supports `--include-eos` and `--models-dir` |
-| `scripts/inventory_scores.py` | File inventory | Checks completeness, generates LaTeX PDF |
+| Script / module | Purpose | Filename role |
+|---|---|---|
+| [`scripts/ranking_loss_ref.py`](../scripts/ranking_loss_ref.py) | Training (legacy v6) | Constructs `v6-` save dir name (line ~2658). |
+| [`scripts/ranking_loss_ref_fix.py`](../scripts/ranking_loss_ref_fix.py) | **Training (current v7/fix1)** | Constructs `v7-` save dir name (line ~2182). Adds `--ppd`, `--cft`, `--fix1` flags. |
+| [`scripts/eval.py`](../scripts/eval.py) | Evaluation (legacy) | Emits `scores_{model_short}_{task}_{split}..._evaltc_...`. GPT-2 TC only. |
+| [`scripts/eval_by_claude.py`](../scripts/eval_by_claude.py) | **Evaluation (current)** | All 8 CSV-save paths now go through `build_csv_filename()` (since 2026-05-24 commit `6890d295`). Emits `scores_{prefix}{model_short}_{task}_{split}..._tc_...`. |
+| [`src/tasks/common.py`](../src/tasks/common.py) | Filename builder | `build_csv_filename()` and `build_model_short()` — single source of truth for all `scores_*.csv` filenames. Enforces 160-char model_short cap with abbreviation fallback. |
+| [`src/checkpoint_name_parser.py`](../src/checkpoint_name_parser.py) | Filename parser | `parse_checkpoint_name()` → structured dict, handles forms A/B/C. `to_hf_repo_name()` → abbreviated form C. `matches_v7_setting()` → structural matcher used by v7 table builders. |
+| [`scripts/run_eval_semi.sh`](../scripts/run_eval_semi.sh) | Eval wrapper | Adds skip logic, calls `eval_by_claude.py`. |
+| [`scripts/run_train_semi.sh`](../scripts/run_train_semi.sh) | Train wrapper | Reads `VENV` env var (gemma-4 needs `/datastor2/jdr/venvs/gemma4`). Plumbs `--gemma4-lora` and `--consistency-ft`. |
+| [`scripts/_overnight_launch.sh`](../scripts/_overnight_launch.sh) | v7 dispatcher | One-call train+eval launcher: `bash _overnight_launch.sh DATASET MODEL SETTING`. Builds the COMMON_FLAGS list per s1..s13. |
+| [`scripts/_build_rosch_table_v7.py`](../scripts/_build_rosch_table_v7.py) | v7 table builder (rosch) | Uses `matches_v7_setting()` structurally; handles forms A/B/C. |
+| [`scripts/_build_persona_v1_table_v7.py`](../scripts/_build_persona_v1_table_v7.py) | v7 table builder (persona) | Same. |
+| [`scripts/inventory_scores.py`](../scripts/inventory_scores.py) | File inventory | Checks completeness, generates LaTeX PDF. |
+
+## Quick reference: how to read a real v7 filename
+
+Take this CSV name and decompose it:
+
+```
+scores_basetyp-v7-google--gemma-2-2b-it-delta0.85-epoch2--membership-sans-rosch-v0-all--d2g--random--alpha1.0--tc-self--full-completion--force-same-x--ppd--semi0.1--fix1_rosch-vegetable_test_log-odds_tc_20260524.csv
+```
+
+| Slice | Value | Meaning |
+|---|---|---|
+| `scores_` | — | Always present. |
+| `basetyp-` | eval_prefix | TC at **eval** time = base-typcorr (use base model's unconditional log-prob). |
+| `v7-google--gemma-2-2b-it-...--fix1` | model_short (form B) | The v7-trained model. |
+|   `delta0.85` | | Delta computed from p95/p5 of validator scores. |
+|   `epoch2` | | Saved checkpoint, end of training. |
+|   `membership-sans-rosch-v0-all` | | Trained on this task. |
+|   `tc-self` | | Used self-typcorr at training. |
+|   `force-same-x--ppd` | | fsx ON + per-prompt-delta. |
+|   `semi0.1` | | Semi-supervised w/ 10% labeled. |
+|   `fix1` | | v7/fix1 generation. |
+| `_rosch-vegetable` | task | Eval task. |
+| `_test` | split | Test data. |
+| `_log-odds` | metric_suffix | Validator log-odds (always for v7). |
+| `_tc` | tc_suffix | Eval-side TC active. |
+| `_20260524` | timestamp | Date of eval. |
+| `.csv` | — | — |
+
+Setting identification: `pref` absent → 1.0 (default), `nllv`/`nllg` absent → 0
+(default), `tc-self` + fsx + ppd + (vlo absent) + semi0.1 → matches **s5**
+(RA + PMI + fsx, NLL absent, vlo absent — the s5 launcher case in
+`_overnight_launch.sh`).
