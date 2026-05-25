@@ -236,19 +236,16 @@ METHODS: list[dict] = [
                               vallogodds=True, semi=0.1)),
 ]
 
-# v7 NA structure: the dispatcher only runs ONE TC variant per setting at
-# eval time (TC_EVAL_LIST is "self" or "neg" per case in
-# _overnight_launch.sh). Settings that get only self-tc eval can never
-# produce `neg-`/`basetypneg-` prefixed CSVs; settings that get only
-# neg-tc eval can never produce `self-`/`basetyp-` prefixed CSVs.
+# v7 NA structure: settings trained WITH a specific TC objective only
+# produce that one prefix's CSVs. Settings trained without TC (s1/s2/s3)
+# get BOTH self-tc and neg-tc evals (matching v6 launcher policy), so
+# they have no NA columns.
 #
-# Note this differs from the v6 _build_rosch_table.py NA structure: v6
-# had no NA on rows 1, 2, 3 because the v6 launcher ran BOTH self and
-# neg TC evals on the no-TC-trained methods. v7 simplifies to one.
+# Updated 2026-05-24 19:55: dropped rows 1/2/3 from NA_COLS to match the
+# fixed _overnight_launch.sh dispatcher (TC_EVAL_LIST="self neg" for
+# s1/s2/s3). Builder will now read both basetyp-self and basetypneg
+# CSVs for those rows.
 NA_COLS = {
-    1:  {"Neg self", "Neg base"},
-    2:  {"Neg self", "Neg base"},
-    3:  {"Neg self", "Neg base"},
     4:  {"Neg self", "Neg base"},
     5:  {"Neg self", "Neg base"},
     6:  {"Neg self", "Neg base"},

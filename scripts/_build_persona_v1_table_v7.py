@@ -309,13 +309,15 @@ METHODS: list[dict] = [
 # This is a structural NA: those CSVs literally cannot exist. (Differs
 # from the v6 builder which had no NA on rows 1-3 because v6 ran both
 # self and neg evals on no-TC-trained methods.)
+#
+# Updated 2026-05-24 19:55: dropped rows 1/2/3 from NA_COLS to match the
+# fixed _overnight_launch.sh dispatcher (TC_EVAL_LIST="self neg" for
+# s1/s2/s3). Builder will now read both basetyp-self and basetypneg
+# CSVs for those rows.
 NA_COLS = {
     # Base: only self/neg-tc evals were run on the bare HF model; no
     # base-tc/basetypneg-tc CSV exists. Same as v6.
     0: {"PMI base", "Neg base"},
-    1:  {"Neg self", "Neg base"},
-    2:  {"Neg self", "Neg base"},
-    3:  {"Neg self", "Neg base"},
     4:  {"Neg self", "Neg base"},
     5:  {"Neg self", "Neg base"},
     6:  {"Neg self", "Neg base"},

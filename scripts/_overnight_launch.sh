@@ -159,8 +159,9 @@ build_setting() {
             FSX_FLAG="--no-force-same-x"
             TC_FLAG="" ; TC_LABEL=""
             LOGODDS_FLAG=""
-            # Only "self" eval to cap queue size; backfill "neg" later if time.
-            TC_EVAL_LIST="self"
+            # No-TC training: eval BOTH self-TC and neg-TC (matches v6 policy).
+            # (was "self" only — caused missing Neg-self/Neg-base columns.)
+            TC_EVAL_LIST="self neg"
             PREF_STR="--pref0.0" ; NLLV_STR="--nllv1.0" ; NLLG_STR="--nllg1.0"
             FSX_STR="" ; PPD_STR=""
             VLO_STR=""
@@ -171,7 +172,8 @@ build_setting() {
             FSX_FLAG="--no-force-same-x"
             TC_FLAG="" ; TC_LABEL=""
             LOGODDS_FLAG=""
-            TC_EVAL_LIST="self"
+            # No-TC training: eval BOTH self-TC and neg-TC (matches v6 policy).
+            TC_EVAL_LIST="self neg"
             PREF_STR="" ; NLLV_STR="" ; NLLG_STR=""
             FSX_STR="" ; PPD_STR=""
             VLO_STR=""
@@ -182,7 +184,8 @@ build_setting() {
             FSX_FLAG=""  # default ON
             TC_FLAG="" ; TC_LABEL=""
             LOGODDS_FLAG="--log-odds"
-            TC_EVAL_LIST="self"
+            # No-TC training: eval BOTH self-TC and neg-TC (matches v6 policy).
+            TC_EVAL_LIST="self neg"
             PREF_STR="" ; NLLV_STR="--nllv1.0" ; NLLG_STR="--nllg1.0"
             FSX_STR="--force-same-x" ; PPD_STR="--ppd"
             VLO_STR="--vallogodds"
