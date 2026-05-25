@@ -13,6 +13,8 @@ set -euo pipefail
 
 SSH_KEY="/home/jdr/.runpod/ssh/RunPod-Key-Go"
 SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o BatchMode=yes"
+MLL_SSH="-i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no"
+MLL_HOST="jdr@slurm-submit.cs.utexas.edu"
 MLL_TARGET="/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/ra9b_persona_member"
 
 LOCAL_TMP=$(mktemp -d /tmp/ra9b_scores_XXXXXX)
@@ -73,10 +75,10 @@ for POD_DIR in "$LOCAL_TMP"/*/; do
     COUNT=$(ls "$POD_DIR"*.csv 2>/dev/null | wc -l)
     if [ "$COUNT" -gt 0 ]; then
         echo "  [rsync] $POD -> mll:$MLL_TARGET ($COUNT files)"
-        rsync -av --no-relative "$POD_DIR"*.csv "mll:$MLL_TARGET/" 2>&1 | tail -3
+        rsync -av --no-relative -e "ssh $MLL_SSH" "$POD_DIR"*.csv "$MLL_HOST:$MLL_TARGET/" 2>&1 | tail -3
     fi
 done
 
 echo "[$(date -u +%FT%TZ)] Done. Verifying on mll ..."
-raca ssh mll "ls $MLL_TARGET/scores_*v7*gemma-2-9b*.csv $MLL_TARGET/scores_*v6*eval_model*.csv 2>/dev/null | wc -l"
+ssh $MLL_SSH "$MLL_HOST" "ls $MLL_TARGET/scores_*.csv 2>/dev/null | wc -l"
 echo "[$(date -u +%FT%TZ)] === download_scores_ra9b_persona_member.sh COMPLETE ==="
