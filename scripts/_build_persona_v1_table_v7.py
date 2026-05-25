@@ -286,6 +286,10 @@ METHODS: list[dict] = [
     dict(num=12, label="New + NegTC [-fsx]",
          match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
                               vallogodds=True, semi=0.1)),
+    # 13 SFT + CFT: same flags as s1 plus --cft (consistency-ft).
+    dict(num=13, label="SFT + CFT",
+         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0,
+                              cft=True, labelonly=0.1)),
 ]
 
 # Persona-v1 NA structure:
@@ -487,6 +491,7 @@ def main():
         11,
         7, 8, 9,
         12,
+        13,
         # 10,  # forward-compat only; not launched
     ]
     methods_by_num = {m["num"]: m for m in METHODS}

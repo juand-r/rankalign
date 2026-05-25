@@ -51,6 +51,7 @@ ROW_ORDER = [
     (8,  "RA + NegTC + fsx [-NLL]"),
     (9,  "RA + NegTC [+TC]"),
     (12, "New + NegTC [-fsx]"),
+    (13, "SFT + CFT"),
 ]
 
 

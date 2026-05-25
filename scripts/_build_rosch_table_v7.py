@@ -234,6 +234,10 @@ METHODS: list[dict] = [
     dict(num=12, label="New + NegTC [-fsx]",
          match=_setting_match(tc='neg', nll_v=1.0, nll_g=1.0,
                               vallogodds=True, semi=0.1)),
+    # 13 SFT + CFT: same flags as s1 plus --cft (consistency-ft).
+    dict(num=13, label="SFT + CFT",
+         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0,
+                              cft=True, labelonly=0.1)),
 ]
 
 # v7 NA structure: settings trained WITH a specific TC objective only
@@ -377,7 +381,7 @@ def main():
     cell_rows = []
     table_rows = []
 
-    ROW_ORDER = [0, 1, 2, 3, 4, 5, 6, 11, 7, 8, 9, 12]
+    ROW_ORDER = [0, 1, 2, 3, 4, 5, 6, 11, 7, 8, 9, 12, 13]
     methods_by_num = {m["num"]: m for m in METHODS}
     ordered = [methods_by_num[n] for n in ROW_ORDER]
 
