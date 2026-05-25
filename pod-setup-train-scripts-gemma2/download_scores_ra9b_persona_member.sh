@@ -56,10 +56,8 @@ for POD in "${!PODS[@]}"; do
     N=$(echo "$CSV_LIST" | wc -l)
     echo "  Found $N CSVs"
 
-    # Use tar pipe (avoids rsync dependency on pod)
-    ssh $SSH_OPTS -p "$PORT" root@"$IP" \
-        "tar cf - /workspace/outputs/scores_*.csv 2>/dev/null" \
-        | tar xf - --strip-components=3 -C "$POD_DIR" 2>/dev/null
+    scp -i "$SSH_KEY" -P "$PORT" -o StrictHostKeyChecking=no -o ConnectTimeout=20 \
+        "root@${IP}:/workspace/outputs/scores_*.csv" "$POD_DIR/" 2>/dev/null
 
     COPIED=$(ls "$POD_DIR"/*.csv 2>/dev/null | wc -l)
     echo "  Extracted $COPIED CSVs locally"
