@@ -93,6 +93,10 @@ case "$DATASET" in
         EVAL_MEM=64G
         # ifeval has long prompts; cap seq len to keep VRAM in check.
         MAX_SEQ_FLAG="--max-seq-len 1024"
+        # ifeval requires --disc-shots zero: src/utils.py make_prompt_ifeval
+        # raises NotImplementedError for shots != "zero" in the discriminator
+        # branch (line 817). Default few-shot crashes the train at first step.
+        DISC_SHOTS="${DISC_SHOTS:-zero}"
         ;;
     humaneval)
         # humaneval-v2.1correct-upper: gemma-4-31B-it only (per user, 2026-05-24).
