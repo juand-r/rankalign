@@ -11,13 +11,18 @@ score CSVs are not on disk yet (still training, eval pending, or never
 launched). Cells showing `---` are NA per the v7 dispatcher's eval policy
 (only one TC variant is ever evaluated per setting).
 
-> **Salvage note**: rosch 9b-it × {s4, s7, s11, s12} and rosch 2b-it ×
-> {s3, s4, s5, s7} appear blank below because those eight overnight evals
-> crashed with OSError 36 before writing CSVs. Their aggregate metrics
-> were salvaged from `.out` logs — see
-> [`docs/salvaged_rosch_metrics.md`](salvaged_rosch_metrics.md). I've
-> annotated each affected cell with `(salvage: …)` pointing at the row
-> in that doc.
+> **Salvage note** (corrected 2026-05-24 19:50): rosch 9b-it × {s4, s7,
+> s11, s12} and rosch 2b-it × {s3, s4, s5, s7} appear blank below because
+> those eight overnight evals crashed with OSError 36 before writing CSVs.
+> Their aggregate metrics were salvaged from `.out` logs — see
+> [`docs/salvaged_rosch_metrics.md`](salvaged_rosch_metrics.md). The
+> salvaged `gen_roc` is the **TC-corrected** generator metric (NOT raw —
+> all eight evals had `--{self,neg}-typcorr --base-typcorr`, so
+> `args.typicality_correction = True`). For `--self-typcorr --base-typcorr`
+> evals (s3/s4/s5/s11) the salvage value belongs in **PMI base**
+> (`basetyp-` prefix); for `--neg-typcorr --base-typcorr` evals (s7/s12)
+> it belongs in **Neg base** (`basetypneg-` prefix). Cells annotated
+> below with `(salvage: …)` reflect this.
 
 ## rosch / gemma-2-9b-it / GenROC
 
@@ -30,14 +35,14 @@ categories (all OOD).
 | 1 SFT labelonly 10% | — | — | — | --- | --- |
 | 2 RankAlign | 88.37 ± 1.46 | — | 89.11 ± 1.25 | --- | --- |
 | 3 New + fsx [-TC] | 88.78 ± 1.45 | — | 88.50 ± 1.11 | --- | --- |
-| 4 New + PMI + fsx | — *(salvage: 91.99 ± 1.12, job 41982)* | — | — | --- | --- |
+| 4 New + PMI + fsx | — | — | *(salvage: 91.99 ± 1.12, job 41982)* | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | 83.60 ± 2.16 (n=9) | — | 91.48 ± 1.72 (n=9) | --- | --- |
 | 6 RA + PMI [+TC] | 82.60 ± 2.35 | — | 91.32 ± 1.78 | --- | --- |
-| 11 New + PMI [-fsx] | — *(salvage: 92.39 ± 1.31, job 42052)* | — | — | --- | --- |
-| 7 New + NegTC + fsx | — *(salvage: 92.32 ± 1.56, job 41992)* | --- | --- | — | — |
+| 11 New + PMI [-fsx] | — | — | *(salvage: 92.39 ± 1.31, job 42052)* | --- | --- |
+| 7 New + NegTC + fsx | — | --- | --- | — | *(salvage: 92.32 ± 1.56, job 41992)* |
 | 8 RA + NegTC + fsx [-NLL] | — | --- | --- | — | — |
 | 9 RA + NegTC [+TC] | — | --- | --- | — | — |
-| 12 New + NegTC [-fsx] | — *(salvage: 92.58 ± 1.48, job 42062)* | --- | --- | — | — |
+| 12 New + NegTC [-fsx] | — | --- | --- | — | *(salvage: 92.58 ± 1.48, job 42062)* |
 
 Notes
 - `s5 (n=9)`: 9 out of 10 rosch categories evaluated — the 10th
@@ -58,12 +63,12 @@ categories (all OOD).
 | 0 Base | 64.67 ± 2.90 | 72.31 ± 3.67 | — | 79.83 ± 3.43 | — |
 | 1 SFT labelonly 10% | 84.32 ± 1.51 | — | 83.26 ± 1.64 | --- | --- |
 | 2 RankAlign | 79.21 ± 2.80 | — | 78.17 ± 3.22 | --- | --- |
-| 3 New + fsx [-TC] | — *(salvage: 81.79 ± 2.39, job 42077)* | — | — | --- | --- |
-| 4 New + PMI + fsx | — *(salvage: 82.09 ± 2.68, job 42065)* | — | — | --- | --- |
-| 5 RA + PMI + fsx [-NLL] | 74.77 ± 2.88 (n=9) | — | 83.78 ± 2.15 (n=9) | --- | --- |
+| 3 New + fsx [-TC] | — | — | *(salvage: 81.79 ± 2.39, job 42077)* | --- | --- |
+| 4 New + PMI + fsx | — | — | *(salvage: 82.09 ± 2.68, job 42065)* | --- | --- |
+| 5 RA + PMI + fsx [-NLL] | 74.77 ± 2.88 (n=9) | — | 83.78 ± 2.15 (n=9) *(salvage n=10: 82.34 ± 2.41, job 42085)* | --- | --- |
 | 6 RA + PMI [+TC] | 76.66 ± 3.23 | — | 83.95 ± 2.59 | --- | --- |
 | 11 New + PMI [-fsx] | 77.10 ± 3.68 | — | 84.97 ± 2.63 | --- | --- |
-| 7 New + NegTC + fsx | — *(salvage: 81.69 ± 2.26, job 42069)* | --- | --- | — | — |
+| 7 New + NegTC + fsx | — | --- | --- | — | *(salvage: 81.69 ± 2.26, job 42069)* |
 | 8 RA + NegTC + fsx [-NLL] | — | --- | --- | — | — |
 | 9 RA + NegTC [+TC] | — | --- | --- | — | — |
 | 12 New + NegTC [-fsx] | 77.93 ± 3.38 | --- | --- | — | 83.55 ± 1.74 |

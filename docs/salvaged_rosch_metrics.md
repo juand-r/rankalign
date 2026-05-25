@@ -22,6 +22,45 @@ have 10/10 tasks recovered, so re-running these evals is **not required**
 unless you specifically need the per-pair score CSVs (e.g. for scatter
 plots).
 
+## **IMPORTANT — what `gen_roc` actually is here (corrected 2026-05-24 19:50)**
+
+Earlier in chat I labeled the salvaged numbers as "Raw". **That was wrong.**
+
+Every one of these eight evals was launched with `--{self,neg}-typcorr
+--base-typcorr`, so `args.typicality_correction = True`
+(`scripts/eval_by_claude.py:2146-2147`). When that flag is on,
+`compute_logodds_final_layer` substitutes the TC-corrected scores into the
+`gen_scores` array (`scripts/eval_by_claude.py:1252` →
+`src/logitlens.py:657-658`), and `compute_metrics` then computes
+`gen_roc = roc_auc_score(golds, gen_scores)` — i.e. on the TC-corrected
+scores. Same for `corr_all` (Pearson) and `spear_all` (Spearman); they
+all use the same `logodds_gen` array.
+
+So the salvaged `gen_roc`/`corr_all`/`spear_all` are **TC-corrected
+generator metrics**, NOT raw. Specifically:
+
+| jobs | eval flags                       | typ_source (logitlens.py:1055-1061)     | corresponds to v7 table column |
+|------|----------------------------------|-----------------------------------------|--------------------------------|
+| 41982, 42052, 42065, 42077, 42085 | `--self-typcorr --base-typcorr` | "BASE-MODEL ({base})"                   | **PMI base** (`basetyp-` CSV prefix) |
+| 41992, 42062, 42069               | `--neg-typcorr --base-typcorr`  | "NEGATED-PROMPT via BASE-MODEL ({base})" | **Neg base** (`basetypneg-` CSV prefix) |
+
+If you look at `scripts/_build_rosch_table_v7.py:156-161`, those columns
+are defined as:
+
+```python
+("PMI base", "basetyp-",    "tc"),   # gen_score_typcorr from basetyp- CSVs
+("Neg base", "basetypneg-", "tc"),   # gen_score_typcorr from basetypneg- CSVs
+```
+
+The salvaged `gen_roc` numbers are exactly those `tc` cell values for the
+relevant `(method, prefix)` pairs — they just couldn't be written to disk
+because the CSV path was too long.
+
+**What this means for the v7 snapshot table.** In
+`docs/v7_tables_snapshot_2026-05-24.md` I previously placed the salvage
+annotations in the "Raw" column. They've been moved to the "PMI base" or
+"Neg base" column per the table above.
+
 ## Setting legend
 
 The "s#" labels follow `docs/IMPORTANT-RESEARCH-PLAN.md` §2 (the canonical
@@ -50,22 +89,34 @@ All 8 cells trained on `membership-sans-rosch-v0-all` and evaluated on the
 `rosch-fruit`, `rosch-furniture`, `rosch-sport`, `rosch-toy`, `rosch-vegetable`,
 `rosch-vehicle`, and one more — see per-job tables below).
 
-| job | model | s# | setting | tasks | gen_roc | disc_roc | disc_acc | corr_all (Pearson) | spear_all (Spearman) |
-|---|---|---|---|---|---|---|---|---|---|
-| 41982 | gemma-2-9b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo) | 10/10 | 0.9199 ± 0.0112 | 0.9450 ± 0.0185 | 0.8456 ± 0.0243 | 0.7376 ± 0.0234 | 0.7430 ± 0.0226 |
-| 41992 | gemma-2-9b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)  | 10/10 | 0.9232 ± 0.0156 | 0.9463 ± 0.0197 | 0.8485 ± 0.0274 | 0.7224 ± 0.0308 | 0.7592 ± 0.0302 |
-| 42052 | gemma-2-9b-it | **s11** | New+tc            (comb+self-TC+vlo, fsx OFF) | 10/10 | 0.9239 ± 0.0131 | 0.9476 ± 0.0192 | 0.8466 ± 0.0303 | 0.7368 ± 0.0242 | 0.7551 ± 0.0199 |
-| 42062 | gemma-2-9b-it | **s12** | New+negtc         (comb+neg-TC+vlo, fsx OFF)  | 10/10 | 0.9258 ± 0.0148 | 0.9469 ± 0.0191 | 0.8461 ± 0.0292 | 0.7097 ± 0.0298 | 0.7404 ± 0.0251 |
-| 42065 | gemma-2-2b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo) | 10/10 | 0.8209 ± 0.0268 | 0.8170 ± 0.0401 | 0.7262 ± 0.0358 | 0.5829 ± 0.0356 | 0.5823 ± 0.0338 |
-| 42069 | gemma-2-2b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)  | 10/10 | 0.8169 ± 0.0226 | 0.9017 ± 0.0280 | 0.7823 ± 0.0287 | 0.5804 ± 0.0300 | 0.5993 ± 0.0254 |
-| 42077 | gemma-2-2b-it | **s3**  | New+fsx           (comb+fsx+vlo, no TC)  | 10/10 | 0.8179 ± 0.0239 | 0.8807 ± 0.0293 | 0.7744 ± 0.0219 | 0.5871 ± 0.0202 | 0.5730 ± 0.0195 |
-| 42085 | gemma-2-2b-it | **s5**  | RankAlign+fsx+tc  (pref-only+fsx+self-TC, no comb) | 10/10 | 0.8234 ± 0.0241 | 0.9081 ± 0.0235 | 0.7232 ± 0.0345 | 0.6767 ± 0.0182 | 0.6723 ± 0.0177 |
+`gen_roc` / `corr_all` / `spear_all` below are **TC-corrected** (see
+"IMPORTANT" note at the top): for self-TC evals (s3/s4/s5/s11) they are
+the basetyp-self (= "PMI base") variant; for neg-TC evals (s7/s12) they
+are the basetypneg (= "Neg base") variant. `disc_roc` / `disc_acc` are
+unaffected by typicality correction.
+
+| job | model | s# | setting | TC variant of gen_roc | tasks | gen_roc | disc_roc | disc_acc | corr_all (Pearson) | spear_all (Spearman) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 41982 | gemma-2-9b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo)         | basetyp-self (PMI base) | 10/10 | 0.9199 ± 0.0112 | 0.9450 ± 0.0185 | 0.8456 ± 0.0243 | 0.7376 ± 0.0234 | 0.7430 ± 0.0226 |
+| 41992 | gemma-2-9b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)          | basetypneg (Neg base)   | 10/10 | 0.9232 ± 0.0156 | 0.9463 ± 0.0197 | 0.8485 ± 0.0274 | 0.7224 ± 0.0308 | 0.7592 ± 0.0302 |
+| 42052 | gemma-2-9b-it | **s11** | New+tc            (comb+self-TC+vlo, fsx OFF)    | basetyp-self (PMI base) | 10/10 | 0.9239 ± 0.0131 | 0.9476 ± 0.0192 | 0.8466 ± 0.0303 | 0.7368 ± 0.0242 | 0.7551 ± 0.0199 |
+| 42062 | gemma-2-9b-it | **s12** | New+negtc         (comb+neg-TC+vlo, fsx OFF)     | basetypneg (Neg base)   | 10/10 | 0.9258 ± 0.0148 | 0.9469 ± 0.0191 | 0.8461 ± 0.0292 | 0.7097 ± 0.0298 | 0.7404 ± 0.0251 |
+| 42065 | gemma-2-2b-it | **s4**  | New+fsx+tc        (comb+fsx+self-TC+vlo)         | basetyp-self (PMI base) | 10/10 | 0.8209 ± 0.0268 | 0.8170 ± 0.0401 | 0.7262 ± 0.0358 | 0.5829 ± 0.0356 | 0.5823 ± 0.0338 |
+| 42069 | gemma-2-2b-it | **s7**  | New+fsx+negtc     (comb+fsx+neg-TC+vlo)          | basetypneg (Neg base)   | 10/10 | 0.8169 ± 0.0226 | 0.9017 ± 0.0280 | 0.7823 ± 0.0287 | 0.5804 ± 0.0300 | 0.5993 ± 0.0254 |
+| 42077 | gemma-2-2b-it | **s3**  | New+fsx           (comb+fsx+vlo, no TC)          | basetyp-self (PMI base) | 10/10 | 0.8179 ± 0.0239 | 0.8807 ± 0.0293 | 0.7744 ± 0.0219 | 0.5871 ± 0.0202 | 0.5730 ± 0.0195 |
+| 42085 | gemma-2-2b-it | **s5**  | RankAlign+fsx+tc  (pref-only+fsx+self-TC, no comb) | basetyp-self (PMI base) | 10/10 | 0.8234 ± 0.0241 | 0.9081 ± 0.0235 | 0.7232 ± 0.0345 | 0.6767 ± 0.0182 | 0.6723 ± 0.0177 |
 
 Per-task breakdowns follow below for each job.
 
 ---
 
 ## Per-job per-task tables
+
+> All `gen_roc`/`corr_all`/`spear_all` values in the per-task and aggregate
+> tables below are **TC-corrected** — read the job heading suffix
+> (`evaltc-self` → basetyp-self / "PMI base"; `evaltc-neg` → basetypneg /
+> "Neg base"). They are NOT raw-gen_score metrics. See the IMPORTANT note
+> at the top of this doc for the full code-path explanation.
 
 ## job 41982  (membership-gemma-2-9b-it-s4-evaltc-self)
    tasks parsed: 10/10
