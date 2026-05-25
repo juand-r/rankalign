@@ -425,11 +425,19 @@ def fire_eval(dataset, model, setting, tc, no_base, dep_jobid=None):
     print(f"  fire_eval: {dataset} {model} {setting} {tc} no_base={no_base} dep={dep_jobid}")
     proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if proc.returncode != 0:
-        print(f"    FAIL: {proc.stderr[-500:]}")
+        # sbatch's "Job violates QOS policy"/queue-full errors go to stdout,
+        # not stderr — capture both.
+        print(f"    FAIL rc={proc.returncode}")
+        if proc.stdout.strip():
+            print(f"    STDOUT: {proc.stdout.strip()[-500:]}")
+        if proc.stderr.strip():
+            print(f"    STDERR: {proc.stderr.strip()[-500:]}")
         return None
     m = re.search(r"Submitted batch job (\d+)", proc.stdout)
     if m:
         return m.group(1)
+    # Successful exit but no jobid — surface stdout for diagnostics.
+    print(f"    NO_JOBID stdout-tail: {proc.stdout.strip()[-300:]}")
     return None
 
 
@@ -442,9 +450,15 @@ def fire_train(dataset, model, setting, walltime):
     print(f"  fire_train: {dataset} {model} {setting} WALLTIME={walltime}")
     proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
     if proc.returncode != 0:
-        print(f"    FAIL: {proc.stderr[-500:]}")
+        print(f"    FAIL rc={proc.returncode}")
+        if proc.stdout.strip():
+            print(f"    STDOUT: {proc.stdout.strip()[-500:]}")
+        if proc.stderr.strip():
+            print(f"    STDERR: {proc.stderr.strip()[-500:]}")
         return None
     m = re.search(r"Train submitted: jobid=(\d+)", proc.stdout)
+    if not m:
+        print(f"    NO_JOBID stdout-tail: {proc.stdout.strip()[-300:]}")
     return m.group(1) if m else None
 
 
