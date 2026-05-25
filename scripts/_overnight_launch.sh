@@ -326,6 +326,15 @@ case "$MODEL" in
         ;;
 esac
 
+# ifeval has long prompts (max_seq_len=1024). On a single 44GB A40, even the
+# 2b/2b-it model + activations OOMs during the consistency-ft pre-pass and
+# during normal forward passes. Add --gradient-checkpointing for ifeval on
+# any non-gemma-4 model. (gemma-4 already has it.) 2-GPU 9b-it ifeval doesn't
+# strictly need it but adding doesn't hurt.
+if [ "$DATASET" = "ifeval" ] && [ "$USE_GEMMA4_LORA" -eq 0 ]; then
+    COMMON_FLAGS+=( --gradient-checkpointing )
+fi
+
 # Use absolute /datastor2 models dir to avoid /datastor1 fill-up.
 MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2}"
 COMMON_FLAGS+=( --models-dir "$MODELS_DIR" )
