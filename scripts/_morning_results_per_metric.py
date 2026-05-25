@@ -26,23 +26,35 @@ METRIC_NAMES = {
     "val_acc": "ValAcc",
 }
 
-# (model, dataset_short, csv_path_template, label_suffix)
-# label_suffix is appended to the section header (e.g., "(ID)", "(OOD)", "")
+# (model, dataset_label, csv_path_template, train_dataset_key)
+# `train_dataset_key` is what we look up in disk/queue to decide the Train col;
+# it is also what we use to gate "has the model been trained at all?".
 SOURCES = [
-    # rosch (membership-sans-rosch eval on rosch tasks)
-    ("gemma-2-2b",       "membership", "rosch_v7_2b_{m}_table_cells.csv",          ""),
-    ("gemma-2-2b-it",    "membership", "rosch_v7_2b-it_{m}_table_cells.csv",       ""),
-    ("gemma-2-9b-it",    "membership", "rosch_v7_9b-it_{m}_table_cells.csv",       ""),
-    # persona
-    ("gemma-2-2b",       "persona",    "persona_v1_v7_gemma-2-2b_all_{m}_table_cells.csv",    ""),
-    ("gemma-2-2b-it",    "persona",    "persona_v1_v7_gemma-2-2b-it_all_{m}_table_cells.csv", ""),
-    ("gemma-2-9b-it",    "persona",    "persona_v1_v7_gemma-2-9b-it_all_{m}_table_cells.csv", ""),
-    # ifeval (pooled across models - these CSVs don't break down by model).
+    # rosch — eval set (Rosch 2b cross-categorization tasks).
+    # The training data is `membership-sans-rosch-v0`; every "membership"
+    # row below is therefore "trained on membership-sans-rosch, evaluated on
+    # the held-out rosch tasks". Same model, three eval-task slices.
+    ("gemma-2-2b",       "membership (eval = rosch, all 6 tasks)", "rosch_v7_2b_{m}_table_cells.csv",          "membership"),
+    ("gemma-2-2b-it",    "membership (eval = rosch, all 6 tasks)", "rosch_v7_2b-it_{m}_table_cells.csv",       "membership"),
+    ("gemma-2-9b-it",    "membership (eval = rosch, all 6 tasks)", "rosch_v7_9b-it_{m}_table_cells.csv",       "membership"),
+    # persona — all 6 personas
+    ("gemma-2-2b",       "persona (all 6 personas)",     "persona_v1_v7_gemma-2-2b_all_{m}_table_cells.csv",    "persona"),
+    ("gemma-2-2b-it",    "persona (all 6 personas)",     "persona_v1_v7_gemma-2-2b-it_all_{m}_table_cells.csv", "persona"),
+    ("gemma-2-9b-it",    "persona (all 6 personas)",     "persona_v1_v7_gemma-2-9b-it_all_{m}_table_cells.csv", "persona"),
+    # persona — ID split (3 in-domain personas: psychopathy, machiavellianism, narcissism)
+    ("gemma-2-2b",       "persona ID (3 in-domain: psychopathy, machiavellianism, narcissism)", "persona_v1_v7_gemma-2-2b_id_{m}_table_cells.csv",    "persona"),
+    ("gemma-2-2b-it",    "persona ID (3 in-domain: psychopathy, machiavellianism, narcissism)", "persona_v1_v7_gemma-2-2b-it_id_{m}_table_cells.csv", "persona"),
+    ("gemma-2-9b-it",    "persona ID (3 in-domain: psychopathy, machiavellianism, narcissism)", "persona_v1_v7_gemma-2-9b-it_id_{m}_table_cells.csv", "persona"),
+    # persona — OOD split (3 held-out personas)
+    ("gemma-2-2b",       "persona OOD (3 held-out: desire-to-create-allies, interest-in-music, interest-in-science)", "persona_v1_v7_gemma-2-2b_ood_{m}_table_cells.csv",    "persona"),
+    ("gemma-2-2b-it",    "persona OOD (3 held-out: desire-to-create-allies, interest-in-music, interest-in-science)", "persona_v1_v7_gemma-2-2b-it_ood_{m}_table_cells.csv", "persona"),
+    ("gemma-2-9b-it",    "persona OOD (3 held-out: desire-to-create-allies, interest-in-music, interest-in-science)", "persona_v1_v7_gemma-2-9b-it_ood_{m}_table_cells.csv", "persona"),
+    # ifeval — only gemma-2-9b-it has been trained on ifeval-concat-all.
     # Special: gen_roc filename omits the metric infix.
-    ("(pooled models)", "ifeval (ID)",   "{ifevalprefix_id}", ""),
-    ("(pooled models)", "ifeval (OOD)",  "{ifevalprefix_ood}", ""),
+    ("gemma-2-9b-it",    "ifeval ID (held-out 50% of completions, prompts seen at train)",  "{ifevalprefix_id}",  "ifeval"),
+    ("gemma-2-9b-it",    "ifeval OOD (20 fully held-out prompts: prompt_1..13, 15..21)",    "{ifevalprefix_ood}", "ifeval"),
     # humaneval
-    ("gemma-4-31B-it",   "humaneval",  "humaneval_v2.1correct-upper_g4-31B-it_{m}_table_cells.csv", ""),
+    ("gemma-4-31B-it",   "humaneval",  "humaneval_v2.1correct-upper_g4-31B-it_{m}_table_cells.csv", "humaneval"),
 ]
 
 # Map row labels in CSVs to (setting_name, sN). The table builders use these
@@ -165,9 +177,6 @@ def queue_status():
 
 
 def train_status_str(disk, queue, ds, model, s, has_eval_data=False):
-    if model.startswith("("):
-        # Pooled / aggregate row - no per-cell train mapping
-        return "(pooled)"
     qrow = queue.get((ds, model, s))
     if qrow:
         jid, st, el, rem = qrow
@@ -222,7 +231,15 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
     out = []
     out.append(f"# Morning Results — {full_name} — {today}")
     out.append("")
-    out.append(f"All cells: **{full_name} × 100  ±  SE** (mean ± SE across the eval-task split for the corresponding (model × dataset)).")
+    out.append(f"All cells: **{full_name} × 100 ± SE** (mean ± SE across the eval-task split for that section).")
+    out.append("")
+    out.append("Section header convention: `<model> × <eval-set label>`. The model is")
+    out.append("the (LoRA-finetuned base) generator under test; the eval-set label says")
+    out.append("which held-out task slice the cells were averaged over. For example,")
+    out.append("`gemma-2-9b-it × membership (eval = rosch, all 6 tasks)` means: gemma-2-9b-it")
+    out.append("trained on `membership-sans-rosch-v0` and evaluated on the 6 held-out Rosch")
+    out.append("cross-categorization tasks. `persona ID` / `persona OOD` are the 3+3 splits")
+    out.append("of `persona-v1` (see headers for the per-persona task names).")
     out.append("")
     out.append("Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.")
     out.append("Empty cells (—): no eval CSV with that prefix yet.")
@@ -237,10 +254,9 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
         ifeval_ood_name = f"ifeval_ood_{metric}_table_cells.csv"
     fmt_ctx = {"m": metric, "ifevalprefix_id": ifeval_id_name, "ifevalprefix_ood": ifeval_ood_name}
 
-    for model, ds, tmpl, suffix in SOURCES:
+    for model, ds_label, tmpl, ds_key in SOURCES:
         path = METRICS_DIR / tmpl.format(**fmt_ctx)
-        title_ds = ds + (f" {suffix}" if suffix else "")
-        out.append(f"## {model} × {title_ds}")
+        out.append(f"## {model} × {ds_label}")
         out.append("")
         out.append(f"Source: [{path.name}](metrics-from-scores/{path.name})")
         out.append("")
@@ -255,7 +271,6 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
         out.append("|" + "|".join(["---"] * len(head)) + "|")
         for mn, label, sN in SETTING_LABELS:
             cd = cells.get(mn, {})
-            # Has eval data?
             has_data = any(
                 csv_col in cd and cd[csv_col][0] not in ("", "0") and cd[csv_col][2] != "0"
                 for _, csv_col in COL_MAP
@@ -263,8 +278,6 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
             if mn == 0:
                 train_s = "(base model)"
             else:
-                # ifeval pooled rows look up train status against the simplest dataset key.
-                ds_key = "ifeval" if ds.startswith("ifeval") else ds
                 train_s = train_status_str(disk, queue, ds_key, model, sN, has_eval_data=has_data)
             row_cells = []
             for header_col, csv_col in COL_MAP:
