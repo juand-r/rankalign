@@ -376,12 +376,17 @@ read -r -a EVAL_TASKS_ARR <<< "$EVAL_TASKS"
 # Build eval flags per TC variant
 build_eval_flags() {
     local tc="$1"
+    # /datastor2 is the default outputs dir to keep /datastor1 from filling up.
+    # Both v7 table builders (_build_rosch_table_v7.py and
+    # _build_persona_v1_table_v7.py) scan both /datastor1/.../outputs and
+    # /datastor2/jdr/rankalign/outputs, so new CSVs in /datastor2 are picked up.
+    local out_dir_flag="--outputs-dir ${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs}"
     if [ "$tc" = "self" ]; then
-        echo "--self-typcorr --base-typcorr --base-model $MODEL --log-odds"
+        echo "--self-typcorr --base-typcorr --base-model $MODEL --log-odds $out_dir_flag"
     elif [ "$tc" = "neg" ]; then
-        echo "--neg-typcorr --base-typcorr --base-model $MODEL --log-odds"
+        echo "--neg-typcorr --base-typcorr --base-model $MODEL --log-odds $out_dir_flag"
     else
-        echo "--base-typcorr --base-model $MODEL --log-odds"
+        echo "--base-typcorr --base-model $MODEL --log-odds $out_dir_flag"
     fi
 }
 

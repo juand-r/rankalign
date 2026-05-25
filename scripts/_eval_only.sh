@@ -216,20 +216,23 @@ fi
 VENV_OVERRIDE=""
 [ "$USE_GEMMA4_LORA" -eq 1 ] && VENV_OVERRIDE="/datastor2/jdr/venvs/gemma4"
 
+# /datastor2 outputs dir (keeps /datastor1 from filling up; both v7 table
+# builders scan /datastor2/jdr/rankalign/outputs as a SEARCH_DIR).
+OUTPUTS_DIR_FLAG="--outputs-dir ${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs}"
 if [ -n "${NO_BASE:-}" ]; then
     # No --base-typcorr → CSV prefix is "self-" or "neg-" (PMI/Neg-self columns).
     if [ "$TC" = "self" ]; then
-        EVAL_FLAGS="--self-typcorr --log-odds"
+        EVAL_FLAGS="--self-typcorr --log-odds $OUTPUTS_DIR_FLAG"
     else
-        EVAL_FLAGS="--neg-typcorr --log-odds"
+        EVAL_FLAGS="--neg-typcorr --log-odds $OUTPUTS_DIR_FLAG"
     fi
     NO_BASE_TAG="-nobase"
 else
     # With --base-typcorr → CSV prefix is "basetyp-" or "basetypneg-" (PMI/Neg-base).
     if [ "$TC" = "self" ]; then
-        EVAL_FLAGS="--self-typcorr --base-typcorr --base-model $MODEL --log-odds"
+        EVAL_FLAGS="--self-typcorr --base-typcorr --base-model $MODEL --log-odds $OUTPUTS_DIR_FLAG"
     else
-        EVAL_FLAGS="--neg-typcorr --base-typcorr --base-model $MODEL --log-odds"
+        EVAL_FLAGS="--neg-typcorr --base-typcorr --base-model $MODEL --log-odds $OUTPUTS_DIR_FLAG"
     fi
     NO_BASE_TAG=""
 fi
