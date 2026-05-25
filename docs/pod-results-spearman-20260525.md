@@ -1,10 +1,10 @@
-# Pod Results — Spearman(gen, val) — 2026-05-25T18:34:17Z
+# Pod Results — Spearman(gen, val) — 2026-05-25T18:36:19Z
 
 All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split for that section (no ± when a single task). Scope: **v7 only** (v6 excluded), models **Qwen3.5-9B** and **gemma-2-9b-it**, evaluated on RunPod and downloaded locally.
 
 **Delta regimes** (a property of the trained model):
 - **delta-bins 10** — every model whose name encodes a non-0.15 delta (delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path.
-- **delta 0.15 (fixed)** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not in the filename; **UNCONFIRMED pending a check of the still-running v7b training pods.**
+- **delta 0.15 (fixed)** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not in the filename, but is confirmed: the live v7b training pods run `--delta 0.15`, and these files are demonstrably not the delta-bins models (different scores), so by elimination (only two regimes) they are the delta-0.15 set.
 
 **Columns** = scoring method at eval time. Raw = log P(y|x); basetyp-/self- = PMI vs base/self; basetypneg-/neg- = Neg vs base/self. `N/A` = that eval variant was not run for the setting (s4 ran basetyp+self only; s7 ran basetypneg+neg only).
 
@@ -14,7 +14,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## gemma-2-9b-it × ifeval OOD — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -52,7 +52,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## gemma-2-9b-it × ifeval ID — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -72,7 +72,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## gemma-2-9b-it × persona ID — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -128,7 +128,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## gemma-2-9b-it × rosch — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -166,7 +166,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## Qwen3.5-9B × ifeval OOD — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -204,7 +204,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## Qwen3.5-9B × persona ID — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -242,7 +242,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## Qwen3.5-9B × persona OOD — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
@@ -280,7 +280,7 @@ All cells: **Spearman(gen, val) × 100**, mean ± SE across the eval-task split 
 
 ## Qwen3.5-9B × rosch — delta 0.15 (fixed)
 
-> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.
+> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).
 
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|

@@ -330,8 +330,10 @@ def build_doc(records, metric):
         "**Delta regimes** (a property of the trained model):",
         f"- **{DELTA_BINS}** — every model whose name encodes a non-0.15 delta "
         "(delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path.",
-        f"- **{DELTA_FIXED}** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not "
-        "in the filename; **UNCONFIRMED pending a check of the still-running v7b training pods.**",
+        f"- **{DELTA_FIXED}** — the `eval_model_sN` symlink runs (the v7b batch). The delta is not in "
+        "the filename, but is confirmed: the live v7b training pods run `--delta 0.15`, and these "
+        "files are demonstrably not the delta-bins models (different scores), so by elimination "
+        "(only two regimes) they are the delta-0.15 set.",
         "",
         "**Columns** = scoring method at eval time. Raw = log P(y|x); basetyp-/self- = PMI vs base/self; "
         "basetypneg-/neg- = Neg vs base/self. `N/A` = that eval variant was not run for the setting "
@@ -361,7 +363,7 @@ def build_doc(records, metric):
                 out.append(f"## {fam} × {eset} — {dlt}")
                 if dlt == DELTA_FIXED:
                     out.append("")
-                    out.append("> Delta value UNCONFIRMED (symlink hides it); treat as the v7b/delta-0.15 batch pending pod check.")
+                    out.append("> v7b/delta-0.15 batch (symlink filename hides delta; v7b training pods confirmed `--delta 0.15`).")
                 out.append("")
                 out.append(table)
                 out.append("")
