@@ -5,13 +5,19 @@ Covers the two model families evaluated on RunPod and downloaded locally:
   - Qwen3.5-9B
   - gemma-2-9b-it
 
-Two training-delta regimes (a per-model property; read off the model_path
-recorded inside each score CSV):
-  - "delta 0.15 (fixed)"  : eval_model_sN symlink runs (a.k.a. v7b). The delta is
-                            NOT in the filename (symlink hides it). Flagged
-                            UNCONFIRMED until the v7b training pods are checked.
-  - "delta-bins 10"       : every model whose name encodes a non-0.15 delta
-                            (e.g. delta0.96, delta1.89, delta1.94, delta2.49).
+All current pod eval data is **delta-bins 10** (the fixed delta=0.15 / "v7b" batch
+is still training — its eval results are not in yet, shown as "soon"). For each
+(model x eval-set) there can be up to three groups:
+
+  1. delta-bins 10 · eval_model_sN (canonical) -- the primary eval. Evaluated via
+     a downloaded model symlinked as /workspace/eval_model_sN. The symlink hides
+     the training delta, but it was recovered from the source HF repos' commit
+     messages (see EVAL_MODEL_IFEVAL_DELTA). 20 OOD prompts + ID prompts.
+  2. delta-bins 10 · named deltaX.XX (earlier on-pod eval) -- an earlier/partial
+     eval whose filename encodes the delta (delta0.96/1.89/1.93/1.94/2.49/...).
+     Shown BELOW the canonical one for comparison ("just in case").
+  3. delta 0.15 (fixed) · v7b -- the fixed-delta batch. Training pods confirmed
+     `--delta 0.15`. Eval mostly not started yet -> "soon".
 
 Eval sets:
   - ifeval OOD  : prompts 1-21 (held out entirely)
@@ -20,12 +26,11 @@ Eval sets:
   - persona OOD : desire-to-create-allies, interest-in-music, interest-in-science
   - rosch       : 10 cross-categorization tasks
 
-v6 files are excluded. Output: docs/pod-results-<metric>-<date>.md, one per metric,
-in the same column layout as docs/morning-results-*.md:
+v6 files excluded (by model_path). Output: docs/pod-results-<metric>-<date>.md, one
+per metric, same column layout as docs/morning-results-*.md:
   Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self)
 
 Blank cells -> "--". Cells whose eval is actively in flight -> "soon".
-
 Reuses summarize_scores_file.compute_all_metrics for canonical metric math.
 
 Usage:
@@ -64,20 +69,24 @@ METRIC_NAMES = {
     "val_roc": "ValROC", "val_acc": "ValAcc",
 }
 
-DELTA_FIXED = "delta 0.15 (fixed)"
-DELTA_BINS = "delta-bins 10"
-# eval_model_sN symlink runs: the symlink hides the training delta and the
-# TAUR-dev source repos carry only weights (no training args). We do NOT know
-# the delta — labelled UNKNOWN until provenance is recovered. (Earlier sessions
-# uploaded these under abbreviated names, losing the delta.)
-DELTA_UNKNOWN = "delta: UNKNOWN — eval_model_sN (provenance lost; see note)"
+# Eval-group labels (delta regime · eval source).
+G_EVALMODEL = "delta-bins 10 · eval_model_sN (canonical)"
+G_NAMED = "delta-bins 10 · named deltaX.XX (earlier on-pod eval)"
+G_V7B = "delta 0.15 (fixed) · v7b"
+GROUP_ORDER = [G_EVALMODEL, G_NAMED, G_V7B]
 
-# Persona splits
+# Provenance recovered 2026-05-25 from the source HF repos' commit messages.
+# upload_v7_model.py strips the delta from the repo *name* but preserves the
+# original checkpoint dir in the commit message ("Upload rankalign v7 checkpoint:
+# v7-google--gemma-2-9b-it-delta<X>-epoch2--ifeval-concat-all--..._merged").
+# Source: TAUR-dev/rankalign-v7-gemma2-9b-it-ifeval-sN-ep2 commit history.
+EVAL_MODEL_IFEVAL_DELTA = {  # gemma-2-9b-it ifeval eval_model_sN
+    "s1": "1.89", "s2": "1.93", "s3": "1.94", "s4": "1.94", "s7": "1.94",
+}
+
 PERSONA_ID = ["psychopathy", "machiavellianism", "narcissism"]
 PERSONA_OOD = ["desire-to-create-allies", "interest-in-music", "interest-in-science"]
 
-# Setting rows shown (same numbering as morning-results). The pod eval pipeline
-# only produced s1,s2,s3,s4,s7; others render as blank rows for comparability.
 SETTING_LABELS = [
     (0, "Base", None),
     (1, "SFT labelonly 10%", "s1"),
@@ -94,8 +103,6 @@ SETTING_LABELS = [
     (13, "SFT + CFT", "s13"),
 ]
 
-# (column header, eval_prefix it draws from, gen-variant key in compute_all_metrics)
-# Raw uses the raw gen score (model-intrinsic; any prefix file carries it).
 COLUMNS = [
     ("Raw", None, "raw"),
     ("basetyp- (PMI base)", "basetyp-", "tc"),
@@ -104,7 +111,6 @@ COLUMNS = [
     ("neg- (Neg self)", "neg-", "tc"),
 ]
 
-# s4 only ran basetyp+self; s7 only ran basetypneg+neg. Mark the rest N/A.
 SETTING_NA = {
     "s4": {"basetypneg- (Neg base)", "neg- (Neg self)"},
     "s7": {"basetyp- (PMI base)", "self- (PMI self)"},
@@ -112,10 +118,10 @@ SETTING_NA = {
 
 _PREFIX_ORDER = ("basetypneg-", "basetyp-", "neg-", "self-")
 
-# Cells whose eval is actively in flight right now -> render "soon" when absent.
-# gemma-2-9b-it ifeval ID at delta 0.15 is running on the ra9b ID pods today.
+# Cells whose eval is actively in flight -> render "soon" when absent.
+# The gemma ifeval ID eval running now uses the delta-bins eval_model_sN models.
 IN_FLIGHT = {
-    ("gemma-2-9b-it", DELTA_UNKNOWN, "ifeval ID"): {"s1", "s2", "s3", "s4", "s7"},
+    ("gemma-2-9b-it", G_EVALMODEL, "ifeval ID"): {"s1", "s2", "s3", "s4", "s7"},
 }
 
 
@@ -123,24 +129,26 @@ def is_v6(mp: str) -> bool:
     return "v6-" in mp
 
 
-def family(mp: str) -> str | None:
+def family(mp: str, dirpath: str) -> str | None:
     if "Qwen3.5-9B" in mp:
         return "Qwen3.5-9B"
     if "gemma-2-9b-it" in mp:
         return "gemma-2-9b-it"
     if re.search(r"/eval_model_s\d+$", mp):
-        return "SYMLINK"  # resolved later via filename
+        return "Qwen3.5-9B" if "qw35" in dirpath else "gemma-2-9b-it"
     return None  # 2b / 2b-it / gemma-4 / unknown -> excluded
 
 
-def delta_group(mp: str) -> str:
+def group_of(mp: str, dirpath: str) -> str:
+    """Classify the eval group (delta regime · source)."""
     if re.search(r"/eval_model_s\d+$", mp):
-        return DELTA_UNKNOWN  # symlink hides delta; provenance not yet recovered
+        # symlink: v7b dir -> fixed delta 0.15 batch; v7 dir -> delta-bins canonical
+        return G_V7B if "v7b" in dirpath else G_EVALMODEL
     m = re.search(r"delta([0-9.]+)", mp) or re.search(r"-d([0-9.]+)-", mp)
-    if not m:
-        return "?"
-    d = m.group(1).rstrip(".")
-    return DELTA_FIXED if d == "0.15" else DELTA_BINS
+    d = m.group(1).rstrip(".") if m else ""
+    if d == "0.15":
+        return G_V7B
+    return G_NAMED  # named non-0.15 -> delta-bins, earlier on-pod eval
 
 
 def setting_of(mp: str, fname: str) -> str | None:
@@ -181,7 +189,6 @@ def eval_prefix(fname: str) -> str:
 
 
 def parse_task(fname: str):
-    """Return (eval_set, task_key) or (None, None)."""
     m = re.search(r"_ifeval-prompt_(\d+)_test_log-odds", fname)
     if m:
         n = int(m.group(1))
@@ -201,13 +208,14 @@ def parse_task(fname: str):
 
 
 def scan():
-    """Return records[(family, delta, eval_set, setting, prefix, task)] = metrics dict,
+    """records[(family, group, eval_set, setting, prefix, task)] = metrics dict,
     deduped to the newest filename per key."""
-    raw = defaultdict(list)  # key -> [(fname, metrics)]
+    raw = defaultdict(list)
     skipped = defaultdict(int)
     for d in SCAN_DIRS:
         if not d.is_dir():
             continue
+        dirpath = str(d)
         for p in sorted(d.glob("scores_*.csv")):
             try:
                 head = pd.read_csv(p, nrows=1)
@@ -218,14 +226,11 @@ def scan():
             if is_v6(mp):
                 skipped["v6"] += 1
                 continue
-            fam = family(mp)
+            fam = family(mp, dirpath)
             if fam is None:
                 skipped["other_family"] += 1
                 continue
-            if fam == "SYMLINK":
-                # symlink hides family; infer from path of the dir / file content
-                fam = "Qwen3.5-9B" if "qw35" in str(p) else "gemma-2-9b-it"
-            dlt = delta_group(mp)
+            grp = group_of(mp, dirpath)
             st = setting_of(mp, p.name)
             if st is None:
                 skipped["no_setting"] += 1
@@ -241,24 +246,21 @@ def scan():
             except Exception:
                 skipped["metric_err"] += 1
                 continue
-            key = (fam, dlt, eset, st, pfx, task)
-            raw[key].append((p.name, metrics))
+            raw[(fam, grp, eset, st, pfx, task)].append((p.name, metrics))
 
     records = {}
     for key, lst in raw.items():
-        fname, metrics = max(lst, key=lambda x: x[0])  # newest filename
+        _, metrics = max(lst, key=lambda x: x[0])  # newest filename
         records[key] = metrics
     return records, dict(skipped)
 
 
-def cell_values(records, fam, dlt, eset, setting, col_header, variant, metric):
-    """Collect per-task metric values (NOT ×100) for one table cell."""
+def cell_values(records, fam, grp, eset, setting, col_header, variant, metric):
     pfx = dict((c[0], c[1]) for c in COLUMNS)[col_header]
-    # gather all tasks for this (fam,dlt,eset,setting) at the right prefix
     vals = []
-    seen_tasks = set()
-    for (f, d, e, s, p, t), m in records.items():
-        if (f, d, e, s) != (fam, dlt, eset, setting):
+    seen = set()
+    for (f, g, e, s, p, t), m in records.items():
+        if (f, g, e, s) != (fam, grp, eset, setting):
             continue
         if pfx is not None and p != pfx:
             continue
@@ -267,11 +269,10 @@ def cell_values(records, fam, dlt, eset, setting, col_header, variant, metric):
         v = m[variant].get(metric)
         if v is None or (isinstance(v, float) and np.isnan(v)):
             continue
-        # dedup task for Raw (prefix-agnostic): only count each task once
-        if pfx is None:
-            if t in seen_tasks:
+        if pfx is None:  # Raw is prefix-agnostic: count each task once
+            if t in seen:
                 continue
-            seen_tasks.add(t)
+            seen.add(t)
         vals.append(float(v))
     return vals
 
@@ -286,12 +287,12 @@ def fmt(vals, scale=100.0):
     return f"{mean:.1f}"
 
 
-def build_table(records, fam, dlt, eset, metric):
+def build_table(records, fam, grp, eset, metric):
     lines = []
     head = ["Setting", "Train"] + [c[0] for c in COLUMNS]
     lines.append("| " + " | ".join(head) + " |")
     lines.append("|" + "|".join(["---"] * len(head)) + "|")
-    inflight = IN_FLIGHT.get((fam, dlt, eset), set())
+    inflight = IN_FLIGHT.get((fam, grp, eset), set())
     any_data = False
     for mn, label, sN in SETTING_LABELS:
         cells = []
@@ -301,13 +302,10 @@ def build_table(records, fam, dlt, eset, metric):
             if sN in SETTING_NA and col_header in SETTING_NA[sN]:
                 cells.append("N/A")
                 continue
-            vals = cell_values(records, fam, dlt, eset, sN, col_header, variant, metric) if sN else []
+            vals = cell_values(records, fam, grp, eset, sN, col_header, variant, metric) if sN else []
             s = fmt(vals)
             if s is None:
-                if sN in inflight:
-                    cells.append("soon")
-                else:
-                    cells.append("--")
+                cells.append("soon" if sN in inflight else "--")
             else:
                 cells.append(s)
                 row_has = True
@@ -332,44 +330,43 @@ def build_doc(records, metric):
         "(no ± when a single task). Scope: **v7 only** (v6 excluded), models **Qwen3.5-9B** and "
         "**gemma-2-9b-it**, evaluated on RunPod and downloaded locally.",
         "",
-        "**Delta regimes** (a property of the trained model):",
-        f"- **{DELTA_BINS}** — every model whose name encodes a non-0.15 delta "
-        "(delta0.96, delta1.89, delta1.94, delta2.49, …). Read directly from the model path; reliable.",
-        f"- **{DELTA_UNKNOWN}** — the `eval_model_sN` runs are evaluated via a symlink that hides the "
-        "training delta, and their source repos (`TAUR-dev/rankalign-v7-gemma2-9b-it-ifeval-sN-ep2`) "
-        "carry only weights, no training args. **The delta of these models is NOT currently known** "
-        "and is being investigated. Do NOT assume 0.15. (We separately confirmed the *still-training* "
-        "v7b pods use `--delta 0.15`, but those are a different batch than these already-uploaded models.)",
+        "**Groups** (per model × eval-set, shown in this order):",
+        f"1. **{G_EVALMODEL}** — the primary eval (downloaded model symlinked as `eval_model_sN`; "
+        "20 OOD prompts + ID). Training delta recovered from the source HF repo commit messages: "
+        "gemma-2-9b-it ifeval s1=1.89, s2=1.93, s3/s4/s7=1.94 (all delta-bins 10). Qwen experiments "
+        "are delta-bins 10 throughout (per design).",
+        f"2. **{G_NAMED}** — an earlier/partial eval whose filename encodes the delta. Shown for "
+        "comparison; differs from the canonical eval mainly because it covers fewer prompts.",
+        f"3. **{G_V7B}** — the fixed delta=0.15 batch (v7b training pods confirmed `--delta 0.15`). "
+        "Eval mostly not started -> `soon`.",
         "",
         "**Columns** = scoring method at eval time. Raw = log P(y|x); basetyp-/self- = PMI vs base/self; "
-        "basetypneg-/neg- = Neg vs base/self. `N/A` = that eval variant was not run for the setting "
-        "(s4 ran basetyp+self only; s7 ran basetypneg+neg only).",
+        "basetypneg-/neg- = Neg vs base/self. `N/A` = variant not run for that setting "
+        "(s4 = basetyp+self only; s7 = basetypneg+neg only).",
         "",
-        "**Cells:** `--` = no data. `soon` = eval actively in flight (results expected shortly). "
-        "Train column: ✓ = eval data present · soon = in flight · – = not run.",
+        "**Cells:** `--` = no data · `soon` = eval in flight. Train: ✓ data present · soon in flight · – not run.",
         "",
-        "> ifeval **OOD** = prompts 1–21 (fully held out). ifeval **ID** = prompts 22–109 "
-        "(50% of completions held out). These are the *data* split, independent of delta.",
+        "> ifeval **OOD** = prompts 1–21 (fully held out); **ID** = prompts 22–109 (50% completions held "
+        "out). This is the data split, independent of delta.",
         "",
     ]
-    # Section order: family -> eval_set -> delta
+    present = {(f, g, e) for (f, g, e, s, p, t) in records}
     families = ["gemma-2-9b-it", "Qwen3.5-9B"]
     eval_sets = ["ifeval OOD", "ifeval ID", "persona ID", "persona OOD", "rosch"]
-    deltas = [DELTA_UNKNOWN, DELTA_FIXED, DELTA_BINS]
-    present = {(f, d, e) for (f, d, e, s, p, t) in records}
     for fam in families:
         for eset in eval_sets:
-            for dlt in deltas:
-                inflight = IN_FLIGHT.get((fam, dlt, eset), set())
-                if (fam, dlt, eset) not in present and not inflight:
+            for grp in GROUP_ORDER:
+                inflight = IN_FLIGHT.get((fam, grp, eset), set())
+                if (fam, grp, eset) not in present and not inflight:
                     continue
-                table, any_data = build_table(records, fam, dlt, eset, metric)
+                table, any_data = build_table(records, fam, grp, eset, metric)
                 if not any_data and not inflight:
                     continue
-                out.append(f"## {fam} × {eset} — {dlt}")
-                if dlt == DELTA_UNKNOWN:
+                out.append(f"## {fam} × {eset} — {grp}")
+                if grp == G_EVALMODEL and eset.startswith("ifeval") and fam == "gemma-2-9b-it":
                     out.append("")
-                    out.append("> ⚠️ Training delta of these `eval_model_sN` models is UNKNOWN (provenance lost — abbreviated upload names). Do NOT assume 0.15.")
+                    out.append("> Per-setting training delta (HF-commit provenance): "
+                               "s1=1.89, s2=1.93, s3/s4/s7=1.94 — all delta-bins 10.")
                 out.append("")
                 out.append(table)
                 out.append("")
@@ -382,12 +379,11 @@ def main():
     args = ap.parse_args()
 
     records, skipped = scan()
-    print(f"Scanned -> {len(records)} deduped (key) records. Skipped: {skipped}", file=sys.stderr)
+    print(f"Scanned -> {len(records)} deduped records. Skipped: {skipped}", file=sys.stderr)
 
     if args.report:
         from collections import Counter
-        c = Counter((f, d, e, s) for (f, d, e, s, p, t) in records)
-        print("\n(family, delta, eval_set, setting) -> n_task-prefix records:")
+        c = Counter((f, g, e, s) for (f, g, e, s, p, t) in records)
         for k in sorted(c, key=lambda x: (x[0], x[2], x[1], x[3])):
             print(f"  {k}  x{c[k]}")
         return
