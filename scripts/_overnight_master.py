@@ -409,8 +409,15 @@ def main():
           f"in-queue train cells: {len(queued_train_cells)}")
 
     # PASS 1: eval-gap fills for cells with epoch>=1 on disk.
+    # Cap at MAX_P1 evals per tick — many "missing prefix" detections are
+    # false positives (hash-suffixed CSVs that parse_checkpoint_name fails on),
+    # so spamming all of them wastes queue slots that should go to Pass 2 trains.
     submitted_evals = 0
+    MAX_P1 = int(os.environ.get("MAX_P1", "6"))
     for (ds_short, m, s), eps in disk.items():
+        if submitted_evals >= MAX_P1:
+            print(f" [P1] reached MAX_P1={MAX_P1} cap; skipping rest")
+            break
         # Need at least epoch >= 1 for eval to have something to load
         if max(eps) < 1:
             continue
