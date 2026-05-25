@@ -13,14 +13,19 @@ Splits per the persona-v1 build report (data/persona/v1/_BUILD_REPORT.json):
 For each (model, method, column), reports mean ± SE across the 3 tasks in
 each subset. Cells are gen_roc × 100 (consistent with the v7 table).
 """
+import os
 import sys
 from pathlib import Path
 import pandas as pd
 
 REPO = Path("/datastor1/jdr/gv-gap/rankalign")
+METRIC = (os.environ.get("PERSONA_METRIC", "gen_roc")).lower()
+SUPPORTED_METRICS = {"gen_roc", "pearson", "spearman", "val_roc", "val_acc"}
+if METRIC not in SUPPORTED_METRICS:
+    raise SystemExit(f"PERSONA_METRIC must be one of {SUPPORTED_METRICS}, got {METRIC!r}")
 LONG = {
-    "gemma-2-2b-it": REPO / "metrics-from-scores" / "persona_v1_v7_gemma-2-2b-it_all_gen_roc_table_long.csv",
-    "gemma-2-9b-it": REPO / "metrics-from-scores" / "persona_v1_v7_gemma-2-9b-it_all_gen_roc_table_long.csv",
+    "gemma-2-2b-it": REPO / "metrics-from-scores" / f"persona_v1_v7_gemma-2-2b-it_all_{METRIC}_table_long.csv",
+    "gemma-2-9b-it": REPO / "metrics-from-scores" / f"persona_v1_v7_gemma-2-9b-it_all_{METRIC}_table_long.csv",
 }
 ID_TASKS = {
     "persona-v1-psychopathy",
@@ -86,7 +91,11 @@ def render_table(df, subset_tasks, subset_label, model_label):
 
 
 def main():
-    print("# Persona-v1 GenROC table v7 — ID vs OOD split")
+    metric_label = {
+        "gen_roc": "GenROC", "pearson": "Pearson(gen, val)",
+        "spearman": "Spearman(gen, val)", "val_roc": "ValROC", "val_acc": "ValAcc",
+    }[METRIC]
+    print(f"# Persona-v1 {metric_label} table v7 — ID vs OOD split (metric={METRIC})")
     print()
     from datetime import datetime, timezone
     print(f"Generated {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}")
@@ -97,7 +106,7 @@ def main():
     print("- **ID** (3 tasks, label-flipped): psychopathy, machiavellianism, narcissism")
     print("- **OOD** (3 tasks, labels unchanged): desire-to-create-allies, interest-in-music, interest-in-science")
     print()
-    print("**Cells:** `gen_roc × 100 ± SE` over the 3 tasks in the subset. `---` = trained-TC rule (column not applicable). `—` = no data.")
+    print(f"**Cells:** `{METRIC} × 100 ± SE` over the 3 tasks in the subset. `---` = trained-TC rule (column not applicable). `—` = no data.")
     print()
     for model, path in LONG.items():
         if not path.is_file():
