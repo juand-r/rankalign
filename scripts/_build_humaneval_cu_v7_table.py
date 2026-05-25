@@ -8,43 +8,6 @@ v7 adapters add --ppd and --fix1 flags which are handled via _GLOBALLY_IGNORABLE
 
 Original script: _build_humaneval_table.py
 """
-# --- ORIGINAL DOCSTRING FOLLOWS (for reference) ---
-"""Build the humaneval table for gemma-4-31B-it on humaneval-v2.1correct-multi.
-
-The gemma-4 humaneval ckpts live across several `outputs_gemma4_*` dirs
-and have a different model_short convention than the gemma-2 tasks:
-
-  - Separators between dataset/loss flags are `--` (double hyphen) rather
-    than `_`.
-  - Some model_shorts are truncated by the eval pipeline at a fixed
-    length and end with an `_<8hexhash>` suffix.
-  - A few have a `_workspace_models_g4it_v6-google--...` path-prefix
-    artifact baked in.
-
-To handle the truncation, method matching is done via a *prefix-on-
-flag-fragments* approach: we normalize the model_short (drop the optional
-path artifact, optionally strip the hash suffix) and check that the
-expected set of flag tokens are all present and the disallowed ones are
-absent. This is more permissive than the fullmatch-regex approach used
-for the gemma-2 tables, but it is required because the hashed tail hides
-the trailing flags.
-
-Eval tasks are inferred from disk: every `humaneval-v2.1correct-multi-
-humaneval_<id>` task encountered across the search dirs.
-
-Rows: 12 methods (0=Base, 1..9, 11, 12), same numbering as IFEval.
-Cols: Raw, PMI self, PMI base, Neg self, Neg base.
-
-Env vars:
-- HUMANEVAL_METRIC ∈ {gen_roc, pearson, spearman, val_roc, val_acc}
-                                          default gen_roc
-
-Writes:
-- metrics-from-scores/humaneval_v2.1correct-multi_g4-31B-it_{metric}_table_long.csv
-- metrics-from-scores/humaneval_v2.1correct-multi_g4-31B-it_{metric}_table_cells.csv
-- prints the markdown table to stdout
-"""
-
 from __future__ import annotations
 import os
 import re
@@ -59,6 +22,8 @@ sys.path.insert(0, str(REPO / "scripts"))
 from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
 SEARCH_DIRS = [
+    Path("/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/correct_upper_s1s4s7"),
+    REPO / "outputs_gemma4_from_pod-v7" / "correct_upper_s1s4s7",
     Path("/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/correct_upper_s3s4s7"),
     REPO / "outputs_gemma4_from_pod-v7" / "correct_upper_s3s4s7",
     REPO / "outputs",
@@ -131,11 +96,13 @@ _KNOWN_FLAGS = [
 # v7 flags that appear in all v7 adapters but don't discriminate between methods.
 # Excluded from the "extras" check so they don't cause false non-matches.
 _GLOBALLY_IGNORABLE = {"ppd", "fix1"}
-# Flags whose canonical position is BEFORE `full-completion` in the
-# model_short. If `full-completion` is observed and one of these flags is
+# Flags whose canonical position is BEFORE OR IMMEDIATELY AFTER `full-completion`
+# in the model_short. If `full-completion` is observed and one of these flags is
 # missing from the observed flag list, the flag is *definitively* absent
 # (it cannot be hidden by the trailing hash truncation).
-_EARLY_FLAGS = {"tc-self", "tc-neg"}
+# `pref0.0` appears immediately after `full-completion` in SFT/RA adapters, so
+# its absence is definitive whenever `full-completion` is visible.
+_EARLY_FLAGS = {"tc-self", "tc-neg", "pref0.0"}
 
 
 # Only checkpoints from this training epoch are considered. Same convention

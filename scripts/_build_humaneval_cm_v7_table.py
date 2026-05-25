@@ -8,43 +8,6 @@ v7 adapters add --ppd and --fix1 flags which are handled via _GLOBALLY_IGNORABLE
 
 Original script: _build_humaneval_table.py
 """
-# --- ORIGINAL DOCSTRING FOLLOWS (for reference) ---
-"""Build the humaneval table for gemma-4-31B-it on humaneval-v2.1correct-multi.
-
-The gemma-4 humaneval ckpts live across several `outputs_gemma4_*` dirs
-and have a different model_short convention than the gemma-2 tasks:
-
-  - Separators between dataset/loss flags are `--` (double hyphen) rather
-    than `_`.
-  - Some model_shorts are truncated by the eval pipeline at a fixed
-    length and end with an `_<8hexhash>` suffix.
-  - A few have a `_workspace_models_g4it_v6-google--...` path-prefix
-    artifact baked in.
-
-To handle the truncation, method matching is done via a *prefix-on-
-flag-fragments* approach: we normalize the model_short (drop the optional
-path artifact, optionally strip the hash suffix) and check that the
-expected set of flag tokens are all present and the disallowed ones are
-absent. This is more permissive than the fullmatch-regex approach used
-for the gemma-2 tables, but it is required because the hashed tail hides
-the trailing flags.
-
-Eval tasks are inferred from disk: every `humaneval-v2.1correct-multi-
-humaneval_<id>` task encountered across the search dirs.
-
-Rows: 12 methods (0=Base, 1..9, 11, 12), same numbering as IFEval.
-Cols: Raw, PMI self, PMI base, Neg self, Neg base.
-
-Env vars:
-- HUMANEVAL_METRIC ∈ {gen_roc, pearson, spearman, val_roc, val_acc}
-                                          default gen_roc
-
-Writes:
-- metrics-from-scores/humaneval_v2.1correct-multi_g4-31B-it_{metric}_table_long.csv
-- metrics-from-scores/humaneval_v2.1correct-multi_g4-31B-it_{metric}_table_cells.csv
-- prints the markdown table to stdout
-"""
-
 from __future__ import annotations
 import os
 import re

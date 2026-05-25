@@ -50,6 +50,7 @@ from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
 SEARCH_DIRS = [
     Path("/datastor2/jdr/rankalign/outputs_gemma4_from_pod"),
+    REPO / "outputs_gemma4_from_pod-v7" / "correct_multi_s1s2",
     REPO / "outputs",
 ]
 METRICS_DIR = REPO / "metrics-from-scores"
