@@ -1,6 +1,6 @@
 # humaneval-v2.1correct-upper × gemma-4-31B-it — v7 epoch2 tables
 
-Snapshot: **2026-05-24 21:57 CT**
+Snapshot: **2026-05-24 23:53 CT**
 
 Model: gemma-4-31B-it, trained on humaneval-v2.1correct-upper-all, epoch 2.
 Columns = scoring method at eval time (Raw / PMI base / Neg base etc.).
@@ -19,7 +19,7 @@ To refresh: `python scripts/_save_cu_v7_tables_md.py`
 | 1 SFT labelonly 10% | — | — | — | — | — |
 | 2 RankAlign | — | — | — | — | — |
 | 3 New + fsx [-TC] | 91.11 ± 0.96 | — | 86.09 ± 1.18 | — | 90.43 ± 2.31 (n=12) |
-| 4 New + PMI + fsx | 87.69 ± 1.43 (n=46) | — | 92.41 ± 1.00 (n=46) | --- | --- |
+| 4 New + PMI + fsx | 88.30 ± 0.99 (n=81) | — | 92.16 ± 0.77 (n=81) | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | — | — | — | --- | --- |
 | 6 RA + PMI [+TC] | — | — | — | --- | --- |
 | 11 New + PMI [-fsx] | — | — | — | --- | --- |
@@ -38,7 +38,7 @@ To refresh: `python scripts/_save_cu_v7_tables_md.py`
 | 1 SFT labelonly 10% | — | — | — | — | — |
 | 2 RankAlign | — | — | — | — | — |
 | 3 New + fsx [-TC] | 65.35 ± 1.72 | — | 45.50 ± 3.07 | — | 61.79 ± 5.17 (n=12) |
-| 4 New + PMI + fsx | 60.49 ± 2.40 (n=46) | — | 65.76 ± 2.45 (n=46) | --- | --- |
+| 4 New + PMI + fsx | 61.59 ± 1.69 (n=81) | — | 66.76 ± 1.75 (n=81) | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | — | — | — | --- | --- |
 | 6 RA + PMI [+TC] | — | — | — | --- | --- |
 | 11 New + PMI [-fsx] | — | — | — | --- | --- |
@@ -57,7 +57,7 @@ To refresh: `python scripts/_save_cu_v7_tables_md.py`
 | 1 SFT labelonly 10% | — | — | — | — | — |
 | 2 RankAlign | — | — | — | — | — |
 | 3 New + fsx [-TC] | 68.87 ± 1.84 | — | 51.29 ± 2.59 | — | 57.05 ± 4.86 (n=12) |
-| 4 New + PMI + fsx | 66.94 ± 2.49 (n=46) | — | 67.34 ± 2.11 (n=46) | --- | --- |
+| 4 New + PMI + fsx | 67.02 ± 1.78 (n=81) | — | 67.85 ± 1.66 (n=81) | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | — | — | — | --- | --- |
 | 6 RA + PMI [+TC] | — | — | — | --- | --- |
 | 11 New + PMI [-fsx] | — | — | — | --- | --- |
@@ -76,7 +76,7 @@ To refresh: `python scripts/_save_cu_v7_tables_md.py`
 | 1 SFT labelonly 10% | — | — | — | — | — |
 | 2 RankAlign | — | — | — | — | — |
 | 3 New + fsx [-TC] | 93.73 ± 0.86 | — | 93.73 ± 0.86 | — | 95.41 ± 1.59 (n=12) |
-| 4 New + PMI + fsx | 92.93 ± 1.33 (n=46) | — | 92.93 ± 1.33 (n=46) | --- | --- |
+| 4 New + PMI + fsx | 93.34 ± 0.90 (n=81) | — | 93.34 ± 0.90 (n=81) | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | — | — | — | --- | --- |
 | 6 RA + PMI [+TC] | — | — | — | --- | --- |
 | 11 New + PMI [-fsx] | — | — | — | --- | --- |
@@ -95,7 +95,7 @@ To refresh: `python scripts/_save_cu_v7_tables_md.py`
 | 1 SFT labelonly 10% | — | — | — | — | — |
 | 2 RankAlign | — | — | — | — | — |
 | 3 New + fsx [-TC] | 85.67 ± 1.33 | — | 85.67 ± 1.33 | — | 89.37 ± 3.39 (n=12) |
-| 4 New + PMI + fsx | 86.32 ± 1.74 (n=46) | — | 86.32 ± 1.74 (n=46) | --- | --- |
+| 4 New + PMI + fsx | 85.84 ± 1.43 (n=81) | — | 85.84 ± 1.43 (n=81) | --- | --- |
 | 5 RA + PMI + fsx [-NLL] | — | — | — | --- | --- |
 | 6 RA + PMI [+TC] | — | — | — | --- | --- |
 | 11 New + PMI [-fsx] | — | — | — | --- | --- |
