@@ -72,6 +72,13 @@ configure_setting() {
     local fsx="" vlo="" tc_train="" ppd="" sbm=""
 
     case "$S" in
+        2)
+            SETTING_NAME="RankAlign"
+            # v6 adapter already trained (delta0.15, no fix1). Training will be
+            # skipped because adapter_dir_for() checks v6 prefix too.
+            ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1"
+            EVAL_MODES="--self-typicality --neg-typicality"
+            ;;
         1)
             SETTING_NAME="SFT-lo"
             pref_w=0; nll_v_w=1; nll_g_w=1; semi_flag="--labeled-only 0.1"
@@ -123,7 +130,7 @@ configure_setting() {
             EVAL_MODES="--neg-typicality"
             ;;
         *)
-            echo "FATAL: unknown setting '$S' — this script handles settings 1, 3, 4, 5, 7, 8, 11, 12 on correct-upper"; exit 2 ;;
+            echo "FATAL: unknown setting '$S' — this script handles settings 1, 2, 3, 4, 5, 7, 8, 11, 12 on correct-upper"; exit 2 ;;
     esac
 
     TRAIN_FLAGS="--model $MODEL --num_epochs 3 --task $HE_TASK \
@@ -150,8 +157,12 @@ adapter_dir_for() {
     # --delta-bins auto-computes delta at runtime, so the exact value in the
     # directory name is unknown until training runs. Glob on delta* and use
     # the (unique) match; returns empty string if none found yet.
+    # Also checks v6 prefix for settings trained before the v7 era (e.g. s2 RankAlign).
     local found
     found=$(ls -d "${MODELS_DIR}/v7-google--gemma-4-31B-it-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}" 2>/dev/null | head -1)
+    if [ -z "$found" ]; then
+        found=$(ls -d "${MODELS_DIR}/v6-google--gemma-4-31B-it-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}" 2>/dev/null | head -1)
+    fi
     echo "${found}"
 }
 
@@ -232,7 +243,7 @@ run_setting() {
 # ---- main -------------------------------------------------------------------
 if [ $# -eq 0 ]; then
     echo "usage: run_settings_v21correct_upper.sh <SETTING_1> [SETTING_2 ...]"
-    echo "settings: 1=SFT-lo  3=New+fsx  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc  11=New+tc  12=New+negtc"
+    echo "settings: 1=SFT-lo  2=RankAlign  3=New+fsx  4=New+fsx+tc  5=RankAlign+fsx+tc  7=New+fsx+negtc  8=RankAlign+fsx+negtc  11=New+tc  12=New+negtc"
     exit 1
 fi
 
