@@ -1,22 +1,28 @@
 #!/bin/bash
-# run_gemma2_v7b_cell.sh DATASET SETTING
+# run_qwen35_v7b_cell.sh DATASET SETTING
 #
-# v7b variant: same as run_gemma2_cell.sh but WITHOUT per-prompt-delta,
-# shape-budget-mode global, or delta-bins 10. Fixed delta=0.15 throughout.
-# Uses ranking_loss_ref_fix.py (same as v7).
+# v7b variant of run_qwen35_cell.sh: FIXED delta=0.15 (NO --delta-bins, NO ppd).
+# Trains Qwen/Qwen3.5-9B on one cell (dataset x setting) then evals.
+# Uses ranking_loss_ref_fix.py.
 #
 # DATASET: persona | membership | ifeval
-# SETTING: s1 | s2 | s3 | s4 | s7
+# SETTING: s1 | s2 | s3 | s4 | s7 | s13
+#
+# EPOCHS env var overrides num_epochs (default 3). Set EPOCHS=1 for a 1-epoch run.
+#
+# Qwen specifics (vs gemma v7b cell): requirements-gemma4.txt env (transformers 5.x),
+# moe.py patch guard, MODELS_DIR=/workspace/models_q35, disc-shots auto (zero for
+# Qwen3+ chat models) in training and explicit zero in eval, --lora.
 
 set -euo pipefail
 
 DATASET="${1:?DATASET required (persona|membership|ifeval)}"
-SETTING="${2:?SETTING required (s1|s2|s3|s4|s7)}"
-MODEL="google/gemma-2-9b-it"
+SETTING="${2:?SETTING required (s1|s2|s3|s4|s7|s13)}"
+MODEL="Qwen/Qwen3.5-9B"
 
 VENV=/workspace/.venv
 REPO=/workspace/rankalign
-MODELS_DIR=/workspace/models2
+MODELS_DIR=/workspace/models_q35
 OUTPUTS_DIR=/workspace/outputs
 LOG_DIR=/workspace/logs
 mkdir -p "$MODELS_DIR" "$OUTPUTS_DIR" "$LOG_DIR"
@@ -24,8 +30,8 @@ mkdir -p "$MODELS_DIR" "$OUTPUTS_DIR" "$LOG_DIR"
 LOG="$LOG_DIR/cell_${DATASET}_${SETTING}.log"
 exec > >(tee -a "$LOG") 2>&1
 
-echo "[$(date -u +%FT%TZ)] === run_gemma2_v7b_cell.sh DATASET=$DATASET SETTING=$SETTING ==="
-echo "[$(date -u +%FT%TZ)] model=$MODEL (v7b: fixed delta=0.15, no ppd, no delta-bins)"
+echo "[$(date -u +%FT%TZ)] === run_qwen35_v7b_cell.sh DATASET=$DATASET SETTING=$SETTING EPOCHS=${EPOCHS:-3} ==="
+echo "[$(date -u +%FT%TZ)] model=$MODEL (v7b: fixed delta=0.15, no delta-bins, no ppd)"
 
 source "$VENV/bin/activate"
 cd "$REPO/scripts"
@@ -34,6 +40,15 @@ export HF_HOME=/workspace/.cache/huggingface
 export HF_HUB_CACHE=$HF_HOME/hub
 export HF_HUB_DISABLE_XET=1
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+
+# Guard: ensure moe.py is patched (idempotent — setup does this but may have been skipped)
+MOE_FILE=$(python -c "import transformers, os; print(os.path.join(os.path.dirname(transformers.__file__), 'integrations', 'moe.py'))" 2>/dev/null || true)
+if [ -n "$MOE_FILE" ] && [ -f "$MOE_FILE" ]; then
+    if grep -q "^from __future__ import annotations" "$MOE_FILE"; then
+        sed -i "s/^from __future__ import annotations$/# from __future__ import annotations (patched: torch 2.4.1 compat)/" "$MOE_FILE"
+        echo "[$(date -u +%FT%TZ)] Applied moe.py patch"
+    fi
+fi
 
 # --- Dataset config ---
 case "$DATASET" in
@@ -46,8 +61,6 @@ case "$DATASET" in
         )
         MAX_SEQ=""
         GRAD_CKP=""
-        DISC_SHOTS_TRAIN="--disc-shots few"
-        DISC_SHOTS_EVAL="--disc-shots few"
         ;;
     membership)
         TASK="membership-sans-rosch-v0"
@@ -58,8 +71,6 @@ case "$DATASET" in
         )
         MAX_SEQ=""
         GRAD_CKP=""
-        DISC_SHOTS_TRAIN="--disc-shots few"
-        DISC_SHOTS_EVAL="--disc-shots few"
         ;;
     ifeval)
         TASK="ifeval-concat"
@@ -74,80 +85,49 @@ case "$DATASET" in
         )
         MAX_SEQ="--max-seq-len 1024"
         GRAD_CKP="--gradient_checkpointing"
-        DISC_SHOTS_TRAIN="--disc-shots zero"
-        DISC_SHOTS_EVAL="--disc-shots zero"
         ;;
     *)
         echo "Unknown DATASET: $DATASET (persona|membership|ifeval)"; exit 1 ;;
 esac
 
-# --- Per-setting flags ---
-# v7b: PPD_FLAGS="" for ALL settings (no --per-prompt-delta, no --shape-budget-mode global)
+# --- Per-setting flags --- (v7b: PPD_FLAGS="" for ALL; fixed delta 0.15)
 CFT_FLAG=""   # only s13 sets --consistency-ft
 case "$SETTING" in
     s1)
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 0"
-        SEMI_FLAG="--labeled-only 0.1"
-        FSX_FLAG=""
-        TC_FLAG=""
-        VLO_FLAG="--validator-log-odds"
-        PPD_FLAGS=""
+        SEMI_FLAG="--labeled-only 0.1"; FSX_FLAG=""; TC_FLAG=""; VLO_FLAG="--validator-log-odds"
         EVAL_MODES="--self-typicality --neg-typicality"
         DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds--labelonly0.1--fix1"
         ;;
     s2)
         LOSS_FLAGS="--nll_validator_weight 0 --nll_generator_weight 0 --preference_loss_weight 1"
-        SEMI_FLAG="--semi-supervised 0.1"
-        FSX_FLAG=""
-        TC_FLAG=""
-        VLO_FLAG="--validator-log-odds"
-        PPD_FLAGS=""
+        SEMI_FLAG="--semi-supervised 0.1"; FSX_FLAG=""; TC_FLAG=""; VLO_FLAG="--validator-log-odds"
         EVAL_MODES="--self-typicality --neg-typicality"
         DIR_SUFFIX="--full-completion--vallogodds--semi0.1--fix1"
         ;;
     s3)
-        # New+fsx, no TC — v7b: no --per-prompt-delta, no --shape-budget-mode global
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 1"
-        SEMI_FLAG="--semi-supervised 0.1"
-        FSX_FLAG="--force-same-x"
-        TC_FLAG=""
-        VLO_FLAG="--validator-log-odds"
-        PPD_FLAGS=""
+        SEMI_FLAG="--semi-supervised 0.1"; FSX_FLAG="--force-same-x"; TC_FLAG=""; VLO_FLAG="--validator-log-odds"
         EVAL_MODES="--self-typicality --neg-typicality"
         DIR_SUFFIX="--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
         ;;
     s4)
-        # New+fsx+selfTC — v7b: no ppd
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 1"
-        SEMI_FLAG="--semi-supervised 0.1"
-        FSX_FLAG="--force-same-x"
-        TC_FLAG="--self-typicality"
-        VLO_FLAG="--validator-log-odds"
-        PPD_FLAGS=""
+        SEMI_FLAG="--semi-supervised 0.1"; FSX_FLAG="--force-same-x"; TC_FLAG="--self-typicality"; VLO_FLAG="--validator-log-odds"
         EVAL_MODES="--self-typicality"
         DIR_SUFFIX="--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
         ;;
     s7)
-        # New+fsx+negTC — v7b: no ppd
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 1"
-        SEMI_FLAG="--semi-supervised 0.1"
-        FSX_FLAG="--force-same-x"
-        TC_FLAG="--neg-typicality"
-        VLO_FLAG="--validator-log-odds"
-        PPD_FLAGS=""
+        SEMI_FLAG="--semi-supervised 0.1"; FSX_FLAG="--force-same-x"; TC_FLAG="--neg-typicality"; VLO_FLAG="--validator-log-odds"
         EVAL_MODES="--neg-typicality"
         DIR_SUFFIX="--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--vallogodds--semi0.1--fix1"
         ;;
     s13)
-        # SFT + consistency-ft. SFT-lo (s1) flag set + --consistency-ft.
-        # Recipe from _overnight_launch.sh: pref=0, nllv=1, nllg=1, --labeled-only 0.1,
-        # NO fsx, NO tc, NO validator-log-odds in training. Eval modes self+neg.
+        # SFT + consistency-ft (recipe from _overnight_launch.sh): pref=0, nllv=1,
+        # nllg=1, --labeled-only 0.1, NO fsx, NO tc, NO validator-log-odds in training.
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 0"
-        SEMI_FLAG="--labeled-only 0.1"
-        FSX_FLAG=""
-        TC_FLAG=""
-        VLO_FLAG=""
-        PPD_FLAGS=""
+        SEMI_FLAG="--labeled-only 0.1"; FSX_FLAG=""; TC_FLAG=""; VLO_FLAG=""
         CFT_FLAG="--consistency-ft"
         EVAL_MODES="--self-typicality --neg-typicality"
         DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1"
@@ -158,7 +138,6 @@ esac
 
 LORA_FLAG="--lora"
 MODEL_REPL=$(echo "$MODEL" | sed 's|/|--|g')
-# ranking_loss_ref_fix.py always writes v7- prefix; delta=0.15 fixed; no --ppd in suffix
 GLOB_PATTERN="${MODELS_DIR}/v7-${MODEL_REPL}-delta0.15-epoch[012]--${TASK}-all--d2g--random--alpha1.0${DIR_SUFFIX}_merged"
 
 echo "[$(date -u +%FT%TZ)] model dir glob: $GLOB_PATTERN"
@@ -173,6 +152,7 @@ if [ -n "$EXISTING" ] && [ -d "$EXISTING" ]; then
     echo "[$(date -u +%FT%TZ)] Model dir exists, skipping train: $EXISTING"
     MODEL_DIR="$EXISTING"
 else
+    # disc-shots intentionally NOT passed — training auto-detects Qwen3+ (zero).
     # shellcheck disable=SC2086
     python ranking_loss_ref_fix.py \
         --model "$MODEL" \
@@ -182,7 +162,6 @@ else
         --split_type random \
         --all \
         --delta 0.15 \
-        $DISC_SHOTS_TRAIN \
         --models-dir "$MODELS_DIR" \
         $LOSS_FLAGS \
         $SEMI_FLAG \
@@ -220,7 +199,7 @@ for MODE in $EVAL_MODES; do
             --model "$EVAL_MODEL_DIR" \
             --task "$EVAL_TASK" \
             --split_type random \
-            $DISC_SHOTS_EVAL \
+            --disc-shots zero \
             --gen-shots zero \
             --outputs-dir "$OUTPUTS_DIR" \
             --validator-log-odds \
