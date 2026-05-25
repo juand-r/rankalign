@@ -158,7 +158,15 @@ echo "[$(date -u +%FT%TZ)] model dir glob: $GLOB_PATTERN"
 echo "[$(date -u +%FT%TZ)] === TRAIN: $SETTING x $TASK ==="
 
 EXISTING=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
-if [ -n "$EXISTING" ] && [ -d "$EXISTING" ]; then
+if [ -n "${EVAL_ONLY:-}" ]; then
+    # EVAL_ONLY: never train — eval the existing checkpoint. Used to bypass the
+    # qw35 train-restart-loop bug once a verified epoch2_merged already exists.
+    if [ -z "$EXISTING" ] || [ ! -d "$EXISTING" ]; then
+        echo "[$(date -u +%FT%TZ)] ERROR: EVAL_ONLY set but no model dir matching: $GLOB_PATTERN"; exit 1
+    fi
+    echo "[$(date -u +%FT%TZ)] EVAL_ONLY=1 — skipping train, evaluating existing: $EXISTING"
+    MODEL_DIR="$EXISTING"
+elif [ -n "$EXISTING" ] && [ -d "$EXISTING" ]; then
     echo "[$(date -u +%FT%TZ)] Model dir exists, skipping train: $EXISTING"
     MODEL_DIR="$EXISTING"
 else
