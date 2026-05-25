@@ -49,7 +49,7 @@ Source: [rosch_v7_2b_pearson_table_cells.csv](metrics-from-scores/rosch_v7_2b_pe
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ✓ ep=2 | 53.55 ± 3.59 | 60.42 ± 2.45 | — | 50.44 ± 4.29 | — |
+| 13 SFT + CFT | ✓ ep=2 | 53.55 ± 3.59 | 60.42 ± 2.45 | 60.75 ± 2.57 | 50.44 ± 4.29 | 36.03 ± 5.82 |
 
 ## gemma-2-2b-it × membership (eval = rosch, all 10 tasks)
 
@@ -89,7 +89,7 @@ Source: [rosch_v7_9b-it_pearson_table_cells.csv](metrics-from-scores/rosch_v7_9b
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 67.86 ± 3.13 | 73.68 ± 2.42 | 76.75 ± 2.52 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 66.50 ± 2.71 | — | — | 70.97 ± 2.98 | 63.04 ± 5.26 |
-| 13 SFT + CFT | ✓ ep=2 | 48.94 ± 4.45 | 50.84 ± 3.42 | — | 44.92 ± 3.56 | — |
+| 13 SFT + CFT | ✓ ep=2 | 48.94 ± 4.45 | 50.84 ± 3.42 | 55.37 ± 3.46 | 44.92 ± 3.56 | 54.13 ± 4.91 |
 
 ## gemma-2-2b × persona (all 6 personas)
 

@@ -49,7 +49,7 @@ Source: [rosch_v7_2b_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b_ge
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ✓ ep=2 | 80.88 ± 2.08 | 82.52 ± 1.98 | — | 81.05 ± 2.29 | — |
+| 13 SFT + CFT | ✓ ep=2 | 80.88 ± 2.08 | 82.52 ± 1.98 | 82.82 ± 1.98 | 81.05 ± 2.29 | 69.48 ± 4.55 |
 
 ## gemma-2-2b-it × membership (eval = rosch, all 10 tasks)
 
@@ -89,7 +89,7 @@ Source: [rosch_v7_9b-it_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_9b
 | 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 88.94 ± 1.57 | 92.39 ± 1.31 | 93.07 ± 1.46 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 86.70 ± 1.89 | — | — | 92.58 ± 1.48 | 88.64 ± 2.70 |
-| 13 SFT + CFT | ✓ ep=2 | 81.94 ± 1.98 | 83.17 ± 1.44 | — | 81.88 ± 1.17 | — |
+| 13 SFT + CFT | ✓ ep=2 | 81.94 ± 1.98 | 83.17 ± 1.44 | 85.34 ± 1.43 | 81.88 ± 1.17 | 84.18 ± 3.35 |
 
 ## gemma-2-2b × persona (all 6 personas)
 
