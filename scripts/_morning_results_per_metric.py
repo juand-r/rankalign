@@ -51,15 +51,24 @@ SOURCES = [
     ("gemma-2-2b-it",    "persona OOD (3 held-out: desire-to-create-allies, interest-in-music, interest-in-science)", "persona_v1_v7_gemma-2-2b-it_ood_{m}_table_cells.csv", "persona"),
     ("gemma-2-9b-it",    "persona OOD (3 held-out: desire-to-create-allies, interest-in-music, interest-in-science)", "persona_v1_v7_gemma-2-9b-it_ood_{m}_table_cells.csv", "persona"),
     # ifeval — only gemma-2-9b-it has been trained on ifeval-concat-all.
-    # Special: gen_roc filename omits the metric infix.
-    ("gemma-2-9b-it",    "ifeval ID (held-out 50% of completions, prompts seen at train)",  "{ifevalprefix_id}",  "ifeval"),
-    ("gemma-2-9b-it",    "ifeval OOD (20 fully held-out prompts: prompt_1..13, 15..21)",    "{ifevalprefix_ood}", "ifeval"),
+    # IMPORTANT: the existing ifeval table_cells CSVs are built by the legacy
+    # `_build_ifeval_ood_table.py`, which hardcodes
+    # `CP = v6-google_gemma-2-9b-it-delta0.15-epoch2_ifeval-concat-all_d2g_random_alpha1.0`.
+    # All cells therefore come from a v6 (pre-fix1) training run, NOT the v7
+    # ifeval-concat-all models we have on disk now. The v7 ifeval × s13 trains
+    # are still in flight; v7 evals for s1-s9 have not been launched. Treat
+    # these rows as legacy reference, not as a v7 result.
+    # Filename quirk: gen_roc CSV omits the metric infix.
+    ("gemma-2-9b-it",    "ifeval ID  [v6 legacy] (n=79 prompts \u2265 22; held-out 50% of completions for each)", "{ifevalprefix_id}",  "ifeval"),
+    ("gemma-2-9b-it",    "ifeval OOD [v6 legacy] (n=20 fully held-out prompts: prompt_1..13, 15..21)",            "{ifevalprefix_ood}", "ifeval"),
     # humaneval
     ("gemma-4-31B-it",   "humaneval",  "humaneval_v2.1correct-upper_g4-31B-it_{m}_table_cells.csv", "humaneval"),
 ]
 
 # Map row labels in CSVs to (setting_name, sN). The table builders use these
 # stable labels for every metric. method_num 0 is Base; 1-13 are settings.
+# Note: 8/9 are NegTC analogs of 5/6; we render them even if some sources
+# (ifeval, humaneval) don't have s13 data — empty rows are fine.
 SETTING_LABELS = [
     (0,  "Base",                       None),
     (1,  "SFT labelonly 10%",          "s1"),
@@ -69,6 +78,8 @@ SETTING_LABELS = [
     (5,  "RA + PMI + fsx [-NLL]",      "s5"),
     (6,  "RA + PMI [+TC]",             "s6"),
     (7,  "New + NegTC + fsx",          "s7"),
+    (8,  "RA + NegTC + fsx [-NLL]",    "s8"),
+    (9,  "RA + NegTC [+TC]",           "s9"),
     (11, "New + PMI [-fsx]",           "s11"),
     (12, "New + NegTC [-fsx]",         "s12"),
     (13, "SFT + CFT",                  "s13"),
@@ -245,6 +256,19 @@ def build_metric_doc(metric: str, disk: dict, queue: dict) -> str:
     out.append("")
     out.append("Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.")
     out.append("Empty cells (—): no eval CSV with that prefix yet.")
+    out.append("")
+    out.append("**Provenance caveat — ifeval sections are v6, not v7.** All other sections")
+    out.append("(rosch, persona, humaneval) source from v7 (fix1) score files. The two ifeval")
+    out.append("sections below are built by the legacy `_build_ifeval_ood_table.py` which")
+    out.append("hardcodes a v6 model prefix; their cells reflect a pre-fix1 9b-it run trained")
+    out.append("on ifeval-concat-all (delta0.15, epoch2). The v7 ifeval × s13 trains are still")
+    out.append("in flight; no v7 ifeval evals have been launched for s1–s9 yet. Sections for")
+    out.append("ifeval are labeled `[v6 legacy]` to make this explicit.")
+    out.append("")
+    out.append("**Method-row coverage.** Tables include s1–s9 and s11–s13 (s10 was never run).")
+    out.append("If a row shows all `—`, the eval CSV reports `n=0/missing` for that method;")
+    out.append("ifeval and humaneval CSVs do not have an s13 row at all (the v6 builders")
+    out.append("predate s13).")
     out.append("")
 
     # ifeval gen_roc CSV filename has no metric infix; other metrics do.

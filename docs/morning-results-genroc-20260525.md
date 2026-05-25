@@ -1,4 +1,4 @@
-# Morning Results — GenROC — 2026-05-25T15:44:15Z
+# Morning Results — GenROC — 2026-05-25T15:53:30Z
 
 All cells: **GenROC × 100 ± SE** (mean ± SE across the eval-task split for that section).
 
@@ -14,6 +14,19 @@ sport, toy, vegetable, vehicle, weapon). `persona ID` / `persona OOD` are the
 Train column: ✓ ep=N done · ⏳ jobid R elapsed (≤remaining) in-flight · – not started.
 Empty cells (—): no eval CSV with that prefix yet.
 
+**Provenance caveat — ifeval sections are v6, not v7.** All other sections
+(rosch, persona, humaneval) source from v7 (fix1) score files. The two ifeval
+sections below are built by the legacy `_build_ifeval_ood_table.py` which
+hardcodes a v6 model prefix; their cells reflect a pre-fix1 9b-it run trained
+on ifeval-concat-all (delta0.15, epoch2). The v7 ifeval × s13 trains are still
+in flight; no v7 ifeval evals have been launched for s1–s9 yet. Sections for
+ifeval are labeled `[v6 legacy]` to make this explicit.
+
+**Method-row coverage.** Tables include s1–s9 and s11–s13 (s10 was never run).
+If a row shows all `—`, the eval CSV reports `n=0/missing` for that method;
+ifeval and humaneval CSVs do not have an s13 row at all (the v6 builders
+predate s13).
+
 ## gemma-2-2b × membership (eval = rosch, all 10 tasks)
 
 Source: [rosch_v7_2b_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b_gen_roc_table_cells.csv)
@@ -28,6 +41,8 @@ Source: [rosch_v7_2b_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b_ge
 | 5 RA + PMI + fsx [-NLL] | – | — | — | — | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | – | — | — | — | — | — |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
 | 13 SFT + CFT | ✓ ep=2 | 80.88 ± 2.08 | 82.52 ± 1.98 | — | 81.05 ± 2.29 | — |
@@ -46,6 +61,8 @@ Source: [rosch_v7_2b-it_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_2b
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 73.44 ± 2.90 | 82.34 ± 2.41 | 84.01 ± 2.47 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 76.66 ± 3.23 | 83.95 ± 2.59 | 86.16 ± 2.40 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 73.85 ± 3.26 | — | — | 81.69 ± 2.26 | 85.69 ± 3.04 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 77.10 ± 3.68 | 84.97 ± 2.63 | 87.97 ± 2.77 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 77.93 ± 3.38 | — | — | 83.55 ± 1.74 | 90.02 ± 1.93 |
 | 13 SFT + CFT | ✓ ep=2 | 84.95 ± 1.66 | 85.45 ± 1.29 | 88.07 ± 1.33 | 83.69 ± 1.00 | 87.10 ± 2.12 |
@@ -64,6 +81,8 @@ Source: [rosch_v7_9b-it_gen_roc_table_cells.csv](metrics-from-scores/rosch_v7_9b
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 82.65 ± 2.15 | 90.68 ± 1.73 | 91.07 ± 1.69 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 82.60 ± 2.35 | 91.32 ± 1.78 | 91.64 ± 1.89 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 85.26 ± 2.01 | — | — | 92.32 ± 1.56 | 89.00 ± 2.45 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 88.94 ± 1.57 | 92.39 ± 1.31 | 93.07 ± 1.46 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 86.70 ± 1.89 | — | — | 92.58 ± 1.48 | 88.64 ± 2.70 |
 | 13 SFT + CFT | ✓ ep=2 | 81.94 ± 1.98 | 83.17 ± 1.44 | — | 81.88 ± 1.17 | — |
@@ -82,6 +101,8 @@ Source: [persona_v1_v7_gemma-2-2b_all_gen_roc_table_cells.csv](metrics-from-scor
 | 5 RA + PMI + fsx [-NLL] | – | — | — | — | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | – | — | — | — | — | — |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 62.21 ± 11.43 | 70.44 ± 10.37 | 68.27 ± 9.59 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 58.96 ± 11.71 | — | — | 72.11 ± 9.43 | — |
 | 13 SFT + CFT | ✓ ep=2 | 51.64 ± 8.85 | 57.33 ± 8.03 | 51.78 ± 7.09 | 64.84 ± 6.20 | 66.60 ± 1.68 |
@@ -100,6 +121,8 @@ Source: [persona_v1_v7_gemma-2-2b-it_all_gen_roc_table_cells.csv](metrics-from-s
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 66.40 ± 13.27 | 72.57 ± 11.93 | 59.20 ± 8.60 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 74.02 ± 10.68 | 85.65 ± 6.82 | 74.05 ± 4.37 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 58.97 ± 11.77 | — | — | 70.62 ± 10.32 | 69.59 ± 2.59 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 60.42 ± 11.93 | 65.31 ± 12.79 | 57.54 ± 8.54 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 61.05 ± 11.36 | — | — | 77.65 ± 8.15 | 61.53 ± 6.05 |
 | 13 SFT + CFT | ✓ ep=2 | 53.61 ± 8.72 | 58.08 ± 9.21 | 56.21 ± 4.69 | 67.95 ± 6.99 | 64.40 ± 8.07 |
@@ -111,13 +134,15 @@ Source: [persona_v1_v7_gemma-2-9b-it_all_gen_roc_table_cells.csv](metrics-from-s
 | Setting | Train | Raw | basetyp- (PMI base) | self- (PMI self) | basetypneg- (Neg base) | neg- (Neg self) |
 |---|---|---|---|---|---|---|
 | 0 Base | (base model) | 42.96 ± 5.31 | — | 40.88 ± 5.40 | — | 57.19 ± 2.20 |
-| 1 SFT labelonly 10% | ✓ ep=1 | 57.17 ± 9.57 | 63.29 ± 9.02 | 60.86 ± 8.22 | 73.08 ± 5.80 | 83.73 ± 2.41 |
+| 1 SFT labelonly 10% | ✓ ep=1 | 57.17 ± 9.57 | 60.69 ± 9.97 | 60.86 ± 8.22 | 69.17 ± 7.54 | 83.73 ± 2.41 |
 | 2 RankAlign | ✓ ep=2 | 85.19 ± 7.54 | 95.43 ± 2.55 | 90.06 ± 4.81 | 96.90 ± 1.78 | 97.24 ± 1.55 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 63.95 ± 12.22 | 72.47 ± 11.22 | 68.94 ± 11.77 | 81.11 ± 7.48 | 91.52 ± 3.27 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 63.95 ± 12.22 | 72.47 ± 11.22 | 68.94 ± 11.77 | 81.11 ± 7.48 | 91.52 ± 3.27 |
 | 4 New + PMI + fsx | ✓ ep=1 | 60.92 ± 10.71 | 68.71 ± 10.76 | 65.11 ± 10.52 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 67.84 ± 11.06 | 85.91 ± 6.69 | 76.24 ± 9.53 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 69.08 ± 11.58 | 83.72 ± 7.72 | 69.10 ± 11.60 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 62.09 ± 10.51 | — | — | 76.39 ± 8.46 | 85.10 ± 2.30 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 62.60 ± 10.87 | 71.83 ± 10.52 | 67.94 ± 9.69 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 62.04 ± 10.60 | — | — | 76.64 ± 8.17 | 85.44 ± 2.21 |
 | 13 SFT + CFT | ✓ ep=2 | 51.52 ± 8.66 | 57.53 ± 8.85 | 52.49 ± 7.01 | 67.35 ± 5.94 | 71.69 ± 3.22 |
@@ -136,6 +161,8 @@ Source: [persona_v1_v7_gemma-2-2b_id_gen_roc_table_cells.csv](metrics-from-score
 | 5 RA + PMI + fsx [-NLL] | – | — | — | — | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | – | — | — | — | — | — |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 86.66 ± 3.16 | 93.08 ± 2.96 | 88.95 ± 4.45 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 84.10 ± 2.54 | — | — | 92.17 ± 2.23 | — |
 | 13 SFT + CFT | ✓ ep=2 | 70.17 ± 2.87 | 73.98 ± 4.76 | 66.17 ± 4.90 | 77.12 ± 3.54 | 68.51 ± 1.63 |
@@ -154,6 +181,8 @@ Source: [persona_v1_v7_gemma-2-2b-it_id_gen_roc_table_cells.csv](metrics-from-sc
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 95.51 ± 0.72 | 99.19 ± 0.13 | 77.09 ± 2.79 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 96.14 ± 1.38 | 99.45 ± 0.32 | 81.63 ± 2.09 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 84.49 ± 0.45 | — | — | 92.67 ± 0.96 | 68.80 ± 3.86 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 86.31 ± 1.22 | 93.52 ± 0.40 | 76.22 ± 2.69 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 85.41 ± 1.34 | — | — | 94.08 ± 1.17 | 50.98 ± 5.19 |
 | 13 SFT + CFT | ✓ ep=2 | 71.31 ± 2.94 | 77.23 ± 2.96 | 65.24 ± 3.22 | 80.36 ± 3.86 | 49.45 ± 7.78 |
@@ -167,11 +196,13 @@ Source: [persona_v1_v7_gemma-2-9b-it_id_gen_roc_table_cells.csv](metrics-from-sc
 | 0 Base | (base model) | 53.91 ± 1.77 | — | 49.56 ± 6.02 | — | 58.59 ± 2.86 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 76.79 ± 2.27 | 81.42 ± 2.81 | 78.35 ± 0.83 | 83.52 ± 2.94 | 80.91 ± 1.71 |
 | 2 RankAlign | ✓ ep=2 | 99.05 ± 0.56 | 99.87 ± 0.06 | 98.83 ± 0.66 | 99.86 ± 0.07 | 99.43 ± 0.28 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 90.27 ± 0.52 | 97.19 ± 0.41 | 95.04 ± 0.65 | 96.78 ± 0.39 | 96.53 ± 0.62 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 90.27 ± 0.52 | 97.19 ± 0.41 | 95.04 ± 0.65 | 96.78 ± 0.39 | 96.53 ± 0.62 |
 | 4 New + PMI + fsx | ✓ ep=1 | 83.12 ± 2.42 | 91.42 ± 1.86 | 87.94 ± 1.97 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 91.32 ± 1.85 | 99.82 ± 0.05 | 97.48 ± 0.45 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 93.74 ± 1.63 | 99.81 ± 0.06 | 95.02 ± 0.57 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 83.80 ± 1.56 | — | — | 92.52 ± 0.99 | 86.78 ± 1.54 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 85.08 ± 2.23 | 93.97 ± 1.90 | 88.87 ± 2.03 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 83.94 ± 2.62 | — | — | 92.63 ± 1.99 | 86.40 ± 0.87 |
 | 13 SFT + CFT | ✓ ep=2 | 69.28 ± 2.33 | 75.94 ± 2.51 | 66.56 ± 2.63 | 79.05 ± 2.76 | 66.31 ± 3.29 |
@@ -190,6 +221,8 @@ Source: [persona_v1_v7_gemma-2-2b_ood_gen_roc_table_cells.csv](metrics-from-scor
 | 5 RA + PMI + fsx [-NLL] | – | — | — | — | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | – | — | — | — | — | — |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 37.75 ± 6.69 | 47.81 ± 4.05 | 47.58 ± 3.47 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 33.82 ± 6.89 | — | — | 52.05 ± 6.11 | — |
 | 13 SFT + CFT | ✓ ep=2 | 33.10 ± 6.33 | 40.68 ± 4.72 | 37.38 ± 4.49 | 52.56 ± 5.36 | 64.69 ± 2.81 |
@@ -208,6 +241,8 @@ Source: [persona_v1_v7_gemma-2-2b-it_ood_gen_roc_table_cells.csv](metrics-from-s
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 37.30 ± 5.69 | 45.95 ± 1.76 | 41.32 ± 6.50 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 51.90 ± 8.91 | 71.84 ± 6.46 | 66.46 ± 5.79 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 33.45 ± 6.39 | — | — | 48.57 ± 6.72 | 70.38 ± 4.23 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=2 | 34.53 ± 6.32 | 37.09 ± 4.69 | 38.86 ± 2.89 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=2 | 36.68 ± 7.05 | — | — | 61.22 ± 7.82 | 72.09 ± 6.70 |
 | 13 SFT + CFT | ✓ ep=2 | 35.90 ± 7.62 | 38.93 ± 7.00 | 47.18 ± 4.25 | 55.54 ± 8.68 | 79.35 ± 6.44 |
@@ -221,16 +256,18 @@ Source: [persona_v1_v7_gemma-2-9b-it_ood_gen_roc_table_cells.csv](metrics-from-s
 | 0 Base | (base model) | 32.01 ± 4.25 | — | 32.20 ± 5.85 | — | 55.79 ± 3.74 |
 | 1 SFT labelonly 10% | ✓ ep=1 | 37.54 ± 8.20 | 39.96 ± 7.71 | 43.38 ± 5.62 | 54.81 ± 8.33 | 86.55 ± 4.27 |
 | 2 RankAlign | ✓ ep=2 | 71.34 ± 9.58 | 90.99 ± 3.59 | 81.29 ± 6.18 | 93.95 ± 2.66 | 95.05 ± 2.67 |
-| 3 New + fsx [-TC] | ⏳ 42377 R 5:57:04 (≤3:02:56) | 37.63 ± 7.34 | 47.75 ± 4.27 | 42.85 ± 3.40 | 65.44 ± 5.85 | 86.50 ± 5.28 |
+| 3 New + fsx [-TC] | ⏳ 42377 R 6:06:19 (≤2:53:41) | 37.63 ± 7.34 | 47.75 ± 4.27 | 42.85 ± 3.40 | 65.44 ± 5.85 | 86.50 ± 5.28 |
 | 4 New + PMI + fsx | ✓ ep=1 | 38.71 ± 8.65 | 46.00 ± 7.72 | 42.28 ± 5.29 | — | — |
 | 5 RA + PMI + fsx [-NLL] | ✓ ep=2 | 44.36 ± 7.52 | 72.00 ± 5.52 | 55.00 ± 1.57 | — | — |
 | 6 RA + PMI [+TC] | ✓ ep=2 | 44.42 ± 7.72 | 67.63 ± 6.24 | 43.18 ± 0.47 | — | — |
 | 7 New + NegTC + fsx | ✓ ep=2 | 40.38 ± 8.88 | — | — | 60.26 ± 9.82 | 83.41 ± 4.60 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | ✓ ep=1 | 40.12 ± 8.99 | 49.70 ± 7.70 | 47.00 ± 5.20 | — | — |
 | 12 New + NegTC [-fsx] | ✓ ep=1 | 40.13 ± 8.67 | — | — | 60.65 ± 8.58 | 84.48 ± 4.77 |
 | 13 SFT + CFT | ✓ ep=2 | 33.76 ± 7.33 | 39.12 ± 6.78 | 38.43 ± 6.38 | 55.65 ± 5.64 | 77.07 ± 3.48 |
 
-## gemma-2-9b-it × ifeval ID (held-out 50% of completions, prompts seen at train)
+## gemma-2-9b-it × ifeval ID  [v6 legacy] (n=79 prompts ≥ 22; held-out 50% of completions for each)
 
 Source: [ifeval_id_table_cells.csv](metrics-from-scores/ifeval_id_table_cells.csv)
 
@@ -244,11 +281,13 @@ Source: [ifeval_id_table_cells.csv](metrics-from-scores/ifeval_id_table_cells.cs
 | 5 RA + PMI + fsx [-NLL] | ✓ (prior run) | 62.39 ± 2.13 | 79.36 ± 1.81 | 83.71 ± 1.52 | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | ✓ (prior run) | 72.25 ± 2.08 | — | — | — | 56.59 ± 2.33 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:42:08 (≤6:17:52) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
 
-## gemma-2-9b-it × ifeval OOD (20 fully held-out prompts: prompt_1..13, 15..21)
+## gemma-2-9b-it × ifeval OOD [v6 legacy] (n=20 fully held-out prompts: prompt_1..13, 15..21)
 
 Source: [ifeval_ood_table_cells.csv](metrics-from-scores/ifeval_ood_table_cells.csv)
 
@@ -262,9 +301,11 @@ Source: [ifeval_ood_table_cells.csv](metrics-from-scores/ifeval_ood_table_cells.
 | 5 RA + PMI + fsx [-NLL] | ✓ (prior run) | 54.01 ± 4.44 | 78.40 ± 3.24 | 83.39 ± 2.60 | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | ✓ (prior run) | 60.77 ± 4.26 | — | — | — | 56.96 ± 3.79 |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42343 R 7:42:08 (≤6:17:52) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42343 R 7:51:23 (≤6:08:37) | — | — | — | — | — |
 
 ## gemma-4-31B-it × humaneval
 
@@ -280,6 +321,8 @@ Source: [humaneval_v2.1correct-upper_g4-31B-it_gen_roc_table_cells.csv](metrics-
 | 5 RA + PMI + fsx [-NLL] | – | — | — | — | — | — |
 | 6 RA + PMI [+TC] | – | — | — | — | — | — |
 | 7 New + NegTC + fsx | ✓ (prior run) | 83.14 ± 1.09 | — | — | 94.16 ± 0.91 | — |
+| 8 RA + NegTC + fsx [-NLL] | – | — | — | — | — | — |
+| 9 RA + NegTC [+TC] | – | — | — | — | — | — |
 | 11 New + PMI [-fsx] | – | — | — | — | — | — |
 | 12 New + NegTC [-fsx] | – | — | — | — | — | — |
-| 13 SFT + CFT | ⏳ 42114 R 15:36:04 (≤8:23:56) | — | — | — | — | — |
+| 13 SFT + CFT | ⏳ 42114 R 15:45:19 (≤8:14:41) | — | — | — | — | — |
