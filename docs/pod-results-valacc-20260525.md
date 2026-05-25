@@ -1,4 +1,4 @@
-# Pod Results — ValAcc — 2026-05-25T18:29:11Z
+# Pod Results — ValAcc — 2026-05-25T18:34:17Z
 
 All cells: **ValAcc × 100**, mean ± SE across the eval-task split for that section (no ± when a single task). Scope: **v7 only** (v6 excluded), models **Qwen3.5-9B** and **gemma-2-9b-it**, evaluated on RunPod and downloaded locally.
 
@@ -60,7 +60,7 @@ All cells: **ValAcc × 100**, mean ± SE across the eval-task split for that sec
 | 1 SFT labelonly 10% | soon | soon | soon | soon | soon | soon |
 | 2 RankAlign | soon | soon | soon | soon | soon | soon |
 | 3 New + fsx [-TC] | soon | soon | soon | soon | soon | soon |
-| 4 New + PMI + fsx | soon | soon | soon | soon | N/A | N/A |
+| 4 New + PMI + fsx | ✓ | 65.1 ± 1.7 | 65.1 ± 1.7 | 65.1 ± 1.7 | N/A | N/A |
 | 5 RA + PMI + fsx [-NLL] | – | -- | -- | -- | -- | -- |
 | 6 RA + PMI [+TC] | – | -- | -- | -- | -- | -- |
 | 7 New + NegTC + fsx | soon | soon | N/A | N/A | soon | soon |
