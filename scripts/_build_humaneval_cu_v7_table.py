@@ -105,10 +105,10 @@ _GLOBALLY_IGNORABLE = {"ppd", "fix1"}
 _EARLY_FLAGS = {"tc-self", "tc-neg", "pref0.0"}
 
 
-# Only checkpoints from this training epoch are considered. Same convention
-# as the gemma-2 (ifeval/rosch/hypernym) table builders, which hard-code
-# epoch2 into their model_short regex.
-REQUIRED_EPOCH = "epoch2"
+# Accept epoch1 and epoch2 — RankAlign (method 2) uses epoch1 checkpoints;
+# methods 3/4/7 use epoch2. The method matchers are specific enough to avoid
+# cross-epoch confusion without a hard epoch filter.
+ACCEPTED_EPOCHS = {"epoch1", "epoch2"}
 
 
 def _norm_tokens(s: str) -> tuple[str, list[str], bool]:
@@ -168,8 +168,8 @@ def _match_method(model_short: str, *,
     # training-data tag, etc.) — only Method 0's matcher should claim it.
     if BASE_PATTERN.match(model_short):
         return False
-    # Reject anything from a non-target training epoch.
-    if REQUIRED_EPOCH not in model_short:
+    # Reject anything not from an accepted training epoch.
+    if not any(ep in model_short for ep in ACCEPTED_EPOCHS):
         return False
     _, flags, was_trunc = _norm_tokens(model_short)
     if not flags and not was_trunc:
