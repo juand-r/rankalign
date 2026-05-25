@@ -535,7 +535,32 @@ def get_tracking_base_filename(model_name, task, delta, train_g_or_d, use_all, s
     return base_name
 
 
+TRAINING_COMPLETE_MARKER = "TRAINING_COMPLETE"
+
+
+def _assert_single_script_entry():
+    """Refuse a second ranking_loss_ref.py start within the same Slurm job."""
+    jid = os.environ.get("SLURM_JOB_ID", f"local{os.getppid()}")
+    lock_dir = Path(os.environ.get("RANKALIGN_TRAIN_LOCK_DIR", "/datastor2/jdr/logs/train_locks"))
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    lock_path = lock_dir / f"job_{jid}_ranking_loss_ref.lock"
+    try:
+        lock_path.open("x").write(str(os.getpid()))
+    except FileExistsError:
+        holder = lock_path.read_text().strip()
+        raise SystemExit(
+            f"ERROR: refusing second ranking_loss_ref.py start in job {jid} "
+            f"(lock {lock_path} held by pid {holder})"
+        )
+
+
 def main(args):
+    if os.environ.get("RANKALIGN_TRAIN_MAIN_STARTED") == "1":
+        raise RuntimeError(
+            "main() invoked twice in the same Python process — refusing to retrain"
+        )
+    os.environ["RANKALIGN_TRAIN_MAIN_STARTED"] = "1"
+
     model_name = args.model
     task = args.task
     with_ref = args.with_ref
@@ -2823,7 +2848,11 @@ def main(args):
         wandb.finish()
         print("Weights & Biases run finished.")
 
+    print(TRAINING_COMPLETE_MARKER, flush=True)
+
+
 if __name__ == "__main__":
+    _assert_single_script_entry()
     # Import tasks module to trigger registration of any custom tasks
     import tasks
 

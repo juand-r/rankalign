@@ -204,6 +204,23 @@ fi
 
 cd "$(dirname "$0")"
 
+# Guard against accidental double training within one Slurm job (see job 41710/41711).
+LOCK_DIR="${RANKALIGN_TRAIN_LOCK_DIR:-/datastor2/jdr/logs/train_locks}"
+mkdir -p "$LOCK_DIR"
+JOB_TAG="${SLURM_JOB_ID:-local$$}"
+SCRIPT_LOCK="$LOCK_DIR/job_${JOB_TAG}_run_train_semi.lock"
+if ! mkdir "$SCRIPT_LOCK" 2>/dev/null; then
+    echo "ERROR: run_train_semi.sh already started for job $JOB_TAG (lock: $SCRIPT_LOCK)"
+    exit 2
+fi
+trap 'rmdir "$SCRIPT_LOCK" 2>/dev/null || true' EXIT
+
+PYTHON_LOCK="$SCRIPT_LOCK/python_invoked"
+if [ -e "$PYTHON_LOCK" ]; then
+    echo "ERROR: refusing second python training invocation in job $JOB_TAG (lock: $PYTHON_LOCK)"
+    exit 2
+fi
+
 label="$TASK, $GD, delta=$DELTA, loss=$LOSS, $SEMI_MODE $RATIO"
 [ "$TYPCORR" = "--self-typicality" ] && label="$label, self-typcorr"
 [ "$TYPCORR" = "--neg-typicality" ] && label="$label, neg-typcorr"
@@ -224,6 +241,9 @@ echo "========================================"
 
 echo "  SCRIPT: $SCRIPT"
 [ -n "$SHAPE_WEIGHTS" ] && echo "  SHAPE_WEIGHTS: $SHAPE_WEIGHTS"
+
+touch "$PYTHON_LOCK"
+echo "  TRAIN_RUN_START: job=$JOB_TAG script=$SCRIPT task=$TASK model=$MODEL"
 
 python "$SCRIPT" \
     --model $MODEL \
@@ -261,6 +281,11 @@ STATUS=$?
 echo ""
 if [ "$STATUS" -eq 0 ]; then
     echo "Finished: $TASK ($LOSS, $SEMI_MODE $RATIO)"
+    if [ -n "${SLURM_JOB_ID:-}" ] && [ -f "/datastor2/jdr/logs/${SLURM_JOB_ID}.out" ]; then
+        if ! grep -q "TRAINING_COMPLETE" "/datastor2/jdr/logs/${SLURM_JOB_ID}.out"; then
+            echo "WARNING: python exited 0 but TRAINING_COMPLETE marker not found in job log yet"
+        fi
+    fi
 else
     echo "FAILED (exit $STATUS): $TASK ($LOSS, $SEMI_MODE $RATIO)"
 fi
