@@ -13,7 +13,7 @@ set -euo pipefail
 
 SSH_KEY="/home/jdr/.runpod/ssh/RunPod-Key-Go"
 SSH_OPTS="-i $SSH_KEY -o StrictHostKeyChecking=no -o ConnectTimeout=20 -o BatchMode=yes"
-MLL_TARGET="/datastor2/jdr/rankalign/outputs"
+MLL_TARGET="/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/ra9b_persona_member"
 
 LOCAL_TMP=$(mktemp -d /tmp/ra9b_scores_XXXXXX)
 echo "[$(date -u +%FT%TZ)] Temp dir: $LOCAL_TMP"
