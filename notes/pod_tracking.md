@@ -1,6 +1,6 @@
 # Pod Tracking — rankalign v7 training run
 
-Last updated: 2026-05-25 ~02:40 UTC
+Last updated: 2026-05-25 ~03:30 UTC
 
 Two models × 3 datasets × 5 settings = 27 pods total.
 - **Gemma-2-9b-it** (personal RunPod account, 15 pods)
@@ -34,18 +34,23 @@ Expected CSV counts per cell:
 | ra-9b-member-s3 | membership | s3 | 216.243.220.217:18163 | ✅ DONE | 20/20 | Downloaded to mll |
 | ra-9b-member-s4 | membership | s4 | 103.207.149.80:13362 | ✅ DONE | 10/10 | Downloaded to mll |
 | ra-9b-member-s7 | membership | s7 | 103.207.149.80:14005 | ✅ DONE | 10/10 | Downloaded to mll |
-| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | 🔄 TRAINING | 0/40 | Step 3397/5110 (66%) |
-| ra-9b-ifeval-s2 | ifeval | s2 | 64.247.201.40:11878 | 🔄 EVAL | 16/40 | At prompt_12; re-running all 20 tasks self+neg TC |
-| ra-9b-ifeval-s3 | ifeval | s3 | 64.247.201.40:19766 | 🔄 EVAL | 15/40 | At prompt_13; re-running all 20 tasks self+neg TC |
-| ra-9b-ifeval-s4 | ifeval | s4 | 216.243.220.227:16449 | 🔄 EVAL | 16/20 | At prompt_12; self-TC only |
-| ra-9b-ifeval-s7 | ifeval | s7 | 216.243.220.227:14628 | 🔄 EVAL | 15/20 | At prompt_11; neg-TC only |
+| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | 🔄 EVAL | 13/40 | Training done; eval in progress (self+neg TC) |
+| ra-9b-ifeval-s2 | ifeval | s2 | 64.247.201.40:11878 | 🔄 EVAL | ~49 | Running; self+neg TC |
+| ra-9b-ifeval-s3 | ifeval | s3 | 64.247.201.40:19766 | 🔄 EVAL | ~47 | Running; self+neg TC |
+| ra-9b-ifeval-s4 | ifeval | s4 | 216.243.220.227:16449 | ✅ DONE | 20/20 | Downloaded; HF upload in progress; model uploading |
+| ra-9b-ifeval-s7 | ifeval | s7 | 216.243.220.227:14628 | 🔄 EVAL | ~33 | Running; neg-TC only |
 
 ### Gemma-2 persona+member — tables computed ✅
 Stored at: `mll:/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/ra9b_persona_member/`
 Table builder: `scripts/_build_ra9b_persona_member_table.py`
 
-### Gemma-2 ifeval — pending
-Tables not yet built (eval still running). Will need a new builder `_build_ra9b_ifeval_table.py`.
+### Gemma-2 ifeval — s4 DONE, s1/s2/s3/s7 in eval
+s4 CSVs: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old names)
+s1/s2/s3/s7: eval still running.
+
+### HF model uploads (as of 2026-05-25 03:30 UTC)
+DONE: g2-persona s1/s2/s3/s4/s7, g2-membership s4, qw35-persona-s2, qw35-member-s2/s7
+IN PROGRESS: g2-membership s1/s2/s3/s7, g2-ifeval-s4, qw35-member-s4
 
 **Bug fixed 2026-05-25:** `run_gemma2_cell.sh` hardcoded `seq 1 21` for ifeval tasks;
 prompt_14 has no data file. Fixed to read actual data files from `fixed-prompts-ifeval/`,
@@ -58,18 +63,18 @@ restarted with the fix; s1 will use it automatically when training completes.
 
 | Pod | Dataset | Setting | IP:Port | Status | CSVs | Notes |
 |-----|---------|---------|---------|--------|------|-------|
-| qw35-person-s1 | persona | s1 | 64.247.201.52:11729 | 🔄 TRAINING | 0/12 | Step 4193/5110 (82%) |
-| qw35-person-s2 | persona | s2 | 87.120.211.210:19946 | ✅ DONE | 12/12 | Downloaded to mll |
-| qw35-person-s4 | persona | s4 | 103.207.149.99:18517 | 🔄 TRAINING | 0/6 | Step 4734/5110 (93%) |
-| qw35-person-s7 | persona | s7 | 103.207.149.99:12307 | 🔄 TRAINING | 0/6 | Step 4542/5110 (89%) |
-| qw35-member-s1 | membership | s1 | 103.207.149.99:12306 | 🔄 TRAINING | 0/20 | Step 4673/5110 (91%) |
-| qw35-member-s2 | membership | s2 | 103.207.149.87:18679 | ✅ DONE | 20/20 | Downloaded to mll |
-| qw35-member-s4 | membership | s4 | 103.207.149.87:15807 | 🔄 TRAINING | 0/10 | Step 4696/5111 (92%) |
-| qw35-member-s7 | membership | s7 | 64.247.201.47:18203 | ✅ DONE | 10/10 | Downloaded to mll |
-| qw35-ifeval-s1 | ifeval | s1 | 64.247.201.47:11402 | 🔄 TRAINING | 0/40 | Step 3703/5110 (72%) |
-| qw35-ifeval-s2 | ifeval | s2 | 64.247.201.40:18256 | 🔄 TRAINING | 0/40 | Step 2734/5110 (53%) |
-| qw35-ifeval-s4 | ifeval | s4 | 103.207.149.154:12996 | 🔄 TRAINING | 0/20 | Step 5023/5111 (98%) |
-| qw35-ifeval-s7 | ifeval | s7 | 103.207.149.154:13621 | 🔄 TRAINING | 0/20 | Step 4875/5111 (95%) |
+| qw35-person-s1 | persona | s1 | 64.247.201.52:11729 | 🔄 TRAINING | 0/12 | Epoch 2/3 |
+| qw35-person-s2 | persona | s2 | 87.120.211.210:19946 | ✅ DONE | 12/12 | Downloaded; HF upload done |
+| qw35-person-s4 | persona | s4 | 103.207.149.99:18517 | 🔄 TRAINING | 0/6 | Epoch 2/3 |
+| qw35-person-s7 | persona | s7 | 103.207.149.99:12307 | 🔄 TRAINING | 0/6 | Epoch 2/3 |
+| qw35-member-s1 | membership | s1 | 103.207.149.99:12306 | 🔄 TRAINING | 0/20 | Epoch 2/3 |
+| qw35-member-s2 | membership | s2 | 103.207.149.87:18679 | ✅ DONE | 20/20 | Downloaded; HF upload done |
+| qw35-member-s4 | membership | s4 | 103.207.149.87:15807 | ✅ DONE | 10/10 | Downloaded; HF upload in progress |
+| qw35-member-s7 | membership | s7 | 64.247.201.47:18203 | ✅ DONE | 10/10 | Downloaded; HF upload done |
+| qw35-ifeval-s1 | ifeval | s1 | 64.247.201.47:11402 | 🔄 TRAINING | 0/40 | Still training |
+| qw35-ifeval-s2 | ifeval | s2 | 64.247.201.40:18256 | 🔄 TRAINING | 0/40 | Epoch 1/3 |
+| qw35-ifeval-s4 | ifeval | s4 | 103.207.149.154:12996 | 🔄 MERGING | 0/20 | Training done; merging LoRA; eval starting soon |
+| qw35-ifeval-s7 | ifeval | s7 | 103.207.149.154:13621 | 🔄 TRAINING | 0/20 | Epoch 1/3 |
 
 ### QW35 downloads pending
 3 pods done but CSVs not yet downloaded to mll:
@@ -84,11 +89,19 @@ Download target on mll: `/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/qw3
 ## TODO queue
 
 - [x] Download qw35-person-s2, member-s2, member-s7 CSVs to mll (42 CSVs, done 2026-05-25)
-- [ ] When qw35-person-s1/s4/s7 finish eval → download
-- [ ] When qw35-member-s1/s4 finish eval → download
-- [ ] When gemma-2-ifeval-s1/s2/s3/s4/s7 finish eval → download
-- [ ] When qw35-ifeval-s4/s7 finish training → they'll auto-start eval
-- [ ] When qw35-ifeval-s1/s2 finish training → they'll auto-start eval
+- [x] Download g2-ifeval-s4 CSVs (33 files, done 2026-05-25)
+- [x] Download qw35-member-s4 CSVs (10 files, done 2026-05-25)
+- [x] HF model uploads for g2-persona s1/s2/s3/s4/s7 — DONE
+- [x] HF model uploads for g2-member s4 — DONE
+- [x] HF model uploads for qw35-persona-s2, qw35-member-s2/s7 — DONE
+- [ ] HF model uploads for g2-member s1/s2/s3/s7 — IN PROGRESS
+- [ ] HF model uploads for g2-ifeval-s4 — IN PROGRESS
+- [ ] HF model uploads for qw35-member-s4 — IN PROGRESS
+- [ ] When g2-ifeval-s1/s2/s3/s7 finish eval → download + HF upload model + stop pod
+- [ ] When qw35-ifeval-s4 finishes eval → download + HF upload model + stop pod
+- [ ] When qw35-person-s1/s4/s7, qw35-member-s1 finish training → eval auto-starts → download + HF upload model + stop pod
+- [ ] When qw35-ifeval-s1/s2/s7 finish training → eval auto-starts → same process
 - [ ] Build ifeval table builder (new script) for gemma-2 and qw35
 - [ ] Build qw35 persona+member table builder (or reuse/extend existing one)
-- [ ] Download script for qw35 pods (analogous to download_scores_ra9b_persona_member.sh)
+- [ ] Download remaining CSVs to mll (once eval pods complete)
+- [ ] Stop all done pods after model upload confirmed
