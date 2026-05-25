@@ -24,33 +24,36 @@ Expected CSV counts per cell:
 
 | Pod | Dataset | Setting | IP:Port | Status | CSVs | Notes |
 |-----|---------|---------|---------|--------|------|-------|
-| ra-9b-persona-s1 | persona | s1 | 103.207.149.109:17014 | ✅ DONE | 12/12 | Downloaded to mll |
-| ra-9b-persona-s2 | persona | s2 | 64.247.201.48:16874 | ✅ DONE | 12/12 | Downloaded to mll |
-| ra-9b-persona-s3 | persona | s3 | 103.207.149.153:17458 | ✅ DONE | 12/12 | Downloaded to mll |
-| ra-9b-persona-s4 | persona | s4 | 87.120.211.205:17651 | ✅ DONE | 6/6 | Downloaded to mll |
-| ra-9b-persona-s7 | persona | s7 | 87.120.211.205:17165 | ✅ DONE | 6/6 | Downloaded to mll |
-| ra-9b-member-s1 | membership | s1 | 216.243.220.217:10986 | ✅ DONE | 20/20 | Downloaded to mll |
-| ra-9b-member-s2 | membership | s2 | 216.243.220.217:18162 | ✅ DONE | 20/20 | Downloaded to mll |
-| ra-9b-member-s3 | membership | s3 | 216.243.220.217:18163 | ✅ DONE | 20/20 | Downloaded to mll |
-| ra-9b-member-s4 | membership | s4 | 103.207.149.80:13362 | ✅ DONE | 10/10 | Downloaded to mll |
-| ra-9b-member-s7 | membership | s7 | 103.207.149.80:14005 | ✅ DONE | 10/10 | Downloaded to mll |
-| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | 🔄 EVAL | 13/40 | Training done; eval in progress (self+neg TC) |
-| ra-9b-ifeval-s2 | ifeval | s2 | 64.247.201.40:11878 | 🔄 EVAL | ~49 | Running; self+neg TC |
-| ra-9b-ifeval-s3 | ifeval | s3 | 64.247.201.40:19766 | 🔄 EVAL | ~47 | Running; self+neg TC |
-| ra-9b-ifeval-s4 | ifeval | s4 | 216.243.220.227:16449 | ✅ DONE | 20/20 | Downloaded; HF upload in progress; model uploading |
-| ra-9b-ifeval-s7 | ifeval | s7 | 216.243.220.227:14628 | 🔄 EVAL | ~33 | Running; neg-TC only |
+| ra-9b-persona-s1 | persona | s1 | 103.207.149.109:17014 | ✅ STOPPED | 12/12 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-persona-s1-ep2 |
+| ra-9b-persona-s2 | persona | s2 | 64.247.201.48:16874 | ✅ STOPPED | 12/12 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-persona-s2-ep2 |
+| ra-9b-persona-s3 | persona | s3 | 103.207.149.153:17458 | ✅ STOPPED | 12/12 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-persona-s3-ep2 |
+| ra-9b-persona-s4 | persona | s4 | 87.120.211.205:17651 | ✅ STOPPED | 6/6 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-persona-s4-ep2 |
+| ra-9b-persona-s7 | persona | s7 | 87.120.211.205:17165 | ✅ STOPPED | 6/6 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-persona-s7-ep2 |
+| ra-9b-member-s1 | membership | s1 | 216.243.220.217:10986 | ✅ STOPPED | 20/20 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s1-ep2 |
+| ra-9b-member-s2 | membership | s2 | 216.243.220.217:18162 | ✅ STOPPED | 20/20 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s2-ep2 |
+| ra-9b-member-s3 | membership | s3 | 216.243.220.217:18163 | ✅ STOPPED | 20/20 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s3-ep2 |
+| ra-9b-member-s4 | membership | s4 | 103.207.149.80:13362 | ✅ STOPPED | 10/10 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s4-ep2 |
+| ra-9b-member-s7 | membership | s7 | 103.207.149.80:14005 | ✅ STOPPED | 10/10 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-membership-s7-ep2 |
+| ra-9b-ifeval-s1 | ifeval | s1 | 103.207.149.80:14004 | 🔄 EVAL | 13/40 | Training done; crashed at prompt_14 (fixed); eval restarted 2026-05-25 ~03:52 UTC |
+| ra-9b-ifeval-s2 | ifeval | s2 | 64.247.201.40:11878 | ✅ STOPPED | 40/40 | CSVs+model done; HF: rankalign-v7-gemma2-9b-it-ifeval-s2-ep2 |
+| ra-9b-ifeval-s3 | ifeval | s3 | 64.247.201.40:19766 | 🔄 UPLOADING | 40/40 | CSVs done+committed; HF model upload in progress |
+| ra-9b-ifeval-s4 | ifeval | s4 | 216.243.220.217:16449 | ✅ STOPPED | 20/20 | CSVs done; HF: rankalign-v7-gemma2-9b-it-ifeval-s4-ep2 |
+| ra-9b-ifeval-s7 | ifeval | s7 | 216.243.220.227:14628 | 🔄 UPLOADING | 20/20 | CSVs done+committed; HF model upload in progress |
 
 ### Gemma-2 persona+member — tables computed ✅
 Stored at: `mll:/datastor2/jdr/rankalign/outputs_gemma4_from_pod-v7/ra9b_persona_member/`
 Table builder: `scripts/_build_ra9b_persona_member_table.py`
 
-### Gemma-2 ifeval — s4 DONE, s1/s2/s3/s7 in eval
-s4 CSVs: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old names)
-s1/s2/s3/s7: eval still running.
+### Gemma-2 ifeval — s2+s3+s4+s7 DONE, s1 restarted (~1.5h to go)
+s4: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s4-ep2
+s2: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (53 CSVs = 40 canonical + 13 old); HF: rankalign-v7-gemma2-9b-it-ifeval-s2-ep2
+s3: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (51 CSVs = 40 canonical + 11 old); HF upload in progress
+s7: `outputs_gemma4_from_pod-v7/ra9b_ifeval/` (33 CSVs = 20 canonical + 13 old); HF upload in progress
+s1: eval restarted after prompt_14 crash; ~1.5h remaining; expected 40 CSVs when done
 
-### HF model uploads (as of 2026-05-25 03:30 UTC)
-DONE: g2-persona s1/s2/s3/s4/s7, g2-membership s4, qw35-persona-s2, qw35-member-s2/s7
-IN PROGRESS: g2-membership s1/s2/s3/s7, g2-ifeval-s4, qw35-member-s4
+### HF model uploads (as of 2026-05-25 04:05 UTC)
+DONE: g2-persona s1/s2/s3/s4/s7, g2-membership s4, g2-ifeval-s2, qw35-persona-s2, qw35-member-s2/s7
+IN PROGRESS: g2-membership s1/s2/s3/s7, g2-ifeval-s3, g2-ifeval-s4, g2-ifeval-s7, qw35-member-s4
 
 **Bug fixed 2026-05-25:** `run_gemma2_cell.sh` hardcoded `seq 1 21` for ifeval tasks;
 prompt_14 has no data file. Fixed to read actual data files from `fixed-prompts-ifeval/`,
@@ -73,7 +76,7 @@ restarted with the fix; s1 will use it automatically when training completes.
 | qw35-member-s7 | membership | s7 | 64.247.201.47:18203 | ✅ DONE | 10/10 | Downloaded; HF upload done |
 | qw35-ifeval-s1 | ifeval | s1 | 64.247.201.47:11402 | 🔄 TRAINING | 0/40 | Still training |
 | qw35-ifeval-s2 | ifeval | s2 | 64.247.201.40:18256 | 🔄 TRAINING | 0/40 | Epoch 1/3 |
-| qw35-ifeval-s4 | ifeval | s4 | 103.207.149.154:12996 | 🔄 MERGING | 0/20 | Training done; merging LoRA; eval starting soon |
+| qw35-ifeval-s4 | ifeval | s4 | 103.207.149.154:12996 | 🔄 TRAINING | 0/20 | Epoch 1/3 of training (~step 990/5111); ~13h remaining |
 | qw35-ifeval-s7 | ifeval | s7 | 103.207.149.154:13621 | 🔄 TRAINING | 0/20 | Epoch 1/3 |
 
 ### QW35 downloads pending
