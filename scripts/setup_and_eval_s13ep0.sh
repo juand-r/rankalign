@@ -34,17 +34,24 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 mkdir -p /workspace/.cache/huggingface /workspace/logs /workspace/models_g4it
 
-# ---- STEP 1: clone rankalign (for eval_by_claude.py + task data) ----
-if [ ! -d /workspace/rankalign ]; then
+# ---- STEP 1: clone rankalign (self-healing: re-clone if eval script absent) ----
+# A migrated/partial volume can leave an empty rankalign dir; key on the actual
+# script, not just the directory, so we always end up with a usable checkout.
+if [ ! -f /workspace/rankalign/scripts/eval_by_claude.py ]; then
     echo "[$(date -u +%H:%M:%S)] Cloning rankalign (longform)..."
+    rm -rf /workspace/rankalign
     git clone -b longform --depth 1 https://github.com/juand-r/rankalign.git /workspace/rankalign
 fi
 
-# ---- STEP 2: venv + pinned deps (torch inherited from image) ----
+# ---- STEP 2: venv + pinned deps (self-healing: rebuild if core import broken) ----
+# A migrated venv can carry a stale torch (2.4.1) or corrupted torchvision; if the
+# core import chain fails, nuke and rebuild so --ignore-installed pulls a clean
+# torch>=2.5 set. The HF cache (cached base model) is untouched.
 VENV=/workspace/.venv
-if [ ! -f $VENV/bin/python ]; then
-    echo "[$(date -u +%H:%M:%S)] Creating venv (--system-site-packages)..."
-    python3 -m venv $VENV --system-site-packages
+if ! "$VENV/bin/python" -c "import huggingface_hub, transformers, peft" 2>/dev/null; then
+    echo "[$(date -u +%H:%M:%S)] (Re)creating venv (--system-site-packages)..."
+    rm -rf "$VENV"
+    python3 -m venv "$VENV" --system-site-packages
 fi
 source $VENV/bin/activate
 pip install --quiet --upgrade pip
