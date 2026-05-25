@@ -72,14 +72,16 @@ case "$DATASET" in
     ifeval)
         TASK="ifeval-concat"
         # Build eval task list from actual data files (test-only prompts: N <= 21)
+        # Sort numerically so tasks run in order 1,2,...,21 (not lex order).
         EVAL_TASKS=()
         IFEVAL_DATA_DIR="/workspace/rankalign/data/fixed-prompts-ifeval"
-        for f in "$IFEVAL_DATA_DIR"/gpt_ifeval_results_prompt_*.jsonl; do
-            n=$(basename "$f" | grep -oE '[0-9]+' | head -1)
-            if [ -n "$n" ] && [ "$n" -le 21 ]; then
-                EVAL_TASKS+=("ifeval-prompt_$n")
-            fi
-        done
+        while IFS= read -r n; do
+            EVAL_TASKS+=("ifeval-prompt_$n")
+        done < <(
+            for f in "$IFEVAL_DATA_DIR"/gpt_ifeval_results_prompt_*.jsonl; do
+                basename "$f" | grep -oE '[0-9]+'  | head -1
+            done | awk '$1+0 <= 21' | sort -n
+        )
         MAX_SEQ="--max-seq-len 1024"
         # ifeval sequences are long — gradient checkpointing prevents OOM on 9B models
         GRAD_CKP="--gradient_checkpointing"
