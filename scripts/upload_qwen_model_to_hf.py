@@ -106,7 +106,26 @@ def main() -> None:
                         repo_id=repo, repo_type="model")
         print("[upload] training_log.log.gz done", flush=True)
 
-    card = CARDS[card_key]
+    card = CARDS.get(card_key)
+    if card is None:
+        # Generic fallback card for models without a hand-written entry.
+        card = f"""---
+base_model: Qwen/Qwen3.5-9B
+library_name: transformers
+tags: [rankalign, qwen3.5-9b, lora-merged]
+---
+# RankAlign — Qwen3.5-9B — {card_key}
+
+Merged (base + LoRA) Qwen3.5-9B RankAlign model. Repo: `{repo}`.
+Source dir name encodes task / setting / delta / epoch. The LoRA adapter is under `adapter/`
+and the training log is `training_log.log.gz`.
+
+- Base model: `Qwen/Qwen3.5-9B`
+- LoRA: r=16, alpha=32, dropout=0.1, targets q/k/v/o/gate/up/down_proj
+
+Provenance & reproduction notes:
+`private_projects/rankalign/docs/qwen_model_uploads_2026-05-26/` in the rankalign repo.
+"""
     with open("/tmp/_card.md", "w") as f:
         f.write(card)
     api.upload_file(path_or_fileobj="/tmp/_card.md", path_in_repo="README.md",
