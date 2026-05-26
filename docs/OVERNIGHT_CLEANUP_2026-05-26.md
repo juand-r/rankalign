@@ -51,7 +51,7 @@ repos; gemma s4 eval log in `docs/ra9b_id_eval_2026-05-25/`.
 - `6kjhz0xt5br82m` (qw35-ifeval-s1, H100, 64.247.201.47:11402) — deliverable ifeval-s1-ep2 on HF; holds intermediate ifeval-s1-ep1 (unbacked).
 - `ytdj36fjk5nouk` (qw35-member-s7, H100, 64.247.201.47:12801) — deliverables backed (s7-ep2 HF, s1-ep2 laptop); holds ms7 ep0/ep1 intermediates + a copy of membership-s1-ep2 (not on HF).
 - `91ja5g3th134sb` (qw35-member-s1, **0-GPU CPU, cheap**, 103.207.149.99:19550) — holds membership-s1 ep0/ep1/ep2 (ep2 = deliverable, on laptop but not HF).
-- `440v4r9mca9wfy` (v7b-ifeval-s1, A40, 194.68.245.111:22064) — **actively TRAINING**, step ~13/5110, no merged model yet, outputs empty. The monitor log shows an old `=== TRAIN: s1 x ifeval-concat ===` header (2026-05-25 08:06) but the step counter is near zero now → looks like it finished/restarted without ever producing a model (possible cell restart-loop, like the known qw35 bug). **Confirm intended or kill it.** Neither monitor restarts pods, so this is the cell script's own behavior.
+- `440v4r9mca9wfy` (v7b-ifeval-s1, A40, 194.68.245.111:22064) — **UPDATE ~08:23 CT: now EXITED on its own.** It was training (step ~13/5110, no merged model) and stopped itself before completing (crashed, or RunPod reclaimed it). Could not have finished training in the interim, so **no merged model was produced — nothing to back up.** Pod is off so I can't inspect it; its volume persists if restarted. The v7b-ifeval-s1 training did NOT complete — **check whether you wanted this run** (it looked like a possible cell restart-loop that never produced a model). I did not restart it.
 
 All gemma ID-eval pods (s1/s2/s3/s7) were already EXITED.
 
