@@ -43,35 +43,30 @@ if [ ! -f /workspace/rankalign/scripts/eval_by_claude.py ]; then
     git clone -b longform --depth 1 https://github.com/juand-r/rankalign.git /workspace/rankalign
 fi
 
-# ---- STEP 2: venv + pinned deps (self-healing: rebuild if core import broken) ----
-# A migrated venv can carry a stale torch (2.4.1) or corrupted torchvision; if the
-# core import chain fails, nuke and rebuild so --ignore-installed pulls a clean
-# torch>=2.5 set. The HF cache (cached base model) is untouched.
+# ---- STEP 2: venv + pinned deps (SKIP entirely if venv already healthy) ----
+# "Healthy" = core imports work AND CUDA is usable. Re-running the wrapper on a
+# good venv must NOT re-run `pip install --ignore-installed`, which re-pulls the
+# latest torch (cu130 = CUDA 13) and re-breaks a host whose driver is < CUDA 13.
+# So gate the whole install behind a health check; otherwise (re)build cleanly.
 VENV=/workspace/.venv
-if ! "$VENV/bin/python" -c "import huggingface_hub, transformers, peft" 2>/dev/null; then
-    echo "[$(date -u +%H:%M:%S)] (Re)creating venv (--system-site-packages)..."
-    rm -rf "$VENV"
-    python3 -m venv "$VENV" --system-site-packages
+if "$VENV/bin/python" -c "import huggingface_hub, transformers, peft, torch; assert torch.cuda.is_available()" 2>/dev/null; then
+    source "$VENV/bin/activate"
+    echo "[$(date -u +%H:%M:%S)] venv already healthy (core imports + CUDA) — skipping deps install."
+else
+    echo "[$(date -u +%H:%M:%S)] (Re)building venv (--system-site-packages)..."
+    "$VENV/bin/python" -c "import sys" 2>/dev/null || { rm -rf "$VENV"; python3 -m venv "$VENV" --system-site-packages; }
+    source "$VENV/bin/activate"
+    pip install --quiet --upgrade pip
+    pip install --quiet hf_transfer
+    pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
+    # Pin a matched torch+torchvision built for cu124. --ignore-installed pulls the
+    # latest torch (2.12+cu130 = CUDA 13), which silently CPU-falls-back on hosts
+    # whose driver only supports CUDA <13 (~150s/candidate, unusable). cu124 runs
+    # on any driver >=12.4. Also fixes the torchvision ABI mismatch that breaks the
+    # peft/transformers import. (Documented gemma-4 pair: torch 2.5.1 + tv 0.20.1.)
+    pip install --quiet torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
+    echo "[$(date -u +%H:%M:%S)] deps installed + torch 2.5.1/torchvision 0.20.1 (cu124) pinned."
 fi
-source $VENV/bin/activate
-pip install --quiet --upgrade pip
-pip install --quiet hf_transfer
-pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
-echo "[$(date -u +%H:%M:%S)] Deps install returned."
-
-# ---- STEP 2a: pin a matched torch+torchvision built for cu124 ----
-# Two problems this solves:
-#   (1) --ignore-installed pulls the latest torch (2.12+cu130 = CUDA 13), which
-#       only runs on hosts whose NVIDIA driver supports CUDA 13. RunPod migration
-#       hosts vary (some only support CUDA 12.8) -> torch.cuda.is_available() is
-#       False -> the 31B model silently runs on CPU (~150s/candidate, unusable).
-#   (2) the torchvision inherited via --system-site-packages is built for the
-#       base-image torch (2.4.1); the ABI mismatch breaks transformers' lazy
-#       torchvision import (cannot import BloomPreTrainedModel -> import peft dies).
-# cu124 runs on any driver >=12.4, so pin the documented known-good gemma-4 pair
-# (torch 2.5.1 + torchvision 0.20.1, cu124). Host-driver-agnostic.
-pip install --quiet torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
-echo "[$(date -u +%H:%M:%S)] pinned torch 2.5.1 + torchvision 0.20.1 (cu124)."
 
 # ---- STEP 2b: fail loud if deps install was incomplete ----
 # A silent `pip install` failure (e.g. a pin needing a newer Python) must abort
