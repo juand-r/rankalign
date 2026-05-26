@@ -12,29 +12,29 @@ Source: `outputs_gemma4_from_pod-v7/s13_ep0/`. Rebuild: `python scripts/_build_s
 
 | Method | Raw | PMI self | PMI base | Neg self | Neg base |
 | --- | --- | --- | --- | --- | --- |
-| 13 SFT + consistency-ft (s13, e0) | 79.43 ± 1.10 | — | --- | 74.95 ± 1.43 | --- |
+| 13 SFT + consistency-ft (s13, e0) | 79.43 ± 1.10 | 79.97 ± 1.21 | --- | 74.95 ± 1.43 | --- |
 
 ## Pearson(gen, val) x 100
 
 | Method | Raw | PMI self | PMI base | Neg self | Neg base |
 | --- | --- | --- | --- | --- | --- |
-| 13 SFT + consistency-ft (s13, e0) | 52.35 ± 1.69 | — | --- | 48.96 ± 2.27 | --- |
+| 13 SFT + consistency-ft (s13, e0) | 52.35 ± 1.69 | 35.80 ± 2.96 | --- | 48.96 ± 2.27 | --- |
 
 ## Spearman(gen, val) x 100
 
 | Method | Raw | PMI self | PMI base | Neg self | Neg base |
 | --- | --- | --- | --- | --- | --- |
-| 13 SFT + consistency-ft (s13, e0) | 54.80 ± 2.08 | — | --- | 45.67 ± 2.50 | --- |
+| 13 SFT + consistency-ft (s13, e0) | 54.80 ± 2.08 | 45.71 ± 2.56 | --- | 45.67 ± 2.50 | --- |
 
 ## ValROC x 100
 
 | Method | Raw | PMI self | PMI base | Neg self | Neg base |
 | --- | --- | --- | --- | --- | --- |
-| 13 SFT + consistency-ft (s13, e0) | 93.82 ± 0.82 | — | --- | 93.82 ± 0.82 | --- |
+| 13 SFT + consistency-ft (s13, e0) | 93.82 ± 0.82 | 93.82 ± 0.82 | --- | 93.82 ± 0.82 | --- |
 
 ## ValAcc x 100
 
 | Method | Raw | PMI self | PMI base | Neg self | Neg base |
 | --- | --- | --- | --- | --- | --- |
-| 13 SFT + consistency-ft (s13, e0) | 88.18 ± 1.00 | — | --- | 88.18 ± 1.00 | --- |
+| 13 SFT + consistency-ft (s13, e0) | 88.18 ± 1.00 | 88.18 ± 1.00 | --- | 88.18 ± 1.00 | --- |
 
