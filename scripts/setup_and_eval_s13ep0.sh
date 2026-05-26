@@ -59,17 +59,19 @@ pip install --quiet hf_transfer
 pip install --quiet --ignore-installed -r /workspace/rankalign/requirements-gemma4.txt
 echo "[$(date -u +%H:%M:%S)] Deps install returned."
 
-# ---- STEP 2a: matching torchvision (gotcha 12a) ----
-# --ignore-installed pulls a fresh torch (2.12.x+cuXXX) into the venv, but the
-# torchvision inherited via --system-site-packages is built for the base-image
-# torch (2.4.1). The ABI mismatch makes transformers' lazy torchvision import
-# fail ("operator torchvision::nms does not exist" -> cannot import
-# BloomPreTrainedModel -> import peft dies). Install a torchvision that matches
-# the venv's torch so the import chain works.
-TORCH_CU="$($VENV/bin/python -c 'import torch;print(torch.__version__)' 2>/dev/null | grep -oE 'cu[0-9]+' || echo cu130)"
-pip install --quiet "torchvision==0.27.0" --index-url "https://download.pytorch.org/whl/${TORCH_CU}" \
-    || pip install --quiet torchvision --index-url "https://download.pytorch.org/whl/${TORCH_CU}"
-echo "[$(date -u +%H:%M:%S)] torchvision aligned to torch (${TORCH_CU})."
+# ---- STEP 2a: pin a matched torch+torchvision built for cu124 ----
+# Two problems this solves:
+#   (1) --ignore-installed pulls the latest torch (2.12+cu130 = CUDA 13), which
+#       only runs on hosts whose NVIDIA driver supports CUDA 13. RunPod migration
+#       hosts vary (some only support CUDA 12.8) -> torch.cuda.is_available() is
+#       False -> the 31B model silently runs on CPU (~150s/candidate, unusable).
+#   (2) the torchvision inherited via --system-site-packages is built for the
+#       base-image torch (2.4.1); the ABI mismatch breaks transformers' lazy
+#       torchvision import (cannot import BloomPreTrainedModel -> import peft dies).
+# cu124 runs on any driver >=12.4, so pin the documented known-good gemma-4 pair
+# (torch 2.5.1 + torchvision 0.20.1, cu124). Host-driver-agnostic.
+pip install --quiet torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu124
+echo "[$(date -u +%H:%M:%S)] pinned torch 2.5.1 + torchvision 0.20.1 (cu124)."
 
 # ---- STEP 2b: fail loud if deps install was incomplete ----
 # A silent `pip install` failure (e.g. a pin needing a newer Python) must abort
@@ -78,12 +80,15 @@ echo "[$(date -u +%H:%M:%S)] torchvision aligned to torch (${TORCH_CU})."
 python -c "import huggingface_hub, transformers, peft, pandas, sklearn, accelerate, safetensors" \
     || { echo "[$(date -u +%H:%M:%S)] FATAL: requirements-gemma4.txt did not fully install (missing core deps). Check Python version vs pinned pandas/numpy/scipy." >&2; exit 1; }
 
-# ---- STEP 2c: fail loud if torch is too old for gemma-4 ----
-python - <<'PYEOF'
-import sys, torch
+# ---- STEP 2c: fail loud if torch is too old OR CUDA is not usable ----
+# Must ABORT (not continue) if CUDA is unavailable, else the 31B model falls back
+# to CPU and "runs" at ~150s/candidate while looking alive. set -e is unsafe in
+# the eval loop, so guard explicitly here.
+python - <<'PYEOF' || { echo "[$(date -u +%H:%M:%S)] FATAL: torch/CUDA check failed — aborting to avoid silent CPU fallback." >&2; exit 1; }
+import torch
 ver = tuple(int(x) for x in torch.__version__.split('+')[0].split('.')[:2])
 assert ver >= (2, 5), f"torch {torch.__version__} too old for gemma-4 (need >=2.5)"
-assert torch.cuda.is_available(), "CUDA not visible from venv"
+assert torch.cuda.is_available(), "CUDA not visible from venv (driver/cu build mismatch)"
 print(f"[env] torch {torch.__version__} cuda OK")
 PYEOF
 
