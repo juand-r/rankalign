@@ -1,41 +1,42 @@
-# Pod backup + cleanup — 2026-05-26 (final state)
+# Pod backup + cleanup — 2026-05-26 (COMPLETE)
 
-User approved making everything PUBLIC on latkes (public HF storage is free → bypasses the private
-storage limit that had blocked uploads). All models from the pods + laptop uploaded as **public**.
+Goal: back up everything on the pods (models → HF, results/logs/scripts → repo), then close all pods.
+**Status: DONE. All pods stopped. All deliverables on public HF.**
 
-## Models on latkes (ALL PUBLIC) — verified
-| repo (latkes/rankalign-v7-qwen3.5-9b-…) | GB | status |
+## Models on latkes HF (PUBLIC) — verified, 18 GB / 10 shards each
+- ifeval: `ifeval-s1-ep1`, `ifeval-s1-ep2`, `ifeval-s2-ep1`, `ifeval-s2-ep2`, `ifeval-s13-ep0`
+- membership: `membership-s1-ep2` (rosch-s1 model), `membership-s13-ep0`, `membership-s7-ep0`, `membership-s7-ep1`, `membership-s7-ep2`
+
+(All under `latkes/rankalign-v7-qwen3.5-9b-…`.) Switched to PUBLIC because latkes private storage
+was full — public is free and unblocked everything. gemma-2-9b-it ifeval eval targets
+`rankalign-v7-gemma2-9b-it-ifeval-s{1..7}-ep2` were already on TAUR-dev.
+
+**NOT uploaded (per your call — "ep0/ep1 don't matter"):** `membership-s1-ep0` and `membership-s1-ep1`
+(SFT-baseline intermediate epochs). The CPU pod's 2 GB RAM OOM'd on upload; I was relaying them via the
+laptop but you said to stop. The empty/partial repos were deleted. The membership-s1 **deliverable
+(ep2) is on HF**, so nothing important is missing.
+
+## Pods — ALL STOPPED (EXITED)
+| pod | role | note |
 |---|---|---|
-| ifeval-s1-ep1 | 17.9 | ✅ |
-| ifeval-s1-ep2 | 18.0 | ✅ |
-| ifeval-s2-ep1 | 18.0 | ✅ |
-| ifeval-s2-ep2 | 18.0 | ✅ |
-| ifeval-s13-ep0 | 18.0 | ✅ |
-| membership-s1-ep2 | 17.9 | ✅ (uploaded from laptop) |
-| membership-s13-ep0 | 18.0 | ✅ |
-| membership-s7-ep0 | 18.0 | ✅ |
-| membership-s7-ep1 | 18.0 | ✅ |
-| membership-s7-ep2 | 18.0 | ✅ (also on TAUR-dev) |
-| **membership-s1-ep0** | — | ⏳ uploading (CPU pod, slow) |
-| **membership-s1-ep1** | — | ⏳ uploading (CPU pod, slow) |
+| qrz3m6s1hm34ob | gemma s4-migration | stopped |
+| xo5ntpx2v4qzce | qw35 s2/s13 | stopped |
+| 6kjhz0xt5br82m | qw35 ifeval-s1 | stopped |
+| ytdj36fjk5nouk | qw35 member-s7 | stopped |
+| 91ja5g3th134sb | qw35 member-s1 (CPU) | stopped |
+| 440v4r9mca9wfy | v7b-ifeval-s1 | self-exited mid-training (never produced a model) — **check if that run was intended** |
 
-Also on TAUR-dev: gemma2-9b ifeval eval targets `rankalign-v7-gemma2-9b-it-ifeval-s{1..7}-ep2`.
-All results (qwen ifeval s1/s13/s2, rosch s1/s13) + training logs are in the repo (`longform`).
+## Results / logs / scripts
+All in the repo (`longform`, pushed): qwen ifeval s1/s2/s13 + rosch s1/s13 scored CSVs (incl. the
+ifeval-s1 base-eval CSVs), training logs (`docs/qwen_model_uploads_2026-05-26/`), gemma s4 eval log
+(`docs/ra9b_id_eval_2026-05-25/`), and the upload helper scripts.
 
-## Pods
-**STOPPED (all backed up):**
-- `qrz3m6s1hm34ob` (gemma s4-mig), `xo5ntpx2v4qzce` (qw35 s2/s13) — stopped earlier.
-- `6kjhz0xt5br82m` (qw35-ifeval-s1) — STOPPED; ifeval-s1 ep1+ep2 on HF, results in repo.
-- `ytdj36fjk5nouk` (qw35-member-s7) — STOPPED; membership-s7 ep0/1/2 + membership-s1-ep2 on HF, results in repo.
-- `440v4r9mca9wfy` (v7b-ifeval-s1) — self-EXITED mid-training; never produced a model (nothing to back up). **Check whether that run was intended.**
+## Teardown done
+- Monitor crontabs removed (`monitor_v7b_pods`, `monitor_qwen35_taur`, plus the earlier `monitor_ra9b_id`).
+- All heartbeat/poller cron jobs deleted.
 
-**STILL RUNNING — `91ja5g3th134sb` (qw35-member-s1, 0-GPU CPU, cheap):**
-Only remaining pod. It holds membership-s1 `ep0`/`ep1` (SFT-baseline intermediates) not yet on HF.
-It has only **2 GB RAM** (so `upload_folder` OOM'd) and ~4 MB/s bandwidth, so a memory-frugal
-**per-file** upload is grinding through ~34 GB (could take ~2 h). When it finishes I'll verify + stop
-this pod. If it can't complete, these two SFT intermediates are the only thing that won't make it to
-HF — the membership-s1 **deliverable (ep2) is already on HF**, so nothing important is at risk.
-
-## Cleanup remaining (after the CPU-pod upload resolves)
-- Stop `91ja5g3th134sb`.
-- Tear down the benign monitor crontabs (`monitor_v7b_pods`, `monitor_qwen35_taur`) + the heartbeat cron.
+## Leftover laptop temp copies (safe to delete anytime — disk has 771 GB free)
+`/home/jdr/hf_upload_tmp/`:
+- `membership-s1/` (17 GB) = membership-s1-ep2 — already on HF.
+- `v7-Qwen--…delta1.54-epoch0…_merged` (17 GB) = ms1-ep0 — relay copy (not on HF, you said it doesn't matter).
+- `v7-Qwen--…delta1.54-epoch1…_merged` (~partial) = ms1-ep1 relay copy.
