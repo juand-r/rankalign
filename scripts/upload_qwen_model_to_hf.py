@@ -83,8 +83,15 @@ def main() -> None:
     token = os.environ["HF_TOKEN"]
     api = HfApi(token=token)
 
-    api.create_repo(repo, repo_type="model", private=True, exist_ok=True)
-    print(f"[upload] repo ready: {repo}", flush=True)
+    # Default to PUBLIC (public HF storage is free / not metered against the private quota).
+    # Set HF_PRIVATE=1 to force private.
+    is_private = os.environ.get("HF_PRIVATE") == "1"
+    api.create_repo(repo, repo_type="model", private=is_private, exist_ok=True)
+    try:
+        api.update_repo_settings(repo, private=is_private, repo_type="model")
+    except Exception as e:
+        print(f"[upload] visibility set warn: {repr(e)[:80]}", flush=True)
+    print(f"[upload] repo ready: {repo} (private={is_private})", flush=True)
 
     print(f"[upload] uploading merged weights from {merged_dir} ...", flush=True)
     api.upload_folder(folder_path=merged_dir, repo_id=repo, repo_type="model",
