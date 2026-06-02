@@ -29,12 +29,19 @@ Other axes layered on top:
   **require `--force-same-x`** (and ppd additionally requires `--delta-bins N`). Enforced by
   `parser.error` in `scripts/ranking_loss_ref_fix.py` L2510–2521. So the implication runs
   **ppd / sbm-global ⟹ fsx**, *not* the reverse.
-  - **Caveat:** our launchers (`run_settings_v21correct_upper.sh`, `_overnight_launch.sh`)
-    always add `--per-prompt-delta --shape-budget-mode global` whenever a setting uses fsx, so
-    in *practice* every fsx run here is also ppd+sbm-global. That is a launcher convention, not
-    a code constraint. Empirically: **all 88 v7 fsx model dirs also have `ppd`; 0 are fsx-only**
-    (and 0 are ppd-without-fsx). If you want an fsx-only ablation, the code permits it — no such
-    run exists yet.
+  - **The delta-bins launchers couple them; the v7b launchers do NOT.**
+    - **delta-bins runs** (`run_settings_v21correct_upper.sh`, `_overnight_launch.sh`,
+      `run_gemma2_cell.sh`, `run_qwen35_cell.sh`): always add `--per-prompt-delta
+      --shape-budget-mode global` whenever a setting uses fsx. All **88** fsx model dirs under
+      `/datastor2/.../models2` have `ppd`; 0 are fsx-only there. (ppd needs `--delta-bins`,
+      which these pass.)
+    - **v7b runs (FIXED `--delta 0.15`, NO `--delta-bins`)** explicitly drop ppd AND
+      sbm-global — see `run_gemma2_v7b_cell.sh` / `run_qwen35_v7b_cell.sh` (`PPD_FLAGS=""` for
+      all settings; dir suffix `…--force-same-x--vallogodds--semi0.1--fix1`, no `--ppd--`).
+      **So the v7b fsx settings (s3/s4/s7) ARE fsx-without-ppd** — the case the code permits.
+      They exist: HF `rankalign-v7b-{gemma2-9b-it,qwen3.5-9b}-{ifeval,membership,persona}-s{3,4,7}-ep2`,
+      eval scores in `outputs_gemma4_from_pod-v7b/`. (ppd is impossible here anyway: it requires
+      `--delta-bins`, which v7b omits.)
 - **vlo** = `--validator-log-odds` (train-time). Present in comb settings; **deliberately OFF** in pref-only+fsx+tc settings (s5/s8) — that was a historical gemma-2 bug, fixed for v7.
 - **train-time TC** = `--self-typicality` / `--neg-typicality` during training (s4, s5, s6, s7, s8, s9, s11, s12).
 - **cft** = `--consistency-ft` — drops labeled items where binarized validator/generator scores disagree (s13 only).
@@ -83,8 +90,9 @@ Source: `run_settings_v21correct_upper.sh::configure_setting()`. COMMON flags:
 Source: `scripts/_overnight_launch.sh::build_setting()`. Same semantics as the numbered
 settings above; this dispatcher covers s1, s2, s3, s4, s5, s6, s7, s11, s12, s13.
 COMMON: `--script ranking_loss_ref_fix.py --delta-bins 10`, `--disc-shots few` (gemma-2
-default) or `zero` (ifeval/humaneval), fsx settings add `--per-prompt-delta
---shape-budget-mode global`. gemma-4 adds `--gemma4-lora --gradient-checkpointing`.
+default) or `zero` (ifeval/humaneval); **in this (delta-bins) dispatcher** fsx settings also
+add `--per-prompt-delta --shape-budget-mode global` (the **v7b** fixed-delta launchers do not —
+see the fsx/ppd note above). gemma-4 adds `--gemma4-lora --gradient-checkpointing`.
 
 Datasets handled: `membership-sans-rosch-v0` (eval: 10 rosch tasks), `persona-v1` (eval:
 6 persona test tasks), `ifeval-concat` (eval: 21 ifeval-prompt_*), `humaneval-v2.1correct-upper`
@@ -109,7 +117,9 @@ Datasets handled: `membership-sans-rosch-v0` (eval: 10 rosch tasks), `persona-v1
 
 - **v6** = older runs, fixed delta 0.15, `ranking_loss_ref_gemma4.py` (pre-fix), no `--fix1` suffix.
 - **v7** = current, `ranking_loss_ref_fix.py`, `--delta-bins 10`, dir/repo names carry `--fix1` suffix.
-- **v7b** = v7 code but fixed delta 0.15.
+- **v7b** = v7 code but **fixed `--delta 0.15`** with **no `--delta-bins`, no `--per-prompt-delta`,
+  no `--shape-budget-mode global`** (launchers `run_gemma2_v7b_cell.sh` / `run_qwen35_v7b_cell.sh`).
+  Consequence: v7b fsx settings (s3/s4/s7) are **fsx-without-ppd**.
 
 ## Naming conventions
 - **Local dir** (models2): `v7-google--<model>-delta<D>-epoch<E>--<task>-all--d2g--random--alpha1.0<suffix>` where suffix encodes the flags.
