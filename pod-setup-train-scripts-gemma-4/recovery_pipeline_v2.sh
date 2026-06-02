@@ -8,7 +8,16 @@ export TRANSFORMERS_CACHE=$HF_HUB_CACHE
 export HF_HUB_DISABLE_XET=1 HF_HUB_ENABLE_HF_TRANSFER=1
 export HF_TOKEN="${HF_TOKEN:?HF_TOKEN not set — was hardcoded on the pod; redacted before commit}"
 export HUGGING_FACE_HUB_TOKEN=$HF_TOKEN
-export WANDB_MODE=offline
+# WandB: log ONLINE so training curves sync to the cloud (juand-r/rankalign).
+# (Was `export WANDB_MODE=offline` — that stranded gemma-4 curves on the pod, which were
+#  lost when the pod stopped. 2026-06 lesson.) Requires WANDB_API_KEY in the env; falls back
+#  to offline with a LOUD warning if it is missing (so it never silently strands curves).
+if [ -n "${WANDB_API_KEY:-}" ]; then
+    export WANDB_MODE=online
+else
+    echo "[WARN] WANDB_API_KEY not set -> wandb OFFLINE; curves will NOT sync. Export WANDB_API_KEY to fix." >&2
+    export WANDB_MODE=offline
+fi
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 source /workspace/.venv/bin/activate
 cd /workspace/rankalign/scripts
