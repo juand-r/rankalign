@@ -74,7 +74,7 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 - [x] TASK 1 v7/v6 tables — model locations + epochs + delta (auto-generated)
 - [x] TASK 2 — eval scores + metrics CSV inventory (`TASK2_eval_inventory.md` + `v7/eval_inventory_v7.md`)
 - [x] TASK 3 — non-epoch2 paper results (`TASK3_non_epoch2_in_paper.md`)
-- [ ] TASK 1c — map each training JSON log to its setting (needs reading each JSON's args)
+- [x] TASK 1c — training JSON log → setting map (`v7/training_logs_map_v7.md`, 85 logs classified from flags)
 - [ ] datastor1 second pass (local full paths for checkpoints not on /datastor2 or HF)
 - [ ] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up)
 
