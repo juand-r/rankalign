@@ -60,11 +60,13 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 - **Per-run JSON:** `/datastor2/jdr/rankalign/models2/training_run_logs/*.json`
   (85 files, naming `<timestamp>_google--<model>_<task>.json`). **The setting is NOT in the
   filename** — it must be read from the JSON's recorded args (delta config, loss weights,
-  fsx, cft `consistency_ft` block, label partition, seed). A timestamp→setting mapping is a
-  TODO for the next pass (requires reading each JSON's contents).
+  fsx, cft `consistency_ft` block, label partition, seed). **Setting→file map done:**
+  `v7/training_logs_map_v7.md`. Full JSON schema + examples: `WANDB_AND_LOGS.md`.
 - **v6 logs:** older runs may not have the JSON (the per-run JSON convention started ~May 24).
-- **wandb:** `/datastor2/jdr/rankalign/wandb/` (gemma-4 pods ran `WANDB_MODE=offline`, so
-  those logs are local-only, not on the wandb server). [PENDING: confirm which runs synced.]
+- **wandb:** authoritative source is the **cloud** `juand-r/rankalign` (1339 runs); see
+  `WANDB_AND_LOGS.md` + `WANDB_RUN_MAP.md`. mll runs synced online; **gemma-4 cu/cm pods ran
+  `WANDB_MODE=offline` and did NOT sync → no usable gemma-4 curves** (the local
+  `/datastor2/.../wandb/` dir has only persona, May 19–23).
 - **gemma-4 (cu) provenance:** see `../provenance-cu-s2-rankalign/` for the RankAlign (s2)
   run's full training log, config JSON, and HF-upload log.
 
