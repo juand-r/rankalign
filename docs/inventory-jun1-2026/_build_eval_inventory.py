@@ -163,6 +163,16 @@ def main() -> None:
            "the evaluated epoch must be read from the eval wrapper / `eval_coverage_matrix.md`). "
            "qw35_persona_member is heavily **duplicated** (re-runs); the metric builders dedup "
            "via `metrics-from-scores/*_files_used.csv` + `*_dups_collapsed.csv`.",
+           "",
+           "> **`ver=v7b` is only a label** for the fixed-`delta 0.15` batch (no delta-bins / ppd / "
+           "sbm-global). It is **NOT a filename prefix** — every v7b model dir and score file still "
+           "starts with `v7-` (no \"b\"); the `v7b` value here is inferred from the download-folder "
+           "name (`outputs_gemma4_from_pod-v7b/`). Literal `v7b` exists only in the HF repo names "
+           "and those folder names. Tell v7b from delta-bins v7 by the delta (0.15 fixed vs computed).",
+           "",
+           "> The **`subdir` column is a source download-folder, not a task.** `*_persona_member` "
+           "bundles BOTH persona and membership(rosch) scores for that model (e.g. "
+           "`qw35_persona_member` = Qwen3.5-9B persona + membership together).",
            ""]
     tasks = sorted({k[2] for k in agg})
     for task in tasks:

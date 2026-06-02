@@ -120,6 +120,14 @@ Datasets handled: `membership-sans-rosch-v0` (eval: 10 rosch tasks), `persona-v1
 - **v7b** = v7 code but **fixed `--delta 0.15`** with **no `--delta-bins`, no `--per-prompt-delta`,
   no `--shape-budget-mode global`** (launchers `run_gemma2_v7b_cell.sh` / `run_qwen35_v7b_cell.sh`).
   Consequence: v7b fsx settings (s3/s4/s7) are **fsx-without-ppd**.
+  - **⚠ "v7b" is only a label we use to talk about this fixed-delta batch — it is NOT a filename
+    prefix.** The training script always writes `v7-…`; **every v7b model dir and score file
+    starts with `v7-` (no "b")**, exactly like the delta-bins runs. Verified: 0 local files/dirs
+    start with `v7b-`; the script never emits `v7b`. The literal string `v7b` appears ONLY in
+    (a) the 10 HuggingFace repo *names* (`rankalign-v7b-…`, hand-assigned to distinguish them) and
+    (b) the local download-folder names (`outputs_gemma4_from_pod-v7b/`, `v7b_ifeval`, …).
+    **To tell a v7b run from a delta-bins v7 run, look at the delta value** (`delta0.15` fixed =
+    v7b; a computed value like `delta1.42`/`delta2.49` = delta-bins v7), NOT a prefix.
 
 ## Naming conventions
 - **Local dir** (models2): `v7-google--<model>-delta<D>-epoch<E>--<task>-all--d2g--random--alpha1.0<suffix>` where suffix encodes the flags.
