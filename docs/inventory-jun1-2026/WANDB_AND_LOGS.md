@@ -146,3 +146,59 @@ No loss curves / per-step metrics / final eval scores (those are in wandb for pe
 `scores_*.csv` for evals). The JSON is a **data-construction provenance record**: exact flags,
 realized delta, label partition, and how many pairs of each shape were sampled. To read one:
 `jq . <file>` on mll.
+
+---
+
+## 3. What each wandb run actually stores
+
+Verified by inspecting live finished runs via the API (`_dump_wandb_contents.py`). Every run in
+`juand-r/rankalign` holds four things: **config**, **logged metric time-series**, a **summary**,
+and **attached files** (incl. a full code snapshot).
+
+### (a) config — hyperparameters/args (28 keys)
+`model, task, train_g_or_d, split_type, split_seed, delta, delta_bins, alpha, num_epochs,
+learning_rate, total_samples, preference_loss_weight, nll_validator_weight,
+nll_generator_weight, self_typicality, neg_typicality, typicality_correction, semi_supervised,
+labeled_only, use_all, use_lora, use_full_completion, single_token_data_only, with_ref,
+gradient_checkpointing,` **plus the delta-bins stats added after init:**
+`validator_score_min, validator_score_max, validator_score_spread_p5_p95`.
+
+> ⚠ config does **NOT** include `force_same_x`, `validator_log_odds`, `consistency_ft`, or
+> `per_prompt_delta`. Those live only in `wandb-metadata.json`'s `args` (see (d)) — which is why
+> the setting classification in `WANDB_RUN_MAP.md` reads the args, not the config.
+
+### (b) logged metrics — the training time-series (`run.history`, ~1 row per optimizer step; this run had _step≈15.3k)
+Per **step** (`train/`): `loss, preference_loss, nll_validator_loss, nll_generator_loss,
+score_i, score_j, diff, epoch, global_step`.
+Only when **NLL-generator is on** (comb settings, `nll_generator_weight>0`) it additionally logs:
+`score_gen_i, score_gen_j, indicator_i, indicator_j`. (Pref-only / SFT runs lack these 4.)
+Per **epoch** (`epoch/`): `avg_loss, epoch`.
+wandb internals on every row: `_step, _runtime, _timestamp`. wandb also auto-captures **system
+metrics** (GPU/CPU/mem util, `system/*`) viewable in the UI.
+
+> What's **NOT** here: **no eval metrics** (no gen_roc / val_roc / pearson). wandb is
+> **training-dynamics only** — loss + score margins. Eval numbers live in the `scores_*.csv` /
+> `metrics-from-scores/` (TASK 2). So wandb answers "did training converge / was the loss healthy",
+> not "how did the model score".
+
+### (c) summary — final value of each logged metric
+The last-step value of every `train/*` and `epoch/*` key, plus `_runtime` (wall-seconds),
+`_step`, `_timestamp`, `_wandb`. (Note: `train/loss` summary can read 0 if the final logged step
+landed on an empty/last micro-batch — use `epoch/avg_loss` for the real per-epoch loss.)
+
+### (d) attached files (per run) — good for reproducibility
+| File | What |
+|------|------|
+| `code/scripts/ranking_loss_ref_fix.py` | **full snapshot of the trainer code** (~135 KB) as it ran |
+| `wandb-metadata.json` | run provenance: **full CLI `args`** (incl. fsx/vlo/cft), **git remote + commit** (e.g. `ac9b95a9`), host (`slurm-node-*`), `gpu` (A40), `gpu_count`, `cudaVersion`, `python`, `os`, `slurm`, `startedAt` |
+| `requirements.txt` | pip freeze of the run's environment |
+| `config.yaml` | the config in (a) |
+| `output.log` | captured stdout of the run |
+| `wandb-summary.json` | the summary in (c) |
+
+So a finished run is quite reproducible: exact code snapshot + git commit + full args + env
+(`requirements.txt`) + delta-bins stats. The main missing piece is eval scores (separate).
+
+### Caveat — this describes the v7/`ranking_loss_ref_fix.py` runs
+The cloud project also has older runs (`ranking_loss_ref.py`, etc.) whose logged keys may differ
+slightly; the schema above is for the current trainer (what all the paper-era runs use).
