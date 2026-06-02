@@ -52,6 +52,23 @@ hypernym-* hundreds, etc. — not paper-relevant here.)
   each *final paper model* to its specific cloud run needs a name/config match (run names encode
   `model-task-…-delta…-nllv…-pref…-semi…`). I can build that map if you want it.
 
+### Per-final-model run map (the precision view) → `WANDB_RUN_MAP.md`
+"Task has wandb" hides important per-cell gaps. The full map (every paper
+model×setting → its wandb run name + URL + state) is in **`WANDB_RUN_MAP.md`**, built from
+`_raw/wandb_paper_runs.json` (210 paper-task runs: **82 finished, 64 failed, 64 crashed**).
+Highlights of what's actually *finished* (= complete curves) for paper cells:
+- **rosch/membership** — best covered: gemma-2-2b-it and gemma-2-9b-it have a **finished
+  delta-bins run for every setting** (s1–s13), dated May 24–25. gemma-2-2b mostly finished too.
+- **ifeval** — patchier: gemma-2-2b has finished runs (but mostly *early fixed-delta*, Mar–Apr);
+  **gemma-2-2b-it ifeval s1–s7 are all `crashed` (0 finished)** — only its s13 finished;
+  gemma-2-9b-it has s1/s2/s7/s8 finished but **s13 failed**.
+- **humaneval-cu** — only one gemma-4 run reached the cloud and it **`crashed`** (0 finished). No
+  usable curves. (Matches: gemma-4 pods were offline.)
+- Qwen3.5-9B: only a couple of finished s2 runs (ifeval s2 failed).
+
+So even for the tasks that "have wandb," not every final model has a finished run — use
+`WANDB_RUN_MAP.md` to see exactly which do.
+
 ### Correction note
 An earlier version of this doc said membership/ifeval had "no wandb" — that was based on **local
 dirs only** and was **wrong**. The cloud query (above) shows ifeval + rosch/membership are well

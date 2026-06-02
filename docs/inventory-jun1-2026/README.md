@@ -76,6 +76,7 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 - [x] TASK 3 — non-epoch2 paper results (`TASK3_non_epoch2_in_paper.md`)
 - [x] TASK 1c — training JSON log → setting map (`v7/training_logs_map_v7.md`, 85 logs classified from flags)
 - [x] WandB coverage + JSON-log structure (`WANDB_AND_LOGS.md`) — cloud `juand-r/rankalign` (1339 runs) is authoritative: **ifeval + rosch/membership have wandb** (all gemma-2, online); **humaneval-cu (gemma-4) is the one gap** (offline-on-pod, not synced). Plus the full JSON-log schema.
+- [x] WandB run→model precision map (`WANDB_RUN_MAP.md`) — every paper model×setting → its wandb run name+URL+state (82 finished / 64 failed / 64 crashed of 210 paper-task runs)
 - [ ] datastor1 second pass (local full paths for checkpoints not on /datastor2 or HF)
 - [ ] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up)
 
