@@ -75,7 +75,7 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 - [x] TASK 2 — eval scores + metrics CSV inventory (`TASK2_eval_inventory.md` + `v7/eval_inventory_v7.md`)
 - [x] TASK 3 — non-epoch2 paper results (`TASK3_non_epoch2_in_paper.md`)
 - [x] TASK 1c — training JSON log → setting map (`v7/training_logs_map_v7.md`, 85 logs classified from flags)
-- [x] WandB coverage + JSON-log structure (`WANDB_AND_LOGS.md`) — which settings have wandb (only persona-v1 / gemma-2, online; gemma-4 offline-on-pod; everything else `--no-wandb`) and the full JSON schema
+- [x] WandB coverage + JSON-log structure (`WANDB_AND_LOGS.md`) — cloud `juand-r/rankalign` (1339 runs) is authoritative: **ifeval + rosch/membership have wandb** (all gemma-2, online); **humaneval-cu (gemma-4) is the one gap** (offline-on-pod, not synced). Plus the full JSON-log schema.
 - [ ] datastor1 second pass (local full paths for checkpoints not on /datastor2 or HF)
 - [ ] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up)
 

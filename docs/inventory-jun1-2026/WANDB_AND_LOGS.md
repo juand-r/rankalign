@@ -24,30 +24,38 @@ Raw data: `_raw/wandb_runs.jsonl` (103 local wandb runs, args-parsed),
 | `run_settings_v21correct_{upper,multi}.sh` (gemma-4 pods) | gemma-4-31B-it cu/cm | **ON, but `WANDB_MODE=offline`** | **offline** run dirs **on the pods** (now stopped) — NOT synced, NOT on mll → effectively lost |
 | `run_gemma2_cell.sh`, `run_qwen35_cell.sh`, `run_gemma2_v7b_cell.sh`, `run_qwen35_v7b_cell.sh` (pods) | gemma-2-9b-it (ra9b) + qwen3.5-9b, **all v7b** | **`--no-wandb` → NONE** | — |
 
-### What actually exists on disk (103 local wandb run dirs, ALL dated May 19–23)
-All under `/datastor2/jdr/rankalign/scripts/wandb/` (+ 1 in `…/rankalign/wandb/`). By cell:
+### ⚠ The CLOUD is authoritative — local dirs badly undercount
+The runs that train on **mll** log **online** and sync to the cloud project
+**`juand-r/rankalign`**; their *local* `wandb/run-*` dirs were mostly cleaned afterward, so the
+103 local dirs (all persona, May 19–23) are NOT a complete picture. **You must query the cloud.**
+Authoritative count from the wandb API (`_raw/wandb_cloud_runs.json`, 2026-06-02): **1339 runs**
+in `juand-r/rankalign`. For the three paper datasets:
 
-| Task | Models with wandb | Settings | Notes |
-|------|-------------------|----------|-------|
-| **persona-v1** | gemma-2-2b, gemma-2-2b-it, gemma-2-9b-it | **~all (s1–s12)** incl. delta-bins sweeps | ~95 runs; mix of fixed-`delta0.15` and delta-bins. **This is essentially all the wandb we have.** |
-| ifeval | qwen3.5-9b | s2 | 4 stray early runs |
-| membership | qwen3.5-9b | s2 | 1 stray early run |
-| 3sat | Qwen2.5-7B-Instruct | s11 | 1 stray (a different side experiment) |
+| Paper dataset (wandb `task`) | wandb in cloud? | runs by model |
+|------------------------------|-----------------|---------------|
+| **ifeval** (`ifeval-concat`) | ✅ **YES** | gemma-2-2b **70**, gemma-2-2b-it **13**, gemma-2-9b-it **36**, Qwen3.5-9B **4** (123 total; gemma-2-2b spans Mar–May, 9b-it Apr–May) |
+| **rosch / hyponymy** (`membership-sans-rosch-v0`) | ✅ **YES** | gemma-2-2b **42**, gemma-2-2b-it **17**, gemma-2-9b-it **26**, Qwen3.5-9B **1** (86 total, all May; + `rosch-furniture-and-bird` 19) |
+| **humaneval-cu** (`humaneval-v2.1correct-upper`) | ❌ **essentially NO** | gemma-4-31B-it: **1** run only |
+
+(The cloud also holds the project's full history — persona-v1 123, plausibleqa 113, ambigqa 74,
+hypernym-* hundreds, etc. — not paper-relevant here.)
 
 ### Bottom line — who has wandb and who doesn't
-- ✅ **HAS wandb:** **persona-v1** for all three gemma-2 models (basically every setting), online in
-  the `rankalign` project + local dirs on mll. Plus a few stray early qwen3.5-9b s2 runs.
-- ❌ **NO wandb:** **membership (rosch)**, **ifeval** (the gemma-2/qwen paper cells), and
-  **humaneval-cu / humaneval-cm** (gemma-4). Also **every v7b run** and **the entire May 24–25
-  batch** (`--no-wandb`).
-- ⚠ **gemma-4 cu/cm:** wandb was *enabled but offline*, so run dirs sat on the pods that are now
-  stopped — not synced to the cloud, not copied to mll. Treat as lost unless a pod volume is revived.
+- ✅ **HAS wandb (cloud `juand-r/rankalign`):** **ifeval** and **rosch/membership** for all three
+  gemma-2 models (+ a little qwen3.5-9b), and **persona-v1** (all gemma-2). These were trained on
+  **mll** (online wandb).
+- ❌ **The one real gap is humaneval-cu (gemma-4-31B-it): only 1 cloud run.** The gemma-4 pods ran
+  `WANDB_MODE=offline`, so their curves sat on the (now-stopped) pods and never synced. humaneval-cm
+  likewise has no gemma-4 cloud wandb. Treat gemma-4 training curves as lost unless a pod volume is revived.
+- ⚠ **Coverage is per-*run*, not cleanly per-final-setting.** 1339 runs include many sweeps /
+  re-runs / exploratory configs. "ifeval/rosch have wandb" means curves exist in the project; mapping
+  each *final paper model* to its specific cloud run needs a name/config match (run names encode
+  `model-task-…-delta…-nllv…-pref…-semi…`). I can build that map if you want it.
 
-### Important caveat (don't over-trust persona wandb)
-The 103 wandb runs are **May 19–23** — the *earlier* persona batch (mostly fixed-`delta0.15`
-+ sweeps). The **canonical May 24–25 persona runs** (the ones with JSON logs, delta-bins) have
-**no wandb**. So even for persona, the final paper models likely rely on the JSON logs below, not
-wandb. wandb is best seen as exploratory-era curves for persona, not a per-final-model record.
+### Correction note
+An earlier version of this doc said membership/ifeval had "no wandb" — that was based on **local
+dirs only** and was **wrong**. The cloud query (above) shows ifeval + rosch/membership are well
+covered online; only **humaneval-cu (gemma-4)** is genuinely missing.
 
 ---
 
