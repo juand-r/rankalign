@@ -15,6 +15,7 @@ second pass.
 inventory-jun1-2026/
 ├── README.md                       ← this file
 ├── SETTINGS_REFERENCE.md           ← what s1..s13 mean (verified from source) — READ FIRST
+├── STRAY_MODEL_LOCATIONS.md        ← stray model dirs under /datastor2/jdr/ (legacy v5 + smoke; NOT paper)
 ├── v7/
 │   └── training_inventory_v7.md    ← TASK 1, v7 + v7b (the paper models)
 ├── v6/
