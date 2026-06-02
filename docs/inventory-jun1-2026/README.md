@@ -72,7 +72,17 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 
 - [x] SETTINGS_REFERENCE.md — verified from source scripts
 - [x] TASK 1 v7/v6 tables — model locations + epochs + delta (auto-generated)
-- [ ] TASK 1c — map each training JSON log to its setting (needs JSON reads)
-- [ ] TASK 2 — eval scores + metrics CSV inventory
-- [ ] TASK 3 — non-epoch2 paper results
+- [x] TASK 2 — eval scores + metrics CSV inventory (`TASK2_eval_inventory.md` + `v7/eval_inventory_v7.md`)
+- [x] TASK 3 — non-epoch2 paper results (`TASK3_non_epoch2_in_paper.md`)
+- [ ] TASK 1c — map each training JSON log to its setting (needs reading each JSON's args)
 - [ ] datastor1 second pass (local full paths for checkpoints not on /datastor2 or HF)
+- [ ] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up)
+
+### Headline findings
+- **Non-epoch2 in the paper:** gemma-4 correct-upper **RankAlign=epoch1** (e2 exists, eval-only fix)
+  and **SFT=v6/epoch1** (no v7 model); **s13 (SFT+cft) = epoch0 everywhere** (gemma-4 cu, qwen
+  ifeval+membership) — it ran out of time. Everything else in the final tables is epoch2.
+- **Models:** v7 adapters live on `/datastor2/.../models2` (271) + HF latkes (17) + TAUR-dev (326);
+  gemma-4 cu adapters are on **latkes** (s2 d2.14 e0/e1/e2 private; s13 e0 public).
+- **One eval produced NO score files** (rosch OSError-36) — metrics salvaged from stdout into
+  `docs/salvaged_rosch_metrics.md`.
