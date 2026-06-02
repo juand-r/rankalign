@@ -108,10 +108,13 @@ every task** — only the per-pair CSV *write* failed. So:
 - Refresh the raw listing: `find outputs_gemma4_from_pod-v7 outputs_gemma4_from_pod-v7b -name 'scores_*.csv' -printf '%P\n' > _raw/scores_v7_local_listing.txt`.
 
 ## 5. [PENDING datastor1] / follow-ups
-- The **gemma-2-2b and gemma-2-2b-it** persona/membership/ifeval scores are NOT in these pod dirs
-  — they're in `/datastor2/jdr/rankalign/outputs/` (large; not yet enumerated here). Their metrics
-  are already computed (`metrics-from-scores/persona_v1_gemma-2-2b*` and `pod-results-*.md`). A
-  follow-up pass should enumerate `outputs/` for completeness.
+- The **gemma-2-2b / gemma-2-2b-it / gemma-2-9b-it** scores (persona/membership/ifeval + older
+  v6 tasks) live in **`/datastor2/jdr/rankalign/outputs/`** — **20,402** `scores_*.csv` confirmed
+  there (gemma-2-2b 6,735; gemma-2-2b-it 3,244; gemma-2-9b-it 10,041; gemma-4-31B-it 164). Mixed
+  v6+v7 and many tasks. NB: `ls scores_*.csv` blows the arg limit there — use `find … -name`.
+  Their metrics are already computed (`metrics-from-scores/persona_v1_gemma-2-2b*` +
+  `pod-results-*.md`); a per-cell parse of this dir (like `_build_eval_inventory.py`) is a
+  follow-up if you want the full coverage grid for the gemma-2 family.
 - ifeval eval-task count is **99 prompts** in ra9b files but the s13 scope used **21** — confirm
   which subset each paper table used (OOD=21 vs full=99). See `feedback_ood_vs_id_eval`.
 - Evaluated epoch for all `eval_model_sN` (ra9b/qw35) cells must be cross-checked against the
