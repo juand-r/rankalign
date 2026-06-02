@@ -23,7 +23,18 @@ Every setting is one of three loss families, set by the `(pref, nllv, nllg)` wei
 | **comb** (a.k.a. "New") | 1 | 1 | 1 | Combined preference + NLL. Settings **s3, s4, s7, s11, s12**. |
 
 Other axes layered on top:
-- **fsx** = `--force-same-x` — pairs are within-prompt. Implies `--per-prompt-delta --shape-budget-mode global` (`ppd`).
+- **fsx** = `--force-same-x` — within-prompt pair construction. **Standalone flag with no
+  dependency** — fsx *alone* (without ppd/sbm-global) is valid in the training code.
+- **ppd** = `--per-prompt-delta` and **sbm-global** = `--shape-budget-mode global` — these
+  **require `--force-same-x`** (and ppd additionally requires `--delta-bins N`). Enforced by
+  `parser.error` in `scripts/ranking_loss_ref_fix.py` L2510–2521. So the implication runs
+  **ppd / sbm-global ⟹ fsx**, *not* the reverse.
+  - **Caveat:** our launchers (`run_settings_v21correct_upper.sh`, `_overnight_launch.sh`)
+    always add `--per-prompt-delta --shape-budget-mode global` whenever a setting uses fsx, so
+    in *practice* every fsx run here is also ppd+sbm-global. That is a launcher convention, not
+    a code constraint. Empirically: **all 88 v7 fsx model dirs also have `ppd`; 0 are fsx-only**
+    (and 0 are ppd-without-fsx). If you want an fsx-only ablation, the code permits it — no such
+    run exists yet.
 - **vlo** = `--validator-log-odds` (train-time). Present in comb settings; **deliberately OFF** in pref-only+fsx+tc settings (s5/s8) — that was a historical gemma-2 bug, fixed for v7.
 - **train-time TC** = `--self-typicality` / `--neg-typicality` during training (s4, s5, s6, s7, s8, s9, s11, s12).
 - **cft** = `--consistency-ft` — drops labeled items where binarized validator/generator scores disagree (s13 only).
