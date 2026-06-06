@@ -45,7 +45,9 @@ export MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2-rerun-wandb}"
 export OUTPUTS_DIR="${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs-rerun-wandb}"
 
 # (3) WandB run-name prefix — trivially filterable in the cloud project.
-PREFIX="${WANDB_PREFIX:-rerun-wandb-20260606}"
+# Scheme: rerun-wandb-<model>-<dataset>-<setting>, e.g.
+#   rerun-wandb-gemma-2-9b-it-ifeval-s1
+PREFIX="${WANDB_PREFIX:-rerun-wandb}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

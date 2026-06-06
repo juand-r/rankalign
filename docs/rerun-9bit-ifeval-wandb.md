@@ -30,7 +30,7 @@ Settings: **s1, s2, s3, s4, s7, s13** (6 cells). gemma-2-9b-it ifeval is 2 GPUs,
 |---|---|---|
 | Checkpoints | `/datastor2/jdr/rankalign/models2` (+ HF `TAUR-dev/…`) | **`/datastor2/jdr/rankalign/models2-rerun-wandb`** |
 | Eval score CSVs | `outputs/`, `outputs_gemma4_from_pod-v7/ra9b_ifeval` | **`/datastor2/jdr/rankalign/outputs-rerun-wandb`** |
-| WandB run name | auto (`gemma-2-9b-it-ifeval-concat-g-delta0.15-bins10-…-lr1e-05`) | **`rerun-wandb-20260606-gemma-2-9b-it-ifeval-<setting>`** |
+| WandB run name | auto (`gemma-2-9b-it-ifeval-concat-g-delta0.15-bins10-…-lr1e-05`) | **`rerun-wandb-gemma-2-9b-it-ifeval-<setting>`** |
 
 Filter the cloud project `juand-r/rankalign` by the **`rerun-wandb-`** name prefix
 to see exactly these runs.
@@ -72,14 +72,12 @@ auto-generates the name exactly as before.
 Submitted via `bash scripts/run_rerun_9bit_ifeval_wandb.sh`. Train = 2 GPUs, up
 to 30h; evals fire `afterany`. Logs: `/datastor2/jdr/logs/<jobid>.{out,err}`.
 
-| Setting | Train | Eval(s) | wandb run name |
-|---|---|---|---|
-| s1  | 43870 | 43871 (self), 43872 (neg) | `rerun-wandb-20260606-gemma-2-9b-it-ifeval-s1` |
-| s2  | 43873 | 43874 (self), 43875 (neg) | `…-s2` |
-| s3  | 43876 | 43877 (self), 43878 (neg) | `…-s3` |
-| s4  | 43879 | 43880 (self)              | `…-s4` |
-| s7  | 43881 | 43882 (neg)               | `…-s7` |
-| s13 | 43883 | 43884 (self), 43885 (neg) | `…-s13` |
+wandb run names follow `rerun-wandb-gemma-2-9b-it-ifeval-<setting>`.
+
+**First batch (jobs 43870–43885) FAILED** — `run_train_semi.sh` had no `HF_HOME`,
+so model downloads hit the home-filer quota
+(`CAS service error: Disk quota exceeded (os error 122)`). Fixed by setting
+`HF_HOME=/datastor2/jdr/hf_cache` in `run_train_semi.sh`; resubmitted afterward.
 
 Check progress: `squeue -u jdr`; authoritative epoch count:
 `grep "Epoch \[" /datastor2/jdr/logs/<train_jobid>.out`.
