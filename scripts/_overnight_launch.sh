@@ -339,6 +339,14 @@ fi
 MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2}"
 COMMON_FLAGS+=( --models-dir "$MODELS_DIR" )
 
+# Optional explicit wandb run name (env WANDB_RUN_NAME). Plumbed through to
+# run_train_semi.sh -> trainer's --wandb_run_name so rerun launchers can tag
+# runs (e.g. "rerun-wandb-...") and distinguish them from paper-era runs in the
+# cloud. When unset, the trainer auto-generates the name (unchanged behavior).
+if [ -n "${WANDB_RUN_NAME:-}" ]; then
+    COMMON_FLAGS+=( --wandb_run_name "$WANDB_RUN_NAME" )
+fi
+
 # Persona-v1 task name in the dir is "persona-v1" (matches TASK var).
 # Eval glob matches any saved epoch (0/1/2). The wrap uses `ls -dt | head -1`
 # to pick the most recently saved epoch dir, so even a walltime-killed run

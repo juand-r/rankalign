@@ -96,6 +96,10 @@ CONSISTENCY_FT=""
 # --gradient-checkpointing: opt-in for memory-heavy models (gemma-4-31B-it).
 # Off by default; existing runs unchanged.
 GRAD_CKPT=""
+# --wandb_run_name: optional explicit wandb run name (passed through to the
+# trainer's --wandb_run_name). When unset, the trainer auto-generates the name.
+# Used by rerun launchers to tag runs so they're distinguishable in the cloud.
+WANDB_RUN_NAME=""
 shift 5
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -127,6 +131,7 @@ while [[ $# -gt 0 ]]; do
         --shape-budget-mode) SHAPE_BUDGET_MODE="--shape-budget-mode $2"; shift 2 ;;
         --consistency-ft) CONSISTENCY_FT="--consistency-ft"; shift ;;
         --gradient-checkpointing) GRAD_CKPT="--gradient_checkpointing"; shift ;;
+        --wandb_run_name) WANDB_RUN_NAME="--wandb_run_name $2"; shift 2 ;;
         *) echo "Unknown option: $1"; exit 1 ;;
     esac
 done
@@ -275,7 +280,8 @@ python "$SCRIPT" \
     $PER_PROMPT_DELTA \
     $SHAPE_BUDGET_MODE \
     $CONSISTENCY_FT \
-    $GRAD_CKPT
+    $GRAD_CKPT \
+    $WANDB_RUN_NAME
 
 STATUS=$?
 echo ""
