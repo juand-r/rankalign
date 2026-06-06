@@ -6,8 +6,9 @@ were not epoch2. Initially built from `/datastor2/jdr/rankalign` + HuggingFace +
 while **`/datastor1` was down** (NFS `10.202.8.210`, 2026-06-01).
 **datastor1 came back 2026-06-02 and the second pass is DONE** — findings folded in below
 (short version: v7/paper models were already complete on `/datastor2`+HF; datastor1 only
-added the full **v6** archive). A few items still marked `[PENDING — pod volume]` depend on
-stopped RunPod volumes, not datastor1.
+added the full **v6** archive). Training logs live *with* the models: gemma-2 as JSON in
+`models2/training_run_logs/`, qwen as `training_log.log.gz` inside each HF repo; only gemma-4 cu
+s3/s4/s7 have no preserved log (see `WANDB_AND_LOGS.md` §2). No pod revival needed.
 
 > Rule for this folder: **additive only.** Nothing here deletes or moves data; it documents.
 
@@ -87,7 +88,7 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
   /datastor2+HF. datastor1 also holds the canonical `outputs/` (mirror of the scores already
   inventoried) + 32 wandb dirs (cloud is authoritative). No v7 gap on datastor1.
 - [x] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up) — 20,402 found
-- [ ] `[PENDING — pod volume]` only: qwen + gemma-4 cu s3/s4/s7 training JSON logs live on stopped RunPod volumes (not datastor1)
+- [x] training-log locations resolved: gemma-2 → JSON in `models2/training_run_logs/`; qwen → `training_log.log.gz` in each HF repo; gemma-4 cu s2/s13 → JSON on disk. Only **gemma-4 cu s3/s4/s7** have no preserved log (HF adapter-only) — known gap, no pod revival.
 
 ### Headline findings
 - **Non-epoch2 in the paper:** gemma-4 correct-upper **RankAlign=epoch1** (e2 exists, eval-only fix)

@@ -84,12 +84,18 @@ itself. **85 logs** at `/datastor2/jdr/rankalign/models2/training_run_logs/` —
 **May 24–25 gemma-2 batch** (gemma-2-2b / 2b-it / 9b-it × persona/membership/ifeval) **+ 1**
 gemma-4-31B-it cu **s13**. (Setting→file map: `v7/training_logs_map_v7.md`.)
 
-**Coverage is complementary to wandb:** the JSON logs exist for exactly the runs that *lack*
-wandb (the May 24–25 batch). Gaps:
-- **gemma-4 cu s2** JSON is preserved in `../provenance-cu-s2-rankalign/models_g4it/training_run_logs/`;
-  **cu s3/s4/s7** JSONs were on the (stopped) cu pods → `[PENDING — pod volume]`.
-- **qwen3.5-9b** has **no** JSON logs on mll (trained on pods; its `training_run_logs/` was on the
-  pod volume) → `[PENDING — pod volume]`.
+**Coverage is complementary to wandb** (these JSONs exist for the May 24–25 batch, which lacks
+wandb). Where the training logs for the other models actually live (verified 2026-06-02):
+- **qwen3.5-9b** (ifeval/membership/persona, **all settings incl. s13**): the training log is
+  **bundled inside each HF model repo as `training_log.log.gz`** (the run's stdout, gzipped) — it
+  lives *with* the model, not as a structured JSON. (No structured `*.json` for qwen.)
+- **gemma-4 cu**: **s2** JSON in `../provenance-cu-s2-rankalign/models_g4it/training_run_logs/`,
+  **s13** JSON in `models2/training_run_logs/`; **s1** is v6 (predates the JSON convention).
+  **s3/s4/s7**: their cu HF repos are **adapter-only (no log bundled)** and no structured JSON was
+  downloaded — so those three have **no preserved training log on disk or HF**. (We are not
+  reviving pods; recorded here as a known gap, not a TODO.)
+- **gemma-2-9b-it / 2b-it / 2b**: structured JSON in `models2/training_run_logs/` (above); their HF
+  repos do **not** also bundle a log (unlike qwen).
 
 ### What a JSON log looks like (full schema)
 Top-level keys: `timestamp, model, task, flags, [consistency_ft], shape_weights,

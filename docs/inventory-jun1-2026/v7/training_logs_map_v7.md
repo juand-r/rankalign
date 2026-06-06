@@ -4,7 +4,7 @@ Each v7 training run wrote a provenance JSON to `/datastor2/jdr/rankalign/models
 
 Each JSON records: delta config (`delta_arg`, `delta_bins`), shape-budget weights, label partition, sampled-pair counts, score stats, seed, and (s13) the `consistency_ft` filter block. To read one: `jq . <file>` on mll.
 
-> Multiple timestamps under one (model,task,setting) = re-runs / delta-sweep points. > These logs are gemma-2 / qwen runs (the 2026-05-24+ overnight batch). gemma-4 cu runs > logged separately — see `../provenance-cu-s2-rankalign/models_g4it/training_run_logs/`.
+> Multiple timestamps under one (model,task,setting) = re-runs / delta-sweep points. > These 85 JSONs are the **gemma-2** runs (2026-05-24+ batch) + the single gemma-4 cu **s13**. > **qwen3.5-9b has NO structured JSON** — its training log is bundled in each HF model repo as > `training_log.log.gz` instead. gemma-4 cu **s2** JSON is in > `../provenance-cu-s2-rankalign/models_g4it/training_run_logs/`; cu **s3/s4/s7** have no > preserved log (HF adapter-only). See `WANDB_AND_LOGS.md` §2.
 
 
 ## gemma-2-2b
