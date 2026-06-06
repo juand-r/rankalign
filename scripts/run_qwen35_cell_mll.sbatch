@@ -17,30 +17,36 @@
 #
 # Submit:   sbatch scripts/run_qwen35_cell_mll.sbatch ifeval s1
 #   DATASET: persona | membership | ifeval
-#   SETTING: s1 | s2 | s4 | s7   (delta-bins settings, per run_qwen35_cell.sh)
+#   SETTING: s1 | s2 | s3 | s4 | s7 | s13   (the wandb-rerun matrix; see docs/RERUN_WANDB_TODO.md)
 #
 # Env knobs:
 #   NO_BASE=1     eval drops --base-typicality (faster; self-/neg- CSVs only)
 #   TRAIN_ONLY=1  stop after training (skip eval)
 #   EVAL_ONLY=1   skip training; eval an existing checkpoint
+#   EPOCHS=N      override num_epochs (default 3; set 1 to match the original qwen s13)
 #
 # KEY DIFFERENCES vs the pod cell (run_qwen35_cell.sh):
 #   - VENV = /datastor2/jdr/venvs/gemma4  (transformers 5.x; NOT venv_lexcons)
-#   - mll paths (REPO/MODELS_DIR/OUTPUTS on /datastor2)
+#   - mll paths; MODELS_DIR = /datastor2/jdr/rankalign/models2-rerun-wandb (separate
+#     from models2/ so the wandb reruns never collide with the originals)
 #   - 2 GPUs (gres=gpu:2) so the 9B + LoRA fits (1x A40 OOMs in qwen3.5 attn)
-#   - wandb ONLINE (mll is logged in via ~/.netrc) -> project "rankalign".
-#     We deliberately do NOT pass --no-wandb here (the whole point: qwen finally
-#     gets cloud training curves). Still --no-upload-hf (we upload models later).
+#   - wandb ONLINE (mll is logged in via ~/.netrc) -> project "rankalign", with
+#     --wandb_run_name "rerun-wandb-qwen3.5-9b-<dataset>-<setting>" so the new runs
+#     are filterable vs the old ones on the cloud. Still --no-upload-hf.
 #   - canonical trainer ranking_loss_ref_fix.py (NEVER ranking_loss_ref_qwen.py, obsolete)
+#   - settings s1/s2/s4/s7 mirror run_qwen35_cell.sh; s3 (New+fsx) and s13 (SFT+cft)
+#     added for the rerun. s13 here uses delta-bins/3-epoch (the original was fixed-d0.15/1ep;
+#     use EPOCHS=1 to match epoch count).
 set -euo pipefail
 
 DATASET="${1:?DATASET required (persona|membership|ifeval)}"
-SETTING="${2:?SETTING required (s1|s2|s4|s7)}"
+SETTING="${2:?SETTING required (s1|s2|s3|s4|s7|s13)}"
 MODEL="Qwen/Qwen3.5-9B"
 
 VENV=/datastor2/jdr/venvs/gemma4
 REPO=/datastor2/jdr/rankalign
-MODELS_DIR=/datastor2/jdr/rankalign/models2
+# Rerun batch -> separate models dir so reruns never collide with the originals in models2/.
+MODELS_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb
 OUTPUTS_DIR=/datastor2/jdr/rankalign/outputs
 LOG_DIR=/datastor2/jdr/logs
 mkdir -p "$MODELS_DIR" "$OUTPUTS_DIR" "$LOG_DIR"
@@ -97,7 +103,8 @@ case "$DATASET" in
     *) echo "Unknown DATASET: $DATASET"; exit 1 ;;
 esac
 
-# --- Per-setting flags (mirrors run_qwen35_cell.sh) ----------------------------
+# --- Per-setting flags (mirrors run_qwen35_cell.sh; +s3/s13 for the wandb rerun) ---
+CFT_FLAG=""   # only s13 sets this (--consistency-ft)
 case "$SETTING" in
     s1)
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 0"
@@ -109,6 +116,12 @@ case "$SETTING" in
         SEMI_FLAG="--semi-supervised 0.1" ; FSX_FLAG="" ; TC_FLAG="" ; VLO_FLAG="--validator-log-odds"
         PPD_FLAGS="" ; EVAL_MODES="--self-typicality --neg-typicality"
         DIR_SUFFIX="--full-completion--vallogodds--semi0.1--fix1" ;;
+    s3)   # New+fsx (comb + fsx + vlo, NO TC); eval self+neg (no-TC trained)
+        LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 1"
+        SEMI_FLAG="--semi-supervised 0.1" ; FSX_FLAG="--force-same-x" ; TC_FLAG=""
+        VLO_FLAG="--validator-log-odds" ; PPD_FLAGS="--per-prompt-delta --shape-budget-mode global"
+        EVAL_MODES="--self-typicality --neg-typicality"
+        DIR_SUFFIX="--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" ;;
     s4)
         LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 1"
         SEMI_FLAG="--semi-supervised 0.1" ; FSX_FLAG="--force-same-x" ; TC_FLAG="--self-typicality"
@@ -121,7 +134,15 @@ case "$SETTING" in
         VLO_FLAG="--validator-log-odds" ; PPD_FLAGS="--per-prompt-delta --shape-budget-mode global"
         EVAL_MODES="--neg-typicality"
         DIR_SUFFIX="--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" ;;
-    *) echo "Unknown SETTING: $SETTING (s1|s2|s4|s7)"; exit 1 ;;
+    s13)  # SFT + consistency-ft (pref0/nll1, --consistency-ft, labeled-only; no fsx/TC/vlo)
+        # NB: original qwen s13 paper model was FIXED delta0.15, 1 epoch. This rerun uses the
+        # launcher default (delta-bins 10, 3 epochs) for consistency + a fuller curve + epoch2.
+        # To reproduce the original exactly: EPOCHS=1 (and you'd drop --delta-bins, see below).
+        LOSS_FLAGS="--nll_validator_weight 1 --nll_generator_weight 1 --preference_loss_weight 0"
+        SEMI_FLAG="--labeled-only 0.1" ; FSX_FLAG="" ; TC_FLAG="" ; VLO_FLAG=""
+        PPD_FLAGS="" ; CFT_FLAG="--consistency-ft" ; EVAL_MODES="--self-typicality --neg-typicality"
+        DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1" ;;
+    *) echo "Unknown SETTING: $SETTING (s1|s2|s3|s4|s7|s13)"; exit 1 ;;
 esac
 
 LORA_FLAG="--lora"   # qwen uses plain --lora (NOT --gemma4-lora)
@@ -138,10 +159,12 @@ if [ -n "${EVAL_ONLY:-}" ]; then
 elif [ -n "$EXISTING" ]; then
     MODEL_DIR="$EXISTING"; echo "[$(date -u +%FT%TZ)] model dir exists, skipping train: $MODEL_DIR"
 else
+    # wandb ONLINE; name each run so the rerun is filterable vs old runs on the cloud.
+    WANDB_RUN_NAME="rerun-wandb-qwen3.5-9b-${DATASET}-${SETTING}"
     # shellcheck disable=SC2086
     python ranking_loss_ref_fix.py \
         --model "$MODEL" \
-        --num_epochs 3 \
+        --num_epochs "${EPOCHS:-3}" \
         --task "$TASK" \
         --train_g_or_d g \
         --split_type random \
@@ -149,7 +172,8 @@ else
         --delta 0.15 \
         --delta-bins 10 \
         --models-dir "$MODELS_DIR" \
-        $LOSS_FLAGS $SEMI_FLAG $FSX_FLAG $TC_FLAG $VLO_FLAG $PPD_FLAGS \
+        --wandb_run_name "$WANDB_RUN_NAME" \
+        $LOSS_FLAGS $SEMI_FLAG $FSX_FLAG $TC_FLAG $VLO_FLAG $PPD_FLAGS $CFT_FLAG \
         $LORA_FLAG $MAX_SEQ $GRAD_CKP \
         --no-upload-hf
     MODEL_DIR=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
