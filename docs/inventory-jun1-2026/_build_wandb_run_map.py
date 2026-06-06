@@ -45,11 +45,31 @@ def setting_of(r: dict) -> str:
 
 # group: (task, model, setting) -> list of run dicts (annotated)
 grp: dict = defaultdict(list)
+def _dval(r):
+    try:
+        return f"{float(r.get('delta')):.2f}"
+    except (TypeError, ValueError):
+        return "?"
+
+
 for r in runs:
     r["_setting"] = setting_of(r)
     r["_task"] = norm_task(r.get("task") or "")
     r["_delta_regime"] = "delta-bins(v7)" if r.get("delta_bins") else "fixed-delta(v7b/early)"
+    # compact per-run delta string, e.g. "bins δ2.69" (realized) or "fixed δ0.15"
+    r["_delta_str"] = ("bins δ" + _dval(r)) if r.get("delta_bins") else ("fixed δ" + _dval(r))
     grp[(r["_task"], r["model"], r["_setting"])].append(r)
+
+
+def delta_summary(fin_runs):
+    """Distinct delta regimes+values among a cell's finished runs, e.g. 'bins δ2.69 | fixed δ0.15'.
+    The bins(v7) entry is the canonical paper run; fixed is v7b/early."""
+    seen, order = set(), []
+    for r in sorted(fin_runs, key=lambda r: (not r.get("delta_bins"), r.get("_delta_str", ""))):
+        s = r["_delta_str"]
+        if s not in seen:
+            seen.add(s); order.append(s)
+    return " \\| ".join(order) if order else "—"
 
 out = ["# WandB run → final-model map (paper datasets)", "",
        "For each **paper** dataset × model × setting: the wandb cloud runs in "
@@ -58,17 +78,19 @@ out = ["# WandB run → final-model map (paper datasets)", "",
        "",
        "- **Setting** classified from each run's real flags (force-same-x / typicality / vlo / cft / pref+nll).",
        "- **state**: prefer `finished`; `failed`/`crashed`/`running` runs are counted but not the model source.",
-       "- **delta regime**: `delta-bins(v7)` = the canonical adaptive-delta runs; "
-       "`fixed-delta(v7b/early)` = `--delta 0.15` fixed (v7b or pre-delta-bins).",
-       "- A cell with several finished runs = re-runs / a delta sweep; newest first. The paper model is "
-       "normally the newest finished run at the canonical delta regime for that task.",
+       "- **delta regime** (NB: all are v7-code `ranking_loss_ref_fix.py`; none are v6): "
+       "`bins δX` = canonical **delta-bins(v7)**, realized adaptive delta X (matches the on-disk "
+       "model name, e.g. `delta2.69`); `fixed δ0.15` = **v7b / pre-delta-bins** fixed delta. The "
+       "**`delta (finished)`** column lists which regimes a cell's finished runs cover — the paper "
+       "model is normally the **bins** one.",
+       "- A cell with several finished runs = re-runs / a delta sweep; newest first.",
        ""]
 
 tasks_present = [t for t in ["ifeval", "membership", "humaneval-cu"] if any(k[0] == t for k in grp)]
 for task in tasks_present:
     out.append(f"\n## {TASK_LABEL.get(task, task)}\n")
-    out.append("| Model | Setting | finished | other states | newest finished run (date · delta-regime) | URL(s) of finished runs |")
-    out.append("|---|---|---|---|---|---|")
+    out.append("| Model | Setting | finished | other states | delta (finished) | newest finished run (date · regime) | URL(s) of finished runs |")
+    out.append("|---|---|---|---|---|---|---|")
     models = [m for m in MODEL_ORDER if any(k[0] == task and k[1] == m for k in grp)]
     models += sorted({k[1] for k in grp if k[0] == task and k[1] not in MODEL_ORDER})
     for model in models:
@@ -92,7 +114,8 @@ for task in tasks_present:
                 urls = (f"(latest {latest_other[0]['state']}: [{latest_other[0]['id']}]({latest_other[0]['url']}))"
                         if latest_other else "—")
             sname = SETTING_NAME.get(setting, setting)
-            out.append(f"| {model} | {setting} ({sname}) | {len(fin)} | {len(other)} | {newest_str} | {urls} |")
+            dsum = delta_summary(fin) if fin else "—"
+            out.append(f"| {model} | {setting} ({sname}) | {len(fin)} | {len(other)} | {dsum} | {newest_str} | {urls} |")
 
 # summary of states overall
 from collections import Counter
