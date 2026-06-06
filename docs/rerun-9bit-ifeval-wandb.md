@@ -67,6 +67,23 @@ in each:
 These changes are backward-compatible: when `WANDB_RUN_NAME` is unset the trainer
 auto-generates the name exactly as before.
 
+## Launched 2026-06-06 ~13:43 (job IDs)
+
+Submitted via `bash scripts/run_rerun_9bit_ifeval_wandb.sh`. Train = 2 GPUs, up
+to 30h; evals fire `afterany`. Logs: `/datastor2/jdr/logs/<jobid>.{out,err}`.
+
+| Setting | Train | Eval(s) | wandb run name |
+|---|---|---|---|
+| s1  | 43870 | 43871 (self), 43872 (neg) | `rerun-wandb-20260606-gemma-2-9b-it-ifeval-s1` |
+| s2  | 43873 | 43874 (self), 43875 (neg) | `…-s2` |
+| s3  | 43876 | 43877 (self), 43878 (neg) | `…-s3` |
+| s4  | 43879 | 43880 (self)              | `…-s4` |
+| s7  | 43881 | 43882 (neg)               | `…-s7` |
+| s13 | 43883 | 43884 (self), 43885 (neg) | `…-s13` |
+
+Check progress: `squeue -u jdr`; authoritative epoch count:
+`grep "Epoch \[" /datastor2/jdr/logs/<train_jobid>.out`.
+
 ## Verify (dry-run output, 2026-06-06)
 
 `DRYRUN=1 SETTINGS="s1 s13"` produced, e.g. for s13:

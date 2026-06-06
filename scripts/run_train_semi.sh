@@ -45,6 +45,15 @@
 VENV="${VENV:-/u/jdr/venvs/venv_lexcons}"
 source "$VENV/bin/activate"
 
+# HF cache MUST live on /datastor2 (large, no per-user quota). Without this it
+# defaults to ~/.cache/huggingface on the quota-limited home filer and model
+# downloads die with "CAS service error: Disk quota exceeded (os error 122)".
+# Matches run_qwen35_cell_mll.sbatch. Disable xet to avoid the CAS quota path.
+# (Overridable via env so callers can point elsewhere.)
+export HF_HOME="${HF_HOME:-/datastor2/jdr/hf_cache}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
+export HF_HUB_DISABLE_XET="${HF_HUB_DISABLE_XET:-1}"
+
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 MODEL=$1
