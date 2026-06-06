@@ -38,10 +38,19 @@ wandb ONLINE**. See `inventory-jun1-2026/WANDB_RUN_MAP.md` for the existing-cove
 - **s13 SFT+cft:** `--preference_loss_weight 0 --nll_validator_weight 1 --nll_generator_weight 1 --consistency-ft --labeled-only 0.1`, no fsx, no TC, no vlo. (NB s13 pod runs used **fixed δ0.15, 1 epoch**; decide whether the rerun matches that or uses delta-bins/3-epoch — flag for the paper.)
 - s1/s2/s4/s7 already in `run_qwen35_cell_mll.sbatch`.
 
+## Qwen mll venv — READY (2026-06-06)
+The qwen mll pipeline is proven. The Qwen3.5 gated-delta-rule attention is slow on the gemma4
+venv (torch fallback, ~11.5 s/it on 2x A40); a dedicated **`/datastor2/jdr/venvs/qwen35`** venv
+(gemma4 clone + `fla-core==0.5.0` + `triton==3.3.0` + `bitsandbytes==0.49.2`) gets the fla fast
+kernel → **~4 s/it (~2.9x), ~17 h per 3-epoch run** (canary job 43931). Build/repro:
+**`setup-mll-qwen35-fla.sh`**. `run_qwen35_cell_mll.sbatch` already defaults to this venv.
+**Submit qwen reruns with `--time=24:00:00`** (17 h fits; 2 h does NOT).
+
 ## Order / status
-- [ ] **A (ifeval gemma-2-9b-it) FIRST** — user running these while the qwen canary (job 43869) is pending.
-- [ ] B, C (qwen ifeval + rosch) — after the qwen canary proves the mll qwen pipeline is healthy.
-- [ ] Add `s3` + `s13` cases to `run_qwen35_cell_mll.sbatch` before B/C.
+- [ ] **A (ifeval gemma-2-9b-it) FIRST** — user driving via `run_rerun_9bit_ifeval_wandb.sh`.
+- [ ] B, C (qwen ifeval + rosch) — qwen pipeline proven (job 43931, ~4 s/it). Ready to launch:
+      `sbatch --time=24:00:00 scripts/run_qwen35_cell_mll.sbatch ifeval s1` (then s2/s3/s4/s7/s13; then `membership ...`).
+- [x] `s3` + `s13` cases added to `run_qwen35_cell_mll.sbatch`.
 
 ## Caveat
 Reruns are **fresh trainings** (seed 42 + same code/data → near-identical to the uploaded
