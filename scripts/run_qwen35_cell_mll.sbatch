@@ -44,7 +44,9 @@ DATASET="${1:?DATASET required (persona|membership|ifeval)}"
 SETTING="${2:?SETTING required (s1|s2|s3|s4|s7|s13)}"
 MODEL="Qwen/Qwen3.5-9B"
 
-VENV=/datastor2/jdr/venvs/gemma4
+# qwen35 venv = clone of gemma4 + flash-linear-attention (fla) for the Qwen3.5 gated-delta-rule
+# fast kernel (gemma4 alone -> torch fallback -> ~11.5 s/it on A40). Overridable via VENV=.
+VENV="${VENV:-/datastor2/jdr/venvs/qwen35}"
 REPO=/datastor2/jdr/rankalign
 # Rerun batch -> separate models dir so reruns never collide with the originals in models2/.
 MODELS_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb
