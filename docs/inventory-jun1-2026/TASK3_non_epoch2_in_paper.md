@@ -93,11 +93,13 @@ From the final `*_table_long.csv` files (`gen_roc`), evaluated epoch per method:
 
 ---
 
-## [PENDING datastor1 / confirmation]
+## Remaining confirmation items (datastor1 second pass done 2026-06-02)
+- datastor1 is back; it did **not** change the epoch findings (it holds only the v6 archive — no
+  v7/gemma-4/qwen). The core TASK-3 answers (RankAlign cu = epoch1; s13 = epoch0) stand.
 - ifeval and qwen cells use the `eval_model_sN` eval scheme (epoch not in the filename). The HF
-  source repos for **gemma-2-9b-it (ra9b) ifeval are all `-ep2`**, so those evals are epoch2; but
-  the exact downloaded epoch per qwen cell should be confirmed against the eval-wrapper logs once
-  `/datastor1` (and the pod download provenance) is reachable.
+  source repos for **gemma-2-9b-it (ra9b) ifeval are all `-ep2`**, so those evals are epoch2; the
+  exact downloaded epoch per **qwen** cell is the one piece still on the (stopped) RunPod volumes
+  — `[PENDING — pod volume]`, not datastor1.
 - Whether s1/s13 (cu) supplementary tables actually appear in the submitted PDF vs the main
   4-method table — confirm against the paper source. The main `metrics-from-scores` cu table has
   only Base + RankAlign + New{,+PMI,+NegTC}+fsx.

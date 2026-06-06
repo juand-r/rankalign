@@ -2,10 +2,12 @@
 
 Post-paper-submission stock-taking. Goal: know **where every trained model and eval
 score lives**, what flags produced it, what training logs exist, and which paper results
-were not epoch2. Built mostly from `/datastor2/jdr/rankalign` + HuggingFace + repo docs,
-because **`/datastor1` is down** (NFS server `10.202.8.210` unreachable as of 2026-06-01).
-Anything that can only be confirmed on datastor1 is tagged **`[PENDING datastor1]`** for a
-second pass.
+were not epoch2. Initially built from `/datastor2/jdr/rankalign` + HuggingFace + repo docs
+while **`/datastor1` was down** (NFS `10.202.8.210`, 2026-06-01).
+**datastor1 came back 2026-06-02 and the second pass is DONE** — findings folded in below
+(short version: v7/paper models were already complete on `/datastor2`+HF; datastor1 only
+added the full **v6** archive). A few items still marked `[PENDING — pod volume]` depend on
+stopped RunPod volumes, not datastor1.
 
 > Rule for this folder: **additive only.** Nothing here deletes or moves data; it documents.
 
@@ -25,7 +27,8 @@ inventory-jun1-2026/
 ├── _dump_hf_repos.py               ← refreshes _raw/hf_repos.json
 └── _raw/                           ← captured source data (audit trail, reproducible)
     ├── models2_listing.txt         271 v7 local adapter dirs (/datastor2/.../models2)
-    ├── models_v6_listing.txt       201 v6 local adapter dirs (/datastor2/.../models)
+    ├── datastor1_models_listing.txt 1319 v6 dirs — the FULL v6 archive (/datastor1/.../models); v6 table built from this
+    ├── models_v6_listing.txt       201 v6 dirs — partial /datastor2/.../models copy (superseded by datastor1)
     ├── hf_repos.json               latkes (17) + TAUR-dev (326) rankalign model repos
     ├── hf_checkpoint_map.json      authoritative 40-entry local→HF map (partial)
     ├── auto_delta_log.csv          delta-bins auto-computed delta per run
@@ -37,7 +40,7 @@ inventory-jun1-2026/
 
 Each row = one (model, task, setting). The `e0 / e1 / e2` columns show **where that epoch's
 checkpoint lives**:
-- `L` = local on `/datastor2/jdr/rankalign/models2` (v7) or `/models` (v6)
+- `L` = local on-disk: `/datastor2/jdr/rankalign/models2` (v7) or `/datastor1/jdr/gv-gap/rankalign/models` (v6 — the full archive)
 - `latkes` = HuggingFace `latkes/…`
 - `TAUR` = HuggingFace `TAUR-dev/…`
 - `·` = checkpoint not found anywhere we can currently see
@@ -79,8 +82,12 @@ Setting meanings (s1..s13) are in `SETTINGS_REFERENCE.md`.
 - [x] TASK 1c — training JSON log → setting map (`v7/training_logs_map_v7.md`, 85 logs classified from flags)
 - [x] WandB coverage + JSON-log structure (`WANDB_AND_LOGS.md`) — cloud `juand-r/rankalign` (1339 runs) is authoritative: **ifeval + rosch/membership have wandb** (all gemma-2, online); **humaneval-cu (gemma-4) is the one gap** (offline-on-pod, not synced). Plus the full JSON-log schema.
 - [x] WandB run→model precision map (`WANDB_RUN_MAP.md`) — every paper model×setting → its wandb run name+URL+state (82 finished / 64 failed / 64 crashed of 210 paper-task runs)
-- [ ] datastor1 second pass (local full paths for checkpoints not on /datastor2 or HF)
-- [ ] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up)
+- [x] **datastor1 second pass (DONE 2026-06-02)** — `/datastor1/.../models` = full v6 archive
+  (1319 dirs, all v6; 0 v7/gemma-4/qwen). v6 table rebuilt from it; v7 was already complete on
+  /datastor2+HF. datastor1 also holds the canonical `outputs/` (mirror of the scores already
+  inventoried) + 32 wandb dirs (cloud is authoritative). No v7 gap on datastor1.
+- [x] enumerate `/datastor2/.../outputs/` for the gemma-2-2b/2b-it scores (TASK2 follow-up) — 20,402 found
+- [ ] `[PENDING — pod volume]` only: qwen + gemma-4 cu s3/s4/s7 training JSON logs live on stopped RunPod volumes (not datastor1)
 
 ### Headline findings
 - **Non-epoch2 in the paper:** gemma-4 correct-upper **RankAlign=epoch1** (e2 exists, eval-only fix)

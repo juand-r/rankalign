@@ -107,7 +107,13 @@ every task** — only the per-pair CSV *write* failed. So:
 - Coverage table: `python _build_eval_inventory.py` (reads `_raw/scores_v7_local_listing.txt`).
 - Refresh the raw listing: `find outputs_gemma4_from_pod-v7 outputs_gemma4_from_pod-v7b -name 'scores_*.csv' -printf '%P\n' > _raw/scores_v7_local_listing.txt`.
 
-## 5. [PENDING datastor1] / follow-ups
+## 5. Follow-ups (datastor1 second pass done 2026-06-02)
+
+> **datastor1 update:** `/datastor1/jdr/gv-gap/rankalign/outputs/` is the canonical scores store
+> (mirror of the `outputs_gemma4_from_pod-v7*` scores already inventoried here, plus the full v6
+> outputs). Nothing eval-related is *only* on datastor1 that isn't already covered above or on
+> /datastor2; the gemma-2 scores location below is confirmed.
+
 - The **gemma-2-2b / gemma-2-2b-it / gemma-2-9b-it** scores (persona/membership/ifeval + older
   v6 tasks) live in **`/datastor2/jdr/rankalign/outputs/`** — **20,402** `scores_*.csv` confirmed
   there (gemma-2-2b 6,735; gemma-2-2b-it 3,244; gemma-2-9b-it 10,041; gemma-4-31B-it 164). Mixed
