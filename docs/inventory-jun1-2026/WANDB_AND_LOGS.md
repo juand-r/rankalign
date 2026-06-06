@@ -153,6 +153,26 @@ No loss curves / per-step metrics / final eval scores (those are in wandb for pe
 realized delta, label partition, and how many pairs of each shape were sampled. To read one:
 `jq . <file>` on mll.
 
+### What's actually INSIDE the stdout logs (opened them 2026-06-02)
+Separate from the structured JSON, the **stdout transcripts** are: the qwen `training_log.log.gz`
+(in each qwen HF repo) and the gemma-4 cu `provenance-cu-s2-rankalign/logs/train_s2.log`. Opened a
+qwen one (`…membership-s7-ep2`, 103k lines / 6.3 MB) and the cu `train_s2.log`. Both contain, in order:
+
+1. **Wrapper banner + timestamps** (`run_qwen35_cell.sh DATASET=… SETTING=…`), then task-registry spam.
+2. **Delta-bins computation** — e.g. `Auto-delta: spread(p5-p95)=15.4914, bins=10, score_metric=validator log-odds` + per-prompt spread (min/median/max).
+3. **Data / label partition** — `Unique prompts: 68 total, 6 labeled, 62 unlabeled`; `Items: 2068 total, 173 labeled, 1895 unlabeled`; **valid pairs by shape** (`case_A 1235, both_U 24813, …`).
+4. **Per-EPOCH training loss** — `Epoch [1/3], Loss: 1.3459` → `[2/3] 0.2869` → `[3/3] 0.0721` (qwen example; healthy decrease). **This is the only loss in the logs — coarse, 3 points/run. There is NO per-step loss curve in stdout** (per-step went to wandb).
+5. **Model-save events** — `Saving LoRA adapters…`, `Saving merged full model to …delta1.55-epoch0--…`.
+6. **(train+eval cell logs only, e.g. qwen) the full EVAL output** — per eval task: ranking accuracies (`accuracy of generator full-vocab/dataset (th=5/10/40/100/1000)`), `gen_mrr_pos/neg`, and a metrics dict per task: `{'corr_all','corr_pos','corr_neg','disc_acc','disc_roc','gen_roc', …}` + a **discriminator confusion matrix** (Accuracy/Precision/Recall/F1) + `Detailed scores saved to: …/scores_*.csv`. (20 such dicts in the s7 membership log = the rosch eval tasks.)
+
+**wandb summary inside the log:**
+- **gemma-4 cu (`WANDB_MODE=offline`)** — `train_s2.log` ends with the **wandb run summary**: sparkline history of `train/loss`, `train/preference_loss`, `train/nll_*_loss`, and final `epoch/avg_loss 0.80375`. So for the cu runs you get a compressed view of the per-step dynamics from the log even though the full offline run dir is gone.
+- **qwen (`--no-wandb`)** — **no** wandb summary (wandb never ran); just the 3 per-epoch loss numbers.
+
+**Net:** the logs give you provenance + per-epoch loss + (for train+eval cells) the complete eval
+metrics — but **full per-step training curves exist only in wandb** (cloud for the mll gemma-2 runs;
+offline-summary-in-stdout for gemma-4 cu; nonexistent for qwen beyond the 3 epoch numbers).
+
 ---
 
 ## 3. What each wandb run actually stores
