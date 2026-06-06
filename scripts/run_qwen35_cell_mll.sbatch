@@ -23,7 +23,7 @@
 #   NO_BASE=1     eval drops --base-typicality (faster; self-/neg- CSVs only)
 #   TRAIN_ONLY=1  stop after training (skip eval)
 #   EVAL_ONLY=1   skip training; eval an existing checkpoint
-#   EPOCHS=N      override num_epochs (default 3; set 1 to match the original qwen s13)
+#   EPOCHS=N      override num_epochs (DEFAULT 3 — used for ALL settings incl. s13)
 #
 # KEY DIFFERENCES vs the pod cell (run_qwen35_cell.sh):
 #   - VENV = /datastor2/jdr/venvs/gemma4  (transformers 5.x; NOT venv_lexcons)
@@ -35,8 +35,9 @@
 #     are filterable vs the old ones on the cloud. Still --no-upload-hf.
 #   - canonical trainer ranking_loss_ref_fix.py (NEVER ranking_loss_ref_qwen.py, obsolete)
 #   - settings s1/s2/s4/s7 mirror run_qwen35_cell.sh; s3 (New+fsx) and s13 (SFT+cft)
-#     added for the rerun. s13 here uses delta-bins/3-epoch (the original was fixed-d0.15/1ep;
-#     use EPOCHS=1 to match epoch count).
+#     added for the rerun. ALL settings (incl. s13) train 3 epochs (delta-bins 10).
+#     (The original qwen s13 was fixed-d0.15/1-epoch; this 3-epoch rerun is intentional —
+#     fuller curve + reaches epoch2.)
 set -euo pipefail
 
 DATASET="${1:?DATASET required (persona|membership|ifeval)}"
