@@ -86,13 +86,16 @@ case "$DATASET" in
         EVAL_TASKS=(persona-v1-psychopathy persona-v1-machiavellianism
                     persona-v1-narcissism persona-v1-desire-to-create-allies
                     persona-v1-interest-in-music persona-v1-interest-in-science)
-        MAX_SEQ="" ; GRAD_CKP="" ;;
+        MAX_SEQ="" ; GRAD_CKP="" ; DISC_SHOTS="--disc-shots few" ;;
     membership)
         TASK="membership-sans-rosch-v0"
         EVAL_TASKS=(rosch-bird rosch-carpenters-tool rosch-clothing rosch-fruit
                     rosch-furniture rosch-sport rosch-toy rosch-vehicle
                     rosch-vegetable rosch-weapon)
-        MAX_SEQ="" ; GRAD_CKP="" ;;
+        # membership/rosch uses FEW-shot disc — matches gemma-2-9b-it (run_gemma2_cell.sh).
+        # NB: Qwen3+ auto-detects to zero, so this override is REQUIRED. The original qwen
+        # membership runs (run_qwen35_cell.sh) wrongly used zero; this fixes that.
+        MAX_SEQ="" ; GRAD_CKP="" ; DISC_SHOTS="--disc-shots few" ;;
     ifeval)
         TASK="ifeval-concat"
         EVAL_TASKS=()
@@ -102,7 +105,9 @@ case "$DATASET" in
                 basename "$f" | grep -oE '[0-9]+' | head -1
             done | awk '$1+0 <= 21' | sort -n )
         MAX_SEQ="--max-seq-len 1024"
-        GRAD_CKP="--gradient_checkpointing" ;;
+        GRAD_CKP="--gradient_checkpointing"
+        # ifeval: make_prompt_ifeval doesn't implement few-shot — MUST stay zero (all models).
+        DISC_SHOTS="--disc-shots zero" ;;
     *) echo "Unknown DATASET: $DATASET"; exit 1 ;;
 esac
 
@@ -177,7 +182,7 @@ else
         --models-dir "$MODELS_DIR" \
         --wandb_run_name "$WANDB_RUN_NAME" \
         $LOSS_FLAGS $SEMI_FLAG $FSX_FLAG $TC_FLAG $VLO_FLAG $PPD_FLAGS $CFT_FLAG \
-        $LORA_FLAG $MAX_SEQ $GRAD_CKP \
+        $LORA_FLAG $MAX_SEQ $GRAD_CKP $DISC_SHOTS \
         --no-upload-hf
     MODEL_DIR=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
     [ -z "$MODEL_DIR" ] && { echo "ERROR: no model dir after train: $GLOB_PATTERN"; exit 1; }
@@ -202,7 +207,7 @@ for MODE in $EVAL_MODES; do
         echo "[$(date -u +%FT%TZ)] eval: $EVAL_TASK ($MODE)"
         python eval_by_claude.py \
             --model "$EVAL_MODEL_DIR" --task "$EVAL_TASK" --split_type random \
-            --disc-shots zero --gen-shots zero --outputs-dir "$OUTPUTS_DIR" \
+            $DISC_SHOTS --gen-shots zero --outputs-dir "$OUTPUTS_DIR" \
             --validator-log-odds $MODE $BASE_FLAGS --save-scores-csv
     done
 done

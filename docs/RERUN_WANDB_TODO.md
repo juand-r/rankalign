@@ -61,6 +61,19 @@ kernel → **~4 s/it (~2.9x), ~17 h per 3-epoch run** (canary job 43931). Build/
 - **In-session:** CronCreate heartbeats `a11e2da7` (:12,:42), `9d1f926f` (:27,:57).
 - **TEARDOWN when done:** `crontab -l | grep -v tick_qwen35_rerun | crontab -` + CronDelete both heartbeats.
 
+## ⚠️ disc-shots bug found 2026-06-07 — membership must be FEW
+**The original qwen membership runs used `disc_shots=zero` — a bug.** Verified from the bundled
+training log in `latkes/rankalign-v7-qwen3.5-9b-membership-s7-ep2` (`gen_shots: zero, disc_shots: zero`,
+no override). Qwen3+ auto-detects to zero; the original qwen launcher never overrode. But
+**gemma-2-9b-it membership uses `--disc-shots few`** (explicit override in `run_gemma2_cell.sh`) —
+that is the intended membership methodology. ifeval is zero for all models (no few-shot impl).
+
+**Fix:** `run_qwen35_cell_mll.sbatch` now sets disc-shots per task (membership/persona = `few`,
+ifeval = `zero`) and threads it into BOTH train and eval. Consequence:
+- **Cell C (membership qwen) reruns are wrong (trained zero) → MUST be re-run with the fixed launcher.**
+- The **original qwen membership paper models** are also wrong (zero) — flag for the paper.
+- Cell B (ifeval qwen) is unaffected (zero is correct for ifeval).
+
 ## Caveat
 Reruns are **fresh trainings** (seed 42 + same code/data → near-identical to the uploaded
 checkpoints, but not bit-identical). Fine for recovering curves; flag if the paper needs the exact
