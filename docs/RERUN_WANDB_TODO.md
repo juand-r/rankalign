@@ -47,10 +47,19 @@ kernel → **~4 s/it (~2.9x), ~17 h per 3-epoch run** (canary job 43931). Build/
 **Submit qwen reruns with `--time=24:00:00`** (17 h fits; 2 h does NOT).
 
 ## Order / status
-- [ ] **A (ifeval gemma-2-9b-it) FIRST** — user driving via `run_rerun_9bit_ifeval_wandb.sh`.
-- [ ] B, C (qwen ifeval + rosch) — qwen pipeline proven (job 43931, ~4 s/it). Ready to launch:
-      `sbatch --time=24:00:00 scripts/run_qwen35_cell_mll.sbatch ifeval s1` (then s2/s3/s4/s7/s13; then `membership ...`).
+- [ ] **A (ifeval gemma-2-9b-it)** — user driving via `run_rerun_9bit_ifeval_wandb.sh` (jobs 43886-43901, running).
+- [x] **B + C (qwen ifeval + rosch) LAUNCHED 2026-06-06 23:18 CT** — all 10 cells (s1/s2/s3/s4/s7 × ifeval/membership,
+      **s13 SKIPPED per user**), `TRAIN_ONLY=1`, `--time=24:00:00`. Jobs `qwrr-ifeval-s{1,2,3,4,7}` =
+      43933-43937, `qwrr-membership-s{1,2,3,4,7}` = 43938-43941 + 43943 (s7 resubmit after a transient
+      concurrent-download race). All RUNNING at ~4 s/it. wandb: `rerun-wandb-qwen3.5-9b-*` on juand-r/rankalign.
+      Models → `models2-rerun-wandb/`. **Eval skipped (TRAIN_ONLY)** — run `EVAL_ONLY=1` later if scores wanted.
 - [x] `s3` + `s13` cases added to `run_qwen35_cell_mll.sbatch`.
+
+### Supervision (live)
+- **Backbone:** laptop crontab `:07,:37` → `~/.claude/training_monitor/tick_qwen35_rerun.sh` → mll supervisor
+  `scripts/monitor_qwen35_rerun.sh` (resubmits FAILED/TIMEOUT/NODE_FAIL, cap 3; writes `.monitor/ALL_DONE.flag`).
+- **In-session:** CronCreate heartbeats `a11e2da7` (:12,:42), `9d1f926f` (:27,:57).
+- **TEARDOWN when done:** `crontab -l | grep -v tick_qwen35_rerun | crontab -` + CronDelete both heartbeats.
 
 ## Caveat
 Reruns are **fresh trainings** (seed 42 + same code/data → near-identical to the uploaded
