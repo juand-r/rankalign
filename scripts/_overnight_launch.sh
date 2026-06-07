@@ -79,10 +79,22 @@ case "$DATASET" in
         ;;
     ifeval)
         TASK="ifeval-concat"
-        EVAL_TASKS=""
-        for n in $(seq 1 21); do EVAL_TASKS="$EVAL_TASKS ifeval-prompt_$n"; done
-        # Trim leading space.
-        EVAL_TASKS="${EVAL_TASKS# }"
+        # Enumerate ALL registered ifeval prompts from the data dir, NOT seq 1..21.
+        # The prompt IDs are non-contiguous (gaps at 14,31,55,60,62,69,71,81,86,101)
+        # and number 99 total. seq 1..21 was both too few (missed the in-domain
+        # prompts 22+) and wrong (assumed contiguous IDs). Mirror the humaneval
+        # branch: glob the data files -> ifeval-prompt_<N>. Prompts 1..21 are the
+        # held-out TEST-ONLY set; 22+ are in-domain (within-prompt held-out half).
+        REPO_ROOT_FOR_TASKS="$(cd "$(dirname "$0")/.." && pwd)"
+        EVAL_TASKS=$(ls "$REPO_ROOT_FOR_TASKS/data/fixed-prompts-ifeval/gpt_ifeval_results_prompt_"*.jsonl 2>/dev/null \
+            | xargs -n1 basename 2>/dev/null \
+            | sed -E 's/gpt_ifeval_results_(prompt_[0-9]+)\.jsonl/ifeval-\1/' \
+            | sort -t_ -k2 -n | tr '\n' ' ')
+        EVAL_TASKS="${EVAL_TASKS% }"
+        if [ -z "$EVAL_TASKS" ]; then
+            echo "FATAL: ifeval task enumeration produced empty list (data dir missing?)"
+            exit 1
+        fi
         # ifeval-concat: ~5110 samples but longer prompts; longer wall.
         # 9b-it on 2 GPUs (model parallel) helps but still slow.
         case "$MODEL" in
