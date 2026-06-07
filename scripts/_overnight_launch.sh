@@ -398,6 +398,12 @@ build_eval_flags() {
     # _build_persona_v1_table_v7.py) scan both /datastor1/.../outputs and
     # /datastor2/jdr/rankalign/outputs, so new CSVs in /datastor2 are picked up.
     local out_dir_flag="--outputs-dir ${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs}"
+    # Propagate disc-shots to the EVAL too. The DISC_SHOTS var is set per-DATASET
+    # above (zero for ifeval/humaneval, else few). Without this, run_eval_semi.sh
+    # falls back to its own default of "few", and ifeval few-shot disc prompts
+    # raise NotImplementedError in make_prompt_ifeval -> every task crashes and
+    # zero scores are written (2026-06-07 reruns hit exactly this).
+    out_dir_flag="$out_dir_flag --disc-shots ${DISC_SHOTS:-few}"
     if [ "$tc" = "self" ]; then
         echo "--self-typcorr --base-typcorr --base-model $MODEL --log-odds $out_dir_flag"
     elif [ "$tc" = "neg" ]; then
