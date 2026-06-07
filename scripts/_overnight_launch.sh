@@ -97,9 +97,13 @@ case "$DATASET" in
         fi
         # ifeval-concat: ~5110 samples but longer prompts; longer wall.
         # 9b-it on 2 GPUs (model parallel) helps but still slow.
+        # EVAL_HOURS sized for the FULL 99-prompt eval set (not 21). run_eval_semi.sh
+        # reloads the model per task, so 99 tasks * (load + eval) is ~5x the old
+        # 21-task budget. Eval has skip-already-done resume, so an underestimate is
+        # recoverable, but give generous walltime to finish in one shot.
         case "$MODEL" in
-            *9b-it*) GPUS=2 ; TRAIN_HOURS=30 ; EVAL_HOURS=5 ;;
-            *)       GPUS=1 ; TRAIN_HOURS=14 ; EVAL_HOURS=4 ;;
+            *9b-it*) GPUS=2 ; TRAIN_HOURS=30 ; EVAL_HOURS=16 ;;
+            *)       GPUS=1 ; TRAIN_HOURS=14 ; EVAL_HOURS=12 ;;
         esac
         TRAIN_MEM=96G
         EVAL_MEM=64G
@@ -454,25 +458,34 @@ if [ -n "${DRYRUN:-}" ]; then
 fi
 
 # 1) Submit train.
+# EVAL_ONLY=1 skips training entirely and re-evaluates the already-saved
+# checkpoints matched by GLOB_PATH (used to re-run evals after a launcher bug,
+# e.g. the 2026-06-07 ifeval disc-shots/task-enumeration fixes). In that mode
+# TRAIN_JOBID stays empty and the eval jobs run with no train dependency.
 # When VENV_PREFIX is set, run_train_semi.sh activates the override venv via
 # its env-var hook (added 2026-05-24 alongside --consistency-ft).
-if [ -n "$VENV_PREFIX" ]; then
-    TRAIN_OUT=$(VENV="$VENV_OVERRIDE" run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
-        scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+TRAIN_JOBID=""
+if [ -n "${EVAL_ONLY:-}" ]; then
+    echo "EVAL_ONLY=1: skipping train submission; evaluating existing ${GLOB_PATH}"
 else
-    TRAIN_OUT=$(run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
-        scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
-fi
-echo "$TRAIN_OUT"
-TRAIN_JOBID=$(echo "$TRAIN_OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
+    if [ -n "$VENV_PREFIX" ]; then
+        TRAIN_OUT=$(VENV="$VENV_OVERRIDE" run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
+            scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+    else
+        TRAIN_OUT=$(run "$GPUS" "$TRAIN_HOURS" --cpu 4 --mem "$TRAIN_MEM" \
+            scripts/run_train_semi.sh "$MODEL" "$TASK" "$LOSS" "$SEMI_MODE" "$RATIO" "${COMMON_FLAGS[@]}" 2>&1) || true
+    fi
+    echo "$TRAIN_OUT"
+    TRAIN_JOBID=$(echo "$TRAIN_OUT" | grep -oE 'Submitted batch job [0-9]+' | grep -oE '[0-9]+$' | head -1)
 
-if [ -z "$TRAIN_JOBID" ]; then
-    echo "FAILED to submit train job for $label"
-    echo "$(date -u +%FT%TZ)  $label  TRAIN_FAILED  $TRAIN_OUT" >> "$JOB_LOG"
-    exit 2
-fi
+    if [ -z "$TRAIN_JOBID" ]; then
+        echo "FAILED to submit train job for $label"
+        echo "$(date -u +%FT%TZ)  $label  TRAIN_FAILED  $TRAIN_OUT" >> "$JOB_LOG"
+        exit 2
+    fi
 
-echo "Train submitted: jobid=$TRAIN_JOBID"
+    echo "Train submitted: jobid=$TRAIN_JOBID"
+fi
 
 # 2) Submit eval(s) chained on afterany.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -497,6 +510,9 @@ if [ -z \"\$MODEL_DIR\" ] || [ ! -d \"\$MODEL_DIR\" ]; then echo 'SKIP - no matc
 echo \"Eval model: \$MODEL_DIR\"; \
 PYTHONUNBUFFERED=1 /usr/bin/time -v scripts/run_eval_semi.sh \"\$MODEL_DIR\" $eval_flags -- ${EVAL_TASKS}"
 
+    # Only chain on the train job when there is one (EVAL_ONLY skips training).
+    local dep_flag=""
+    [ -n "$TRAIN_JOBID" ] && dep_flag="--dependency=afterany:$TRAIN_JOBID"
     EVAL_OUT=$(sbatch \
         --partition=allnodes \
         --cpus-per-task=4 \
@@ -505,7 +521,7 @@ PYTHONUNBUFFERED=1 /usr/bin/time -v scripts/run_eval_semi.sh \"\$MODEL_DIR\" $ev
         --time="${EVAL_HOURS}:00:00" \
         --output=/datastor2/jdr/logs/%j.out \
         --error=/datastor2/jdr/logs/%j.err \
-        --dependency=afterany:"$TRAIN_JOBID" \
+        $dep_flag \
         --job-name="eval-${SETTING}-${DATASET}-${tc}" \
         --wrap="$wrap_cmd" 2>&1) || true
     echo "$EVAL_OUT"
@@ -515,7 +531,7 @@ PYTHONUNBUFFERED=1 /usr/bin/time -v scripts/run_eval_semi.sh \"\$MODEL_DIR\" $ev
         echo "FAILED to submit eval ($tc) for $label"
         echo "$(date -u +%FT%TZ)  $eval_label  EVAL_FAILED  $EVAL_OUT" >> "$JOB_LOG"
     else
-        echo "Eval submitted: jobid=$EVAL_JOBID  (tc=$tc, dep=afterany:$TRAIN_JOBID)"
+        echo "Eval submitted: jobid=$EVAL_JOBID  (tc=$tc, dep=${dep_flag:-none})"
         echo "$(date -u +%FT%TZ)  $eval_label  TRAIN=$TRAIN_JOBID  EVAL=$EVAL_JOBID  TC=$tc  PATH=$GLOB_PATH" >> "$JOB_LOG"
     fi
 }

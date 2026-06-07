@@ -115,7 +115,7 @@ for TASK in "$@"; do
         echo "[$DONE/$TOTAL] $TASK"
     fi
 
-    HF_HOME=/datastor1/jdr/.cache/huggingface \
+    HF_HOME=/datastor2/jdr/hf_cache \
     python eval_by_claude.py \
         --model "$MODEL" \
         --task "$TASK" \
