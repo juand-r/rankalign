@@ -168,7 +168,8 @@ elif [ -n "$EXISTING" ]; then
     MODEL_DIR="$EXISTING"; echo "[$(date -u +%FT%TZ)] model dir exists, skipping train: $MODEL_DIR"
 else
     # wandb ONLINE; name each run so the rerun is filterable vs old runs on the cloud.
-    WANDB_RUN_NAME="rerun-wandb-qwen3.5-9b-${DATASET}-${SETTING}"
+    # WANDB_SUFFIX lets a batch tag its runs (e.g. "-discfew") to keep them distinct on wandb.
+    WANDB_RUN_NAME="rerun-wandb-qwen3.5-9b-${DATASET}-${SETTING}${WANDB_SUFFIX:-}"
     # shellcheck disable=SC2086
     python ranking_loss_ref_fix.py \
         --model "$MODEL" \

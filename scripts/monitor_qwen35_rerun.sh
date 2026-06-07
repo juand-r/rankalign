@@ -27,6 +27,10 @@ STATE=$SDIR/qwen35_rerun_state.tsv      # cell <TAB> jobid <TAB> resubmit_count 
 LOG=$SDIR/qwen35_rerun.log
 DONE=$SDIR/ALL_DONE.flag
 MAXRE=3
+# sbatch --export string used for resubmits; set per-run in $SDIR/resubmit_export.
+# Defaults to ALL. The disc-shots-few membership run uses "ALL,WANDB_SUFFIX=-discfew"
+# (NO TRAIN_ONLY — we want train+eval). The earlier curve-only run used "ALL,TRAIN_ONLY=1".
+REXPORT=$(cat "$SDIR/resubmit_export" 2>/dev/null || echo "ALL")
 
 mkdir -p "$SDIR"
 cd "$REPO" || { echo "cannot cd $REPO"; exit 1; }
@@ -51,7 +55,7 @@ while IFS=$'\t' read -r cell jid rc st; do
         FAILED|TIMEOUT|NODE_FAIL|OUT_OF_MEMORY|PREEMPTED|BOOT_FAIL|DEADLINE|CANCELLED*)
             if [ "${rc:-0}" -lt "$MAXRE" ]; then
                 elapsed=$(sacct -j "$jid" -n -P -o Elapsed 2>/dev/null | head -1)
-                out=$(sbatch --export=ALL,TRAIN_ONLY=1 --time=24:00:00 \
+                out=$(sbatch --export="$REXPORT" --time=24:00:00 \
                         --job-name="qwrr-$ds-$setting" "$LAUNCHER" "$ds" "$setting" 2>&1)
                 njid=$(echo "$out" | grep -oE '[0-9]+' | tail -1)
                 if [ -n "$njid" ]; then
