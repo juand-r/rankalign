@@ -37,7 +37,12 @@ NEXP = {"rosch": 10, "ifeval": 21}
 # (paper label, method_num). qwen has no s13 (Consistency FT) -> cells absent -> "---".
 ROWS = [("Base", 0), ("SFT", 1), ("RankAlign", 2),
         ("Consistency FT", 13), ("FLORA-PMI", 4), ("FLORA-Neg", 7)]
-PMI_COLS = {"self": ["PMI self", "PMI base"], "neg": ["Neg self", "Neg base"]}
+# Prefer the BASE-typicality variant (basetyp-/basetypneg-) so every TRAINED cell is
+# "self-base"/"neg-base". The base-model row has only its own self-/neg- (= base-typ by
+# definition, no base-of-base), so it falls through to that. This makes the whole table
+# consistently base-typicality (some gemma settings also have own-typ self-/neg- on disk;
+# without this order the coalesce would pick those, mixing own + base across cells).
+PMI_COLS = {"self": ["PMI base", "PMI self"], "neg": ["Neg base", "Neg self"]}
 
 incomplete_notes: list[str] = []
 
