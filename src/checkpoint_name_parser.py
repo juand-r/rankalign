@@ -413,7 +413,7 @@ def matches_v7_setting(
     pref: float = 1.0,          # default-omitted = 1.0
     nll_v: float = 0.0,         # default-omitted = 0.0
     nll_g: float = 0.0,         # default-omitted = 0.0
-    vallogodds: bool = False,
+    vallogodds=False,           # bool; or None to skip the check (match either)
     force_same_x: bool = False,
     ppd: bool = False,
     cft: bool = False,
@@ -452,7 +452,7 @@ def matches_v7_setting(
     if p['pref']         != pref:         return False
     if p['nll_v']        != nll_v:        return False
     if p['nll_g']        != nll_g:        return False
-    if p['vallogodds']   != vallogodds:   return False
+    if vallogodds is not None and p['vallogodds'] != vallogodds: return False
     if p['force_same_x'] != force_same_x: return False
     if p['ppd']          != ppd:          return False
     if p['cft']          != cft:          return False

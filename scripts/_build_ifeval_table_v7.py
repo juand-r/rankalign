@@ -242,12 +242,15 @@ METHODS: list[dict] = [
         num=0, label="Base",
         match=lambda s: s == BASE_HF,
     ),
-    # 1 SFT-lo: sft + labelonly. No fsx, no tc, no vlo.
+    # 1 SFT-lo: sft + labelonly. No fsx, no tc. vlo=None -> accept with OR without
+    # --validator-log-odds (some qwen reruns trained with it; label gets "+vlo").
     dict(num=1, label="SFT labelonly 10%",
-         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0, labelonly=0.1)),
-    # 2 RankAlign: pref-only + semi, no fsx, no TC, no vlo.
+         match=_setting_match(pref=0.0, nll_v=1.0, nll_g=1.0, labelonly=0.1, vallogodds=None),
+         vlo_label_match=lambda name: ("-vlo-" in name) or ("--vallogodds--" in name)),
+    # 2 RankAlign: pref-only + semi, no fsx, no TC. vlo=None -> accept either (label "+vlo").
     dict(num=2, label="RankAlign",
-         match=_setting_match(semi=0.1)),
+         match=_setting_match(semi=0.1, vallogodds=None),
+         vlo_label_match=lambda name: ("-vlo-" in name) or ("--vallogodds--" in name)),
     # 3 New + fsx [-TC]: comb + fsx (+ ppd) + vlo, no TC.
     dict(num=3, label="New + fsx [-TC]",
          match=_setting_match(nll_v=1.0, nll_g=1.0, force_same_x=True,
@@ -436,6 +439,7 @@ def main():
     ordered = [methods_by_num[n] for n in ROW_ORDER]
 
     fsx_label_suffix: dict[int, str] = {}
+    vlo_label_suffix: dict[int, str] = {}
 
     for m in ordered:
         cells = {}
@@ -452,6 +456,20 @@ def main():
                 if seen_fsx:
                     break
             fsx_label_suffix[m["num"]] = " +fsx" if seen_fsx else ""
+        # Mark rows whose matched checkpoint used --validator-log-odds (vlo).
+        if "vlo_label_match" in m:
+            seen_vlo = False
+            for _col, pfx, _v in COLUMNS:
+                for f in find_score_files(m, pfx).values():
+                    for p in f:
+                        if m["vlo_label_match"](p.name):
+                            seen_vlo = True
+                            break
+                    if seen_vlo:
+                        break
+                if seen_vlo:
+                    break
+            vlo_label_suffix[m["num"]] = " +vlo" if seen_vlo else ""
         for col_label, eval_prefix, variant in COLUMNS:
             if col_label in NA_COLS.get(m["num"], set()):
                 cells[col_label] = "---"
@@ -490,7 +508,8 @@ def main():
     for r in table_rows:
         cells_display = [str(r[c[0]]) for c in COLUMNS]
         suf = fsx_label_suffix.get(r["num"], "")
-        print(f"| {r['num']} {r['label']}{suf} | " + " | ".join(cells_display) + " |")
+        vsuf = vlo_label_suffix.get(r["num"], "")
+        print(f"| {r['num']} {r['label']}{suf}{vsuf} | " + " | ".join(cells_display) + " |")
 
     print(f"\nCSVs:\n- [{long_csv.relative_to(REPO)}]({long_csv.relative_to(REPO)})\n- [{cells_csv.relative_to(REPO)}]({cells_csv.relative_to(REPO)})")
 
