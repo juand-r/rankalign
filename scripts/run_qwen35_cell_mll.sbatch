@@ -50,7 +50,9 @@ VENV="${VENV:-/datastor2/jdr/venvs/qwen35}"
 REPO=/datastor2/jdr/rankalign
 # Rerun batch -> separate models dir so reruns never collide with the originals in models2/.
 MODELS_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb
-OUTPUTS_DIR=/datastor2/jdr/rankalign/outputs
+# Rerun eval scores go to a SEPARATE dir so they never overwrite the canonical outputs/
+# (these models already exist; we re-ran for wandb + the disc-shots fix). Overridable via env.
+OUTPUTS_DIR="${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs-rerun-wandb}"
 LOG_DIR=/datastor2/jdr/logs
 mkdir -p "$MODELS_DIR" "$OUTPUTS_DIR" "$LOG_DIR"
 
