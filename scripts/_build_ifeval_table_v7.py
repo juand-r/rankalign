@@ -54,16 +54,21 @@ from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 from checkpoint_name_parser import matches_v7_setting  # noqa: E402
 import hashlib  # noqa: E402
 
-OUT_DIR = REPO / "outputs"
-# The v7 ifeval reruns (with wandb) wrote their score CSVs to a dedicated
-# outputs-rerun-wandb dir on /datastor2; base-model ifeval CSVs live in the
-# plain /datastor2 outputs dir. Search all three.
+# Default: read from all output dirs, write to metrics-from-scores/
+# OUT_DIR = REPO / "outputs"
+# SEARCH_DIRS = [
+#     OUT_DIR,
+#     Path("/datastor2/jdr/rankalign/outputs"),
+#     Path("/datastor2/jdr/rankalign/outputs-rerun-wandb"),
+# ]
+# METRICS_DIR = REPO / "metrics-from-scores"
+
+# Wandb-rerun only: isolated input/output, no cross-dir collisions.
 SEARCH_DIRS = [
-    OUT_DIR,
-    Path("/datastor2/jdr/rankalign/outputs"),
     Path("/datastor2/jdr/rankalign/outputs-rerun-wandb"),
 ]
-METRICS_DIR = REPO / "metrics-from-scores"
+METRICS_DIR = REPO / "metrics-from-scores-rerun-wandb"
+
 METRICS_DIR.mkdir(exist_ok=True)
 
 # Mirror the OLD md5-hash truncation logic from src/tasks/common.py
