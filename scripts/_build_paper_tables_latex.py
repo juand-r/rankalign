@@ -24,7 +24,11 @@ from pathlib import Path
 
 import pandas as pd
 
-MDIR = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("metrics-from-scores")
+# rosch builder writes cells to metrics-from-scores/; ifeval builder writes to
+# metrics-from-scores-rerun-wandb/. Search both (rerun-wandb first = newest/correct).
+MDIRS = [Path("metrics-from-scores-rerun-wandb"), Path("metrics-from-scores")]
+if len(sys.argv) > 1:
+    MDIRS = [Path(sys.argv[1])] + MDIRS
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("docs/qwen_rerun_tables.tex")
 
 MODELS = [("G2-9b-it", "9b-it"), ("Q3.5-9b", "qwen3.5-9b")]
@@ -39,11 +43,12 @@ incomplete_notes: list[str] = []
 
 
 def load(task: str, model: str, metric: str):
-    cands = list(MDIR.glob(f"{task}_v7_*{model}_{metric}_table_cells.csv"))
-    cands = [c for c in cands if f"_{model}_" in c.name]
-    if not cands:
-        return None
-    return pd.read_csv(cands[0])
+    for d in MDIRS:
+        cands = [c for c in d.glob(f"{task}_v7_*{metric}_table_cells.csv")
+                 if f"_{model}_" in c.name and "_id_" not in c.name]  # ood split for ifeval
+        if cands:
+            return pd.read_csv(sorted(cands)[-1])
+    return None
 
 
 def get(df, num, columns):
@@ -105,7 +110,10 @@ def main_table() -> str:
               r"neg-TC eval shown as separate rows (cf.\ \texttt{tab:main-results-multi}, which "
               r"reports the per-task best). All rows are \textbf{epoch 2}. "
               r"$^{\dagger}$ = incomplete (see notes). \texttt{---} = setting not run for that model "
-              r"(e.g.\ Consistency FT was not trained for Qwen).}",
+              r"(e.g.\ Consistency FT was not trained for Qwen). \textbf{NB:} the Qwen SFT and "
+              r"RankAlign cells were trained \emph{with} \texttt{--validator-log-odds} (vlo); the gemma "
+              r"ones were not (effect negligible when $P(\mathrm{Yes}){+}P(\mathrm{No})\approx1$). "
+              r"disc-shots: membership=few, ifeval=zero.}",
               r"\label{tab:qwen-rerun-main}", r"\end{table*}"]
     return "\n".join(lines)
 
