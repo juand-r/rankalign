@@ -66,6 +66,7 @@ import hashlib  # noqa: E402
 # Wandb-rerun only: isolated input/output, no cross-dir collisions.
 SEARCH_DIRS = [
     Path("/datastor2/jdr/rankalign/outputs-rerun-wandb"),
+    Path("/datastor2/jdr/rankalign/outputs"),  # base-model (v6-*) rows live here
 ]
 METRICS_DIR = REPO / "metrics-from-scores-rerun-wandb"
 
@@ -164,10 +165,19 @@ if not PROMPTS:
 EVAL_TASKS = [f"ifeval-prompt_{n}" for n in PROMPTS]
 N_EXPECTED = len(EVAL_TASKS)
 
+# Model registry: friendly key -> (model_short used in v7-<...> trained-model filenames,
+# base-model token used in v6-<...> base filenames). To support a new model, add ONE line
+# here — nothing else below is model-specific.
+MODEL_REGISTRY = {
+    "2b":         ("gemma-2-2b",    "v6-google_gemma-2-2b"),
+    "2b-it":      ("gemma-2-2b-it", "v6-google_gemma-2-2b-it"),
+    "9b-it":      ("gemma-2-9b-it", "v6-google_gemma-2-9b-it"),
+    "qwen3.5-9b": ("Qwen3.5-9B",    "v6-Qwen_Qwen3.5-9B"),
+}
 MODEL = os.environ.get("IFEVAL_MODEL", "9b-it").lower()
-VALID_MODELS = {"2b", "2b-it", "9b-it"}
-if MODEL not in VALID_MODELS:
-    raise SystemExit(f"IFEVAL_MODEL must be one of {VALID_MODELS}, got {MODEL!r}")
+if MODEL not in MODEL_REGISTRY:
+    raise SystemExit(f"IFEVAL_MODEL must be one of {sorted(MODEL_REGISTRY)}, got {MODEL!r}")
+MODEL_SHORT, BASE_TOKEN = MODEL_REGISTRY[MODEL]
 
 METRIC = os.environ.get("IFEVAL_METRIC", "gen_roc").lower()
 SUPPORTED_METRICS = {"gen_roc", "pearson", "spearman", "val_roc", "val_acc"}
@@ -182,7 +192,7 @@ METRIC_LABEL = {
 # in CSV filenames (eval_by_claude.py line ~1417 / src/tasks/common.py
 # `build_model_short`) regardless of fix1, because that prefix is hard-coded
 # for HF-style "org/name" inputs.
-BASE_HF = f"v6-google_gemma-2-{MODEL}"
+BASE_HF = BASE_TOKEN
 
 # Trained-model identification is now structural (parse → field-compare),
 # handled by `matches_v7_setting()` from checkpoint_name_parser. This works
@@ -191,7 +201,7 @@ BASE_HF = f"v6-google_gemma-2-{MODEL}"
 #   (B) un-abbreviated:           `v7-google--gemma-2-9b-it-delta2.69-...-fix1[_merged]`
 #   (C) abbreviated (>160ch):     `v7-gemma-2-9b-it-d2.69-e2-...-sm0.1-fix1`
 TASK_SEG = "ifeval-concat-all"
-GEMMA_MODEL = f"gemma-2-{MODEL}"  # what parse_checkpoint_name returns as model_short
+GEMMA_MODEL = MODEL_SHORT  # model_short from MODEL_REGISTRY (what parse_checkpoint_name returns)
 
 COLUMNS = [
     ("Raw",      ["self-", "neg-", "basetyp-", "basetypneg-"], "raw"),
@@ -472,7 +482,7 @@ def main():
 
     split_human = "OOD (prompts 1..21)" if SPLIT == "ood" else "in-domain/ID (prompts 22+)"
     print(f"\nIFEval {split_human} [v7/fix1] {METRIC_LABEL} × 100 — mean ± SE across {N_EXPECTED} prompts")
-    print(f"Model: gemma-2-{MODEL}, trained on ifeval-concat-all, epoch2.\n")
+    print(f"Model: {MODEL_SHORT}, trained on ifeval-concat-all, epoch2.\n")
     header = ["Method"] + [c[0] for c in COLUMNS]
     sep = ["---"] * len(header)
     print("| " + " | ".join(header) + " |")
