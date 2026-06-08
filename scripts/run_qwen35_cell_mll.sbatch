@@ -198,7 +198,13 @@ fi
 
 # ============================ EVAL ============================
 echo "[$(date -u +%FT%TZ)] === EVAL: ${#EVAL_TASKS[@]} tasks, modes='$EVAL_MODES' ==="
-EVAL_MODEL_DIR="$REPO/eval_model_qw_${SETTING}"   # short symlink (255-char filename cap)
+# Name the eval symlink with the canonical abbreviated v7 descriptor (to_hf_repo_name) so
+# scores_ filenames carry full provenance (model/delta/epoch/method) and parse with
+# checkpoint_name_parser — NOT a generic eval_model_qw_<setting> (which loses all of that and
+# breaks _build_*_table_v7.py). The abbreviated form is short enough for the 255-char cap.
+EVAL_NAME=$(PYTHONPATH="$REPO/src" python -c "from checkpoint_name_parser import parse_checkpoint_name, to_hf_repo_name; import os; print(to_hf_repo_name(parse_checkpoint_name(os.path.basename('$MODEL_DIR')), prefix=''))")
+[ -z "$EVAL_NAME" ] && { echo "ERROR: could not derive abbreviated eval name from $MODEL_DIR"; exit 1; }
+EVAL_MODEL_DIR="$REPO/$EVAL_NAME"
 ln -sfn "$MODEL_DIR" "$EVAL_MODEL_DIR"
 if [ -n "${NO_BASE:-}" ]; then
     BASE_FLAGS=""; echo "[$(date -u +%FT%TZ)] NO_BASE=1 — self-/neg- only"
