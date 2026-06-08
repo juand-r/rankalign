@@ -102,10 +102,14 @@ case "$DATASET" in
         TASK="ifeval-concat"
         EVAL_TASKS=()
         IFEVAL_DATA_DIR="$REPO/data/fixed-prompts-ifeval"
+        # IFEVAL_SPLIT=ood -> prompts 1..21 (the held-out OOD set, ~20 after gaps; default).
+        # IFEVAL_SPLIT=id  -> prompts >=22 (the in-domain set, ~79). Prompt IDs are NON-sequential
+        # (gaps, e.g. no 14) — matches _build_ifeval_table_v7.py's ood/id definition.
+        IFEVAL_SPLIT="${IFEVAL_SPLIT:-ood}"
         while IFS= read -r n; do EVAL_TASKS+=("ifeval-prompt_$n"); done < <(
             for f in "$IFEVAL_DATA_DIR"/gpt_ifeval_results_prompt_*.jsonl; do
                 basename "$f" | grep -oE '[0-9]+' | head -1
-            done | awk '$1+0 <= 21' | sort -n )
+            done | awk -v s="$IFEVAL_SPLIT" '(s=="ood" && $1+0<=21) || (s=="id" && $1+0>=22)' | sort -n )
         MAX_SEQ="--max-seq-len 1024"
         GRAD_CKP="--gradient_checkpointing"
         # ifeval: make_prompt_ifeval doesn't implement few-shot — MUST stay zero (all models).

@@ -59,7 +59,7 @@ def get(df, num, columns):
         r = sub[sub["column"] == c]
         if len(r) and pd.notna(r.iloc[0]["mean"]):
             return dict(mean=float(r.iloc[0]["mean"]), se=float(r.iloc[0]["se"]),
-                        n=int(r.iloc[0]["n"]))
+                        n=int(r.iloc[0]["n"]), note=str(r.iloc[0]["note"]))
     return None
 
 
@@ -67,10 +67,11 @@ def fmt(c, task, model, label, metric, tc):
     if c is None:
         return "---"
     s = f"{c['mean']:.1f}\\stdv{{{c['se']:.1f}}}" if not math.isnan(c["se"]) else f"{c['mean']:.1f}"
-    nexp = NEXP[task]
-    if c["n"] < nexp:
+    # Use the builder's own completeness note (computed vs the correct per-split N_EXPECTED);
+    # ifeval prompt IDs are non-sequential with gaps, so a hardcoded count would mis-flag.
+    if c.get("note", "OK") != "OK":
         s += "$^{\\dagger}$"
-        incomplete_notes.append(f"{label}{'/'+tc if tc else ''} {metric} {task}/{model}: {c['n']}/{nexp}")
+        incomplete_notes.append(f"{label}{'/'+tc if tc else ''} {metric} {task}/{model}: {c['note']}")
     return s
 
 
