@@ -347,14 +347,26 @@ def make_unified_plots(all_results):
     """Create unified comparison plots across all combos."""
     combined = pd.concat(all_results.values(), ignore_index=True)
 
-    # Focus on epoch 2, self-TC, key settings (s1-s3, s7)
+    # Focus on epoch 2, key settings
     key_settings = ["base", "s1", "s2", "s3", "s4", "s7"]
-    ep2 = combined[(combined["epoch"].isin([2, -1])) & (combined["tc_eval"] == "self")]
+    # s7 uses neg-TC eval; all others use self-TC eval
+    ep2_self = combined[(combined["epoch"].isin([2, -1])) & (combined["tc_eval"] == "self")]
+    ep2_neg = combined[(combined["epoch"].isin([2, -1])) & (combined["tc_eval"] == "neg") & (combined["setting"] == "s7")]
+    ep2 = pd.concat([ep2_self, ep2_neg], ignore_index=True)
     ep2 = ep2[ep2["setting"].isin(key_settings)]
 
     if ep2.empty:
         print("  No data for unified plots!")
         return
+
+    SETTING_LABELS = {
+        "base": "Base",
+        "s1": "SFT",
+        "s2": "RankAlign",
+        "s3": "Ours (w/o TC)",
+        "s4": "Ours",
+        "s7": "Ours (neg TC)",
+    }
 
     # Plot: gen_roc(tc) grouped by dataset×model pair, bars = settings
     fig, ax = plt.subplots(figsize=(12, 7))
@@ -374,13 +386,13 @@ def make_unified_plots(all_results):
             else:
                 vals.append(np.nan)
         offset = (i - (n_settings - 1) / 2) * width
-        ax.bar(x + offset, vals, width, label=s, alpha=0.8)
+        ax.bar(x + offset, vals, width, label=SETTING_LABELS[s], alpha=0.8)
 
     ax.set_xticks(x)
     ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Generator ROC AUC (TC)")
-    ax.set_title("Generator ROC AUC across settings and model/task combos\n(epoch 2, self-TC scoring, train set)")
-    ax.legend(title="Setting")
+    ax.set_title("Generator ROC AUC across settings and model/task combos\n(epoch 2, TC scoring, train set)")
+    ax.legend(title="Setting", loc="upper right")
     ax.set_ylim(0.0, 1.0)
     ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3)
     plt.tight_layout()
@@ -416,13 +428,13 @@ def make_unified_plots(all_results):
             else:
                 improvements.append(np.nan)
         offset = (i - (n_snb - 1) / 2) * width2
-        ax.bar(x + offset, improvements, width2, label=s, alpha=0.8)
+        ax.bar(x + offset, improvements, width2, label=SETTING_LABELS[s], alpha=0.8)
 
     ax.set_xticks(x)
     ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Δ Gen ROC AUC over Base")
-    ax.set_title("Improvement over base model (gen_roc TC)\n(epoch 2, self-TC scoring, train set)")
-    ax.legend(title="Setting")
+    ax.set_title("Improvement over base model (gen_roc TC)\n(epoch 2, TC scoring, train set)")
+    ax.legend(title="Setting", loc="upper right")
     ax.axhline(0, color='gray', linestyle='-', alpha=0.3)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "unified_improvement_over_base.png", dpi=150, bbox_inches='tight')
@@ -441,13 +453,13 @@ def make_unified_plots(all_results):
             else:
                 vals.append(np.nan)
         offset = (i - (n_settings - 1) / 2) * width
-        ax.bar(x + offset, vals, width, label=s, alpha=0.8)
+        ax.bar(x + offset, vals, width, label=SETTING_LABELS[s], alpha=0.8)
 
     ax.set_xticks(x)
     ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Concordance (gen-val pair agreement)")
-    ax.set_title("Generator-Validator Concordance\n(epoch 2, self-TC scoring, train set)")
-    ax.legend(title="Setting")
+    ax.set_title("Generator-Validator Concordance\n(epoch 2, TC scoring, train set)")
+    ax.legend(title="Setting", loc="upper right")
     ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "unified_concordance_comparison.png", dpi=150, bbox_inches='tight')
