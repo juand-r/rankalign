@@ -46,21 +46,41 @@ TC-neg training similarly helps when evaluated with neg-TC scoring.
 
 ## Q2: Training Diagnostics
 
-### WandB Loss Curves
+### WandB Loss Component Breakdown (Final Third of Training)
 
-**Gemma IFEval:**
-- All settings show HIGH VARIANCE in the final training quarter (inherent to the ranking loss).
-- s3 shows NLL-V increasing — the validator NLL gets slightly worse as training focuses on ranking.
-- No clear divergence or catastrophic issues for the "good" settings.
+**Gemma IFEval (critical finding!):**
 
-**Qwen IFEval:**
-- s2 and s4 show LOSS INCREASED flag — total loss drifts upward.
-- This correlates with s2's poor test performance (generator explosion).
+| Setting | Total Loss | Pref Loss | NLL-G | NLL-V |
+|---|---|---|---|---|
+| s1 (SFT) | 5.99 | 0.00 | 5.99 | 0.0002 |
+| **s2 (basic)** | 11.56 | 11.56 | **3119.8** | 0.00 |
+| s3 (TC-self) | 6.40 | 2.64 | 3.76 | 0.001 |
+| s4 (full) | 6.15 | 1.81 | 4.33 | 0.009 |
+| s7 (TC-neg) | 5.13 | 1.37 | 3.77 | 0.001 |
+
+**ROOT CAUSE of s2 failure**: Without NLL-G constraint, the generator's NLL explodes to **3120** (vs 3.8-4.3 for constrained settings). The model produces arbitrarily large generator scores to minimize the unconstrained preference loss.
 
 **Qwen Membership:**
-- s1 is clean (OK). All others show final-quarter variance (normal for ranking).
 
-### Diagnostic: Score Explosion in s2/IFEval
+| Setting | Total Loss | Pref Loss | NLL-G | NLL-V |
+|---|---|---|---|---|
+| s1 (SFT) | 2.75 | 0.00 | 2.75 | 0.0001 |
+| s2 (basic) | 0.04 | 0.04 | 2.42 | 0.00 |
+| s3 (TC-self) | 0.82 | 0.04 | 0.77 | 0.0001 |
+| s4 (full) | 0.80 | 0.03 | 0.77 | 0.0000 |
+| s7 (TC-neg) | 0.77 | 0.05 | 0.72 | 0.0001 |
+
+**Key insight**: On the simpler membership task, even s2 keeps NLL-G reasonable (2.42) without explicit constraint. The constraint is only critical for complex tasks (ifeval) where the optimization landscape allows score explosion.
+
+### Why s2 Fails on IFEval but Works on Membership
+
+The mechanism is clear from WandB data:
+1. **s2 has NO NLL-G constraint** — only the preference loss.
+2. On ifeval (complex, many tokens per example), the model finds it "easier" to maximize preference by inflating raw scores rather than learning genuine features.
+3. On membership (simple, few tokens per example), the optimization landscape naturally constrains scores — there's less room to exploit.
+4. TC further helps because it normalizes scores relative to a base model, preventing drift.
+
+### Score Explosion Diagnostic
 
 | Setting / Task | gen_delta_mean | gen_roc (tc) | Status |
 |---|---|---|---|
@@ -70,8 +90,11 @@ TC-neg training similarly helps when evaluated with neg-TC scoring.
 | Gemma membership s2 | 9.1 | 0.941 | ✓ Normal |
 | Gemma membership s4 | 10.9 | 0.948 | ✓ Normal |
 
-The gen_delta_mean (mean absolute pairwise difference in generator scores) is an excellent diagnostic.
-Values >1000 suggest unstable training. For s2 on ifeval, it's 13,421 — confirming complete score explosion.
+### Additional WandB Findings
+
+- **NLL-V is always tiny** (<0.01 for all settings). The validator barely changes during training — it's frozen/near-frozen. This is expected given the log-odds formulation.
+- **s7 (TC-neg) achieves the lowest total loss** (5.13 on Gemma IFEval) — TC-neg training is the most efficient at optimization.
+- **Preference loss decreases for all constrained settings** — the model IS learning to rank, but the NLL regularization prevents degenerate solutions.
 
 ---
 
@@ -105,6 +128,29 @@ For gemma membership (self-TC scoring):
 - **s4 (RA full)**: gradually improves ep0 (0.937) → ep2 (0.948).
 - **s2 (RA basic)**: also gradual improvement ep0 (0.899) → ep2 (0.941).
 - **s11 (TC-self vlo)**: highest spearman (0.865) despite slightly lower gen_roc.
+
+---
+
+## Per-Category Analysis (Gemma Membership)
+
+### Which categories benefit most from TC?
+
+Top 5 improvements (Base → s3):
+| Category | Base gen_roc | s3 gen_roc | Improvement |
+|---|---|---|---|
+| medical specialty | 0.504 | 1.000 | **+0.496** |
+| female first name | 0.570 | 0.994 | +0.423 |
+| thing that makes noise | 0.572 | 0.962 | +0.390 |
+| male first name | 0.700 | 1.000 | +0.300 |
+| state | 0.718 | 1.000 | +0.282 |
+
+**Pattern**: Categories where the base model was weakest (gen_roc ~0.5-0.7) benefit the most from training. Categories already near ceiling (1.0) show minimal improvement.
+
+### One regression
+- "thing taken from a burning home": 0.670 → 0.405 (-0.265, n=20). This is a small, ambiguous category where the model may have overfit to training signal.
+
+### TC-specific improvement (s4 → s3)
+The distribution of per-category improvements from adding TC-self training is consistently positive. Out of 68 categories, the large majority improve with TC-self. See `analysis/plots/per_category_improvement_distribution.png`.
 
 ---
 

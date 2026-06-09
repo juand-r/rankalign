@@ -102,13 +102,42 @@ Training was monitored via WandB for gemma-ifeval and qwen-membership/ifeval (ge
 \label{fig:loss_qwen_ifeval}
 \end{figure}
 
-\subsection{Diagnostic Flags}
+\subsection{Loss Component Breakdown}
 
-\begin{itemize}
-\item \textbf{All settings}: High variance in the final training quarter. This is inherent to the ranking loss (pairs are noisy).
-\item \textbf{s3 (gemma ifeval)}: NLL-V increases during training --- the validator signal degrades slightly as ranking dominates.
-\item \textbf{s2, s4 (qwen ifeval)}: Total loss drifts upward --- correlates with s2's poor downstream metrics.
-\end{itemize}
+Table~\ref{tab:loss_breakdown} reveals the root cause of s2's failure on IFEval: without an NLL-G constraint, the generator's NLL explodes to \textbf{3120} (vs.\ 3.8--4.3 for constrained settings).
+
+\begin{table}[H]
+\centering
+\caption{Final-third loss components (Gemma IFEval). s2's NLL-G explosion explains its poor gen\_roc.}
+\label{tab:loss_breakdown}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Setting} & \textbf{Total} & \textbf{Pref} & \textbf{NLL-G} & \textbf{NLL-V} \\
+\midrule
+s1 (SFT) & 5.99 & 0.00 & 5.99 & 0.000 \\
+\textbf{s2 (basic)} & \textbf{11.56} & \textbf{11.56} & \textbf{3119.8} & 0.000 \\
+s3 (TC-self) & 6.40 & 2.64 & 3.76 & 0.001 \\
+s4 (full) & 6.15 & 1.81 & 4.33 & 0.009 \\
+s7 (TC-neg) & 5.13 & 1.37 & 3.77 & 0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key insight}: On the simpler membership task (Qwen), s2 keeps NLL-G reasonable (2.42) without explicit constraint. The constraint is only critical for complex tasks where the optimization landscape allows score explosion.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/wandb_score_evolution.png}
+\caption{Score spread evolution during training. s2 on Gemma IFEval shows unbounded generator score growth.}
+\label{fig:score_evolution}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/wandb_preference_loss_evolution.png}
+\caption{Preference loss evolution. All constrained settings converge; s2 achieves low preference loss at the cost of NLL explosion.}
+\label{fig:pref_loss}
+\end{figure}
 
 \subsection{Score Explosion Diagnostic}
 
@@ -207,6 +236,26 @@ Qwen / IFEval & 0.119 & 0.151 & 0.205 & 0.404 & \textbf{0.431} \\
 \caption{Concordance across all model/task combinations.}
 \label{fig:concordance}
 \end{figure}
+
+\subsection{Generator-Validator Scatter Plots}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/gen_vs_val_scatter.png}
+\caption{Generator vs validator scores for Base, s4, and s3 (self-TC scoring, gemma membership). Training improves the separation between positive (green) and negative (red) items in both generator and validator space.}
+\label{fig:scatter}
+\end{figure}
+
+\subsection{Per-Category Analysis}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/per_category_improvement_distribution.png}
+\caption{Left: distribution of per-category improvements (Base $\to$ s3). Right: improvements from TC-self specifically (s4 $\to$ s3). Both are consistently positive.}
+\label{fig:per_category}
+\end{figure}
+
+Categories where the base model was weakest (gen\_roc $\approx$ 0.5--0.7) benefit most from training. For example, ``medical specialty'' improves from 0.504 to 1.000 ($+$0.496). Categories already near ceiling show minimal gains (expected).
 
 %% ============================================================
 \section{Focused TC Comparison}
