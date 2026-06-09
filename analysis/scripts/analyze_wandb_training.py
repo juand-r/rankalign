@@ -32,6 +32,10 @@ SETTING_LABELS = {
 }
 
 # WandB run IDs for finished runs
+# NOTE: gemma-membership v7 was trained before WandB logging was added.
+# Older (pre-v7) runs exist but lack fix1, force-same-x, ppd, vallogodds
+# so they are not directly comparable.
+
 GEMMA_IFEVAL_RUNS = {
     "s1": "5ikunquj",
     "s2": "rd7pz236",
@@ -126,6 +130,45 @@ def analyze_runs(runs_dict, label_prefix):
         plt.suptitle(f"{group_label} — {label_prefix}", fontsize=12, y=1.01)
         plt.tight_layout()
         fname = f"wandb_loss_{suffix}_{label_prefix.replace(' ', '_').lower()}.png"
+        plt.savefig(PLOTS_DIR / fname, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"  Saved: analysis/plots/{fname}")
+
+    # Zoomed versions with capped y-limits
+    YLIM_CAPS = {
+        "train/loss": 150,
+        "train/preference_loss": 20,
+        "train/nll_generator_loss": 150,
+        "train/nll_validator_loss": 2.5,
+    }
+    for group, group_label, suffix in [
+        (group_a, "SFT vs RankAlign vs Ours", "methods"),
+        (group_b, "Ours variants (TC comparison)", "tc"),
+    ]:
+        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        axes_flat = axes.flatten()
+
+        for idx, (metric, title) in enumerate(metrics_to_plot):
+            ax = axes_flat[idx]
+            for setting, legend_label in group.items():
+                if setting not in all_data:
+                    continue
+                history = all_data[setting]
+                if metric in history.columns:
+                    values = history[metric].dropna()
+                    steps = history["_step"].iloc[:len(values)].values[:len(values)]
+                    if len(values) > 0:
+                        smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
+                        ax.plot(steps[:len(smoothed)], smoothed, label=legend_label, alpha=0.8)
+            ax.set_xlabel("Step")
+            ax.set_ylabel(title)
+            ax.set_title(f"{title}\n({label_prefix})")
+            ax.set_ylim(0, YLIM_CAPS[metric])
+            ax.legend(fontsize=9, loc="best")
+
+        plt.suptitle(f"{group_label} — {label_prefix} [zoomed]", fontsize=12, y=1.01)
+        plt.tight_layout()
+        fname = f"wandb_loss_{suffix}_{label_prefix.replace(' ', '_').lower()}_zoomed.png"
         plt.savefig(PLOTS_DIR / fname, dpi=150, bbox_inches='tight')
         plt.close()
         print(f"  Saved: analysis/plots/{fname}")
