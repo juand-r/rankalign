@@ -167,6 +167,9 @@ echo "[$(date -u +%FT%TZ)] model dir glob: $GLOB_PATTERN"
 # ============================ TRAIN ============================
 echo "[$(date -u +%FT%TZ)] === TRAIN: $SETTING x $TASK ==="
 EXISTING=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
+# MODEL_DIR_OVERRIDE bypasses the glob (used to eval the original HF checkpoints in
+# models2-original-hf, symlinked to a parseable v7-Qwen--... name).
+[ -n "${MODEL_DIR_OVERRIDE:-}" ] && EXISTING="$MODEL_DIR_OVERRIDE"
 if [ -n "${EVAL_ONLY:-}" ]; then
     [ -z "$EXISTING" ] && { echo "ERROR: EVAL_ONLY but no model dir: $GLOB_PATTERN"; exit 1; }
     MODEL_DIR="$EXISTING"; echo "[$(date -u +%FT%TZ)] EVAL_ONLY — using $MODEL_DIR"
