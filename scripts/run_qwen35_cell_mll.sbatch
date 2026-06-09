@@ -49,7 +49,8 @@ MODEL="Qwen/Qwen3.5-9B"
 VENV="${VENV:-/datastor2/jdr/venvs/qwen35}"
 REPO=/datastor2/jdr/rankalign
 # Rerun batch -> separate models dir so reruns never collide with the originals in models2/.
-MODELS_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb
+# Overridable via env (same pattern as OUTPUTS_DIR) so a repro batch writes to its own dir.
+MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2-rerun-wandb}"
 # Rerun eval scores go to a SEPARATE dir so they never overwrite the canonical outputs/
 # (these models already exist; we re-ran for wandb + the disc-shots fix). Overridable via env.
 OUTPUTS_DIR="${OUTPUTS_DIR:-/datastor2/jdr/rankalign/outputs-rerun-wandb}"
