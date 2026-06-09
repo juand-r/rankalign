@@ -20,8 +20,8 @@ METHOD_MAP_ROSCH = {
     "Base": "base",
     "SFT labelonly 10%": "s1",
     "RankAlign": "s2",
-    "New + fsx [-TC]": "s4",
-    "New + PMI + fsx": "s3",
+    "New + fsx [-TC]": "s3",
+    "New + PMI + fsx": "s4",
     "New + PMI [-fsx]": "s11",
     "RA + PMI [+TC]": "s5",
     "SFT + CFT": "s13",
@@ -32,8 +32,8 @@ METHOD_MAP_IFEVAL = {
     "SFT labelonly 10%": "s1",
     "SFT + CFT": "s13",
     "RankAlign": "s2",
-    "New + fsx [-TC]": "s4",
-    "New + PMI + fsx": "s3",
+    "New + fsx [-TC]": "s3",
+    "New + PMI + fsx": "s4",
 }
 
 
@@ -97,7 +97,7 @@ def main():
     # Print comparison tables
     print("\n=== Gemma Membership/Rosch: Train Set vs Test Set ===")
     print(f"{'Setting':<8} {'Train (membership)':<20} {'Test (rosch, basetyp)':<22}")
-    settings = ["base", "s1", "s2", "s4", "s3", "s5", "s11"]
+    settings = ["base", "s1", "s2", "s3", "s4", "s5", "s11"]
     for s in settings:
         train_val = train_metrics.get("gemma_membership_train", {}).get(s, np.nan)
         test_val = test_metrics.get("gemma_rosch_test", {}).get(s, np.nan)
@@ -105,7 +105,7 @@ def main():
 
     print("\n=== Gemma IFEval: Train Set vs Test Set (ID) vs Test Set (OOD) ===")
     print(f"{'Setting':<8} {'Train':<10} {'Test ID':<12} {'Test OOD':<12}")
-    settings = ["base", "s1", "s2", "s4", "s3"]
+    settings = ["base", "s1", "s2", "s3", "s4"]
     for s in settings:
         train_val = train_metrics.get("gemma_ifeval_train", {}).get(s, np.nan)
         test_id = test_metrics.get("gemma_ifeval_id_test", {}).get(s, np.nan)
@@ -120,7 +120,7 @@ def main():
     train_vals = []
     test_vals = []
     labels = []
-    for s in ["base", "s1", "s2", "s4", "s3", "s5", "s11"]:
+    for s in ["base", "s1", "s2", "s3", "s4", "s5", "s11"]:
         t = train_metrics.get("gemma_membership_train", {}).get(s, np.nan)
         ts = test_metrics.get("gemma_rosch_test", {}).get(s, np.nan)
         if not np.isnan(t) and not np.isnan(ts):
@@ -148,7 +148,7 @@ def main():
     train_vals = []
     test_vals = []
     labels = []
-    for s in ["base", "s1", "s2", "s4", "s3"]:
+    for s in ["base", "s1", "s2", "s3", "s4"]:
         t = train_metrics.get("gemma_ifeval_train", {}).get(s, np.nan)
         ts = test_metrics.get("gemma_ifeval_ood_test", {}).get(s, np.nan)
         if not np.isnan(t) and not np.isnan(ts):
@@ -177,7 +177,7 @@ def main():
 
     # Save comparison table
     comparison_rows = []
-    for s in ["base", "s1", "s2", "s4", "s3", "s5", "s11"]:
+    for s in ["base", "s1", "s2", "s3", "s4", "s5", "s11"]:
         comparison_rows.append({
             "setting": s,
             "train_membership_gen_roc": train_metrics.get("gemma_membership_train", {}).get(s, np.nan),
@@ -193,9 +193,9 @@ def main():
     # Summary
     print("\n=== KEY FINDING: Train-Test Agreement ===")
     print("The rank ordering of settings is preserved between train and test:")
-    print("  - Rosch test: s11 ≈ s3 > s5 > s2 > s4 > s1 (TC always helps)")
-    print("  - IFEval OOD: s3 > s4 >> s1 > s2 (s2 fails on test too)")
-    print("  - Notable: on rosch TEST, s4 (no TC) < s2 (basic RA)!")
+    print("  - Rosch test: s11 ≈ s4 > s5 > s2 > s3 > s1 (TC always helps)")
+    print("  - IFEval OOD: s4 > s3 >> s1 > s2 (s2 fails on test too)")
+    print("  - Notable: on rosch TEST, s3 (no TC) < s2 (basic RA)!")
     print("    This is because rosch test uses different categories than train.")
     print("    TC generalizes better than non-TC full method on OOD categories.")
 

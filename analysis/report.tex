@@ -38,7 +38,7 @@ Table~\ref{tab:main_comparison} shows the generator ROC AUC (typicality-correcte
 \label{tab:main_comparison}
 \begin{tabular}{lcccccc}
 \toprule
-\textbf{Model / Task} & \textbf{Base} & \textbf{s1 (SFT)} & \textbf{s2 (RA basic)} & \textbf{s4 (RA full)} & \textbf{s3 (TC-self)} \\
+\textbf{Model / Task} & \textbf{Base} & \textbf{s1 (SFT)} & \textbf{s2 (RA basic)} & \textbf{s3 (RA full)} & \textbf{s4 (TC-self)} \\
 \midrule
 Gemma / Membership & 0.851 & --- & 0.941 & 0.948 & \textbf{0.976} \\
 Gemma / IFEval    & 0.670 & 0.586 & 0.482 & 0.753 & \textbf{0.801} \\
@@ -51,10 +51,10 @@ Qwen / IFEval     & 0.606 & 0.599 & 0.558 & 0.711 & \textbf{0.743} \\
 \subsection{Key Findings}
 
 \begin{enumerate}
-\item \textbf{s3 (TC-self) is the best setting in every single combination.}
+\item \textbf{s4 (TC-self) is the best setting in every single combination.}
 \item \textbf{Basic RankAlign (s2) hurts on IFEval} --- Gemma IFEval drops from 0.670 to 0.482 (below chance). Without NLL constraints, generator scores explode.
-\item \textbf{The full method (s4) consistently helps}, adding +0.08--0.11 over base across all combos.
-\item \textbf{TC-self (s3) adds +0.03--0.07 over s4} --- a consistent, meaningful improvement from typicality-aware training.
+\item \textbf{The full method (s3) consistently helps}, adding +0.08--0.11 over base across all combos.
+\item \textbf{TC-self (s4) adds +0.03--0.07 over s3} --- a consistent, meaningful improvement from typicality-aware training.
 \end{enumerate}
 
 \subsection{Visualizations}
@@ -116,8 +116,8 @@ Table~\ref{tab:loss_breakdown} reveals the root cause of s2's failure on IFEval:
 \midrule
 s1 (SFT) & 5.99 & 0.00 & 5.99 & 0.000 \\
 \textbf{s2 (basic)} & \textbf{11.56} & \textbf{11.56} & \textbf{3119.8} & 0.000 \\
-s3 (TC-self) & 6.40 & 2.64 & 3.76 & 0.001 \\
-s4 (full) & 6.15 & 1.81 & 4.33 & 0.009 \\
+s4 (TC-self) & 6.40 & 2.64 & 3.76 & 0.001 \\
+s3 (full) & 6.15 & 1.81 & 4.33 & 0.009 \\
 s7 (TC-neg) & 5.13 & 1.37 & 3.77 & 0.001 \\
 \bottomrule
 \end{tabular}
@@ -152,16 +152,16 @@ A key diagnostic is the mean pairwise absolute difference in generator scores (g
 \textbf{Task} & \textbf{Setting} & \textbf{gen\_delta\_mean} & \textbf{gen\_roc} & \textbf{Status} \\
 \midrule
 Gemma IFEval & s2 (basic) & 13,421 & 0.482 & \textcolor{red}{Exploded} \\
-Gemma IFEval & s4 (full) & 691 & 0.753 & OK \\
-Gemma IFEval & s3 (TC-self) & 216 & 0.801 & Best \\
+Gemma IFEval & s3 (full) & 691 & 0.753 & OK \\
+Gemma IFEval & s4 (TC-self) & 216 & 0.801 & Best \\
 \midrule
 Qwen IFEval & s2 (basic) & 1,031 & 0.558 & \textcolor{orange}{Borderline} \\
-Qwen IFEval & s4 (full) & 408 & 0.711 & OK \\
-Qwen IFEval & s3 (TC-self) & 139 & 0.743 & Best \\
+Qwen IFEval & s3 (full) & 408 & 0.711 & OK \\
+Qwen IFEval & s4 (TC-self) & 139 & 0.743 & Best \\
 \midrule
 Gemma Membership & s2 & 9.1 & 0.941 & OK \\
-Gemma Membership & s4 & 10.9 & 0.948 & OK \\
-Gemma Membership & s3 & 10.7 & 0.976 & Best \\
+Gemma Membership & s3 & 10.9 & 0.948 & OK \\
+Gemma Membership & s4 & 10.7 & 0.976 & Best \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -182,7 +182,7 @@ Concordance measures the fraction of item pairs where the generator and validato
 \label{tab:concordance}
 \begin{tabular}{lccccc}
 \toprule
-\textbf{Model / Task} & \textbf{Base} & \textbf{s1} & \textbf{s2} & \textbf{s4} & \textbf{s3} \\
+\textbf{Model / Task} & \textbf{Base} & \textbf{s1} & \textbf{s2} & \textbf{s3} & \textbf{s4} \\
 \midrule
 Gemma / Membership & 0.705 & --- & 0.794 & 0.787 & \textbf{0.803} \\
 Gemma / IFEval & 0.548 & 0.561 & 0.370 & 0.677 & \textbf{0.694} \\
@@ -202,7 +202,7 @@ Note: s2 on Gemma IFEval has concordance 0.370 (below chance), confirming the ge
 \label{tab:spearman}
 \begin{tabular}{lccccc}
 \toprule
-\textbf{Model / Task} & \textbf{Base} & \textbf{s1} & \textbf{s2} & \textbf{s4} & \textbf{s3} \\
+\textbf{Model / Task} & \textbf{Base} & \textbf{s1} & \textbf{s2} & \textbf{s3} & \textbf{s4} \\
 \midrule
 Gemma / Membership & 0.585 & --- & 0.798 & 0.795 & \textbf{0.826} \\
 Gemma / IFEval & 0.141 & 0.178 & $-$0.374 & 0.504 & \textbf{0.567} \\
@@ -242,7 +242,7 @@ Qwen / IFEval & 0.119 & 0.151 & 0.205 & 0.404 & \textbf{0.431} \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{plots/gen_vs_val_scatter.png}
-\caption{Generator vs validator scores for Base, s4, and s3 (self-TC scoring, gemma membership). Training improves the separation between positive (green) and negative (red) items in both generator and validator space.}
+\caption{Generator vs validator scores for Base, s3, and s4 (self-TC scoring, gemma membership). Training improves the separation between positive (green) and negative (red) items in both generator and validator space.}
 \label{fig:scatter}
 \end{figure}
 
@@ -251,7 +251,7 @@ Qwen / IFEval & 0.119 & 0.151 & 0.205 & 0.404 & \textbf{0.431} \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{plots/per_category_improvement_distribution.png}
-\caption{Left: distribution of per-category improvements (Base $\to$ s3). Right: improvements from TC-self specifically (s4 $\to$ s3). Both are consistently positive.}
+\caption{Left: distribution of per-category improvements (Base $\to$ s4). Right: improvements from TC-self specifically (s3 $\to$ s4). Both are consistently positive.}
 \label{fig:per_category}
 \end{figure}
 
@@ -261,24 +261,24 @@ Categories where the base model was weakest (gen\_roc $\approx$ 0.5--0.7) benefi
 \section{Focused TC Comparison}
 %% ============================================================
 
-\subsection{Self-TC vs No-TC (s3 vs s4)}
+\subsection{Self-TC vs No-TC (s4 vs s3)}
 
-When evaluated with self-TC scoring, the typicality-corrected models consistently outperform the non-TC baseline (s4):
+When evaluated with self-TC scoring, the typicality-corrected models consistently outperform the non-TC baseline (s3):
 
 \begin{itemize}
-\item s3 (TC-self, full): $+0.028$ over s4
-\item s6 (TC-self fsx, low $\delta$): $+0.023$ over s4
-\item s11 (TC-self vlo, no fsx/ppd): $+0.022$ over s4
-\item s5 (TC-self basic): $+0.010$ over s4
+\item s4 (TC-self, full): $+0.028$ over s3
+\item s6 (TC-self fsx, low $\delta$): $+0.023$ over s3
+\item s11 (TC-self vlo, no fsx/ppd): $+0.022$ over s3
+\item s5 (TC-self basic): $+0.010$ over s3
 \end{itemize}
 
-\subsection{Neg-TC vs No-TC (s7 vs s4)}
+\subsection{Neg-TC vs No-TC (s7 vs s3)}
 
 When evaluated with neg-TC scoring, the improvement from TC-neg training is even larger:
 
 \begin{itemize}
-\item s12 (TC-neg vlo): $+0.075$ over s4
-\item s7 (TC-neg, full): $+0.072$ over s4
+\item s12 (TC-neg vlo): $+0.075$ over s3
+\item s7 (TC-neg, full): $+0.072$ over s3
 \end{itemize}
 
 This suggests that TC-trained models learn better internal representations that are specifically captured by the matching TC scoring method.
@@ -286,7 +286,7 @@ This suggests that TC-trained models learn better internal representations that 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{plots/tc_comparison_self_vs_neg.png}
-\caption{TC comparison: self-TC variants (left) and neg-TC variants (right) against s4 baseline.}
+\caption{TC comparison: self-TC variants (left) and neg-TC variants (right) against s3 baseline.}
 \label{fig:tc_comparison}
 \end{figure}
 
@@ -312,15 +312,15 @@ A critical finding emerges when comparing train-set dynamics with held-out test 
 \textbf{Setting} & \textbf{Train (membership)} & \textbf{Test (rosch)} & \textbf{Δ} \\
 \midrule
 s11 (TC-self vlo) & 0.970 & \textbf{0.924} & $-$0.046 \\
-s3 (TC-self full) & \textbf{0.976} & 0.920 & $-$0.056 \\
+s4 (TC-self full) & \textbf{0.976} & 0.920 & $-$0.056 \\
 s5 (TC-self basic) & 0.958 & 0.913 & $-$0.045 \\
 s2 (RA basic) & 0.941 & 0.891 & $-$0.050 \\
-s4 (RA full) & 0.948 & 0.885 & $-$0.063 \\
+s3 (RA full) & 0.948 & 0.885 & $-$0.063 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Key finding}: s4 (full method, no TC) outperforms s2 on training categories but \emph{underperforms} on test categories (different Rosch categories). Meanwhile, all TC-trained models (s3, s11, s5) maintain their advantage on both splits. This suggests \textbf{TC promotes generalization} --- it prevents overfitting to training-specific patterns.
+\textbf{Key finding}: s3 (full method, no TC) outperforms s2 on training categories but \emph{underperforms} on test categories (different Rosch categories). Meanwhile, all TC-trained models (s4, s11, s5) maintain their advantage on both splits. This suggests \textbf{TC promotes generalization} --- it prevents overfitting to training-specific patterns.
 
 \begin{figure}[H]
 \centering
@@ -334,9 +334,9 @@ s4 (RA full) & 0.948 & 0.885 & $-$0.063 \\
 %% ============================================================
 
 \begin{enumerate}
-\item \textbf{RankAlign works when the full method (s4) is used} --- the NLL-V/G constraints are essential for preventing score explosion, especially on complex tasks like IFEval.
-\item \textbf{TC-self training (s3) consistently provides the best results} across all metrics (gen ROC, spearman, concordance) and all model/task combinations.
-\item \textbf{TC promotes generalization}: TC-trained models maintain their advantage on held-out test categories, while non-TC models (s4) can overfit to training patterns.
+\item \textbf{RankAlign works when the full method (s3) is used} --- the NLL-V/G constraints are essential for preventing score explosion, especially on complex tasks like IFEval.
+\item \textbf{TC-self training (s4) consistently provides the best results} across all metrics (gen ROC, spearman, concordance) and all model/task combinations.
+\item \textbf{TC promotes generalization}: TC-trained models maintain their advantage on held-out test categories, while non-TC models (s3) can overfit to training patterns.
 \item \textbf{Basic RankAlign (s2) is unreliable for complex tasks} --- it can actually \emph{hurt} performance (IFEval). The full method is needed.
 \item \textbf{Score spread (gen\_delta\_mean) is a powerful training diagnostic} --- values $>$1000 indicate instability. TC-self produces the tightest distributions.
 \item \textbf{Concordance is a complementary metric to ROC AUC} --- it directly measures the alignment between generator and validator ranking functions.

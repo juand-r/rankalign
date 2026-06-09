@@ -23,16 +23,16 @@ import wandb
 GEMMA_IFEVAL_RUNS = {
     "s1": "5ikunquj",
     "s2": "rd7pz236",
-    "s3": "55x00ezb",
-    "s4": "h3ncq9u2",
+    "s4": "55x00ezb",
+    "s3": "h3ncq9u2",
     "s7": "xj4t4ab8",
 }
 
 QWEN_MEMBERSHIP_RUNS = {
     "s1": "du2ceze3",
     "s2": "6sc1vpho",
-    "s3": "r3cmhowf",
-    "s4": "ictz0z9q",
+    "s4": "r3cmhowf",
+    "s3": "ictz0z9q",
     "s7": "w0htohh3",
 }
 
@@ -108,11 +108,11 @@ def plot_score_evolution():
 
     fig, axes = plt.subplots(2, 2, figsize=(16, 12))
 
-    # Gemma IFEval: compare s2 vs s4 score evolution
+    # Gemma IFEval: compare s2 vs s3 score evolution
     ax = axes[0, 0]
     for setting, run_id in [("s2", GEMMA_IFEVAL_RUNS["s2"]),
-                             ("s4", GEMMA_IFEVAL_RUNS["s4"]),
-                             ("s3", GEMMA_IFEVAL_RUNS["s3"])]:
+                             ("s3", GEMMA_IFEVAL_RUNS["s3"]),
+                             ("s4", GEMMA_IFEVAL_RUNS["s4"])]:
         history, _, _ = pull_full_history(run_id)
         if "train/score_gen_i" in history.columns:
             steps = history["_step"].values
@@ -128,8 +128,8 @@ def plot_score_evolution():
     # Gemma IFEval: validator score spread
     ax = axes[0, 1]
     for setting, run_id in [("s2", GEMMA_IFEVAL_RUNS["s2"]),
-                             ("s4", GEMMA_IFEVAL_RUNS["s4"]),
-                             ("s3", GEMMA_IFEVAL_RUNS["s3"])]:
+                             ("s3", GEMMA_IFEVAL_RUNS["s3"]),
+                             ("s4", GEMMA_IFEVAL_RUNS["s4"])]:
         history, _, _ = pull_full_history(run_id)
         if "train/score_i" in history.columns:
             steps = history["_step"].values
@@ -145,8 +145,8 @@ def plot_score_evolution():
     # Qwen Membership: gen score spread
     ax = axes[1, 0]
     for setting, run_id in [("s2", QWEN_MEMBERSHIP_RUNS["s2"]),
-                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"]),
-                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"])]:
+                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"]),
+                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"])]:
         history, _, _ = pull_full_history(run_id)
         if "train/score_gen_i" in history.columns:
             steps = history["_step"].values
@@ -162,8 +162,8 @@ def plot_score_evolution():
     # Qwen Membership: validator score spread
     ax = axes[1, 1]
     for setting, run_id in [("s2", QWEN_MEMBERSHIP_RUNS["s2"]),
-                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"]),
-                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"])]:
+                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"]),
+                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"])]:
         history, _, _ = pull_full_history(run_id)
         if "train/score_i" in history.columns:
             steps = history["_step"].values

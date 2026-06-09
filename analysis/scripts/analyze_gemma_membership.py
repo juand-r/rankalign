@@ -34,20 +34,20 @@ SETTINGS = {
                            "desc": "SFT with labeled-only"},
     "s2 (RA basic)":     {"delta": "1.42", "long_pattern": "full-completion--semi0.1--fix1",
                            "tc_train": "none", "desc": "Basic RankAlign"},
-    "s4 (RA full)":      {"delta": "2.69", "pattern": "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1",
+    "s3 (RA full)":      {"delta": "2.69", "pattern": "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1",
                            "tc_train": "none", "desc": "RankAlign + NLL-V/G + fsx + ppd + vlo"},
-    "s3 (TC-self)":      {"delta": "2.69", "pattern": "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1",
-                           "tc_train": "self", "desc": "s4 + self-typicality at training"},
+    "s4 (TC-self)":      {"delta": "2.69", "pattern": "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1",
+                           "tc_train": "self", "desc": "s3 + self-typicality at training"},
     "s7 (TC-neg)":       {"delta": "2.69", "pattern": "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1",
-                           "tc_train": "neg", "desc": "s4 + neg-typicality at training"},
+                           "tc_train": "neg", "desc": "s3 + neg-typicality at training"},
     "s5 (TC-self basic)": {"delta": "1.42", "long_pattern": "tc-self--full-completion--semi0.1--fix1",
                             "tc_train": "self", "desc": "Basic RA + self-TC"},
     "s6 (TC-self fsx)":  {"delta": "1.42", "pattern": "tcs-fsx-ppd-sm0.1-fix1",
                            "tc_train": "self", "desc": "RA + fsx + ppd + self-TC"},
     "s11 (TC-self vlo)": {"delta": "2.69", "pattern": "tcs-nv1-ng1-vlo-sm0.1-fix1",
-                           "tc_train": "self", "desc": "s4-minus-fsx-ppd + self-TC"},
+                           "tc_train": "self", "desc": "s3-minus-fsx-ppd + self-TC"},
     "s12 (TC-neg vlo)":  {"delta": "2.69", "pattern": "tcn-nv1-ng1-vlo-sm0.1-fix1",
-                           "tc_train": "neg", "desc": "s4-minus-fsx-ppd + neg-TC"},
+                           "tc_train": "neg", "desc": "s3-minus-fsx-ppd + neg-TC"},
 }
 
 
@@ -100,9 +100,9 @@ def find_score_files():
 def _match_setting(name):
     """Match a filename to a setting. Order matters: most specific patterns first."""
     # Short-name format patterns (d{delta}-e{epoch}-...-{flags})
-    # S3: tc-self full (has tcs- prefix + fsx-ppd)
+    # S4: tc-self full (has tcs- prefix + fsx-ppd)
     if "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
-        return "s3 (TC-self)"
+        return "s4 (TC-self)"
     # S7: tc-neg full (has tcn- prefix + fsx-ppd)
     if "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
         return "s7 (TC-neg)"
@@ -112,10 +112,10 @@ def _match_setting(name):
     # S12: tc-neg vlo (tcn- but no fsx-ppd)
     if "tcn-nv1-ng1-vlo-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
         return "s12 (TC-neg vlo)"
-    # S4: no TC, full features (nv1-ng1-vlo-fsx-ppd but no tcs/tcn prefix)
+    # S3: no TC, full features (nv1-ng1-vlo-fsx-ppd but no tcs/tcn prefix)
     if "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name:
         if "-d2.69-" in name or "-delta2.69-" in name:
-            return "s4 (RA full)"
+            return "s3 (RA full)"
     # S6: tc-self with fsx-ppd but at lower delta
     if "tcs-fsx-ppd-sm0.1-fix1" in name and ("-d1.42-" in name or "-delta1.42-" in name):
         return "s6 (TC-self fsx)"
@@ -130,14 +130,14 @@ def _match_setting(name):
     # S5: tc-self basic
     if "tc-self--full-completion--semi0.1--fix1" in name and "-delta1.42-" in name:
         return "s5 (TC-self basic)"
-    # Also check for long-format s4
+    # Also check for long-format s3
     if "full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "tc-" not in name and "-delta2.69-" in name:
-            return "s4 (RA full)"
-    # Long-format s3
+            return "s3 (RA full)"
+    # Long-format s4
     if "tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta2.69-" in name:
-            return "s3 (TC-self)"
+            return "s4 (TC-self)"
     # Long-format s7
     if "tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta2.69-" in name:
@@ -379,10 +379,10 @@ def main():
     # Plot 1: gen_roc across epochs for key settings
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
-    key_settings = ["s1 (SFT-lo)", "s2 (RA basic)", "s4 (RA full)",
-                    "s3 (TC-self)", "s7 (TC-neg)"]
+    key_settings = ["s1 (SFT-lo)", "s2 (RA basic)", "s3 (RA full)",
+                    "s4 (TC-self)", "s7 (TC-neg)"]
     colors = {"s1 (SFT-lo)": "#1f77b4", "s2 (RA basic)": "#ff7f0e",
-              "s4 (RA full)": "#2ca02c", "s3 (TC-self)": "#d62728",
+              "s3 (RA full)": "#2ca02c", "s4 (TC-self)": "#d62728",
               "s7 (TC-neg)": "#9467bd"}
 
     for setting in key_settings:
@@ -442,7 +442,7 @@ def main():
 
     # Plot 3: Delta histograms for key settings (epoch 2)
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-    plot_settings = ["Base", "s2 (RA basic)", "s4 (RA full)", "s3 (TC-self)", "s7 (TC-neg)", "s1 (SFT-lo)"]
+    plot_settings = ["Base", "s2 (RA basic)", "s3 (RA full)", "s4 (TC-self)", "s7 (TC-neg)", "s1 (SFT-lo)"]
 
     for idx, setting in enumerate(plot_settings):
         ax = axes[idx // 3, idx % 3]

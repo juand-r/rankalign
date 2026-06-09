@@ -26,8 +26,8 @@ TABLES_DIR.mkdir(parents=True, exist_ok=True)
 GEMMA_IFEVAL_RUNS = {
     "s1": "5ikunquj",
     "s2": "rd7pz236",
-    "s3": "55x00ezb",
-    "s4": "h3ncq9u2",
+    "s4": "55x00ezb",
+    "s3": "h3ncq9u2",
     "s7": "xj4t4ab8",
     "s13": "8452gy96",
 }
@@ -35,16 +35,16 @@ GEMMA_IFEVAL_RUNS = {
 QWEN_MEMBERSHIP_RUNS = {
     "s1": "du2ceze3",
     "s2": "6sc1vpho",
-    "s3": "r3cmhowf",
-    "s4": "ictz0z9q",
+    "s4": "r3cmhowf",
+    "s3": "ictz0z9q",
     "s7": "w0htohh3",
 }
 
 QWEN_IFEVAL_RUNS = {
     "s1": None,  # will find
     "s2": None,
-    "s3": None,
     "s4": None,
+    "s3": None,
     "s7": None,
 }
 
@@ -221,13 +221,15 @@ def main():
     print("\n--- Finding Qwen3.5-9B IFEval runs ---")
     api = wandb.Api()
     runs = api.runs('juand-r/rankalign', order='-created_at', per_page=50)
+    # WandB run names use the original s3/s4 convention; remap to corrected labels
+    _WANDB_REMAP = {"s3": "s4", "s4": "s3"}
     qwen_ifeval = {}
     for r in runs:
         if 'qwen' in r.name and 'ifeval' in r.name and r.state == 'finished':
-            # Extract setting
-            for s in ["s1", "s2", "s3", "s4", "s7"]:
-                if r.name.endswith(f"-{s}") and s not in qwen_ifeval:
-                    qwen_ifeval[s] = r.id
+            for ws in ["s1", "s2", "s3", "s4", "s7"]:
+                setting = _WANDB_REMAP.get(ws, ws)
+                if r.name.endswith(f"-{ws}") and setting not in qwen_ifeval:
+                    qwen_ifeval[setting] = r.id
     print(f"  Found Qwen IFEval runs: {qwen_ifeval}")
     if qwen_ifeval:
         qwen_ifeval_data = analyze_runs(qwen_ifeval, "qwen3.5-9b ifeval")

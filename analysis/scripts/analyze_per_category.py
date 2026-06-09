@@ -21,10 +21,10 @@ TABLES_DIR = REPO / "analysis" / "tables"
 # Key files for comparison
 FILES = {
     "Base (self-TC)": SCORES_DIR / "scores_basetyp-v6-google_gemma-2-9b-it_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
-    "s4 (self-TC)": SCORES_DIR / "scores_basetyp-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
-    "s3 (self-TC)": SCORES_DIR / "scores_basetyp-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260608.csv",
+    "s3 (self-TC)": SCORES_DIR / "scores_basetyp-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
+    "s4 (self-TC)": SCORES_DIR / "scores_basetyp-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260608.csv",
     "s7 (neg-TC)": SCORES_DIR / "scores_basetypneg-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
-    "s4 (neg-TC)": SCORES_DIR / "scores_basetypneg-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
+    "s3 (neg-TC)": SCORES_DIR / "scores_basetypneg-v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1_membership-sans-rosch-v0_train_log-odds_tc_20260607.csv",
 }
 
 
@@ -95,29 +95,29 @@ def main():
     combined = pd.concat(all_cat_metrics.values(), ignore_index=True)
     combined.to_csv(TABLES_DIR / "gemma_membership_per_category_metrics.csv", index=False)
 
-    # Analysis: which categories improve most from Base → s3?
-    if "Base (self-TC)" in all_cat_metrics and "s3 (self-TC)" in all_cat_metrics:
+    # Analysis: which categories improve most from Base → s4?
+    if "Base (self-TC)" in all_cat_metrics and "s4 (self-TC)" in all_cat_metrics:
         base = all_cat_metrics["Base (self-TC)"].set_index("category")
-        s3 = all_cat_metrics["s3 (self-TC)"].set_index("category")
+        s4 = all_cat_metrics["s4 (self-TC)"].set_index("category")
 
-        common = base.index.intersection(s3.index)
+        common = base.index.intersection(s4.index)
         improvements = pd.DataFrame({
             "base_gen_roc": base.loc[common, "gen_roc"],
-            "s3_gen_roc": s3.loc[common, "gen_roc"],
-            "improvement": s3.loc[common, "gen_roc"] - base.loc[common, "gen_roc"],
+            "s4_gen_roc": s4.loc[common, "gen_roc"],
+            "improvement": s4.loc[common, "gen_roc"] - base.loc[common, "gen_roc"],
             "n": base.loc[common, "n"],
         }).dropna()
 
         improvements = improvements.sort_values("improvement", ascending=False)
 
-        print(f"\n  Top 10 categories that improved MOST (Base → s3):")
+        print(f"\n  Top 10 categories that improved MOST (Base → s4):")
         for cat, row in improvements.head(10).iterrows():
-            print(f"    {cat:<35}: {row['base_gen_roc']:.3f} → {row['s3_gen_roc']:.3f} "
+            print(f"    {cat:<35}: {row['base_gen_roc']:.3f} → {row['s4_gen_roc']:.3f} "
                   f"(+{row['improvement']:.3f}, n={int(row['n'])})")
 
         print(f"\n  Bottom 10 categories (least improvement or regression):")
         for cat, row in improvements.tail(10).iterrows():
-            print(f"    {cat:<35}: {row['base_gen_roc']:.3f} → {row['s3_gen_roc']:.3f} "
+            print(f"    {cat:<35}: {row['base_gen_roc']:.3f} → {row['s4_gen_roc']:.3f} "
                   f"({row['improvement']:+.3f}, n={int(row['n'])})")
 
         # Save full table
@@ -129,28 +129,28 @@ def main():
         ax = axes[0]
         ax.hist(improvements["improvement"].values, bins=30, color='steelblue', alpha=0.8, edgecolor='black')
         ax.axvline(0, color='red', linestyle='--', alpha=0.7)
-        ax.set_xlabel("Δ Gen ROC AUC (s3 - Base)")
+        ax.set_xlabel("Δ Gen ROC AUC (s4 - Base)")
         ax.set_ylabel("Number of categories")
-        ax.set_title("Distribution of per-category improvements\n(Base → s3 TC-self, gemma membership)")
+        ax.set_title("Distribution of per-category improvements\n(Base → s4 TC-self, gemma membership)")
         ax.text(0.02, 0.95, f"Mean Δ = {improvements['improvement'].mean():.3f}\n"
                 f"Median Δ = {improvements['improvement'].median():.3f}\n"
                 f"Categories improved: {(improvements['improvement'] > 0).sum()}/{len(improvements)}",
                 transform=ax.transAxes, va='top', fontsize=9,
                 bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
 
-        # s3 vs s4 improvement
-        if "s4 (self-TC)" in all_cat_metrics:
-            s4 = all_cat_metrics["s4 (self-TC)"].set_index("category")
-            common2 = s4.index.intersection(s3.index)
-            tc_improvement = s3.loc[common2, "gen_roc"] - s4.loc[common2, "gen_roc"]
+        # s4 vs s3 improvement
+        if "s3 (self-TC)" in all_cat_metrics:
+            s3 = all_cat_metrics["s3 (self-TC)"].set_index("category")
+            common2 = s3.index.intersection(s4.index)
+            tc_improvement = s4.loc[common2, "gen_roc"] - s3.loc[common2, "gen_roc"]
             tc_improvement = tc_improvement.dropna()
 
             ax = axes[1]
             ax.hist(tc_improvement.values, bins=30, color='coral', alpha=0.8, edgecolor='black')
             ax.axvline(0, color='red', linestyle='--', alpha=0.7)
-            ax.set_xlabel("Δ Gen ROC AUC (s3 - s4)")
+            ax.set_xlabel("Δ Gen ROC AUC (s4 - s3)")
             ax.set_ylabel("Number of categories")
-            ax.set_title("Distribution of TC-self improvement\n(s4 → s3, gemma membership)")
+            ax.set_title("Distribution of TC-self improvement\n(s3 → s4, gemma membership)")
             ax.text(0.02, 0.95, f"Mean Δ = {tc_improvement.mean():.3f}\n"
                     f"Median Δ = {tc_improvement.median():.3f}\n"
                     f"Categories improved: {(tc_improvement > 0).sum()}/{len(tc_improvement)}",
@@ -166,8 +166,8 @@ def main():
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
     for idx, (label, filepath) in enumerate([
         ("Base (self-TC)", FILES["Base (self-TC)"]),
-        ("s4 (self-TC)", FILES["s4 (self-TC)"]),
         ("s3 (self-TC)", FILES["s3 (self-TC)"]),
+        ("s4 (self-TC)", FILES["s4 (self-TC)"]),
     ]):
         if idx >= 3:
             break
@@ -206,7 +206,7 @@ def main():
     # Neg-TC scatter comparison
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
     for idx, (label, filepath) in enumerate([
-        ("s4 (neg-TC)", FILES["s4 (neg-TC)"]),
+        ("s3 (neg-TC)", FILES["s3 (neg-TC)"]),
         ("s7 (neg-TC)", FILES["s7 (neg-TC)"]),
     ]):
         df = pd.read_csv(filepath)
@@ -234,7 +234,7 @@ def main():
             ax.text(0.02, 0.02, f"ρ = {rho:.3f}", transform=ax.transAxes, fontsize=10,
                     bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8))
 
-    plt.suptitle("Neg-TC scoring: s4 vs s7 (gemma membership, epoch 2)", fontsize=12)
+    plt.suptitle("Neg-TC scoring: s3 vs s7 (gemma membership, epoch 2)", fontsize=12)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "gen_vs_val_scatter_neg_tc.png", dpi=150, bbox_inches='tight')
     plt.close()

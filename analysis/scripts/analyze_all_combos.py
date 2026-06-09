@@ -30,7 +30,7 @@ TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
 def _match_setting_gemma_membership(name):
     if "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
-        return "s3"
+        return "s4"
     if "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
         return "s7"
     if "tcs-nv1-ng1-vlo-sm0.1-fix1" in name and ("-d2.69-" in name or "-delta2.69-" in name):
@@ -39,7 +39,7 @@ def _match_setting_gemma_membership(name):
         return "s12"
     if "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name:
         if "-d2.69-" in name or "-delta2.69-" in name:
-            return "s4"
+            return "s3"
     if "tcs-fsx-ppd-sm0.1-fix1" in name and ("-d1.42-" in name or "-delta1.42-" in name):
         return "s6"
     if "p0-nv1-ng1-lo0.1-fix1" in name and ("-d1.43-" in name or "-delta1.43-" in name):
@@ -50,24 +50,24 @@ def _match_setting_gemma_membership(name):
         return "s5"
     if "tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta2.69-" in name:
-            return "s3"
+            return "s4"
     if "tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta2.69-" in name:
             return "s7"
     if "full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "tc-" not in name and "-delta2.69-" in name:
-            return "s4"
+            return "s3"
     return None
 
 
 def _match_setting_gemma_ifeval(name):
     if "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d1.94-" in name or "-delta1.94-" in name):
-        return "s3"
+        return "s4"
     if "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d1.94-" in name or "-delta1.94-" in name):
         return "s7"
     if "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name:
         if "-d1.94-" in name or "-delta1.94-" in name:
-            return "s4"
+            return "s3"
     if "p0-nv1-ng1-lo0.1-fix1" in name or "labelonly0.1--fix1" in name:
         if "-d1.29-" in name or "-delta1.29-" in name:
             return "s1"
@@ -82,12 +82,12 @@ def _match_setting_gemma_ifeval(name):
 
 def _match_setting_qwen_membership(name):
     if "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d1.54-" in name or "-delta1.54-" in name):
-        return "s3"
+        return "s4"
     if "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d1.54-" in name or "-delta1.54-" in name):
         return "s7"
     if "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name:
         if "-d1.54-" in name or "-delta1.54-" in name:
-            return "s4"
+            return "s3"
     if "p0-nv1-ng1-vlo-lo0.1-fix1" in name and ("-d1.53-" in name or "-delta1.53-" in name):
         return "s1"
     if "vlo-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name and "fsx" not in name:
@@ -101,24 +101,24 @@ def _match_setting_qwen_membership(name):
             return "s1"
     if "tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta1.54-" in name:
-            return "s3"
+            return "s4"
     if "tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta1.54-" in name:
             return "s7"
     if "full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "tc-" not in name and "-delta1.54-" in name:
-            return "s4"
+            return "s3"
     return None
 
 
 def _match_setting_qwen_ifeval(name):
     if "tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d0.96-" in name or "-delta0.96-" in name):
-        return "s3"
+        return "s4"
     if "tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and ("-d0.96-" in name or "-delta0.96-" in name):
         return "s7"
     if "nv1-ng1-vlo-fsx-ppd-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name:
         if "-d0.96-" in name or "-delta0.96-" in name:
-            return "s4"
+            return "s3"
     if "p0-nv1-ng1-vlo-lo0.1-fix1" in name and ("-d0.84-" in name or "-delta0.84-" in name):
         return "s1"
     if "vlo-sm0.1-fix1" in name and "tcs-" not in name and "tcn-" not in name and "fsx" not in name:
@@ -132,13 +132,13 @@ def _match_setting_qwen_ifeval(name):
             return "s1"
     if "tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta0.96-" in name:
-            return "s3"
+            return "s4"
     if "tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "-delta0.96-" in name:
             return "s7"
     if "full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" in name:
         if "tc-" not in name and "-delta0.96-" in name:
-            return "s4"
+            return "s3"
     return None
 
 
@@ -347,8 +347,8 @@ def make_unified_plots(all_results):
     """Create unified comparison plots across all combos."""
     combined = pd.concat(all_results.values(), ignore_index=True)
 
-    # Focus on epoch 2, self-TC, key settings (s1-s4, s7)
-    key_settings = ["base", "s1", "s2", "s4", "s3", "s7"]
+    # Focus on epoch 2, self-TC, key settings (s1-s3, s7)
+    key_settings = ["base", "s1", "s2", "s3", "s4", "s7"]
     ep2 = combined[(combined["epoch"].isin([2, -1])) & (combined["tc_eval"] == "self")]
     ep2 = ep2[ep2["setting"].isin(key_settings)]
 

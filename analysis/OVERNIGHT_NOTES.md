@@ -24,27 +24,27 @@
 
 **Main result (gen_roc TC, epoch 2, train set):**
 
-| Model / Task | Base | s2 (basic RA) | s4 (full RA) | s3 (TC-self) |
+| Model / Task | Base | s2 (basic RA) | s3 (full RA) | s4 (TC-self) |
 |---|---|---|---|---|
 | Gemma / Membership | 0.851 | 0.941 | 0.948 | **0.976** |
 | Gemma / IFEval | 0.670 | 0.482 ❌ | 0.753 | **0.801** |
 | Qwen / Membership | 0.799 | 0.880 | 0.899 | **0.969** |
 | Qwen / IFEval | 0.606 | 0.558 | 0.711 | **0.743** |
 
-- **s3 (TC-self) wins in ALL four combinations.**
+- **s4 (TC-self) wins in ALL four combinations.**
 - **s2 (basic RA) HURTS on IFEval** (drops below chance for Gemma!)
-- The full method (s4) always helps over base, by +0.08 to +0.11
-- TC-self (s3) adds another +0.03 to +0.07 over s4
+- The full method (s3) always helps over base, by +0.08 to +0.11
+- TC-self (s4) adds another +0.03 to +0.07 over s3
 
 **TC Comparison (gemma membership, self-TC eval):**
-- s3 (TC-self full): gen_roc = 0.976 (+0.028 over s4)
-- s6 (TC-self fsx, lower delta): gen_roc = 0.971 (+0.023 over s4)
-- s11 (TC-self vlo, no fsx/ppd): gen_roc = 0.970 (+0.022 over s4)
-- s5 (TC-self basic): gen_roc = 0.958 (+0.010 over s4)
+- s4 (TC-self full): gen_roc = 0.976 (+0.028 over s3)
+- s6 (TC-self fsx, lower delta): gen_roc = 0.971 (+0.023 over s3)
+- s11 (TC-self vlo, no fsx/ppd): gen_roc = 0.970 (+0.022 over s3)
+- s5 (TC-self basic): gen_roc = 0.958 (+0.010 over s3)
 
 **Neg-TC eval (gemma membership):**
-- s7 (TC-neg full): gen_roc = 0.962 (+0.072 over s4's 0.890)
-- s12 (TC-neg vlo): gen_roc = 0.965 (+0.075 over s4)
+- s7 (TC-neg full): gen_roc = 0.962 (+0.072 over s3's 0.890)
+- s12 (TC-neg vlo): gen_roc = 0.965 (+0.075 over s3)
 
 ### Q2: Training Diagnostics
 
@@ -58,19 +58,19 @@ On Gemma IFEval, s2's NLL-G reaches **3120** in the final third of training (vs 
 
 **NLL-V is tiny everywhere** (<0.01) — the validator barely changes during training.
 
-**s7 achieves lowest total loss** (5.13 vs 6.15 for s4 on Gemma IFEval) — TC-neg training is the most optimization-efficient.
+**s7 achieves lowest total loss** (5.13 vs 6.15 for s3 on Gemma IFEval) — TC-neg training is the most optimization-efficient.
 
 ### Q3: Additional Statistics
 
 **Concordance (epoch 2, self-TC):**
-- s3 achieves highest concordance in every combo (0.694-0.807)
+- s4 achieves highest concordance in every combo (0.694-0.807)
 - s2 on Gemma IFEval: 0.370 (BELOW CHANCE — anti-correlated!)
 
 **Per-category analysis (gemma membership):**
 - Categories where base was weakest improve most (medical specialty: +0.496)
 - Categories near ceiling (breed of dog, chemical element = 1.000) show no change
 - One regression: "thing taken from a burning home" (-0.265, n=20, likely noise)
-- TC-self improvement (s4→s3) is consistently positive across nearly all categories
+- TC-self improvement (s3→s4) is consistently positive across nearly all categories
 
 ---
 
@@ -79,14 +79,14 @@ On Gemma IFEval, s2's NLL-G reaches **3120** in the final third of training (vs 
 ### s1 (SFT-lo) only has 2 epochs for gemma membership
 The s1 model was trained without `--cft` for only epochs 0 and 1. Epoch 2 only exists with the `--cft` flag (a different variant). So we only report epochs 0 and 1 for s1. This is not a bug — it's a data availability fact.
 
-### s7 → s3 comparison limitation
-s3 (TC-self trained) is only evaluated with self-TC scoring.
+### s7 → s4 comparison limitation
+s4 (TC-self trained) is only evaluated with self-TC scoring.
 s7 (TC-neg trained) is only evaluated with neg-TC scoring.
-We CANNOT directly compare s3 and s7 using the same evaluation scoring method from the existing data. The comparison is:
-- Self-TC eval: s4 (0.948) vs s3 (0.976) → TC-self adds +0.028
-- Neg-TC eval: s4 (0.890) vs s7 (0.962) → TC-neg adds +0.072
+We CANNOT directly compare s4 and s7 using the same evaluation scoring method from the existing data. The comparison is:
+- Self-TC eval: s3 (0.948) vs s4 (0.976) → TC-self adds +0.028
+- Neg-TC eval: s3 (0.890) vs s7 (0.962) → TC-neg adds +0.072
 
-The neg-TC improvement looks larger in absolute terms, but the baselines differ (self-TC scoring gives higher absolute numbers for everyone). To properly compare s3 vs s7 would require evaluating both with the same scoring method.
+The neg-TC improvement looks larger in absolute terms, but the baselines differ (self-TC scoring gives higher absolute numbers for everyone). To properly compare s4 vs s7 would require evaluating both with the same scoring method.
 
 ### Gemma membership was trained pre-WandB
 WandB logs only exist for gemma-ifeval and qwen-membership/ifeval runs. For gemma membership, we rely solely on the train-set dynamics score files (which are comprehensive — all epochs, all settings, both TC scoring types).
@@ -120,35 +120,35 @@ The train-set findings were validated against test-set metrics:
 | Setting | Train (membership) | Test (rosch) | Notes |
 |---|---|---|---|
 | s11 (TC-self vlo) | 0.970 | **0.924** | Best on test! |
-| s3 (TC-self full) | **0.976** | 0.920 | Best on train |
+| s4 (TC-self full) | **0.976** | 0.920 | Best on train |
 | s5 (TC-self basic) | 0.958 | 0.913 | |
 | s2 (RA basic) | 0.941 | 0.891 | |
-| s4 (RA full) | 0.948 | 0.885 | ← DROPS below s2 on test! |
+| s3 (RA full) | 0.948 | 0.885 | ← DROPS below s2 on test! |
 | s1 (SFT) | — | 0.854 | |
 
-**Critical insight**: s4 (full method, no TC) OUTPERFORMS s2 (basic RA) on training categories but UNDERPERFORMS on test categories! The fsx/ppd features may cause overfitting to training patterns. TC-trained models (s3, s11, s5) **generalize better** — they maintain their advantage on both train and test.
+**Critical insight**: s3 (full method, no TC) OUTPERFORMS s2 (basic RA) on training categories but UNDERPERFORMS on test categories! The fsx/ppd features may cause overfitting to training patterns. TC-trained models (s4, s11, s5) **generalize better** — they maintain their advantage on both train and test.
 
 ### Gemma IFEval (Test Set)
 
 | Setting | Train | Test ID | Test OOD |
 |---|---|---|---|
-| s3 (TC-self) | 0.801 | 0.843 | **0.806** |
-| s4 (full) | 0.753 | **0.846** | 0.785 |
+| s4 (TC-self) | 0.801 | 0.843 | **0.806** |
+| s3 (full) | 0.753 | **0.846** | 0.785 |
 | s1 (SFT) | 0.586 | 0.617 | 0.582 |
 | s2 (basic) | 0.482 | 0.489 | 0.434 |
 
-IFEval findings generalize well. The rank ordering is preserved: s3 ≈ s4 >> s1 > s2. On OOD, TC helps (+0.021 from s4 to s3). On ID, s4 and s3 are nearly tied.
+IFEval findings generalize well. The rank ordering is preserved: s4 ≈ s3 >> s1 > s2. On OOD, TC helps (+0.021 from s3 to s4). On ID, s3 and s4 are nearly tied.
 
 ### Key Generalization Finding
 
-**TC promotes generalization to out-of-distribution data.** Without TC, the full method (s4) can overfit to training-specific patterns. With TC, the model learns more robust features that transfer to new categories/tasks.
+**TC promotes generalization to out-of-distribution data.** Without TC, the full method (s3) can overfit to training-specific patterns. With TC, the model learns more robust features that transfer to new categories/tasks.
 
 ---
 
 ## What Could Be Done Next
 
-1. **Cross-evaluation**: Evaluate s3 with neg-TC scoring (and s7 with self-TC scoring) to enable direct comparison.
+1. **Cross-evaluation**: Evaluate s4 with neg-TC scoring (and s7 with self-TC scoring) to enable direct comparison.
 2. **Test-set metrics**: The current analysis is on the TRAINING set. The test-set metrics from `outputs/` and `metrics-from-scores-rerun-wandb/` should be compared to confirm findings generalize.
 3. **Per-category detail for ifeval**: The ifeval tasks have sub-tasks (ifeval-prompt_N); could analyze per-subtask.
 4. **Statistical significance**: Bootstrap confidence intervals on the ROC AUC and concordance measures.
-5. **Epoch selection**: Some settings (s3, s6) converge by epoch 0 — investigate whether fewer epochs suffice.
+5. **Epoch selection**: Some settings (s4, s6) converge by epoch 0 — investigate whether fewer epochs suffice.
