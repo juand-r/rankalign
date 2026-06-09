@@ -187,16 +187,22 @@ def main_table():
         r"\begin{table*}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}",
         r"\begin{tabular}{ll cccc cccc}",
         r"\toprule",
-        r"& & \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval}} \\",
+        r"& & \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\",
         r"\cmidrule(lr){3-6}\cmidrule(lr){7-10}",
         r"& & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\",
         r"\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}",
         r"\textbf{Method} & \textbf{eval-TC} & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ \\",
         r"\midrule",
     ]
+    # Off-template variants per method: FLORA-PMI (s4, tc-self) reports only self/PMI;
+    # FLORA-Neg (s7, tc-neg) reports only neg. (The pod recompute over-populated the
+    # off-template own-ID values; suppress them to match the training template.)
+    OFF_TMPL = {4: {"neg (own)", "neg-base"}, 7: {"self (own)", "self-base"}}
     for label, num in ROWS:
         emitted = []
         for vlabel, doccol, _ in VARIANTS:
+            if vlabel in OFF_TMPL.get(num, set()):
+                continue
             cells, any_data = [], False
             for _, task in [("Hyponymy", "rosch"), ("IFEval", "ifeval")]:
                 for _, model in [("G2-9b-it", "9b-it"), ("Q3.5-9b", "qwen")]:
@@ -234,7 +240,7 @@ def val_table():
         r"\begin{table*}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}",
         r"\begin{tabular}{l cccc cccc}",
         r"\toprule",
-        r"& \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval}} \\",
+        r"& \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\",
         r"\cmidrule(lr){2-5}\cmidrule(lr){6-9}",
         r"& \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\",
         r"\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}",
