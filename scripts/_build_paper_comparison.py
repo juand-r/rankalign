@@ -46,6 +46,8 @@ OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else REPO / "docs" / "paper_vs_orig
 # Build the original-v7 data dict (new full-accounting API: rosch doc + pod recompute)
 ov7.parse_rosch_doc()
 ov7.parse_recompute()
+ov7.parse_cells_source(ov7.RERUN_CELLS, "R")   # qwen + gemma ifeval own-OOD (rerun)
+ov7.parse_cells_source(ov7.ORIG_CELLS, "O")    # original HF qwen (supersedes rerun)
 
 # ---- paper parsing -------------------------------------------------------
 # Paper column order (per task-model pair, each ROC + 2nd-metric):
