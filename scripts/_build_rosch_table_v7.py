@@ -54,6 +54,11 @@ SEARCH_DIRS = [
     Path("/datastor2/jdr/rankalign/outputs-rerun-wandb"),
 ]
 METRICS_DIR = REPO / "metrics-from-scores"
+# Orig-HF override (env-gated, additive; no default behavior change).
+if os.environ.get("EXTRA_SEARCH_DIR"):
+    SEARCH_DIRS = [Path(os.environ["EXTRA_SEARCH_DIR"])]
+if os.environ.get("METRICS_DIR_OVERRIDE"):
+    METRICS_DIR = Path(os.environ["METRICS_DIR_OVERRIDE"])
 METRICS_DIR.mkdir(exist_ok=True)
 
 # Mirror the OLD md5-hash truncation logic from src/tasks/common.py
