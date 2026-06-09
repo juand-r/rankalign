@@ -1,0 +1,30 @@
+% Task #24: orig vs rerun (qwen). Needs \multirow.
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{5pt}
+\begin{tabular}{ll cc c cc c}
+\toprule
+& & \multicolumn{3}{c}{\textbf{ROC$_G$}} & \multicolumn{3}{c}{\textbf{$\rho$}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Task/Method} & \textbf{eval-TC} & orig & rerun & $\Delta$ & orig & rerun & $\Delta$ \\
+\midrule
+\multirow{4}{*}{IFEval/SFT} & self & 67.3 & 66.2 & +1.1 & 22.9 & 20.6 & +2.2 \\
+ & self-base & 61.7 & 62.5 & -0.9 & 14.3 & 13.0 & +1.3 \\
+ & neg & 46.7 & 48.8 & -2.1 & 6.9 & 3.2 & +3.6 \\
+ & neg-base & 50.0 & 49.9 & +0.1 & -0.2 & -3.6 & +3.4 \\
+\midrule
+\multirow{4}{*}{IFEval/RankAlign} & self & 83.2 & 67.9 & +15.3 & 62.5 & 26.3 & +36.2 \\
+ & self-base & 81.9 & 58.3 & +23.5 & 62.0 & -1.3 & +63.3 \\
+ & neg & 49.6 & 57.7 & -8.1 & -0.0 & 5.0 & -5.1 \\
+ & neg-base & 77.3 & 53.1 & +24.2 & 59.2 & -1.6 & +60.8 \\
+\midrule
+\multirow{4}{*}{Hyp/SFT} & self & 80.2 & 82.6 & -2.4 & 57.4 & 61.3 & -3.9 \\
+ & self-base & 79.6 & 81.3 & -1.7 & 56.1 & 59.1 & -3.0 \\
+ & neg & 80.7 & 84.2 & -3.5 & 55.2 & 59.7 & -4.5 \\
+ & neg-base & 79.9 & 80.7 & -0.9 & 55.5 & 56.2 & -0.7 \\
+\midrule
+\multirow{2}{*}{Hyp/FLORA-Neg} & neg & 85.6 & --- & -- & 63.1 & --- & -- \\
+ & neg-base & 88.3 & 86.7 & +1.6 & 71.7 & 70.2 & +1.5 \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Original vs wandb-rerun} (Qwen3.5-9B): two independently-trained checkpoints of the same setting, evaluated identically. \emph{orig} = paper checkpoint recovered from HF (latkes); \emph{rerun} = the mll wandb rerun. $\Delta$ = orig $-$ rerun (pp). IFEval is OOD (20 prompts); Hyponymy is the 10 rosch tasks. Only the four cells with both checkpoints are shown (qwen ifeval s1/s2, rosch s1/s7). All epoch 2.}
+\label{tab:orig-vs-rerun-qwen}
+\end{table}
