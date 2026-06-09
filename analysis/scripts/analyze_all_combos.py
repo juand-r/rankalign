@@ -380,7 +380,7 @@ def make_unified_plots(all_results):
     ax.set_ylabel("Generator ROC AUC (TC)")
     ax.set_title("Generator ROC AUC across settings and model/task combos\n(epoch 2, self-TC scoring, train set)")
     ax.legend()
-    ax.set_ylim(0.7, 1.0)
+    ax.set_ylim(0.0, 1.0)
     ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "unified_genroc_comparison.png", dpi=150, bbox_inches='tight')
