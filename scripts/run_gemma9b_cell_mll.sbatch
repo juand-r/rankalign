@@ -167,6 +167,9 @@ echo "[$(date -u +%FT%TZ)] model dir glob: $GLOB_PATTERN"
 # ============================ TRAIN ============================
 echo "[$(date -u +%FT%TZ)] === TRAIN: $SETTING x $TASK ==="
 EXISTING=$(ls -dt $GLOB_PATTERN 2>/dev/null | head -1 || true)
+# MODEL_DIR_OVERRIDE bypasses the setting->suffix glob (gemma s1/s2 reruns use the
+# _eval_only.sh naming, which differs from the qwen sbatch's per-setting flags).
+[ -n "${MODEL_DIR_OVERRIDE:-}" ] && EXISTING="$MODEL_DIR_OVERRIDE"
 if [ -n "${EVAL_ONLY:-}" ]; then
     [ -z "$EXISTING" ] && { echo "ERROR: EVAL_ONLY but no model dir: $GLOB_PATTERN"; exit 1; }
     MODEL_DIR="$EXISTING"; echo "[$(date -u +%FT%TZ)] EVAL_ONLY — using $MODEL_DIR"
