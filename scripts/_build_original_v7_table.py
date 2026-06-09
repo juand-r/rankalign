@@ -47,6 +47,10 @@ ROWS = [("Base", 0), ("SFT", 1), ("RankAlign", 2),
 
 # data[(task, model, num, metric, doccol)] = (mean, se, n, split, prov)
 data: dict[tuple, tuple] = {}
+# v6data[(task, model, num, metric, doccol)] = mean  — the legacy v6 (delta-0.15) gemma
+# IFEval values that the PAPER actually used (own-typ). Kept separate so gemma IFEval cells
+# can show BOTH the paper's v6 value and our v7 value side by side.
+v6data: dict[tuple, float] = {}
 
 
 def add(task, model, num, metric, col, mean, se, n, split, prov):
@@ -171,6 +175,21 @@ def parse_cells_source(cells_map, prov):
                     r["mean"], se, r.get("n", 0), split, prov)
 
 
+def parse_v6_ifeval():
+    """The paper's gemma-2-9b-it IFEval column = v6 (delta-0.15) own-typ. Load it from the
+    v6 builder's cells (metrics-from-scores/ifeval_ood_{metric}_table_cells.csv) so we can
+    show the paper's actual value next to our v7 value."""
+    mfile = {"gen_roc": "gen_roc", "rho": "spearman", "val_roc": "val_roc", "val_acc": "val_acc"}
+    for mk, mf in mfile.items():
+        p = REPO / "metrics-from-scores" / f"ifeval_ood_{mf}_table_cells.csv"
+        if not p.exists():
+            continue
+        df = pd.read_csv(p)
+        for _, r in df.iterrows():
+            if r["column"] in ("PMI self", "PMI base", "Neg self", "Neg base") and pd.notna(r["mean"]):
+                v6data[("ifeval", "9b-it", int(r["method_num"]), mk, r["column"])] = float(r["mean"])
+
+
 def get(task, model, num, metric, col):
     return data.get((task, model, num, metric, col))
 
@@ -192,6 +211,38 @@ def fmt(cell):
     if color:
         s = f"\\textcolor{{{color}}}{{{s}}}"
     return s
+
+
+def _v6(task, model, num, metric, cols):
+    """First available v6 value for this cell across the given columns (validator is
+    eval-TC independent, so any col works)."""
+    for c in cols:
+        v = v6data.get((task, model, num, metric, c))
+        if v is not None:
+            return v
+    return None
+
+
+def cellstr(task, model, num, metric, col):
+    """v7 value (colored by provenance). For gemma IFEval, prepend the paper's v6 value
+    (green) as 'v6 / v7'. '---' if neither."""
+    v7s = fmt(get(task, model, num, metric, col))
+    v6 = v6data.get((task, model, num, metric, col)) if (task == "ifeval" and model == "9b-it") else None
+    if v6 is not None:
+        v6s = f"\\textcolor{{ForestGreen}}{{{v6:.1f}}}"
+        return f"{v6s}/{v7s}" if v7s != "---" else v6s
+    return v7s
+
+
+def valcellstr(task, model, num, metric, anyfn):
+    """Validator cell: v7 (any variant) and, for gemma IFEval, the paper's v6 value too."""
+    v7s = fmt(anyfn(task, model, num, metric))
+    v6 = _v6(task, model, num, metric, ["PMI self", "PMI base", "Neg self", "Neg base"]) \
+        if (task == "ifeval" and model == "9b-it") else None
+    if v6 is not None:
+        v6s = f"\\textcolor{{ForestGreen}}{{{v6:.1f}}}"
+        return f"{v6s}/{v7s}" if v7s != "---" else v6s
+    return v7s
 
 
 MODELS = [("G2-9b-it", "9b-it"), ("Q3.5-9b", "qwen")]
@@ -222,11 +273,11 @@ def main_table():
             cells, any_data = [], False
             for _, task in [("Hyponymy", "rosch"), ("IFEval", "ifeval")]:
                 for _, model in [("G2-9b-it", "9b-it"), ("Q3.5-9b", "qwen")]:
-                    cg = get(task, model, num, "gen_roc", doccol)
-                    cr = get(task, model, num, "rho", doccol)
-                    if cg or cr:
+                    sg = cellstr(task, model, num, "gen_roc", doccol)
+                    sr = cellstr(task, model, num, "rho", doccol)
+                    if sg != "---" or sr != "---":
                         any_data = True
-                    cells += [fmt(cg), fmt(cr)]
+                    cells += [sg, sr]
             if any_data:
                 emitted.append((vlabel, cells))
         if not emitted:
@@ -248,7 +299,11 @@ def main_table():
               r"\textbf{Provenance by color:} black = original (gemma: pod / local-mll); "
               r"\textcolor{RoyalBlue}{blue} = original HF checkpoint (latkes; qwen ifeval s1/s2 + "
               r"rosch s1/s7); \textcolor{BurntOrange}{orange} = wandb-rerun checkpoint (qwen "
-              r"originals lost; gemma ifeval own-OOD). All epoch 2.}",
+              r"originals lost; gemma ifeval own-OOD). \textbf{gemma IFEval cells show "
+              r"\textcolor{ForestGreen}{green}=v6/(orange or black)=v7}: "
+              r"\textcolor{ForestGreen}{green} is the legacy v6 (delta-0.15) own-typ value the "
+              r"\emph{paper actually used} (v7 gemma-ifeval did not exist at paper time); the "
+              r"second number is our v7. All epoch 2.}",
               r"\label{tab:original-v7-main}", r"\end{table*}"]
     return "\n".join(lines)
 
@@ -278,8 +333,8 @@ def val_table():
         cells = []
         for _, task in [("Hyponymy", "rosch"), ("IFEval", "ifeval")]:
             for _, model in [("G2-9b-it", "9b-it"), ("Q3.5-9b", "qwen")]:
-                cells.append(fmt(anyget(task, model, num, "val_roc")))
-                cells.append(fmt(anyget(task, model, num, "val_acc")))
+                cells.append(valcellstr(task, model, num, "val_roc", anyget))
+                cells.append(valcellstr(task, model, num, "val_acc", anyget))
         lines.append(f"{label} & " + " & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}",
               r"\caption{\textbf{Original v7 results}: validator metrics ROC$_V$, Acc$_V$ "
@@ -294,6 +349,7 @@ def main():
     parse_recompute()
     parse_cells_source(RERUN_CELLS, "R")   # rerun-checkpoint cells (qwen + gemma ifeval own-OOD)
     parse_cells_source(ORIG_CELLS, "O")    # original HF checkpoints — supersede rerun for those cells
+    parse_v6_ifeval()                      # paper's gemma IFEval = v6 own (shown alongside v7)
     header = (
         "% ORIGINAL v7 results (v7 delta-bins ONLY; not v6/v7b/rerun). FULL accounting.\n"
         "% Auto-generated by scripts/_build_original_v7_table.py.\n"
