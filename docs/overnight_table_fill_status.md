@@ -45,3 +45,13 @@ provenance per cell**.
 ## Task #24 (after original table done)
 Eval the RERUN checkpoints for any remaining missing variants and build a **parallel rerun
 LaTeX table** — original-vs-rerun comparison (how different are two independent trains per setting).
+
+## Launched jobs (2026-06-08 ~21:1x CT) — qwen rerun matrix, → outputs-rerun-wandb
+Canary verified VALID (qwen ifeval s2 own-OOD, 80-row scores, healthy tc gen_roc).
+- qwen ifeval OWN (self-/neg-, OOD): 44260=s1 44261=s3 44262=s4(self) 44263=s7(neg)  [s2=canary 44259]
+- qwen ifeval BASE (OOD):            44264=s1 44265=s3   [s2/s4/s7 base already on disk]
+- qwen rosch OWN:                    44266=s1 44267=s2 44268=s3 44269=s4   [s7 neg-own exists]
+- qwen rosch BASE:                   44270=s1 44271=s2 44272=s3 44273=s4 44274=s7
+TODO next fires: gemma ifeval OOD own (run_rerun_9bit_ifeval_wandb.sh, s1-s7);
+ORIGINAL HF qwen evals (models2-original-hf: ifeval-s1/s2, membership-s1/s7) — supersede
+rerun for those cells with provenance=orig. Then recompute (+outputs-rerun-wandb) + rebuild table.
