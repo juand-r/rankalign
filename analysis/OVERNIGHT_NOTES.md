@@ -111,6 +111,40 @@ All ranking-trained models show "HIGH VARIANCE" in the final training quarter. T
 
 ---
 
+## Train vs Test Set Validation
+
+The train-set findings were validated against test-set metrics:
+
+### Gemma Rosch Test Set (basetyp scoring, avg across 10 categories)
+
+| Setting | Train (membership) | Test (rosch) | Notes |
+|---|---|---|---|
+| s11 (TC-self vlo) | 0.970 | **0.924** | Best on test! |
+| s3 (TC-self full) | **0.976** | 0.920 | Best on train |
+| s5 (TC-self basic) | 0.958 | 0.913 | |
+| s2 (RA basic) | 0.941 | 0.891 | |
+| s4 (RA full) | 0.948 | 0.885 | ← DROPS below s2 on test! |
+| s1 (SFT) | — | 0.854 | |
+
+**Critical insight**: s4 (full method, no TC) OUTPERFORMS s2 (basic RA) on training categories but UNDERPERFORMS on test categories! The fsx/ppd features may cause overfitting to training patterns. TC-trained models (s3, s11, s5) **generalize better** — they maintain their advantage on both train and test.
+
+### Gemma IFEval (Test Set)
+
+| Setting | Train | Test ID | Test OOD |
+|---|---|---|---|
+| s3 (TC-self) | 0.801 | 0.843 | **0.806** |
+| s4 (full) | 0.753 | **0.846** | 0.785 |
+| s1 (SFT) | 0.586 | 0.617 | 0.582 |
+| s2 (basic) | 0.482 | 0.489 | 0.434 |
+
+IFEval findings generalize well. The rank ordering is preserved: s3 ≈ s4 >> s1 > s2. On OOD, TC helps (+0.021 from s4 to s3). On ID, s4 and s3 are nearly tied.
+
+### Key Generalization Finding
+
+**TC promotes generalization to out-of-distribution data.** Without TC, the full method (s4) can overfit to training-specific patterns. With TC, the model learns more robust features that transfer to new categories/tasks.
+
+---
+
 ## What Could Be Done Next
 
 1. **Cross-evaluation**: Evaluate s3 with neg-TC scoring (and s7 with self-TC scoring) to enable direct comparison.

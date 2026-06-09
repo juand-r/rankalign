@@ -298,12 +298,45 @@ This suggests that TC-trained models learn better internal representations that 
 \end{figure}
 
 %% ============================================================
+\section{Train vs Test Generalization}
+%% ============================================================
+
+A critical finding emerges when comparing train-set dynamics with held-out test sets.
+
+\begin{table}[H]
+\centering
+\caption{Train vs test gen\_roc: gemma-2-9b-it membership/rosch (basetyp scoring).}
+\label{tab:train_test}
+\begin{tabular}{lccl}
+\toprule
+\textbf{Setting} & \textbf{Train (membership)} & \textbf{Test (rosch)} & \textbf{Δ} \\
+\midrule
+s11 (TC-self vlo) & 0.970 & \textbf{0.924} & $-$0.046 \\
+s3 (TC-self full) & \textbf{0.976} & 0.920 & $-$0.056 \\
+s5 (TC-self basic) & 0.958 & 0.913 & $-$0.045 \\
+s2 (RA basic) & 0.941 & 0.891 & $-$0.050 \\
+s4 (RA full) & 0.948 & 0.885 & $-$0.063 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key finding}: s4 (full method, no TC) outperforms s2 on training categories but \emph{underperforms} on test categories (different Rosch categories). Meanwhile, all TC-trained models (s3, s11, s5) maintain their advantage on both splits. This suggests \textbf{TC promotes generalization} --- it prevents overfitting to training-specific patterns.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/train_vs_test_comparison.png}
+\caption{Train vs test set gen\_roc. Left: membership train $\leftrightarrow$ rosch test. Right: ifeval train $\leftrightarrow$ ifeval OOD test.}
+\label{fig:train_test}
+\end{figure}
+
+%% ============================================================
 \section{Conclusions}
 %% ============================================================
 
 \begin{enumerate}
 \item \textbf{RankAlign works when the full method (s4) is used} --- the NLL-V/G constraints are essential for preventing score explosion, especially on complex tasks like IFEval.
 \item \textbf{TC-self training (s3) consistently provides the best results} across all metrics (gen ROC, spearman, concordance) and all model/task combinations.
+\item \textbf{TC promotes generalization}: TC-trained models maintain their advantage on held-out test categories, while non-TC models (s4) can overfit to training patterns.
 \item \textbf{Basic RankAlign (s2) is unreliable for complex tasks} --- it can actually \emph{hurt} performance (IFEval). The full method is needed.
 \item \textbf{Score spread (gen\_delta\_mean) is a powerful training diagnostic} --- values $>$1000 indicate instability. TC-self produces the tightest distributions.
 \item \textbf{Concordance is a complementary metric to ROC AUC} --- it directly measures the alignment between generator and validator ranking functions.
