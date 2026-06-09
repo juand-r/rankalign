@@ -22,7 +22,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO / "scripts"))
 from summarize_scores_file import compute_all_metrics, load_scores  # noqa: E402
 
-SCORES_DIR = REPO / "outputs-epoch-check"
+SCORES_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "outputs-epoch-check"
 _EPOCH = re.compile(r"-e([012])-")
 _PROMPT = re.compile(r"ifeval-prompt_(\d+)_")
 
