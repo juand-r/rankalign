@@ -55,3 +55,12 @@ Canary verified VALID (qwen ifeval s2 own-OOD, 80-row scores, healthy tc gen_roc
 TODO next fires: gemma ifeval OOD own (run_rerun_9bit_ifeval_wandb.sh, s1-s7);
 ORIGINAL HF qwen evals (models2-original-hf: ifeval-s1/s2, membership-s1/s7) — supersede
 rerun for those cells with provenance=orig. Then recompute (+outputs-rerun-wandb) + rebuild table.
+
+## Original-HF qwen evals (2026-06-09 ~03:30 CT) — provenance UPGRADE, separate dir
+HF originals symlinked to canonical names (sentinel delta0.001) in models2-original-hf/;
+evaled via qwen sbatch MODEL_DIR_OVERRIDE -> OUTPUTS_DIR=outputs-original-hf (SEPARATE,
+no mixing with rerun). Jobs: 44283=ifeval-s1-own(canary,OK), 44284=ifeval-s1-base,
+44285/86=ifeval-s2 own/base, 44287/88=rosch-s1 own/base, 44289/90=rosch-s7 own/base.
+On completion: build orig cells from outputs-original-hf -> integrate as provenance=orig,
+superseding the rerun (^r) values for qwen ifeval s1/s2 + rosch s1/s7. (Integration is the
+one step to confirm with the user; scores will be computed + ready.)
