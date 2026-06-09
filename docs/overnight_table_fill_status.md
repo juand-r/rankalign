@@ -26,8 +26,22 @@ Neg self, Neg base} on all settings.
 - **qwen rosch (membership)**: own+base s1/s2/s3/s4; base s7 (neg-own already exists).
 - **gemma ifeval OOD own**: s1/s2/s3/s4/s7.
 
+## Provenance policy (user-approved 2026-06-08, last word before sleep)
+Prefer ORIGINAL checkpoints where available; use RERUN where originals are lost; **label
+provenance per cell**.
+- **Original on HF `latkes`** (downloading → `models2-original-hf/`): qwen ifeval **s1, s2**;
+  qwen rosch(membership) **s1, s7** (ep2). gemma ifeval: 2 originals in `models2/`.
+  (TAUR-dev v7 gemma-2-9b-it repos not visible — likely re-privatized; retry w/ token.)
+- **Rerun** (`models2-rerun-wandb/`): all qwen + gemma ifeval settings — fallback for the rest.
+
 ## Status
-- **Canary 44259** = qwen ifeval s2 own-OOD — verifying scores before batching the rest.
-- s13 (jobs 44257/44258) = LOW priority (user); let finish, harvest if done.
-- Supervised by CronCreate `65ff1c5f` (:11/:41 CT). Recompute must ADD `outputs-rerun-wandb`
-  as a source. Commit/push from LAPTOP (mll repo behind origin).
+- **Canary 44259** = qwen ifeval s2 own-OOD (rerun) — verifying before batching.
+- **HF original download** launched → `models2-original-hf/` (4 qwen ep2 models); marker
+  `.dl_orig_done`. Eval these for original provenance (supersede rerun for s1/s2 ifeval, s1/s7 rosch).
+- s13 (jobs 44257/44258) = LOW priority; harvest if done, don't chase.
+- Supervised by CronCreate **`979ef49d`** (:11/:41 CT). Recompute must ADD `outputs-rerun-wandb`.
+  Commit/push from LAPTOP (mll repo behind origin; fetch+rebase first).
+
+## Task #24 (after original table done)
+Eval the RERUN checkpoints for any remaining missing variants and build a **parallel rerun
+LaTeX table** — original-vs-rerun comparison (how different are two independent trains per setting).
