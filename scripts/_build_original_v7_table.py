@@ -129,27 +129,30 @@ def parse_recompute():
 # ---- source R: RERUN-checkpoint cells (qwen; gemma ifeval later) ----------
 # These come from the rerun-trained checkpoints (originals lost / not on disk).
 # Provenance = "R"; they OVERRIDE the sparse pod recompute for qwen.
+_ALL4 = {"PMI self", "PMI base", "Neg self", "Neg base"}
+_OWN2 = {"PMI self", "Neg self"}
+# (dir, filename template, split, columns-to-pull). qwen = all 4 (originals lost);
+# gemma ifeval = OWN only (its base-OOD stays the original pod value, unmarked).
 RERUN_CELLS = {
-    ("ifeval", "qwen"): ("metrics-from-scores-rerun-wandb",
-                         "ifeval_v7_ood_qwen3.5-9b_{m}_table_cells.csv", "ood"),
-    ("rosch", "qwen"):  ("metrics-from-scores",
-                         "rosch_v7_qwen3.5-9b_{m}_table_cells.csv", "all"),
+    ("ifeval", "qwen"):  ("metrics-from-scores-rerun-wandb",
+                          "ifeval_v7_ood_qwen3.5-9b_{m}_table_cells.csv", "ood", _ALL4),
+    ("rosch", "qwen"):   ("metrics-from-scores",
+                          "rosch_v7_qwen3.5-9b_{m}_table_cells.csv", "all", _ALL4),
     ("ifeval", "9b-it"): ("metrics-from-scores-rerun-wandb",
-                          "ifeval_v7_ood_9b-it_{m}_table_cells.csv", "ood"),  # gemma rerun own-OOD (when run)
+                          "ifeval_v7_ood_9b-it_{m}_table_cells.csv", "ood", _OWN2),
 }
-_RERUN_COLS = {"PMI self", "PMI base", "Neg self", "Neg base"}
 
 
 def parse_rerun_cells():
     mfile = {"gen_roc": "gen_roc", "rho": "spearman", "val_roc": "val_roc", "val_acc": "val_acc"}
-    for (task, model), (d, tmpl, split) in RERUN_CELLS.items():
+    for (task, model), (d, tmpl, split, cols) in RERUN_CELLS.items():
         for mk, mf in mfile.items():
             p = REPO / d / tmpl.format(m=mf)
             if not p.exists():
                 continue
             df = pd.read_csv(p)
             for _, r in df.iterrows():
-                if r["column"] not in _RERUN_COLS or pd.isna(r["mean"]):
+                if r["column"] not in cols or pd.isna(r["mean"]):
                     continue
                 se = r["se"] if "se" in df.columns and pd.notna(r["se"]) else None
                 add(task, model, int(r["method_num"]), mk, r["column"],
