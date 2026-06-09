@@ -105,7 +105,7 @@ that have v7 train-set dynamics evaluations.
 
 | Setting | Delta | Self-TC eval | Neg-TC eval |
 |---|---|---|---|
-| Base model | — | basetyp ✓ | **MISSING** ❌ |
+| Base model | — | basetyp ✓ | — (not needed) |
 | s1 (SFT-lo) | d1.43 | ep0,ep1 ✓ (no ep2 model) | ep0,ep1 ✓ |
 | s2 (RankAlign basic) | d1.42 | ep0,ep1,ep2 ✓ | ep0,ep1,ep2 ✓ |
 | s3 (tc-self full) | d2.69 | ep0,ep1,ep2 ✓ | — |
@@ -118,7 +118,8 @@ that have v7 train-set dynamics evaluations.
 
 **Total files:** 38 (1 base + 37 epoch evals; some dates 0607 and 0608 due to reruns)
 
-**GAP:** Neg-TC base model eval (`basetypneg-v6-google_gemma-2-9b-it_membership-sans-rosch-v0_train`) is **missing**.
+**Note:** No neg-TC base eval exists here, but this is expected — basetyp scoring of the
+unfinetuned model compares it against itself, which is trivially zero and not meaningful.
 
 ---
 
@@ -154,14 +155,13 @@ that have v7 train-set dynamics evaluations.
 
 ---
 
-## Gaps / Action Items
+## Notes
 
-1. **Gemma membership: neg-TC base model train-set eval is missing.**
-   Need to run: `basetypneg` scoring of `google/gemma-2-9b-it` (unfinetuned)
-   on `membership-sans-rosch-v0` training split.
-
-2. **Gemma membership: no WandB training logs** (trained pre-wandb, May 24).
-   This is a known limitation; original training_run_logs JSON files exist.
+- **Gemma membership: no WandB training logs** (trained pre-wandb, May 24).
+  This is a known limitation; original training_run_logs JSON files exist.
+- Base model basetyp evals that exist in other combos (gemma ifeval, qwen ifeval,
+  qwen membership) are trivially zero since they compare the model against itself,
+  but were run for completeness/plotting. Their absence from gemma membership is not a gap.
 
 ---
 
