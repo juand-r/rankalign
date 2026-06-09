@@ -184,9 +184,13 @@ def fmt(cell):
     mean, se, n, split, prov = cell
     s = f"{mean:.1f}\\stdv{{{se:.1f}}}" if se is not None else f"{mean:.1f}"
     sm = SPLIT_MARK.get(split, "")
-    sup = {"R": "r", "O": "o"}.get(prov, "")   # r=rerun, o=original-HF checkpoint
-    if sm or sup:
-        s += f"$_{{{sm}}}^{{{sup}}}$"
+    if sm:                                  # OOD/ID split tag (ifeval only)
+        s += f"$_{{{sm}}}$"
+    # PROVENANCE BY COLOR (the visible signal): orange=rerun, blue=original-HF,
+    # black=original (pod / local-mll).
+    color = {"R": "BurntOrange", "O": "RoyalBlue"}.get(prov)
+    if color:
+        s = f"\\textcolor{{{color}}}{{{s}}}"
     return s
 
 
@@ -241,8 +245,10 @@ def main_table():
               r"\texttt{eval\_model\_sN} pod scores. IFEval split per cell: "
               r"$_o$=OOD (20 prompts), $_i$=ID (79). \textbf{Own-typ ifeval exists only on ID} "
               r"(own-OOD was never run in v7); base-typ ifeval is OOD. \texttt{---}=not on disk in v7. "
-              r"$^{r}$=rerun-trained checkpoint (qwen originals lost); $^{o}$=original HF "
-              r"checkpoint (latkes; qwen ifeval s1/s2 + rosch s1/s7). All epoch 2.}",
+              r"\textbf{Provenance by color:} black = original (gemma: pod / local-mll); "
+              r"\textcolor{RoyalBlue}{blue} = original HF checkpoint (latkes; qwen ifeval s1/s2 + "
+              r"rosch s1/s7); \textcolor{BurntOrange}{orange} = wandb-rerun checkpoint (qwen "
+              r"originals lost; gemma ifeval own-OOD). All epoch 2.}",
               r"\label{tab:original-v7-main}", r"\end{table*}"]
     return "\n".join(lines)
 
