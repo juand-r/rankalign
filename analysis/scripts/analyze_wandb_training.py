@@ -86,7 +86,9 @@ def analyze_runs(runs_dict, label_prefix):
         print("  No data pulled!")
         return None
 
-    # Plot loss curves
+    # Plot loss curves in two figures:
+    # Panel A: SFT vs RankAlign vs Ours (s1, s2, s4)
+    # Panel B: Ours variants (s4, s3, s7)
     metrics_to_plot = [
         ("train/loss", "Total Loss"),
         ("train/preference_loss", "Preference Loss"),
@@ -94,29 +96,39 @@ def analyze_runs(runs_dict, label_prefix):
         ("train/nll_validator_loss", "NLL Validator Loss"),
     ]
 
-    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
-    axes = axes.flatten()
+    group_a = {"s1": "SFT", "s2": "RankAlign", "s4": "Ours"}
+    group_b = {"s4": "Ours", "s3": "Ours (w/o TC)", "s7": "Ours (neg TC)"}
 
-    for idx, (metric, title) in enumerate(metrics_to_plot):
-        ax = axes[idx]
-        for setting, history in all_data.items():
-            if metric in history.columns:
-                values = history[metric].dropna()
-                steps = history["_step"].iloc[:len(values)].values[:len(values)]
-                if len(values) > 0:
-                    # Smooth with rolling average
-                    smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                    ax.plot(steps[:len(smoothed)], smoothed, label=SETTING_LABELS.get(setting, setting), alpha=0.8)
-        ax.set_xlabel("Step")
-        ax.set_ylabel(title)
-        ax.set_title(f"{title}\n({label_prefix})")
-        ax.legend(fontsize=8)
+    for group, group_label, suffix in [
+        (group_a, "SFT vs RankAlign vs Ours", "methods"),
+        (group_b, "Ours variants (TC comparison)", "tc"),
+    ]:
+        fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+        axes_flat = axes.flatten()
 
-    plt.tight_layout()
-    fname = f"wandb_loss_curves_{label_prefix.replace(' ', '_').lower()}.png"
-    plt.savefig(PLOTS_DIR / fname, dpi=150, bbox_inches='tight')
-    plt.close()
-    print(f"  Saved: analysis/plots/{fname}")
+        for idx, (metric, title) in enumerate(metrics_to_plot):
+            ax = axes_flat[idx]
+            for setting, legend_label in group.items():
+                if setting not in all_data:
+                    continue
+                history = all_data[setting]
+                if metric in history.columns:
+                    values = history[metric].dropna()
+                    steps = history["_step"].iloc[:len(values)].values[:len(values)]
+                    if len(values) > 0:
+                        smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
+                        ax.plot(steps[:len(smoothed)], smoothed, label=legend_label, alpha=0.8)
+            ax.set_xlabel("Step")
+            ax.set_ylabel(title)
+            ax.set_title(f"{title}\n({label_prefix})")
+            ax.legend(fontsize=9, loc="best")
+
+        plt.suptitle(f"{group_label} — {label_prefix}", fontsize=12, y=1.01)
+        plt.tight_layout()
+        fname = f"wandb_loss_{suffix}_{label_prefix.replace(' ', '_').lower()}.png"
+        plt.savefig(PLOTS_DIR / fname, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"  Saved: analysis/plots/{fname}")
 
     # Plot score statistics (if available)
     score_metrics = [
