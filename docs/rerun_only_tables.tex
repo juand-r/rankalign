@@ -1,0 +1,108 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.6in,landscape]{geometry}
+\usepackage{booktabs,amsmath,amssymb,xcolor}
+\newcommand{\stdv}[1]{{\tiny$\pm$#1}}
+\pagestyle{empty}
+\begin{document}
+\section*{RankAlign --- RERUN-ONLY results (wandb-rerun checkpoints)}
+{\footnotesize Every value is from the \textbf{outputs-rerun-wandb} batch (mll-retrained-for-wandb
+checkpoints, evaluated 2026-06-07/08/09 in the \texttt{qwen35} venv). Cells with no rerun
+source are \texttt{---} (notably Hyponymy/G2-9b-it, which was not in the rerun batch, and the
+gemma IFEval Base row, since no rerun base eval exists for it). All rows epoch 2;
+RankAlign is \emph{not} epoch-matched to the paper. Each eval-time typicality-correction
+variant is its own row: \textbf{PMI self}/\textbf{Neg self} use the model's \emph{own}
+typicality, \textbf{PMI base}/\textbf{Neg base} use the \emph{base} model's. A variant
+row appears only where the rerun batch has it (e.g.\ Base has own only; FLORA-PMI has no Neg,
+FLORA-Neg no PMI). disc-shots: membership=few, ifeval=zero.}
+
+\subsection*{Generator (ROC$_G$, $\rho$)}
+\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll cccc cccc}
+\toprule
+& & \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}
+& & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
+\textbf{Method} & \textbf{eval} & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ \\
+\midrule
+Base & PMI self & --- & --- & 73.6\stdv{2.2} & 45.6\stdv{2.4} & --- & --- & --- & --- \\
+Base & Neg self & --- & --- & 73.8\stdv{2.7} & 43.9\stdv{3.1} & --- & --- & --- & --- \\
+\midrule
+SFT & PMI self & --- & --- & 82.6\stdv{1.9} & 61.3\stdv{2.8} & 66.7\stdv{2.8} & 22.8\stdv{6.0} & 66.2\stdv{3.6} & 20.6\stdv{5.6} \\
+SFT & PMI base & --- & --- & 81.3\stdv{1.8} & 59.1\stdv{2.5} & 58.2\stdv{4.0} & 13.9\stdv{7.3} & 62.5\stdv{4.1} & 13.0\stdv{6.2} \\
+SFT & Neg self & --- & --- & 84.2\stdv{3.0} & 59.7\stdv{5.3} & 50.7\stdv{2.7} & 0.5\stdv{5.2} & 48.8\stdv{2.8} & 3.2\stdv{4.5} \\
+SFT & Neg base & --- & --- & 80.7\stdv{1.9} & 56.2\stdv{3.4} & 49.3\stdv{3.8} & 4.6\stdv{6.7} & 49.9\stdv{4.3} & -3.6\stdv{5.8} \\
+\midrule
+RankAlign & PMI self & --- & --- & \textbf{89.1}\stdv{2.0} & \textbf{74.3}\stdv{3.0} & 52.1\stdv{3.9} & 3.0\stdv{4.5} & 67.9\stdv{3.6} & 26.3\stdv{7.6} \\
+RankAlign & PMI base & --- & --- & 82.6\stdv{2.1} & 63.2\stdv{3.0} & 43.4\stdv{4.8} & -5.4\stdv{7.0} & 58.3\stdv{3.9} & -1.3\stdv{5.2} \\
+RankAlign & Neg self & --- & --- & 85.7\stdv{2.6} & 63.7\stdv{4.7} & 52.1\stdv{4.7} & 8.1\stdv{6.7} & 57.7\stdv{4.2} & 5.0\stdv{6.8} \\
+RankAlign & Neg base & --- & --- & 82.3\stdv{2.0} & 61.9\stdv{3.6} & 43.0\stdv{4.9} & -5.6\stdv{7.0} & 53.1\stdv{4.2} & -1.6\stdv{5.6} \\
+\midrule
+Consistency FT & PMI base & --- & --- & --- & --- & 60.4\stdv{3.1} & 8.9\stdv{7.5} & --- & --- \\
+Consistency FT & Neg base & --- & --- & --- & --- & 46.6\stdv{2.6} & -9.4\stdv{6.8} & --- & --- \\
+\midrule
+FLORA-PMI & PMI self & --- & --- & 86.1\stdv{2.0} & 69.3\stdv{2.5} & \textbf{84.2}\stdv{2.6} & \textbf{53.9}\stdv{5.0} & \textbf{79.6}\stdv{3.3} & \textbf{46.8}\stdv{5.3} \\
+FLORA-PMI & PMI base & --- & --- & 86.9\stdv{2.0} & 70.7\stdv{2.1} & 80.6\stdv{2.5} & 51.5\stdv{4.3} & 74.5\stdv{3.5} & 36.6\stdv{6.7} \\
+\midrule
+FLORA-Neg & Neg self & --- & --- & --- & --- & 64.7\stdv{3.6} & 39.0\stdv{4.3} & 66.0\stdv{3.0} & 38.8\stdv{4.7} \\
+FLORA-Neg & Neg base & --- & --- & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3.1} & 48.7\stdv{3.3} & 68.9\stdv{3.5} & 39.5\stdv{5.3} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Validator (ROC$_V$, Acc$_V$)}
+\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l cccc cccc}
+\toprule
+& \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+& \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
+\textbf{Method} & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ \\
+\midrule
+Base & --- & --- & 95.7\stdv{1.8} & \textbf{88.0}\stdv{2.9} & --- & --- & --- & --- \\
+SFT & --- & --- & 95.7\stdv{1.7} & 86.7\stdv{3.1} & 78.4\stdv{3.7} & 66.3\stdv{4.0} & 82.8\stdv{3.1} & 73.1\stdv{3.8} \\
+RankAlign & --- & --- & 95.7\stdv{1.8} & 87.9\stdv{3.0} & 52.3\stdv{3.3} & 56.2\stdv{3.2} & 68.7\stdv{4.2} & 55.6\stdv{3.4} \\
+Consistency FT & --- & --- & --- & --- & 78.2\stdv{3.7} & 62.9\stdv{4.2} & --- & --- \\
+FLORA-PMI & --- & --- & \textbf{95.9}\stdv{1.7} & 86.0\stdv{3.2} & \textbf{79.4}\stdv{3.2} & 64.5\stdv{3.6} & 83.1\stdv{3.3} & \textbf{73.6}\stdv{3.8} \\
+FLORA-Neg & --- & --- & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \textbf{67.5}\stdv{3.9} & \textbf{83.2}\stdv{3.3} & 71.8\stdv{3.8} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Provenance --- every value above is from \texttt{outputs-rerun-wandb/}}
+{\footnotesize Cells were aggregated by \texttt{\_build\_ifeval\_table\_v7.py} / \texttt{\_build\_rosch\_table\_v7.py} run with \texttt{EXTRA\_SEARCH\_DIR=.../outputs-rerun-wandb} (single source, no fallback), then assembled by \texttt{\_build\_rerun\_only\_table.py}. Checkpoint dirs per column (\texttt{v6-*}=base model, \texttt{v7-*}=trained):}
+\begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
+\item \textbf{Hyponymy / G2-9b-it}: \emph{no rerun data} ($\rightarrow$ all \texttt{---})
+\item \textbf{Hyponymy / Q3.5-9b}: 6 checkpoint(s):
+\begin{itemize}\tiny
+\item \texttt{v6-Qwen\_Qwen3.5-9B}
+\item \texttt{v7-Qwen3.5-9B-d1.53-e2-membership-sans-rosch-v0-all-p0-nv1-ng1-vlo-lo0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d1.54-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d1.54-e2-membership-sans-rosch-v0-all-tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d1.54-e2-membership-sans-rosch-v0-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d1.54-e2-membership-sans-rosch-v0-all-vlo-sm0.1-fix1}
+\end{itemize}
+\item \textbf{IFEval / G2-9b-it}: 8 checkpoint(s):
+\begin{itemize}\tiny
+\item \texttt{v7-gemma-2-9b-it-d1.29-e2-ifeval-concat-all-p0-nv1-ng1-lo0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d1.38-e2-ifeval-concat-all-sm0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d1.94-e2-ifeval-concat-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d1.94-e2-ifeval-concat-all-tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d1.94-e2-ifeval-concat-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-google--gemma-2-9b-it-delta0.98-epoch2--ifeval-concat-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1\_merged}
+\item \texttt{v7-google--gemma-2-9b-it-delta1.29-epoch2--ifeval-concat-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--labelonly0.1--fix1\_merged}
+\item \texttt{v7-google--gemma-2-9b-it-delta1.38-epoch2--ifeval-concat-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1\_merged}
+\end{itemize}
+\item \textbf{IFEval / Q3.5-9b}: 5 checkpoint(s):
+\begin{itemize}\tiny
+\item \texttt{v7-Qwen3.5-9B-d0.84-e2-ifeval-concat-all-p0-nv1-ng1-vlo-lo0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-vlo-sm0.1-fix1}
+\end{itemize}
+\end{itemize}
+
+
+\end{document}
