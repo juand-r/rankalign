@@ -114,6 +114,7 @@ OWN = {"PMI self": "self", "Neg self": "neg"}
 BASE = {"PMI base": "self-base", "Neg base": "neg-base"}
 ALLV = list(OWN) + list(BASE)
 SPLIT = {}  # (metric,model,task,num,col) -> split letter (for ifeval o/i)
+PROV = {}   # (metric,model,task,num,col) -> provenance ("L"/"P"/"R"/"O")
 
 
 def variants(metric, model, task, num):
@@ -125,6 +126,7 @@ def variants(metric, model, task, num):
         if v is not None:
             out.append((f, f, v[0]))
             SPLIT[(metric, model, task, num, f)] = v[3]
+            PROV[(metric, model, task, num, f)] = v[4]
     return out
 
 
@@ -188,6 +190,7 @@ TASKS = [("IFEval", "ifeval"), ("Hyponymy", "rosch")]
 ROWS = [("Base", 0), ("SFT", 1), ("Consistency FT", 13),
         ("RankAlign", 2), ("FLORA-PMI", 4), ("FLORA-Neg", 7)]
 flags: set[str] = set()
+provflags: set[str] = set()  # which provenance tags (R/O) appeared
 
 
 def cell_tex(paper_val, metric, model, task, num):
@@ -200,13 +203,18 @@ def cell_tex(paper_val, metric, model, task, num):
     pv = f"{paper_val:.1f}"
     fl = {"PMI self": "s", "Neg self": "n", "PMI base": "sb",
           "Neg base": "nb"}.get(field, "")
+    # provenance of MY matched value: r=rerun, o=orig-HF, (none)=original pod/local-mll.
+    prov = PROV.get((metric, model, task, num, field), "")
+    ptag = {"R": "$^{r}$", "O": "$^{o}$"}.get(prov, "")
+    if prov in ("R", "O"):
+        provflags.add(prov)
     if code == "nodata":
-        bref = f"\\,\\tiny[{base_mean:.1f}b]" if base_mean is not None else ""
+        bref = f"\\,\\tiny[{base_mean:.1f}b{ptag}]" if base_mean is not None else ""
         return f"\\textcolor{{Gray}}{{{pv}$^{{\\ddagger}}${bref}}}"
     col = COLOR.get(code, "black")
-    inner = f"{pv}\\,\\tiny[{mean:.1f}{fl}]"
+    inner = f"{pv}\\,\\tiny[{mean:.1f}{fl}{ptag}]"
     if code == "a1" and base_mean is not None:
-        inner = f"{pv}\\,\\tiny[{mean:.1f}{fl}/{base_mean:.1f}b]"
+        inner = f"{pv}\\,\\tiny[{mean:.1f}{fl}{ptag}/{base_mean:.1f}b]"
     mark = {"green": "$^{\\S}$", "red": "$^{!}$", "amber": "$^{\\sim}$"}.get(code, "")
     return f"\\textcolor{{{col}}}{{{inner}{mark}}}"
 
@@ -234,7 +242,9 @@ def table(title, paper, metric_idx, metric_names, label):
         lines.append(f"{label_m} & " + " & ".join(cells) + r" \\")
     lines += [r"\bottomrule", r"\end{tabular}",
               f"\\caption{{{title} Each cell: \\textbf{{paper value}} {{\\tiny[my original-v7 value + variant: "
-              r"s=self/own, n=neg/own, sb=self-base, nb=neg-base]}. "
+              r"s=self/own, n=neg/own, sb=self-base, nb=neg-base; "
+              r"provenance of my value: $^{r}$=wandb-rerun checkpoint, $^{o}$=original HF "
+              r"checkpoint, no tag=original pod/local-mll]}. "
               r"\textcolor{blue}{blue}=$<$1pp (faithful); "
               r"\textcolor{RoyalPurple}{purple}=paper used \emph{own}-typ (a1; base shown as /\#b); "
               r"\textcolor{ForestGreen}{green}$^{\S}$=RankAlign, paper epoch1 vs my epoch2 (a2); "
