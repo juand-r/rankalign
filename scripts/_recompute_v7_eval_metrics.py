@@ -44,13 +44,20 @@ from summarize_scores_file import load_scores, compute_all_metrics  # noqa: E402
 
 REPO = Path(__file__).resolve().parent.parent
 POD = REPO / "outputs_gemma4_from_pod-v7"
+POD_V7B = REPO / "outputs_gemma4_from_pod-v7b"
 OUT = REPO / "metrics-from-scores" / "v7_recompute_eval_metrics.csv"
 
-# (model, task, dir, eval-task token used in the score filenames)
+# (model, task, dir, eval-task token, only_settings)
+# only_settings=None -> all settings. The v7b folder is the delta-0.15 regime, so we take
+# from it ONLY the delta-INSENSITIVE settings (SFT s1, CFT s13) — for those, the v7b eval IS
+# the paper's actual qwen value (the paper's qwen SFT/CFT IFEval came from here: e.g. s1=73.1).
+# Delta-sensitive settings (s2/s4/s7) come only from the delta-bins v7 folder.
 SOURCES = [
-    ("9b-it", "ifeval", POD / "ra9b_ifeval", "ifeval"),
-    ("qwen", "ifeval", POD / "qw35_ifeval", "ifeval"),
-    ("qwen", "rosch", POD / "qw35_persona_member", "rosch"),
+    ("9b-it", "ifeval", POD / "ra9b_ifeval", "ifeval", None),
+    ("qwen", "ifeval", POD / "qw35_ifeval", "ifeval", None),
+    ("qwen", "rosch", POD / "qw35_persona_member", "rosch", None),
+    ("qwen", "ifeval", POD_V7B / "qw35_ifeval", "ifeval", {1, 13}),
+    ("qwen", "rosch", POD_V7B / "qw35_persona_member", "rosch", {1, 13}),
 ]
 PREFIX_COL = {"self": "PMI self", "basetyp": "PMI base",
               "neg": "Neg self", "basetypneg": "Neg base"}
@@ -85,24 +92,23 @@ def main() -> None:
     rawbucket: dict[tuple, dict] = {}
     valbucket: dict[tuple, dict] = {}
 
-    for model, task, d, etok in SOURCES:
+    for model, task, d, etok, only_settings in SOURCES:
         if not d.exists():
             print(f"  MISSING DIR {d}", file=sys.stderr)
             continue
-        if "v7b" in str(d):           # exclude fixed-delta-0.15 (v7b) entirely
-            continue
         pats = [f"scores_{p}-eval_model_s*_{etok}*.csv" for p in PREFIX_COL]
         files = sorted({f for pat in pats for f in glob.glob(str(d / pat))})
-        print(f"{model}/{task}: {len(files)} files in {d.name}")
+        print(f"{model}/{task}: {len(files)} files in {d.name}"
+              + (f" (settings {sorted(only_settings)})" if only_settings else ""))
         for fp in files:
-            if "v7b" in fp:
-                continue
             name = os.path.basename(fp)
             m = re.match(_FNAME, name)
             if not m:
                 continue
             prefix, snum, ftask = m.group(1), int(m.group(2)), m.group(3)
             if ftask != etok:
+                continue
+            if only_settings is not None and snum not in only_settings:
                 continue
             pm = re.search(r"prompt[_-](\d+)", name)
             prompt = int(pm.group(1)) if pm else None

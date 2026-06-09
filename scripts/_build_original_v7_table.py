@@ -53,11 +53,18 @@ data: dict[tuple, tuple] = {}
 v6data: dict[tuple, float] = {}
 
 
-def add(task, model, num, metric, col, mean, se, n, split, prov):
+prio_of: dict[tuple, int] = {}  # key -> source priority (higher wins)
+
+
+def add(task, model, num, metric, col, mean, se, n, split, prov, prio=0):
     if mean is None or (isinstance(mean, float) and math.isnan(mean)):
         return
-    data[(task, model, num, metric, col)] = (float(mean), (None if se is None or math.isnan(se) else float(se)),
-                                             int(n) if n else 0, split, prov)
+    key = (task, model, num, metric, col)
+    if key in data and prio_of.get(key, 0) > prio:   # keep the higher-priority source
+        return
+    data[key] = (float(mean), (None if se is None or math.isnan(se) else float(se)),
+                 int(n) if n else 0, split, prov)
+    prio_of[key] = prio
 
 
 # ---- source L: gemma rosch from v7_rosch_all_metrics ----------------------
@@ -94,7 +101,7 @@ def parse_rosch_doc():
             vm = re.match(r"^(-?\d+\.?\d*)\s*±\s*(-?\d+\.?\d*)$", cell.strip())
             if vm:
                 add("rosch", "9b-it", num, metric_key, colname,
-                    float(vm.group(1)), float(vm.group(2)), 10, "all", "L")
+                    float(vm.group(1)), float(vm.group(2)), 10, "all", "L", prio=3)
 
 
 # ---- source P: recompute CSV (gemma ifeval, qwen ifeval, qwen rosch) -------
@@ -104,17 +111,23 @@ def parse_recompute():
         return
     df = pd.read_csv(RECOMPUTE)
     metric_map = {"gen_roc": "gen_roc", "spearman": "rho", "val_roc": "val_roc", "val_acc": "val_acc"}
-    # for ifeval prefer OOD; fall back to ID. group rows and pick.
+
+    def _skip_gemma_ifeval_own(model, task, col):
+        # gemma ifeval OWN-OOD never existed originally (recompute only has own-ID);
+        # let the rerun supply gemma ifeval own. So skip own cols here for gemma ifeval.
+        return model == "9b-it" and task == "ifeval" and col in ("PMI self", "Neg self")
+
+    # gen_roc / rho cells. ifeval prefers OOD; fall back to ID.
     for (model, task, num, col, metric), sub in df.groupby(["model", "task", "setting", "column", "metric"]):
         mk = metric_map.get(metric)
-        if mk is None or col == "val":
+        if mk is None or col == "val" or _skip_gemma_ifeval_own(model, task, col):
             continue
         if task == "ifeval":
             ood = sub[sub.split == "ood"]
             pick = ood.iloc[0] if len(ood) else sub.iloc[0]
         else:
             pick = sub.iloc[0]
-        add(task, model, int(num), mk, col, pick["mean"], pick["se"], pick["n"], pick["split"], "P")
+        add(task, model, int(num), mk, col, pick["mean"], pick["se"], pick["n"], pick["split"], "P", prio=4)
     # validator metrics (column 'val'): apply to all variants for that cell
     for (model, task, num, metric), sub in df[df.column == "val"].groupby(["model", "task", "setting", "metric"]):
         mk = metric_map.get(metric)
@@ -126,8 +139,9 @@ def parse_recompute():
         else:
             pick = sub.iloc[0]
         for _, _, col in VARIANTS:
-            add(task, model, int(num), mk, col, pick["mean"], pick["se"], pick["n"], pick["split"], "P")
-        add(task, model, int(num), mk, "PMI self", pick["mean"], pick["se"], pick["n"], pick["split"], "P")
+            if _skip_gemma_ifeval_own(model, task, col):
+                continue
+            add(task, model, int(num), mk, col, pick["mean"], pick["se"], pick["n"], pick["split"], "P", prio=4)
 
 
 # ---- source R: RERUN-checkpoint cells (qwen; gemma ifeval later) ----------
@@ -159,7 +173,7 @@ ORIG_CELLS = {
 }
 
 
-def parse_cells_source(cells_map, prov):
+def parse_cells_source(cells_map, prov, prio=0):
     mfile = {"gen_roc": "gen_roc", "rho": "spearman", "val_roc": "val_roc", "val_acc": "val_acc"}
     for (task, model), (d, tmpl, split, cols) in cells_map.items():
         for mk, mf in mfile.items():
@@ -172,7 +186,7 @@ def parse_cells_source(cells_map, prov):
                     continue
                 se = r["se"] if "se" in df.columns and pd.notna(r["se"]) else None
                 add(task, model, int(r["method_num"]), mk, r["column"],
-                    r["mean"], se, r.get("n", 0), split, prov)
+                    r["mean"], se, r.get("n", 0), split, prov, prio=prio)
 
 
 def parse_v6_ifeval():
@@ -296,14 +310,14 @@ def main_table():
               r"\texttt{eval\_model\_sN} pod scores. IFEval split per cell: "
               r"$_o$=OOD (20 prompts), $_i$=ID (79). \textbf{Own-typ ifeval exists only on ID} "
               r"(own-OOD was never run in v7); base-typ ifeval is OOD. \texttt{---}=not on disk in v7. "
-              r"\textbf{Provenance by color:} black = original (gemma: pod / local-mll); "
-              r"\textcolor{RoyalBlue}{blue} = original HF checkpoint (latkes; qwen ifeval s1/s2 + "
-              r"rosch s1/s7); \textcolor{BurntOrange}{orange} = wandb-rerun checkpoint (qwen "
-              r"originals lost; gemma ifeval own-OOD). \textbf{gemma IFEval cells show "
-              r"\textcolor{ForestGreen}{green}=v6/(orange or black)=v7}: "
-              r"\textcolor{ForestGreen}{green} is the legacy v6 (delta-0.15) own-typ value the "
-              r"\emph{paper actually used} (v7 gemma-ifeval did not exist at paper time); the "
-              r"second number is our v7. All epoch 2.}",
+              r"\textbf{Provenance by color:} black = original eval (gemma rosch = local-mll; "
+              r"gemma IFEval base = pod; \textbf{qwen = the original \texttt{eval\_model\_sN} pod "
+              r"evals the paper used}, incl. the v7b folder for delta-insensitive SFT/CFT); "
+              r"\textcolor{BurntOrange}{orange} = wandb-rerun checkpoint (gemma IFEval own-OOD; "
+              r"qwen rosch s2/s4 — no original on disk). \textbf{gemma IFEval cells show "
+              r"\textcolor{ForestGreen}{green}=v6 / v7}: green is the legacy v6 (delta-0.15) own-typ "
+              r"value the \emph{paper actually used} (v7 gemma-ifeval did not exist at paper time); "
+              r"the second number is our v7. All epoch 2.}",
               r"\label{tab:original-v7-main}", r"\end{table*}"]
     return "\n".join(lines)
 
@@ -347,8 +361,11 @@ def val_table():
 def main():
     parse_rosch_doc()
     parse_recompute()
-    parse_cells_source(RERUN_CELLS, "R")   # rerun-checkpoint cells (qwen + gemma ifeval own-OOD)
-    parse_cells_source(ORIG_CELLS, "O")    # original HF checkpoints — supersede rerun for those cells
+    parse_cells_source(RERUN_CELLS, "R", prio=2)   # rerun: gemma ifeval own-OOD + qwen rosch gaps (s2/s4)
+    # NOTE: ORIG_CELLS (the HF re-eval) is intentionally NOT used — it diverged from the paper
+    # (eval-pipeline mismatch; e.g. qwen SFT ifeval 67.3 vs paper 73.1). The paper's qwen
+    # ifeval/rosch come from the ORIGINAL eval_model_sN pod evals, loaded by parse_recompute
+    # (prio 4, incl. the v7b folder for delta-insensitive s1/s13). Those win over rerun.
     parse_v6_ifeval()                      # paper's gemma IFEval = v6 own (shown alongside v7)
     header = (
         "% ORIGINAL v7 results (v7 delta-bins ONLY; not v6/v7b/rerun). FULL accounting.\n"
