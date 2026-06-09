@@ -356,30 +356,31 @@ def make_unified_plots(all_results):
         print("  No data for unified plots!")
         return
 
-    # Plot: gen_roc(tc) grouped by combo
+    # Plot: gen_roc(tc) grouped by dataset×model pair, bars = settings
     fig, ax = plt.subplots(figsize=(12, 7))
     combos = ["gemma_membership", "gemma_ifeval", "qwen_membership", "qwen_ifeval"]
     combo_labels = ["Gemma\nMembership", "Gemma\nIFEval", "Qwen\nMembership", "Qwen\nIFEval"]
-    x = np.arange(len(key_settings))
-    width = 0.18
+    n_settings = len(key_settings)
+    x = np.arange(len(combos))
+    width = 0.8 / n_settings
 
-    for i, (combo, clabel) in enumerate(zip(combos, combo_labels)):
-        subset = ep2[ep2["combo"] == combo]
+    for i, s in enumerate(key_settings):
         vals = []
-        for s in key_settings:
+        for combo in combos:
+            subset = ep2[ep2["combo"] == combo]
             row = subset[subset["setting"] == s]
             if not row.empty:
                 vals.append(row.iloc[0].get("tc_gen_roc", np.nan))
             else:
                 vals.append(np.nan)
-        offset = (i - 1.5) * width
-        bars = ax.bar(x + offset, vals, width, label=clabel, alpha=0.8)
+        offset = (i - (n_settings - 1) / 2) * width
+        ax.bar(x + offset, vals, width, label=s, alpha=0.8)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(key_settings)
+    ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Generator ROC AUC (TC)")
     ax.set_title("Generator ROC AUC across settings and model/task combos\n(epoch 2, self-TC scoring, train set)")
-    ax.legend()
+    ax.legend(title="Setting")
     ax.set_ylim(0.0, 1.0)
     ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3)
     plt.tight_layout()
@@ -387,62 +388,67 @@ def make_unified_plots(all_results):
     plt.close()
     print(f"  Saved: analysis/plots/unified_genroc_comparison.png")
 
-    # Plot: improvement over base
+    # Plot: improvement over base, grouped by dataset×model pair, bars = settings
     fig, ax = plt.subplots(figsize=(12, 7))
-    for i, (combo, clabel) in enumerate(zip(combos, combo_labels)):
+    settings_no_base = [s for s in key_settings if s != "base"]
+    n_snb = len(settings_no_base)
+    width2 = 0.8 / n_snb
+
+    # Precompute base values per combo
+    base_vals = {}
+    for combo in combos:
         subset = ep2[ep2["combo"] == combo]
         base_row = subset[subset["setting"] == "base"]
-        if base_row.empty:
-            continue
-        base_val = base_row.iloc[0].get("tc_gen_roc", np.nan)
-        if np.isnan(base_val):
-            continue
+        if not base_row.empty:
+            base_vals[combo] = base_row.iloc[0].get("tc_gen_roc", np.nan)
+        else:
+            base_vals[combo] = np.nan
 
-        settings_no_base = [s for s in key_settings if s != "base"]
+    for i, s in enumerate(settings_no_base):
         improvements = []
-        for s in settings_no_base:
+        for combo in combos:
+            subset = ep2[ep2["combo"] == combo]
             row = subset[subset["setting"] == s]
-            if not row.empty:
+            bv = base_vals.get(combo, np.nan)
+            if not row.empty and not np.isnan(bv):
                 val = row.iloc[0].get("tc_gen_roc", np.nan)
-                improvements.append(val - base_val if not np.isnan(val) else np.nan)
+                improvements.append(val - bv if not np.isnan(val) else np.nan)
             else:
                 improvements.append(np.nan)
+        offset = (i - (n_snb - 1) / 2) * width2
+        ax.bar(x + offset, improvements, width2, label=s, alpha=0.8)
 
-        x2 = np.arange(len(settings_no_base))
-        offset = (i - 1.5) * width
-        ax.bar(x2 + offset, improvements, width, label=clabel, alpha=0.8)
-
-    ax.set_xticks(np.arange(len(settings_no_base)))
-    ax.set_xticklabels(settings_no_base)
+    ax.set_xticks(x)
+    ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Δ Gen ROC AUC over Base")
     ax.set_title("Improvement over base model (gen_roc TC)\n(epoch 2, self-TC scoring, train set)")
-    ax.legend()
+    ax.legend(title="Setting")
     ax.axhline(0, color='gray', linestyle='-', alpha=0.3)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "unified_improvement_over_base.png", dpi=150, bbox_inches='tight')
     plt.close()
     print(f"  Saved: analysis/plots/unified_improvement_over_base.png")
 
-    # Plot: Concordance comparison
+    # Plot: Concordance comparison, grouped by dataset×model pair, bars = settings
     fig, ax = plt.subplots(figsize=(12, 7))
-    for i, (combo, clabel) in enumerate(zip(combos, combo_labels)):
-        subset = ep2[ep2["combo"] == combo]
+    for i, s in enumerate(key_settings):
         vals = []
-        for s in key_settings:
+        for combo in combos:
+            subset = ep2[ep2["combo"] == combo]
             row = subset[subset["setting"] == s]
             if not row.empty:
                 vals.append(row.iloc[0].get("tc_concordance", np.nan))
             else:
                 vals.append(np.nan)
-        offset = (i - 1.5) * width
-        ax.bar(x + offset, vals, width, label=clabel, alpha=0.8)
+        offset = (i - (n_settings - 1) / 2) * width
+        ax.bar(x + offset, vals, width, label=s, alpha=0.8)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(key_settings)
+    ax.set_xticklabels(combo_labels)
     ax.set_ylabel("Concordance (gen-val pair agreement)")
     ax.set_title("Generator-Validator Concordance\n(epoch 2, self-TC scoring, train set)")
-    ax.legend()
-    ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3, label='Chance')
+    ax.legend(title="Setting")
+    ax.axhline(0.5, color='gray', linestyle=':', alpha=0.3)
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "unified_concordance_comparison.png", dpi=150, bbox_inches='tight')
     plt.close()
