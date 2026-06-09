@@ -43,10 +43,9 @@ MAIN_TEX = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(
     "/home/jdr/Projects/paper-rankalignv2/llm-gv-gap-research/main.tex")
 OUT = Path(sys.argv[2]) if len(sys.argv) > 2 else REPO / "docs" / "paper_vs_original_v7.tex"
 
-# Build the original-v7 data dict
-for metric in ov7.METRIC_DOC:
-    ov7.parse_pod_doc(metric)
-ov7.overlay_gemma_gen_roc_cells()
+# Build the original-v7 data dict (new full-accounting API: rosch doc + pod recompute)
+ov7.parse_rosch_doc()
+ov7.parse_recompute()
 
 # ---- paper parsing -------------------------------------------------------
 # Paper column order (per task-model pair, each ROC + 2nd-metric):
@@ -108,41 +107,51 @@ PAPER1 = parse_paper_table("tab:main-results-multi")     # ROC_G, rho
 PAPER2 = parse_paper_table("tab:main-results-multi-val") # ROC_V, Acc_V
 
 # ---- classification ------------------------------------------------------
-OWN = {"pmi_self": "self", "neg_self": "neg"}
-BASE = {"pmi_base": "self-base", "neg_base": "neg-base"}
+# New builder stores by doc-column name; map to own/base groups.
+OWN = {"PMI self": "self", "Neg self": "neg"}
+BASE = {"PMI base": "self-base", "Neg base": "neg-base"}
 ALLV = list(OWN) + list(BASE)
+SPLIT = {}  # (metric,model,task,num,col) -> split letter (for ifeval o/i)
 
 
 def variants(metric, model, task, num):
-    """Return list of (field, label, mean) available on disk for this cell+metric."""
+    """Return list of (col, col, mean) available on disk for this cell+metric.
+    New ov7.get signature: get(task, model, num, metric, col) -> (mean,se,n,split,prov)."""
     out = []
-    for f in ALLV + ["raw"]:
-        v = ov7.get(metric, model, task, num, f)
+    for f in ALLV:
+        v = ov7.get(task, model, num, metric, f)
         if v is not None:
             out.append((f, f, v[0]))
+            SPLIT[(metric, model, task, num, f)] = v[3]
     return out
 
 
 def classify(paper_val, metric, model, task, num):
-    """Return (code, mine_mean, mine_field, base_mean, note).
+    """Compare paper vs the BEST-matching on-disk v7 variant (own OR base).
 
-    The paper used OWN-typ (self/neg) for BOTH Hyponymy and IFEval (author note,
-    main.tex ~l.942: "Rosch: Self", "IFEval: PMI[self]", "self generally better than
-    base ... reporting those"). So we compare paper against the best-matching OWN
-    variant when it exists. If own is NOT on disk (trained IFEval-OOD), we cannot
-    verify the paper number from base -> GREY (would need an own-typ re-eval).
+    Returns (code, mine_mean, mine_field, base_mean, note). Picks the overall closest
+    variant; labels which (own/base) the paper used. For ifeval the paper is OOD while
+    own-typ exists only on ID, so a split note is added when comparing across splits.
     """
     if paper_val is None:
         return ("none", None, None, None, "")
     vs = variants(metric, model, task, num)
-    # Validator metrics (ROC_V, Acc_V) are eval-TC INDEPENDENT (paper caption): no
-    # own/base distinction -> compare directly against any available variant value.
+    if not vs:
+        return ("nodata", None, None, None, "no on-disk variant")
+    own = [v for v in vs if v[0] in OWN]
+    base = [v for v in vs if v[0] in BASE]
+    base_mean = min((v[2] for v in base), key=lambda m: abs(m - paper_val), default=None)
+    best = min(vs, key=lambda t: abs(t[2] - paper_val))
+    field, mean = best[0], best[2]
+    diff = abs(mean - paper_val)
+    is_own = field in OWN
+    split = SPLIT.get((metric, model, task, num, field), "all")
+    snote = ""
+    if task == "ifeval" and split == "id":
+        snote = " [my own=ID, paper=OOD]"
+
+    # validator metrics: eval-TC independent, no own/base meaning
     if metric in ("val_roc", "val_acc"):
-        if not vs:
-            return ("nodata", None, None, None, "no on-disk variant")
-        best = min(vs, key=lambda t: abs(t[2] - paper_val))
-        field, mean = best[0], best[2]
-        diff = abs(mean - paper_val)
         if num == 2 and 1.0 <= diff <= 5.0:
             return ("green", mean, field, None, "epoch1 vs my epoch2")
         if diff < 1.0:
@@ -150,36 +159,22 @@ def classify(paper_val, metric, model, task, num):
         if diff <= 5.0:
             return ("amber", mean, field, None, f"{diff:.1f}pp off")
         return ("red", mean, field, None, f"{diff:.1f}pp off")
-    own = [v for v in vs if v[0] in OWN]
-    base = [v for v in vs if v[0] in BASE]
-    base_mean = min((v[2] for v in base), key=lambda m: abs(m - paper_val), default=None)
-    flora_ifeval = (task == "ifeval" and num in (4, 7))
 
-    if own:
-        best = min(own, key=lambda t: abs(t[2] - paper_val))
-        field, mean = best[0], best[2]
-        diff = abs(mean - paper_val)
-        if num == 2 and 1.0 <= diff <= 5.0:                 # RankAlign epoch1-vs-2
-            return ("green", mean, field, base_mean, "epoch1 vs my epoch2")
-        if diff < 1.0:
-            if base_mean is not None and abs(base_mean - paper_val) >= 1.0:
-                return ("a1", mean, field, base_mean, "paper=own")  # own matches, base differs
-            return ("blue", mean, field, base_mean, "own match")
-        if diff <= 5.0:
-            return ("amber", mean, field, base_mean, f"own {diff:.1f}pp off")
-        return ("red", mean, field, base_mean, f"own {diff:.1f}pp off")
-
-    # no OWN on disk: paper number (own) cannot be verified here
-    if base:
-        note = "own not on disk"
-        if base_mean is not None and abs(base_mean - paper_val) < 1.0:
-            note += f"; base≈paper ({base_mean:.1f})"
-        else:
-            note += f"; base={base_mean:.1f}" if base_mean is not None else ""
-        if flora_ifeval:
-            note += "; paper pre-fix"
-        return ("nodata", base_mean, (base[0][0] if base else None), base_mean, note)
-    return ("nodata", None, None, None, "no on-disk variant")
+    vlabel = "own" if is_own else "base"
+    if num == 2 and 1.0 <= diff <= 5.0 and task == "rosch":   # RankAlign epoch (rosch only)
+        return ("green", mean, field, base_mean, f"paper={vlabel}; epoch1 vs my epoch2")
+    if diff < 1.0:
+        # a1 = paper took OWN while base differs >=1pp (the interesting own-vs-base case)
+        if is_own and base_mean is not None and abs(base_mean - paper_val) >= 1.0:
+            return ("a1", mean, field, base_mean, f"paper=own{snote}")
+        return ("blue", mean, field, base_mean, f"paper={vlabel}{snote}")
+    if diff <= 5.0:
+        return ("amber", mean, field, base_mean, f"closest={vlabel} {diff:.1f}pp off{snote}")
+    # >5pp from everything we have
+    note = f"closest={vlabel} {diff:.1f}pp off{snote}"
+    if task == "ifeval" and num in (4, 7):
+        note += "; paper pre-fix"
+    return ("red", mean, field, base_mean, note)
 
 
 COLOR = {"blue": "blue", "a1": "RoyalPurple", "green": "ForestGreen",
@@ -201,8 +196,8 @@ def cell_tex(paper_val, metric, model, task, num):
         return "---"
     flags.add(code)
     pv = f"{paper_val:.1f}"
-    fl = {"pmi_self": "s", "neg_self": "n", "pmi_base": "sb",
-          "neg_base": "nb", "raw": "r"}.get(field, "")
+    fl = {"PMI self": "s", "Neg self": "n", "PMI base": "sb",
+          "Neg base": "nb"}.get(field, "")
     if code == "nodata":
         bref = f"\\,\\tiny[{base_mean:.1f}b]" if base_mean is not None else ""
         return f"\\textcolor{{Gray}}{{{pv}$^{{\\ddagger}}${bref}}}"
