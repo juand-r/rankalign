@@ -158,6 +158,9 @@ case "$SETTING" in
         DIR_SUFFIX="--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1" ;;
     *) echo "Unknown SETTING: $SETTING (s1|s2|s3|s4|s7|s13)"; exit 1 ;;
 esac
+# EVAL_MODES_OVERRIDE: force the typicality mode(s) regardless of setting default
+# (e.g. eval a tc-neg setting's self-typ variant for table completeness).
+[ -n "${EVAL_MODES_OVERRIDE:-}" ] && EVAL_MODES="$EVAL_MODES_OVERRIDE"
 
 LORA_FLAG="--lora"   # qwen uses plain --lora (NOT --gemma4-lora)
 MODEL_REPL=$(echo "$MODEL" | sed 's|/|--|g')
