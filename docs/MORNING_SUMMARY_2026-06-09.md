@@ -47,3 +47,27 @@ own-ID values; suppressed).
 - Recompute (pod eval_model): `scripts/_recompute_v7_eval_metrics.py`.
 - Earlier comparison vs paper: `docs/paper_vs_original_v7.{tex,pdf}` (predates this fill;
   re-run it against the now-complete table when convenient).
+
+## UPDATE (~04:30 CT): original-HF qwen evals DONE + verified
+All 8 jobs (44283–44290) COMPLETED. `outputs-original-hf/` now has the **true
+paper-checkpoint** qwen values (sentinel `delta0.001`, separate dir, no rerun mixing):
+- ifeval OOD: s1 + s2, all 4 variants (self-/neg-/basetyp-/basetypneg-, 20 prompts each)
+- rosch: s1 (self+neg+base), s7 (neg-own + neg-base)
+Spot-verified valid (e.g. ifeval s2 own tc gen_roc 0.64, 80 rows).
+
+### Integration recipe (the ~20-min step to do together — I stopped here on purpose)
+These should supersede the rerun (`^r`) values for **qwen ifeval s1/s2 + rosch s1/s7**,
+marked provenance=orig. Cleanest path (avoids polluting the rerun cells):
+1. Add an env-gated `EXTRA_SEARCH_DIR` + `METRICS_DIR_OVERRIDE` to
+   `_build_ifeval_table_v7.py` / `_build_rosch_table_v7.py` (additive, no default change),
+   point them at `outputs-original-hf/` → `metrics-from-scores-orig-hf/`.
+2. Add an `ORIG_CELLS` source to `_build_original_v7_table.py` (provenance "O", a distinct
+   mark e.g. `^o`) that overrides rerun for exactly those 4 cells.
+3. Rebuild + verify the 4 qwen cells changed to orig values (others unchanged), commit.
+I left this for you because it's a provenance-merge judgment call and the cell-builders
+need a (small, safe) edit — your call on the orig-vs-rerun presentation.
+
+## Task #24 (rerun comparison) — status
+The rerun evals are done (they fill the current table's qwen + gemma-ifeval-own cells).
+A true "original vs rerun" comparison is meaningful once the orig-HF cells above are
+integrated — so it's the natural next step after the integration, with you.
