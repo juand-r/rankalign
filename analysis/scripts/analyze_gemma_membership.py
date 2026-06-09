@@ -444,29 +444,46 @@ def main():
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     plot_settings = ["Base", "s2 (RA basic)", "s3 (RA full)", "s4 (TC-self)", "s7 (TC-neg)", "s1 (SFT-lo)"]
 
+    # First pass: collect all deltas to find global x-axis range
+    all_deltas_data = {}
     for idx, setting in enumerate(plot_settings):
-        ax = axes[idx // 3, idx % 3]
         if setting == "Base":
             files = inv[(inv["setting"] == "Base") & (inv["tc_eval"] == "self")]
         else:
             files = inv[(inv["setting"] == setting) & (inv["tc_eval"] == "self")]
-            # Get epoch 2
             files = files[files["file"].apply(lambda f: "-e2-" in f.name or "-epoch2--" in f.name)]
-
         if files.empty:
-            ax.set_title(f"{setting}\n(no data)")
+            all_deltas_data[idx] = None
             continue
-
         filepath = files.iloc[0]["file"]
         gen_deltas, val_deltas = compute_delta_histograms(filepath)
+        all_deltas_data[idx] = (gen_deltas, val_deltas)
+
+    # Compute global x-limit from all deltas
+    all_vals = []
+    for data in all_deltas_data.values():
+        if data is not None and data[0] is not None:
+            all_vals.extend(data[0])
+            all_vals.extend(data[1])
+    global_xmax = np.percentile(all_vals, 99) if all_vals else 10.0
+
+    # Second pass: plot with shared x-axis
+    for idx, setting in enumerate(plot_settings):
+        ax = axes[idx // 3, idx % 3]
+        data = all_deltas_data[idx]
+        if data is None:
+            ax.set_title(f"{setting}\n(no data)")
+            continue
+        gen_deltas, val_deltas = data
         if gen_deltas is None:
             ax.set_title(f"{setting}\n(no tc column)")
             continue
 
         ax.hist(gen_deltas, bins=50, alpha=0.6, label=f"Gen |Δ| (μ={np.mean(gen_deltas):.1f})",
-                color='blue', density=True)
+                color='blue', density=True, range=(0, global_xmax))
         ax.hist(val_deltas, bins=50, alpha=0.6, label=f"Val |Δ| (μ={np.mean(val_deltas):.1f})",
-                color='orange', density=True)
+                color='orange', density=True, range=(0, global_xmax))
+        ax.set_xlim(0, global_xmax)
         ax.set_title(f"{setting}")
         ax.legend(fontsize=7)
         ax.set_xlabel("|score_i - score_j|")
