@@ -22,6 +22,15 @@ TABLES_DIR = REPO / "analysis" / "tables"
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 TABLES_DIR.mkdir(parents=True, exist_ok=True)
 
+SETTING_LABELS = {
+    "base": "Base",
+    "s1": "SFT",
+    "s2": "RankAlign",
+    "s3": "Ours (w/o TC)",
+    "s4": "Ours",
+    "s7": "Ours (neg TC)",
+}
+
 # WandB run IDs for finished runs
 GEMMA_IFEVAL_RUNS = {
     "s1": "5ikunquj",
@@ -29,7 +38,6 @@ GEMMA_IFEVAL_RUNS = {
     "s4": "55x00ezb",
     "s3": "h3ncq9u2",
     "s7": "xj4t4ab8",
-    "s13": "8452gy96",
 }
 
 QWEN_MEMBERSHIP_RUNS = {
@@ -98,7 +106,7 @@ def analyze_runs(runs_dict, label_prefix):
                 if len(values) > 0:
                     # Smooth with rolling average
                     smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                    ax.plot(steps[:len(smoothed)], smoothed, label=setting, alpha=0.8)
+                    ax.plot(steps[:len(smoothed)], smoothed, label=SETTING_LABELS.get(setting, setting), alpha=0.8)
         ax.set_xlabel("Step")
         ax.set_ylabel(title)
         ax.set_title(f"{title}\n({label_prefix})")
@@ -132,7 +140,7 @@ def analyze_runs(runs_dict, label_prefix):
                 steps = history["_step"].iloc[:len(values)].values[:len(values)]
                 if len(values) > 0:
                     smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                    ax.plot(steps[:len(smoothed)], smoothed, label=setting, alpha=0.8)
+                    ax.plot(steps[:len(smoothed)], smoothed, label=SETTING_LABELS.get(setting, setting), alpha=0.8)
         ax.set_xlabel("Step")
         ax.set_ylabel(title)
         ax.set_title(f"{title}")

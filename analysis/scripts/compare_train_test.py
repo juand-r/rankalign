@@ -24,13 +24,11 @@ METHOD_MAP_ROSCH = {
     "New + PMI + fsx": "s4",
     "New + PMI [-fsx]": "s11",
     "RA + PMI [+TC]": "s5",
-    "SFT + CFT": "s13",
 }
 
 METHOD_MAP_IFEVAL = {
     "Base": "base",
     "SFT labelonly 10%": "s1",
-    "SFT + CFT": "s13",
     "RankAlign": "s2",
     "New + fsx [-TC]": "s3",
     "New + PMI + fsx": "s4",
