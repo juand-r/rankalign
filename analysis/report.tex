@@ -155,9 +155,33 @@ s7 (TC-neg) & 5.13 & 1.37 & 3.77 & 0.001 \\
 \label{fig:score_evolution}
 \end{figure}
 
-%% ============================================================
-\section{Q3: Additional Statistics}
-%% ============================================================
+\subsection{Held-out Validation Loss}
+
+The WandB curves above are training-set losses. To check whether each setting also reduces loss on \emph{held-out} data, we recompute the same three loss components (preference, NLL-G, NLL-V) on a test set for each checkpoint (base, epoch 0, 1, 2). The base row is identical across settings (same untrained \texttt{gemma-2-9b-it}) and is shown as a dashed reference line in each panel.
+
+\textbf{Test sets.}
+\begin{itemize}
+\item \emph{Gemma / IFEval}: the held-out 50\% of \texttt{ifeval-concat} (4{,}760 test items: 2{,}223 positive, 2{,}537 negative). 500 (positive, negative) pairs are sampled with a fixed seed.
+\item \emph{Gemma / Membership}: \texttt{membership-sans-rosch-v0} is trained \emph{without} rosch, so its held-out distribution is rosch itself. We aggregate \texttt{L\_test} across all 11 registered \texttt{rosch-*} per-category tasks (1{,}042 items: 521 positive, 521 negative) and again sample 500 pairs.
+\end{itemize}
+
+The losses are computed with the same definitions used at training time: preference loss uses gen-score margins between the positive and negative item, NLL-G is the negative log-likelihood of the generator's gold completion, and NLL-V is the negative log-likelihood of the discriminator's correct yes/no token. Pairs and prompts are constructed by the same \texttt{make\_prompt} the training script uses (membership models are evaluated under rosch's prompt template, which uses the same \emph{``Complete the sentence: an example of \dots''} family as membership).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{plots/val_loss_curves.png}
+\caption{Held-out validation loss across checkpoints for gemma-2-9b-it. Top row: IFEval (held-out 50\%). Bottom row: membership models evaluated on the aggregated rosch test set. The NLL-G column uses a log $y$-axis because s2 IFEval diverges. Dashed black line is the untrained base; markers at \texttt{ep0/ep1/ep2} show the three saved checkpoints from each setting.}
+\label{fig:val_loss}
+\end{figure}
+
+\textbf{Reading the figure.}
+\begin{itemize}
+\item On membership/rosch (bottom row), every setting reduces all three losses substantially below base, and the orderings broadly match the train-set ranking (s3 and s2 lowest NLL-G; s4 and s3 lowest preference loss). This is the regime where RankAlign generalizes cleanly.
+\item On IFEval (top row), the picture is much harder. Preference loss only drops materially for s3 ($12.89 \to 10.66$); s1 and s2 \emph{rise} above base. The NLL-G panel is the headline: s2's generator NLL explodes to roughly $1.6\times10^4$ by epoch 2 on held-out IFEval, mirroring the train-side observation reported in Section~2.2. The constrained settings (s4, s3, s7) keep NLL-G in the same order of magnitude as base and are the only ones whose held-out preference loss does not regress.
+\item NLL-V tells a related story: s2 spikes the validator NLL on IFEval at epoch 1 before partially recovering, consistent with the score-explosion diagnostic --- the validator becomes badly miscalibrated before it can re-stabilize. On membership, by contrast, s2 drives NLL-V down most aggressively (the validator becomes very confident there).
+\end{itemize}
+
+This held-out view confirms what the train-side curves and the Q1 ROC numbers already imply: \emph{basic RankAlign without NLL constraints (s2) is unsafe on the harder IFEval task, even on data drawn from the same distribution} --- it is not just an in-sample optimization artifact.
 
 \subsection{Generator-Validator Concordance}
 
