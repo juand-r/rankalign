@@ -24,6 +24,11 @@ if [ -n "$TEST_TASK" ]; then
     TEST_TASK_ARGS=(--test-task "$TEST_TASK")
 fi
 
+# Point HF cache at /datastor2 so jobs reuse the existing gemma-2-9b-it
+# snapshot there instead of redownloading 36 GB to /u/jdr (per-user quota).
+export HF_HOME="${HF_HOME:-/datastor2/jdr/.cache/huggingface}"
+export HF_HUB_CACHE="${HF_HUB_CACHE:-$HF_HOME/hub}"
+
 echo "============================================"
 echo "Validation Loss Computation"
 echo "  MODEL:      $MODEL"

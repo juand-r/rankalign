@@ -220,14 +220,14 @@ def main():
     for item in positives:
         pc = task_config['make_prompt'](item, style='generator', shots='zero')
         gen_prompts_pos.append((pc.prompt, pc.completion))
-        dc = task_config['make_prompt'](item, style='discriminator', shots='few')
+        dc = task_config['make_prompt'](item, style='discriminator', shots='zero')
         disc_prompts_pos.append(dc.prompt)
         labels_pos.append(1)
 
     for item in negatives:
         pc = task_config['make_prompt'](item, style='generator', shots='zero')
         gen_prompts_neg.append((pc.prompt, pc.completion))
-        dc = task_config['make_prompt'](item, style='discriminator', shots='few')
+        dc = task_config['make_prompt'](item, style='discriminator', shots='zero')
         disc_prompts_neg.append(dc.prompt)
         labels_neg.append(0)
 
