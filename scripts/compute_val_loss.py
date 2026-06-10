@@ -40,6 +40,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from utils import get_task, make_and_format_data
+import tasks  # Triggers task registration (ifeval-concat, membership-sans-rosch-v0, etc.)
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
