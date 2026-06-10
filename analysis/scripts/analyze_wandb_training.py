@@ -117,11 +117,10 @@ def analyze_runs(runs_dict, label_prefix):
                     continue
                 history = all_data[setting]
                 if metric in history.columns:
-                    values = history[metric].dropna()
-                    steps = history["_step"].iloc[:len(values)].values[:len(values)]
-                    if len(values) > 0:
-                        smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                        ax.plot(steps[:len(smoothed)], smoothed, label=legend_label, alpha=0.8)
+                    sub = history[["_step", metric]].dropna()
+                    if len(sub) > 0:
+                        smoothed = sub[metric].rolling(window=20, min_periods=1).mean()
+                        ax.plot(sub["_step"].values, smoothed.values, label=legend_label, alpha=0.8)
             ax.set_xlabel("Step")
             ax.set_ylabel(title)
             ax.set_title(f"{title}\n({label_prefix})")
@@ -155,11 +154,10 @@ def analyze_runs(runs_dict, label_prefix):
                     continue
                 history = all_data[setting]
                 if metric in history.columns:
-                    values = history[metric].dropna()
-                    steps = history["_step"].iloc[:len(values)].values[:len(values)]
-                    if len(values) > 0:
-                        smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                        ax.plot(steps[:len(smoothed)], smoothed, label=legend_label, alpha=0.8)
+                    sub = history[["_step", metric]].dropna()
+                    if len(sub) > 0:
+                        smoothed = sub[metric].rolling(window=20, min_periods=1).mean()
+                        ax.plot(sub["_step"].values, smoothed.values, label=legend_label, alpha=0.8)
             ax.set_xlabel("Step")
             ax.set_ylabel(title)
             ax.set_title(f"{title}\n({label_prefix})")
@@ -191,11 +189,10 @@ def analyze_runs(runs_dict, label_prefix):
         ax = axes[idx]
         for setting, history in all_data.items():
             if metric in history.columns:
-                values = history[metric].dropna()
-                steps = history["_step"].iloc[:len(values)].values[:len(values)]
-                if len(values) > 0:
-                    smoothed = pd.Series(values.values).rolling(window=20, min_periods=1).mean()
-                    ax.plot(steps[:len(smoothed)], smoothed, label=SETTING_LABELS.get(setting, setting), alpha=0.8)
+                sub = history[["_step", metric]].dropna()
+                if len(sub) > 0:
+                    smoothed = sub[metric].rolling(window=20, min_periods=1).mean()
+                    ax.plot(sub["_step"].values, smoothed.values, label=SETTING_LABELS.get(setting, setting), alpha=0.8)
         ax.set_xlabel("Step")
         ax.set_ylabel(title)
         ax.set_title(f"{title}")

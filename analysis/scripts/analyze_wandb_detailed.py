@@ -38,10 +38,17 @@ QWEN_MEMBERSHIP_RUNS = {
 
 
 def pull_full_history(run_id, project="juand-r/rankalign"):
-    """Pull full (not sampled) history from wandb."""
+    """Pull a 2000-row sample of training history from wandb.
+
+    Note: despite the legacy function name, this uses the sampled API
+    (run.history(samples=N)), not the full per-step stream. For exact
+    per-step values, use run.scan_history() instead. The 2000-sample view
+    is sufficient for trend visualization and aggregate statistics over
+    sub-windows of training; values reported from the final third should
+    be read as estimates over ~660 sampled rows.
+    """
     api = wandb.Api()
     run = api.run(f"{project}/{run_id}")
-    # Pull all logged steps
     history = run.history(samples=2000, pandas=True)
     return history, run.name, run.config
 
