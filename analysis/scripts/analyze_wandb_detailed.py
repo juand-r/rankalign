@@ -23,16 +23,16 @@ import wandb
 GEMMA_IFEVAL_RUNS = {
     "s1": "5ikunquj",
     "s2": "rd7pz236",
-    "s4": "55x00ezb",
-    "s3": "h3ncq9u2",
+    "s3": "55x00ezb",
+    "s4": "h3ncq9u2",
     "s7": "xj4t4ab8",
 }
 
 QWEN_MEMBERSHIP_RUNS = {
     "s1": "du2ceze3",
     "s2": "6sc1vpho",
-    "s4": "r3cmhowf",
-    "s3": "ictz0z9q",
+    "s3": "r3cmhowf",
+    "s4": "ictz0z9q",
     "s7": "w0htohh3",
 }
 
