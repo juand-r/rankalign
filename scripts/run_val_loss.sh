@@ -11,6 +11,7 @@ set -euo pipefail
 
 MODEL="${MODEL:-google/gemma-2-9b-it}"
 TASK="${TASK:-membership-sans-rosch-v0}"
+TEST_TASK="${TEST_TASK:-}"  # optional: held-out task for eval (e.g. rosch-all for membership)
 MODELS_DIR="${MODELS_DIR:-/datastor2/jdr/rankalign/models2-rerun-wandb}"
 SETTINGS="${SETTINGS:-s1 s2 s3 s4 s7}"
 OUTPUT="${OUTPUT:-analysis/tables/val_loss.csv}"
@@ -18,10 +19,16 @@ HOURS="${HOURS:-3}"
 
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 
+TEST_TASK_ARGS=()
+if [ -n "$TEST_TASK" ]; then
+    TEST_TASK_ARGS=(--test-task "$TEST_TASK")
+fi
+
 echo "============================================"
 echo "Validation Loss Computation"
 echo "  MODEL:      $MODEL"
 echo "  TASK:       $TASK"
+echo "  TEST_TASK:  ${TEST_TASK:-<same as TASK>}"
 echo "  MODELS_DIR: $MODELS_DIR"
 echo "  SETTINGS:   $SETTINGS"
 echo "  OUTPUT:     $OUTPUT"
@@ -33,9 +40,9 @@ for s in $SETTINGS; do
     echo ">>> Setting $s"
 
     if [ -n "${DRYRUN:-}" ]; then
-        echo "  DRYRUN: run 1 $HOURS --mem 64G /u/jdr/venvs/venv_lexcons/bin/python $REPO/scripts/compute_val_loss.py --model $MODEL --task $TASK --setting $s --models-dir $MODELS_DIR --output $OUTPUT"
+        echo "  DRYRUN: run 1 $HOURS --mem 64G /u/jdr/venvs/venv_lexcons/bin/python $REPO/scripts/compute_val_loss.py --model $MODEL --task $TASK ${TEST_TASK_ARGS[*]} --setting $s --models-dir $MODELS_DIR --output $OUTPUT"
     else
-        run 1 "$HOURS" --mem 64G /u/jdr/venvs/venv_lexcons/bin/python "$REPO/scripts/compute_val_loss.py" --model "$MODEL" --task "$TASK" --setting "$s" --models-dir "$MODELS_DIR" --output "$OUTPUT"
+        run 1 "$HOURS" --mem 64G /u/jdr/venvs/venv_lexcons/bin/python "$REPO/scripts/compute_val_loss.py" --model "$MODEL" --task "$TASK" "${TEST_TASK_ARGS[@]}" --setting "$s" --models-dir "$MODELS_DIR" --output "$OUTPUT"
     fi
 done
 

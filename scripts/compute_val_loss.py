@@ -106,10 +106,47 @@ def find_checkpoints(model_name, task, setting, models_dir):
     return checkpoints
 
 
+def _load_test_data(test_task_name):
+    """Return (L_test, task_config_for_prompts) for the given test-task name.
+
+    Special case: 'rosch-all' aggregates L_test across every registered rosch-*
+    task (which is how membership models are evaluated for held-out
+    generalization, since membership-sans-rosch-v0's load_data returns no
+    test items).
+    """
+    if test_task_name == "rosch-all":
+        from task_registry import list_registered_tasks
+        rosch_names = sorted(name for name in list_registered_tasks() if name.startswith("rosch-"))
+        if not rosch_names:
+            raise ValueError("No rosch-* tasks registered")
+        L_test_all = []
+        rosch_cfg = None
+        for name in rosch_names:
+            cfg = get_task(name)
+            if cfg is None:
+                continue
+            _, items = cfg['load_data'](seed=0, split_type='random')
+            L_test_all.extend(items)
+            if rosch_cfg is None:
+                rosch_cfg = cfg
+        print(f"  Aggregated rosch-all from {len(rosch_names)} per-category tasks: "
+              f"{len(L_test_all)} total test items")
+        return L_test_all, rosch_cfg
+
+    cfg = get_task(test_task_name)
+    if cfg is None:
+        raise ValueError(f"Task {test_task_name} not found in registry")
+    _, L_test = cfg['load_data'](seed=0, split_type='random')
+    return L_test, cfg
+
+
 def main():
     parser = argparse.ArgumentParser(description="Compute validation loss on test set")
     parser.add_argument("--model", required=True, help="Base model name (e.g. google/gemma-2-9b-it)")
-    parser.add_argument("--task", required=True, help="Task name (e.g. membership-sans-rosch-v0)")
+    parser.add_argument("--task", required=True, help="Training task name (used to find checkpoints, e.g. membership-sans-rosch-v0)")
+    parser.add_argument("--test-task", default=None,
+                        help="Task to load test data from. Defaults to --task. Use 'rosch-all' to aggregate "
+                             "all rosch-* test sets (the held-out set for membership models).")
     parser.add_argument("--setting", required=True, help="Setting (s1-s7)")
     parser.add_argument("--models-dir", required=True, help="Directory with trained checkpoints")
     parser.add_argument("--output", default="analysis/tables/val_loss.csv", help="Output CSV path")
@@ -120,12 +157,15 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device}")
 
-    # Load task and test data
-    task_config = get_task(args.task)
-    if task_config is None:
-        raise ValueError(f"Task {args.task} not found in registry")
+    # Resolve training task (used elsewhere only for documentation in CSV output)
+    train_task_config = get_task(args.task)
+    if train_task_config is None:
+        raise ValueError(f"Training task {args.task} not found in registry")
 
-    L_train, L_test = task_config['load_data'](seed=0, split_type='random', v2=True)
+    # Resolve test task (where we get held-out items + the prompts used at eval).
+    test_task_name = args.test_task or args.task
+    print(f"Training task: {args.task}  |  Test task: {test_task_name}")
+    L_test, task_config = _load_test_data(test_task_name)
     print(f"Test set: {len(L_test)} items")
 
     # Split test items into positive/negative
@@ -178,14 +218,14 @@ def main():
     labels_neg = []
 
     for item in positives:
-        pc = task_config['make_prompt'](item, style='generator', shots=0)
+        pc = task_config['make_prompt'](item, style='generator', shots='zero')
         gen_prompts_pos.append((pc.prompt, pc.completion))
         dc = task_config['make_prompt'](item, style='discriminator', shots='few')
         disc_prompts_pos.append(dc.prompt)
         labels_pos.append(1)
 
     for item in negatives:
-        pc = task_config['make_prompt'](item, style='generator', shots=0)
+        pc = task_config['make_prompt'](item, style='generator', shots='zero')
         gen_prompts_neg.append((pc.prompt, pc.completion))
         dc = task_config['make_prompt'](item, style='discriminator', shots='few')
         disc_prompts_neg.append(dc.prompt)
