@@ -151,45 +151,9 @@ s7 (TC-neg) & 5.13 & 1.37 & 3.77 & 0.001 \\
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.95\textwidth]{plots/wandb_score_evolution.png}
-\caption{Score spread evolution during training. The generator panels include only settings with $\text{NLL}_G > 0$ (s3, s4, s7) since s1/s2 do not log generator scores; the validator panels include s2, s3, s4. Note that s2 on Gemma IFEval shows highly volatile validator scores (top-right), and the loss-breakdown table indicates a very large average $\text{NLL}_G$ for s2 driven by extreme generator log-prob values, even though the generator score is not plotted here.}
+\caption{Score spread evolution during training. Each curve plots the difference between the two scores in a sampled training pair (item $i$ minus item $j$) at each logged step, smoothed with a 20-step running average. Generator panels (left column) include only settings with $\text{NLL}_G > 0$ (s2 with $\text{NLL}_G=0$ does not log per-item generator scores), so only s3 and s4 appear there; validator panels (right column) include s2, s3, s4. A more negative spread indicates a wider learned margin between the two paired items.}
 \label{fig:score_evolution}
 \end{figure}
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{plots/wandb_preference_loss_evolution.png}
-\caption{Preference loss evolution. All constrained settings converge; s2 achieves low preference loss at the cost of NLL explosion.}
-\label{fig:pref_loss}
-\end{figure}
-
-\subsection{Score Explosion Diagnostic}
-
-A key diagnostic is the mean pairwise absolute difference in generator scores (gen\_delta\_mean). Large values indicate score explosion during training.
-
-\begin{table}[H]
-\centering
-\caption{Generator score spread diagnostic. Values $>$1000 indicate training instability.}
-\label{tab:score_explosion}
-\begin{tabular}{llrrl}
-\toprule
-\textbf{Task} & \textbf{Setting} & \textbf{gen\_delta\_mean} & \textbf{gen\_roc} & \textbf{Status} \\
-\midrule
-Gemma IFEval & s2 (basic) & 13,421 & 0.482 & \textcolor{red}{Exploded} \\
-Gemma IFEval & s3 (full) & 691 & 0.753 & OK \\
-Gemma IFEval & s4 (TC-self) & 216 & 0.801 & Best \\
-\midrule
-Qwen IFEval & s2 (basic) & 1,031 & 0.558 & \textcolor{orange}{Borderline} \\
-Qwen IFEval & s3 (full) & 408 & 0.711 & OK \\
-Qwen IFEval & s4 (TC-self) & 139 & 0.743 & Best \\
-\midrule
-Gemma Membership & s2 & 9.1 & 0.941 & OK \\
-Gemma Membership & s3 & 10.9 & 0.948 & OK \\
-Gemma Membership & s4 & 10.7 & 0.976 & Best \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\textbf{Pattern}: TC-self training produces the most compact score distributions (lowest gen\_delta\_mean) \emph{and} the best gen\_roc. The NLL constraints prevent explosion, and TC further tightens the score distribution.
 
 %% ============================================================
 \section{Q3: Additional Statistics}
@@ -234,6 +198,26 @@ Qwen / IFEval & 0.119 & 0.151 & 0.205 & 0.404 & \textbf{0.431} \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Pearson Correlation (Generator vs Validator)}
+
+\begin{table}[H]
+\centering
+\caption{Pearson $r$ between generator and validator scores (epoch 2, self-TC).}
+\label{tab:pearson}
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Model / Task} & \textbf{Base} & \textbf{s1} & \textbf{s2} & \textbf{s3} & \textbf{s4} \\
+\midrule
+Gemma / Membership & 0.563 & --- & 0.777 & 0.798 & \textbf{0.863} \\
+Gemma / IFEval & 0.180 & 0.167 & $-$0.313 & \textbf{0.551} & 0.483 \\
+Qwen / Membership & 0.515 & 0.666 & 0.709 & 0.702 & \textbf{0.818} \\
+Qwen / IFEval & 0.100 & 0.168 & 0.139 & \textbf{0.472} & 0.351 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Pearson tracks Spearman on the membership tasks (s4 highest). On the IFEval tasks, s3 has higher Pearson than s4 even though s4 has higher Spearman --- s4 preserves rank order while compressing absolute magnitudes via TC.
 
 \subsection{Score Delta Distributions}
 

@@ -36,6 +36,14 @@ QWEN_MEMBERSHIP_RUNS = {
     "s7": "w0htohh3",
 }
 
+QWEN_IFEVAL_RUNS = {
+    "s1": "gxm3rh44",
+    "s2": "u701qq66",
+    "s3": "2ayy1ty3",
+    "s4": "bfrcn9l1",
+    "s7": "wa42i0z3",
+}
+
 
 def pull_full_history(run_id, project="juand-r/rankalign"):
     """Pull a 2000-row sample of training history from wandb.
@@ -109,79 +117,52 @@ def analyze_loss_breakdown():
     return summary_df
 
 
+def _plot_spread_panel(ax, runs, settings, kind, combo_label):
+    """kind in {'gen', 'val'} -> picks the score column pair and label."""
+    if kind == "gen":
+        col_i, col_j = "train/score_gen_i", "train/score_gen_j"
+        ylabel = "Gen score spread (i - j)"
+        title = f"Generator score spread\n({combo_label})"
+        legend_kind = "gen"
+    else:
+        col_i, col_j = "train/score_i", "train/score_j"
+        ylabel = "Val score spread (i - j)"
+        title = f"Validator score spread\n({combo_label})"
+        legend_kind = "val"
+
+    for setting in settings:
+        if setting not in runs:
+            continue
+        history, _, _ = pull_full_history(runs[setting])
+        if col_i in history.columns and col_j in history.columns:
+            sub = history[["_step", col_i, col_j]].dropna()
+            if len(sub) == 0:
+                continue
+            spread = (sub[col_i] - sub[col_j]).rolling(20, min_periods=1).mean()
+            ax.plot(sub["_step"].values, spread.values,
+                    label=f"{setting} {legend_kind}(i)-{legend_kind}(j)", alpha=0.8)
+
+    ax.set_xlabel("Step")
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(fontsize=8)
+    ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
+
+
 def plot_score_evolution():
     """Plot how generator/validator scores evolve during training."""
     print("\n--- Score Evolution Plots ---")
 
-    fig, axes = plt.subplots(2, 2, figsize=(16, 12))
+    combos = [
+        ("Gemma IFEval",     GEMMA_IFEVAL_RUNS),
+        ("Qwen IFEval",      QWEN_IFEVAL_RUNS),
+        ("Qwen Membership",  QWEN_MEMBERSHIP_RUNS),
+    ]
+    fig, axes = plt.subplots(len(combos), 2, figsize=(16, 6 * len(combos)))
 
-    # Gemma IFEval: compare s2 vs s3 score evolution
-    ax = axes[0, 0]
-    for setting, run_id in [("s2", GEMMA_IFEVAL_RUNS["s2"]),
-                             ("s3", GEMMA_IFEVAL_RUNS["s3"]),
-                             ("s4", GEMMA_IFEVAL_RUNS["s4"])]:
-        history, _, _ = pull_full_history(run_id)
-        if "train/score_gen_i" in history.columns:
-            steps = history["_step"].values
-            gen_spread = (history["train/score_gen_i"] - history["train/score_gen_j"]).rolling(20).mean()
-            ax.plot(steps, gen_spread, label=f"{setting} gen(i)-gen(j)", alpha=0.8)
-
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Gen score spread (i - j)")
-    ax.set_title("Generator score spread\n(Gemma IFEval)")
-    ax.legend(fontsize=8)
-    ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
-
-    # Gemma IFEval: validator score spread
-    ax = axes[0, 1]
-    for setting, run_id in [("s2", GEMMA_IFEVAL_RUNS["s2"]),
-                             ("s3", GEMMA_IFEVAL_RUNS["s3"]),
-                             ("s4", GEMMA_IFEVAL_RUNS["s4"])]:
-        history, _, _ = pull_full_history(run_id)
-        if "train/score_i" in history.columns:
-            steps = history["_step"].values
-            val_spread = (history["train/score_i"] - history["train/score_j"]).rolling(20).mean()
-            ax.plot(steps, val_spread, label=f"{setting} val(i)-val(j)", alpha=0.8)
-
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Val score spread (i - j)")
-    ax.set_title("Validator score spread\n(Gemma IFEval)")
-    ax.legend(fontsize=8)
-    ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
-
-    # Qwen Membership: gen score spread
-    ax = axes[1, 0]
-    for setting, run_id in [("s2", QWEN_MEMBERSHIP_RUNS["s2"]),
-                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"]),
-                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"])]:
-        history, _, _ = pull_full_history(run_id)
-        if "train/score_gen_i" in history.columns:
-            steps = history["_step"].values
-            gen_spread = (history["train/score_gen_i"] - history["train/score_gen_j"]).rolling(20).mean()
-            ax.plot(steps, gen_spread, label=f"{setting} gen(i)-gen(j)", alpha=0.8)
-
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Gen score spread (i - j)")
-    ax.set_title("Generator score spread\n(Qwen Membership)")
-    ax.legend(fontsize=8)
-    ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
-
-    # Qwen Membership: validator score spread
-    ax = axes[1, 1]
-    for setting, run_id in [("s2", QWEN_MEMBERSHIP_RUNS["s2"]),
-                             ("s3", QWEN_MEMBERSHIP_RUNS["s3"]),
-                             ("s4", QWEN_MEMBERSHIP_RUNS["s4"])]:
-        history, _, _ = pull_full_history(run_id)
-        if "train/score_i" in history.columns:
-            steps = history["_step"].values
-            val_spread = (history["train/score_i"] - history["train/score_j"]).rolling(20).mean()
-            ax.plot(steps, val_spread, label=f"{setting} val(i)-val(j)", alpha=0.8)
-
-    ax.set_xlabel("Step")
-    ax.set_ylabel("Val score spread (i - j)")
-    ax.set_title("Validator score spread\n(Qwen Membership)")
-    ax.legend(fontsize=8)
-    ax.axhline(0, color='gray', linestyle=':', alpha=0.5)
+    for row, (combo_label, runs) in enumerate(combos):
+        _plot_spread_panel(axes[row, 0], runs, ["s2", "s3", "s4"], "gen", combo_label)
+        _plot_spread_panel(axes[row, 1], runs, ["s2", "s3", "s4"], "val", combo_label)
 
     plt.tight_layout()
     plt.savefig(PLOTS_DIR / "wandb_score_evolution.png", dpi=150, bbox_inches='tight')
