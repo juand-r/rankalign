@@ -1,0 +1,70 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{booktabs,amsmath,amssymb}
+\pagestyle{empty}
+\begin{document}
+\section*{qwen Qwen3.5-9B IFEval (OOD) --- reproducibility: current rerun vs.\ independent retrain (v2)}
+{\footnotesize \textbf{cur} = the current wandb rerun (\texttt{outputs-rerun-wandb}, in
+\texttt{rerun\_only\_tables.pdf}); \textbf{v2} = a second, independent retrain
+(\texttt{outputs-rerun-wandb-v2}, jobs 44680--44684) with \emph{identical} flags, data,
+trainer, 3 epochs, and the \texttt{qwen35} venv --- only the output dirs differ. No fixed
+seed, so $\Delta$ is the natural train-to-train variance. $\Delta=$ v2$-$cur; \textbf{bold}
+marks $|\Delta|>5$. Both baselines are mll reruns (this is \emph{not} a comparison to the
+original pod/paper). All eval-time typicality variants (own: PMI self / Neg self; base: PMI base
+/ Neg base; + Raw + validator) are present in both runs. Takeaway: SFT/New+fsx/FLORA reproduce
+within $\sim\pm2.6$ (incl.\ the SFT validator); \textbf{RankAlign does not} (high run-to-run variance).}
+
+\subsection*{Generator (ROC$_G$, $\rho$)}
+\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{ll ccc ccc}
+\toprule
+& & \multicolumn{3}{c}{\textbf{ROC}$_G$} & \multicolumn{3}{c}{\textbf{$\rho$}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}
+\textbf{Method} & \textbf{eval} & cur & v2 & $\Delta$ & cur & v2 & $\Delta$ \\
+\midrule
+SFT & Raw & 51.4 & 50.5 & -0.8 & 0.8 & 2.3 & +1.5 \\
+SFT & PMI self & 66.2 & 66.6 & +0.4 & 20.6 & 21.5 & +0.8 \\
+SFT & PMI base & 62.5 & 61.0 & -1.6 & 13.0 & 13.2 & +0.2 \\
+SFT & Neg self & 48.8 & 46.0 & -2.8 & 3.2 & 2.7 & -0.5 \\
+SFT & Neg base & 49.9 & 48.6 & -1.3 & -3.6 & -1.2 & +2.4 \\
+\midrule
+RankAlign & Raw & 52.7 & 60.7 & \textbf{+8.0} & -3.2 & 28.6 & \textbf{+31.8} \\
+RankAlign & PMI self & 67.9 & 76.0 & \textbf{+8.0} & 26.3 & 50.5 & \textbf{+24.1} \\
+RankAlign & PMI base & 58.3 & 72.6 & \textbf{+14.3} & -1.3 & 44.9 & \textbf{+46.2} \\
+RankAlign & Neg self & 57.7 & 56.5 & -1.2 & 5.0 & 5.9 & +0.8 \\
+RankAlign & Neg base & 53.1 & 69.2 & \textbf{+16.1} & -1.6 & 42.3 & \textbf{+43.9} \\
+\midrule
+New+fsx & Raw & 62.7 & 62.2 & -0.5 & 26.8 & 25.7 & -1.1 \\
+New+fsx & PMI self & 80.7 & 80.6 & -0.1 & 54.2 & 53.3 & -0.9 \\
+New+fsx & PMI base & 74.8 & 76.1 & +1.3 & 43.9 & 46.6 & +2.6 \\
+New+fsx & Neg self & 62.0 & 59.1 & -3.0 & 32.8 & 24.2 & \textbf{-8.6} \\
+New+fsx & Neg base & 69.9 & 70.7 & +0.8 & 42.7 & 45.3 & +2.6 \\
+\midrule
+FLORA-PMI & Raw & 54.2 & 55.4 & +1.2 & 9.6 & 10.5 & +1.0 \\
+FLORA-PMI & PMI self & 79.6 & 78.2 & -1.4 & 46.8 & 45.0 & -1.8 \\
+FLORA-PMI & PMI base & 74.5 & 75.5 & +1.0 & 36.6 & 37.5 & +0.9 \\
+\midrule
+FLORA-Neg & Raw & 57.1 & 57.2 & +0.1 & 14.5 & 13.2 & -1.3 \\
+FLORA-Neg & Neg self & 66.0 & 64.2 & -1.8 & 38.8 & 34.5 & -4.3 \\
+FLORA-Neg & Neg base & 68.9 & 70.5 & +1.5 & 39.5 & 40.4 & +0.8 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Validator (ROC$_V$, Acc$_V$)}
+\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{tabular}{l ccc ccc}
+\toprule
+& \multicolumn{3}{c}{\textbf{ROC}$_V$} & \multicolumn{3}{c}{\textbf{Acc}$_V$} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}
+\textbf{Method} & cur & v2 & $\Delta$ & cur & v2 & $\Delta$ \\
+\midrule
+SFT & 82.8 & 82.4 & -0.4 & 73.1 & 72.0 & -1.1 \\
+RankAlign & 64.9 & 79.3 & \textbf{+14.4} & 50.2 & 68.4 & \textbf{+18.2} \\
+New+fsx & 84.3 & 83.5 & -0.7 & 73.5 & 72.6 & -0.9 \\
+FLORA-PMI & 83.1 & 84.0 & +0.9 & 73.6 & 71.8 & -1.9 \\
+FLORA-Neg & 83.2 & 85.5 & +2.3 & 71.8 & 70.1 & -1.6 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{document}
