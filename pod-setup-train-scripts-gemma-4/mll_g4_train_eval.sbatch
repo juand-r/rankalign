@@ -98,9 +98,19 @@ adapter_dir_for() {
 echo "[$(date -u +%FT%TZ)] s$S ($SETTING_NAME) | tasks=$NT | EVAL_MODES='$EVAL_MODES'"
 echo "[$(date -u +%FT%TZ)] TRAIN_FLAGS=$TRAIN_FLAGS --delta-bins 10 --gemma4-lora"
 
-# ---- STEP 1: TRAIN (skip if final-epoch adapter present) ----
+# Subset overrides for parallel per-combo eval jobs:
+#   EVAL_ONLY=1            skip training (adapter must already exist)
+#   ONLY_MODE=--self-typicality   eval just this mode (default: all EVAL_MODES)
+#   ONLY_BT="1" or "0"     eval just base-typ (1) or no-base (0) (default: "1 0")
+[ -n "${ONLY_MODE:-}" ] && EVAL_MODES="$ONLY_MODE"
+BTS="${ONLY_BT:-1 0}"
+
+# ---- STEP 1: TRAIN (skip if final-epoch adapter present; or EVAL_ONLY) ----
 adfinal=$(adapter_dir_for $((NUM_EPOCHS-1)))
-if [ -d "$adfinal" ]; then
+if [ -n "${EVAL_ONLY:-}" ]; then
+  [ -d "$adfinal" ] || { echo "[$(date -u +%FT%TZ)] FATAL: EVAL_ONLY but no final-epoch adapter: glob ${ADAPTER_SUFFIX}"; exit 1; }
+  echo "[$(date -u +%FT%TZ)] EVAL_ONLY — adapter: $adfinal"
+elif [ -d "$adfinal" ]; then
   echo "[$(date -u +%FT%TZ)] final-epoch adapter present, skip train: $adfinal"
 else
   echo "[$(date -u +%FT%TZ)] TRAINING (log: $LOGDIR/train_g4_s${S}.log)"
@@ -118,7 +128,7 @@ for EP in $EVAL_EPOCHS; do
   ad=$(adapter_dir_for "$EP"); [ -d "$ad" ] || { echo "[$(date -u +%FT%TZ)] WARN: epoch$EP adapter missing, skip"; continue; }
   for MODE in $EVAL_MODES; do
     mname="${MODE#--}"
-    for BT in 1 0; do
+    for BT in $BTS; do
       if [ "$BT" = 1 ]; then BT_ARGS="--base-typicality --base-model $BASE"; else BT_ARGS=""; fi
       EVAL_LOG="$LOGDIR/eval_g4_s${S}_ep${EP}_${mname}_bt${BT}.log"
       echo "[$(date -u +%FT%TZ)] ==== EVAL s$S ep$EP $MODE bt$BT (base=${BT}) ===="
