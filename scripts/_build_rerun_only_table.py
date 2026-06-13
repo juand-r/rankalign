@@ -321,8 +321,10 @@ def main() -> None:
 \section*{{RankAlign --- RERUN-ONLY results (wandb-rerun checkpoints)}}
 {{\footnotesize Every value is from the \textbf{{{SCORES_DIR}}} batch (mll-retrained-for-wandb
 checkpoints, evaluated 2026-06-07/08/09 in the \texttt{{qwen35}} venv). Cells with no rerun
-source are \texttt{{---}} (notably Hyponymy/G2-9b-it, which was not in the rerun batch, and the
-gemma IFEval Base row, since no rerun base eval exists for it). All rows epoch 2;
+source are \texttt{{---}}. Self-typicality variants (PMI self / Neg self) for Hyponymy/G2-9b-it
+are blank because the gemma-membership rerun batch (jobs 44462--44473, Jun 9) only covers
+base-typicality. The gemma IFEval Base row is blank because no rerun base eval exists for it.
+All rows epoch 2;
 RankAlign is \emph{{not}} epoch-matched to the paper. Each eval-time typicality-correction
 variant is its own row: \textbf{{PMI self}}/\textbf{{Neg self}} use the model's \emph{{own}}
 typicality, \textbf{{PMI base}}/\textbf{{Neg base}} use the \emph{{base}} model's. A variant

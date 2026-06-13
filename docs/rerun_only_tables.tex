@@ -7,8 +7,10 @@
 \section*{RankAlign --- RERUN-ONLY results (wandb-rerun checkpoints)}
 {\footnotesize Every value is from the \textbf{outputs-rerun-wandb} batch (mll-retrained-for-wandb
 checkpoints, evaluated 2026-06-07/08/09 in the \texttt{qwen35} venv). Cells with no rerun
-source are \texttt{---} (notably Hyponymy/G2-9b-it, which was not in the rerun batch, and the
-gemma IFEval Base row, since no rerun base eval exists for it). All rows epoch 2;
+source are \texttt{---}. Self-typicality variants (PMI self / Neg self) for Hyponymy/G2-9b-it
+are blank because the gemma-membership rerun batch (jobs 44462--44473, Jun 9) only covers
+base-typicality. The gemma IFEval Base row is blank because no rerun base eval exists for it.
+All rows epoch 2;
 RankAlign is \emph{not} epoch-matched to the paper. Each eval-time typicality-correction
 variant is its own row: \textbf{PMI self}/\textbf{Neg self} use the model's \emph{own}
 typicality, \textbf{PMI base}/\textbf{Neg base} use the \emph{base} model's. A variant
@@ -29,23 +31,23 @@ Base & PMI self & --- & --- & 73.6\stdv{2.2} & 45.6\stdv{2.4} & --- & --- & --- 
 Base & Neg self & --- & --- & 73.8\stdv{2.7} & 43.9\stdv{3.1} & --- & --- & --- & --- \\
 \midrule
 SFT & PMI self & --- & --- & 82.6\stdv{1.9} & 61.3\stdv{2.8} & 66.7\stdv{2.8} & 22.8\stdv{6.0} & 66.2\stdv{3.6} & 20.6\stdv{5.6} \\
-SFT & PMI base & --- & --- & 81.3\stdv{1.8} & 59.1\stdv{2.5} & 58.2\stdv{4.0} & 13.9\stdv{7.3} & 62.5\stdv{4.1} & 13.0\stdv{6.2} \\
+SFT & PMI base & 84.4\stdv{1.4} & 60.7\stdv{2.2} & 81.3\stdv{1.8} & 59.1\stdv{2.5} & 58.2\stdv{4.0} & 13.9\stdv{7.3} & 62.5\stdv{4.1} & 13.0\stdv{6.2} \\
 SFT & Neg self & --- & --- & 84.2\stdv{3.0} & 59.7\stdv{5.3} & 50.7\stdv{2.7} & 0.5\stdv{5.2} & 48.8\stdv{2.8} & 3.2\stdv{4.5} \\
-SFT & Neg base & --- & --- & 80.7\stdv{1.9} & 56.2\stdv{3.4} & 49.3\stdv{3.8} & 4.6\stdv{6.7} & 49.9\stdv{4.3} & -3.6\stdv{5.8} \\
+SFT & Neg base & 82.1\stdv{1.3} & 52.3\stdv{3.0} & 80.7\stdv{1.9} & 56.2\stdv{3.4} & 49.3\stdv{3.8} & 4.6\stdv{6.7} & 49.9\stdv{4.3} & -3.6\stdv{5.8} \\
 \midrule
 RankAlign & PMI self & --- & --- & \textbf{89.1}\stdv{2.0} & \textbf{74.3}\stdv{3.0} & 52.1\stdv{3.9} & 3.0\stdv{4.5} & 67.9\stdv{3.6} & 26.3\stdv{7.6} \\
-RankAlign & PMI base & --- & --- & 82.6\stdv{2.1} & 63.2\stdv{3.0} & 43.4\stdv{4.8} & -5.4\stdv{7.0} & 58.3\stdv{3.9} & -1.3\stdv{5.2} \\
+RankAlign & PMI base & 89.5\stdv{1.5} & 68.8\stdv{2.7} & 82.6\stdv{2.1} & 63.2\stdv{3.0} & 43.4\stdv{4.8} & -5.4\stdv{7.0} & 58.3\stdv{3.9} & -1.3\stdv{5.2} \\
 RankAlign & Neg self & --- & --- & 85.7\stdv{2.6} & 63.7\stdv{4.7} & 52.1\stdv{4.7} & 8.1\stdv{6.7} & 57.7\stdv{4.2} & 5.0\stdv{6.8} \\
-RankAlign & Neg base & --- & --- & 82.3\stdv{2.0} & 61.9\stdv{3.6} & 43.0\stdv{4.9} & -5.6\stdv{7.0} & 53.1\stdv{4.2} & -1.6\stdv{5.6} \\
+RankAlign & Neg base & 84.8\stdv{2.0} & 57.7\stdv{3.4} & 82.3\stdv{2.0} & 61.9\stdv{3.6} & 43.0\stdv{4.9} & -5.6\stdv{7.0} & 53.1\stdv{4.2} & -1.6\stdv{5.6} \\
 \midrule
 Consistency FT & PMI base & --- & --- & --- & --- & 60.4\stdv{3.1} & 8.9\stdv{7.5} & --- & --- \\
 Consistency FT & Neg base & --- & --- & --- & --- & 46.6\stdv{2.6} & -9.4\stdv{6.8} & --- & --- \\
 \midrule
 FLORA-PMI & PMI self & --- & --- & 86.1\stdv{2.0} & 69.3\stdv{2.5} & \textbf{84.2}\stdv{2.6} & \textbf{53.9}\stdv{5.0} & \textbf{79.6}\stdv{3.3} & \textbf{46.8}\stdv{5.3} \\
-FLORA-PMI & PMI base & --- & --- & 86.9\stdv{2.0} & 70.7\stdv{2.1} & 80.6\stdv{2.5} & 51.5\stdv{4.3} & 74.5\stdv{3.5} & 36.6\stdv{6.7} \\
+FLORA-PMI & PMI base & \textbf{92.6}\stdv{1.3} & \textbf{75.8}\stdv{2.1} & 86.9\stdv{2.0} & 70.7\stdv{2.1} & 80.6\stdv{2.5} & 51.5\stdv{4.3} & 74.5\stdv{3.5} & 36.6\stdv{6.7} \\
 \midrule
 FLORA-Neg & Neg self & --- & --- & --- & --- & 64.7\stdv{3.6} & 39.0\stdv{4.3} & 66.0\stdv{3.0} & 38.8\stdv{4.7} \\
-FLORA-Neg & Neg base & --- & --- & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3.1} & 48.7\stdv{3.3} & 68.9\stdv{3.5} & 39.5\stdv{5.3} \\
+FLORA-Neg & Neg base & 92.0\stdv{1.3} & 74.5\stdv{3.1} & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3.1} & 48.7\stdv{3.3} & 68.9\stdv{3.5} & 39.5\stdv{5.3} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -61,11 +63,11 @@ FLORA-Neg & Neg base & --- & --- & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3
 \textbf{Method} & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ \\
 \midrule
 Base & --- & --- & 95.7\stdv{1.8} & \textbf{88.0}\stdv{2.9} & --- & --- & --- & --- \\
-SFT & --- & --- & 95.7\stdv{1.7} & 86.7\stdv{3.1} & 78.4\stdv{3.7} & 66.3\stdv{4.0} & 82.8\stdv{3.1} & 73.1\stdv{3.8} \\
-RankAlign & --- & --- & 95.7\stdv{1.8} & 87.9\stdv{3.0} & 52.3\stdv{3.3} & 56.2\stdv{3.2} & 68.7\stdv{4.2} & 55.6\stdv{3.4} \\
+SFT & 94.6\stdv{2.0} & 85.0\stdv{2.8} & 95.7\stdv{1.7} & 86.7\stdv{3.1} & 78.4\stdv{3.7} & 66.3\stdv{4.0} & 82.8\stdv{3.1} & 73.1\stdv{3.8} \\
+RankAlign & \textbf{94.9}\stdv{1.9} & \textbf{87.1}\stdv{2.5} & 95.7\stdv{1.8} & 87.9\stdv{3.0} & 52.3\stdv{3.3} & 56.2\stdv{3.2} & 68.7\stdv{4.2} & 55.6\stdv{3.4} \\
 Consistency FT & --- & --- & --- & --- & 78.2\stdv{3.7} & 62.9\stdv{4.2} & --- & --- \\
-FLORA-PMI & --- & --- & \textbf{95.9}\stdv{1.7} & 86.0\stdv{3.2} & \textbf{79.4}\stdv{3.2} & 64.5\stdv{3.6} & 83.1\stdv{3.3} & \textbf{73.6}\stdv{3.8} \\
-FLORA-Neg & --- & --- & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \textbf{67.5}\stdv{3.9} & \textbf{83.2}\stdv{3.3} & 71.8\stdv{3.8} \\
+FLORA-PMI & 94.7\stdv{1.8} & 83.9\stdv{2.7} & \textbf{95.9}\stdv{1.7} & 86.0\stdv{3.2} & \textbf{79.4}\stdv{3.2} & 64.5\stdv{3.6} & 83.1\stdv{3.3} & \textbf{73.6}\stdv{3.8} \\
+FLORA-Neg & 94.8\stdv{1.9} & 86.4\stdv{2.6} & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \textbf{67.5}\stdv{3.9} & \textbf{83.2}\stdv{3.3} & 71.8\stdv{3.8} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -73,7 +75,14 @@ FLORA-Neg & --- & --- & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \text
 \subsection*{Provenance --- every value above is from \texttt{outputs-rerun-wandb/}}
 {\footnotesize Cells were aggregated by \texttt{\_build\_ifeval\_table\_v7.py} / \texttt{\_build\_rosch\_table\_v7.py} run with \texttt{EXTRA\_SEARCH\_DIR=.../outputs-rerun-wandb} (single source, no fallback), then assembled by \texttt{\_build\_rerun\_only\_table.py}. Checkpoint dirs per column (\texttt{v6-*}=base model, \texttt{v7-*}=trained):}
 \begin{itemize}\footnotesize\setlength{\itemsep}{1pt}
-\item \textbf{Hyponymy / G2-9b-it}: \emph{no rerun data} ($\rightarrow$ all \texttt{---})
+\item \textbf{Hyponymy / G2-9b-it}: 5 checkpoint(s):
+\begin{itemize}\tiny
+\item \texttt{v7-gemma-2-9b-it-d1.43-e2-membership-sans-rosch-v0-all-p0-nv1-ng1-lo0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-tcn-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-gemma-2-9b-it-d2.69-e2-membership-sans-rosch-v0-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
+\item \texttt{v7-google--gemma-2-9b-it-delta1.42-epoch2--membership-sans-rosch-v0-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1\_merged}
+\end{itemize}
 \item \textbf{Hyponymy / Q3.5-9b}: 6 checkpoint(s):
 \begin{itemize}\tiny
 \item \texttt{v6-Qwen\_Qwen3.5-9B}
