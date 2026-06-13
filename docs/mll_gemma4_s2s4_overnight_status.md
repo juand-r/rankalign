@@ -20,7 +20,7 @@ Plus: summarized metrics CSVs + a summary LaTeX table compiled to PDF.
 1. [done] Verified env, keys, model cache, repo, tasks, GPUs.
 2. [done] **SMOKE** validated the hard parts: 31B loads across 4×A40, **LoRA 122M/31.4B (--gemma4-lora) trains @ ~4.7 s/it, no OOM, WANDB ONLINE** (juand-r/rankalign). Caught + fixed one bug: s2 adapter glob was missing `--fix1` (pod recipe used the old v6 name; s2 was never retrained with fix.py there) — committed.
 3. [done] **Launched REAL s2 (job 44939) + s4 (44940)** — 3 epochs, 5110 samples, all 82 tasks, real dirs, wandb online. Both RUNNING on node-002/003.
-4. [in progress] Validating the **eval path** via s2 smoke eval-only (job 44941) — first scores_ file or OOM check.
+4. [done] **EVAL path validated**: s2 smoke produced a real `scores_basetyp-…fix1_…humaneval_1_…csv` (28 rows: correct y/n + val_score + gen_score), base-typ 2-model load, **no OOM** on 4×A40. Pipeline is green end-to-end (train→save→eval→scores).
 5. [pending] When training done (~ETA below): parallel per-combo eval (6 jobs) → scores_ for all 82 tasks.
 6. [pending] Harvest: scores_ → metrics CSVs → summary LaTeX → PDF.
 
