@@ -116,10 +116,10 @@ else
   echo "[$(date -u +%FT%TZ)] TRAINING (log: $LOGDIR/train_g4_s${S}.log)"
   # shellcheck disable=SC2086
   python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
-      --wandb_run_name "g4-cu-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_g4_s${S}.log" 2>&1
+      --wandb_run_name "g4-cu-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_g4_s${S}${SMOKE:+_smoke}.log" 2>&1
   echo "[$(date -u +%FT%TZ)] train exit=$?"
   adfinal=$(adapter_dir_for $((NUM_EPOCHS-1)))
-  [ -d "$adfinal" ] || { echo "[$(date -u +%FT%TZ)] FATAL: final-epoch adapter missing after train. See $LOGDIR/train_g4_s${S}.log"; tail -30 "$LOGDIR/train_g4_s${S}.log"; exit 1; }
+  [ -d "$adfinal" ] || { echo "[$(date -u +%FT%TZ)] FATAL: final-epoch adapter missing after train. See $LOGDIR/train_g4_s${S}.log"; tail -30 "$LOGDIR/train_g4_s${S}${SMOKE:+_smoke}.log"; exit 1; }
   echo "[$(date -u +%FT%TZ)] TRAIN DONE: $adfinal"
 fi
 
