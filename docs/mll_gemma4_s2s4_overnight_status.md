@@ -35,3 +35,9 @@ What you WILL have by morning: both models partway trained (~1.3 epochs) with **
 - Supervision: recurring cron `71e0112e` (every :08/:38) advances/monitors. Hardened bg monitors used for decision points.
 
 _(updated through the night)_
+
+## 2026-06-13 05:46 UTC — training healthy, smokes done
+- Smokes COMPLETE: validated all 4 eval prefixes (basetyp/basetypneg/self/neg), s2 + s4 adapter naming, no OOM.
+- Real training in **epoch 1**: s2 (44939) ~387/5110 @4.65s/it (~6h/ep); s4 (44940) ~166/5110 @5.4s/it (~7h/ep).
+- ETA: s2 ~18h, s4 ~21h for 3 epochs. epoch checkpoints save each ~6-7h. Eval (parallel, 6 jobs) after final epoch.
+- Only 2 real jobs in queue; logs now clean (smoke clobbering ended).
