@@ -183,6 +183,38 @@ The losses are computed with the same definitions used at training time: prefere
 
 This held-out view confirms what the train-side curves and the Q1 ROC numbers already imply: \emph{basic RankAlign without NLL constraints (s2) is unsafe on the harder IFEval task, even on data drawn from the same distribution} --- it is not just an in-sample optimization artifact.
 
+\paragraph{Reproducibility.} The full pipeline lives at commit \texttt{3b71d4ac} on branch \texttt{longform}. Files involved:
+
+\begin{itemize}
+\item \textbf{Compute (Python)}: \texttt{scripts/compute\_val\_loss.py}. Loads the base model from \texttt{--model} plus the three merged epoch checkpoints found under \texttt{--models-dir} matching the \texttt{--setting} pattern; loads test data via \texttt{src/utils.py}'s \texttt{get\_task} (with \texttt{import tasks} side-effect to register all task modules). For each checkpoint it computes the same three loss components used at training time and writes one row per (setting, checkpoint) to the CSV at \texttt{--output} (appending). Defaults: \texttt{--max-pairs 500}, \texttt{--seed 42}.
+\item \textbf{Special test-set logic for membership}: when \texttt{--test-task rosch-all} is passed, \texttt{compute\_val\_loss.py} aggregates \texttt{L\_test} across every registered \texttt{rosch-*} task (1{,}042 items) and uses rosch's \texttt{make\_prompt}/\texttt{get\_label} for prompt construction. For ifeval, no \texttt{--test-task} is needed --- the task itself returns a held-out split.
+\item \textbf{Launcher (Slurm)}: \texttt{scripts/run\_val\_loss.sh}. Reads env vars \texttt{MODEL}, \texttt{TASK}, \texttt{TEST\_TASK}, \texttt{MODELS\_DIR}, \texttt{SETTINGS}, \texttt{OUTPUT}, \texttt{HOURS}, exports \texttt{HF\_HOME=/datastor2/jdr/.cache/huggingface} so all jobs reuse the existing \texttt{gemma-2-9b-it} snapshot (otherwise five concurrent jobs each redownload $\sim$36\,GB and blow the home-filer quota), then submits one Slurm job per setting via \texttt{\textasciitilde/.local/bin/run 1 \$HOURS --mem 64G ...}.
+\item \textbf{Exact commands run} (from the repo root, \texttt{/datastor1/jdr/gv-gap/rankalign}, with \texttt{venv\_lexcons} activated):
+\begin{verbatim}
+# IFEval val-loss (5 jobs: 44826-44830, ~1h52m each on 1 GPU)
+TASK=ifeval-concat \
+OUTPUT=analysis/tables/val_loss_gemma_ifeval.csv \
+bash scripts/run_val_loss.sh
+
+# Membership val-loss, evaluated on rosch (5 jobs: 44831-44835, ~14m each)
+TASK=membership-sans-rosch-v0 \
+TEST_TASK=rosch-all \
+OUTPUT=analysis/tables/val_loss_gemma_mem.csv \
+bash scripts/run_val_loss.sh
+\end{verbatim}
+Both runs use the default \texttt{MODEL=google/gemma-2-9b-it}, \texttt{MODELS\_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb}, and \texttt{SETTINGS="s1 s2 s3 s4 s7"}.
+\item \textbf{Output CSVs} (one row per setting/checkpoint, columns: \texttt{checkpoint, setting, model, task, n\_pos, n\_neg, n\_pairs, preference\_loss, nll\_generator\_loss, nll\_validator\_loss, total\_loss, mean\_gen\_score\_pos, mean\_gen\_score\_neg, mean\_val\_score\_pos, mean\_val\_score\_neg}):
+\begin{itemize}
+\item \texttt{analysis/tables/val\_loss\_gemma\_ifeval.csv}
+\item \texttt{analysis/tables/val\_loss\_gemma\_mem.csv}
+\end{itemize}
+\item \textbf{Plot (Python)}: \texttt{analysis/scripts/plot\_val\_loss.py}, run as
+\begin{verbatim}
+python analysis/scripts/plot_val_loss.py
+\end{verbatim}
+This reads the two CSVs above (paths hard-coded relative to repo root) and writes \texttt{analysis/plots/val\_loss\_curves.png}, the figure shown above. NLL-G uses a log $y$-axis; preference loss and NLL-V use linear.
+\end{itemize}
+
 \subsection{Generator-Validator Concordance}
 
 Concordance measures the fraction of item pairs where the generator and validator agree on the ordering direction.
