@@ -74,7 +74,9 @@ NT=$(echo $TASKS | wc -w)
 pref_w=1 nll_v_w=0 nll_g_w=0; semi_flag="--semi-supervised 0.1"; fsx=""; vlo=""; tc_train=""; ppd=""; sbm=""
 case "$S" in
   2) SETTING_NAME="RankAlign"
-     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1"
+     # NB: ranking_loss_ref_fix.py appends --fix1 (the pod recipe's s2 suffix was the OLD v6
+     # name because s2 was never retrained with fix.py there — confirmed via smoke 2026-06-13).
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1"
      EVAL_MODES="--self-typicality --neg-typicality" ;;
   4) SETTING_NAME="New+fsx+tc"
      nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
