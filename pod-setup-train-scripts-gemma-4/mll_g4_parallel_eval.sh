@@ -17,7 +17,9 @@ esac
 for MODE in $MODES; do
   for BT in 1 0; do
     mn="${MODE#--}"
+    # DEP=<train_jobid> -> eval waits for training to finish OK (afterok dependency).
     jid=$(sbatch --parsable --job-name="g4ev-s${S}-${mn}-bt${BT}" \
+        ${DEP:+--dependency=afterok:$DEP} \
         --export=ALL,EVAL_ONLY=1,ONLY_MODE="$MODE",ONLY_BT="$BT" \
         pod-setup-train-scripts-gemma-4/mll_g4_train_eval.sbatch "$S")
     echo "s$S eval $MODE bt$BT -> job $jid"

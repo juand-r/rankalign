@@ -124,6 +124,8 @@ else
 fi
 
 # ---- STEP 2: EVAL — each mode x {bt1 base, bt0 no-base} x all tasks ----
+# NO_EVAL=1 -> train-only (eval is launched separately as dependent parallel per-combo jobs).
+if [ -n "${NO_EVAL:-}" ]; then echo "[$(date -u +%FT%TZ)] NO_EVAL=1 — training done; eval handled by dependent parallel jobs"; exit 0; fi
 for EP in $EVAL_EPOCHS; do
   ad=$(adapter_dir_for "$EP"); [ -d "$ad" ] || { echo "[$(date -u +%FT%TZ)] WARN: epoch$EP adapter missing, skip"; continue; }
   for MODE in $EVAL_MODES; do
