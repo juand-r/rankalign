@@ -1,5 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=g4cu
+#SBATCH --job-name=g4tr
+# NOTE: static fallback. Override at submit time with --job-name=g4${WTAG}-s${S}
+# (cu=correct-upper, cm=correct-multi) so upper/multi are distinct in squeue.
 #SBATCH --partition=allnodes
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=9
