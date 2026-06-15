@@ -41,3 +41,11 @@ _(updated through the night)_
 - Real training in **epoch 1**: s2 (44939) ~387/5110 @4.65s/it (~6h/ep); s4 (44940) ~166/5110 @5.4s/it (~7h/ep).
 - ETA: s2 ~18h, s4 ~21h for 3 epochs. epoch checkpoints save each ~6-7h. Eval (parallel, 6 jobs) after final epoch.
 - Only 2 real jobs in queue; logs now clean (smoke clobbering ended).
+
+## 2026-06-13 ~10:50 CDT — RE-LAUNCH after power outage + added correct-MULTI
+Power outage (~4:45 AM CDT) killed the original run mid-epoch-1 (no checkpoint); nothing usable survived. Re-launched fresh, now BOTH tasks:
+- **correct-UPPER:** train 44957(s2)/44958(s4); dependent eval 44959-44962(s2)/44963-44964(s4). dirs: gemma-4-models-mll-tmp / outputs_gemma4_mll_tmp. wandb g4-cu-s2/s4.
+- **correct-MULTI:** train 44965(s2)/44966(s4); dependent eval 44967-44970(s2)/44971-44972(s4). dirs: *-multi. wandb g4-cm-s2/s4.
+- Structure: TRAIN-ONLY jobs (NO_EVAL=1) + parallel per-combo eval jobs with --dependency=afterok (eval auto-runs after each train succeeds). 4 train RUNNING, 12 eval PENDING(Dependency).
+- Monitor: in-session hourly cron 25cebb68 (no-hammer safeguards; self-harvests + self-deletes when all 12 eval done). NOT a system crontab.
+- ETA ~20h train + ~5h parallel eval. 6 score-sets per task (s2:4, s4:2) x 82 tasks.
