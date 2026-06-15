@@ -29,7 +29,8 @@ S="${1:?usage: mll_g4_train_eval.sbatch <2|4>}"
 
 REPO=/datastor1/jdr/gv-gap/rankalign
 VENV=/datastor2/jdr/venvs/gemma4
-HE_TASK="humaneval-v2.1correct-upper"
+HE_TASK="${HE_TASK:-humaneval-v2.1correct-upper}"   # override e.g. humaneval-v2.1correct-multi
+WTAG=$(case "$HE_TASK" in *correct-upper) echo cu;; *correct-multi) echo cm;; *) echo "${HE_TASK##*-}";; esac)  # wandb run tag (cu/cm)
 MODEL="google/gemma-4-31B-it"; BASE="google/gemma-4-31B-it"
 LOGDIR=/datastor2/jdr/logs
 NUM_EPOCHS=3 ; TOTAL_SAMPLES=5110 ; EVAL_EPOCHS="${EVAL_EPOCHS:-2}"
@@ -66,7 +67,7 @@ echo "[$(date -u +%FT%TZ)] node=$(hostname) gpus=$CUDA_VISIBLE_DEVICES wandb=$WA
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader | head
 
 # ---- test-task list (all humaneval_*.csv) ----
-TASKS=$(ls "$REPO/data/humaneval/v2.1correct-upper/humaneval_"*.csv | xargs -n1 basename | sed 's/\.csv$//' | sed "s/^/${HE_TASK}-/" | tr '\n' ' ')
+TASKS=$(ls "$REPO/data/humaneval/${HE_TASK#humaneval-}/humaneval_"*.csv | xargs -n1 basename | sed 's/\.csv$//' | sed "s/^/${HE_TASK}-/" | tr '\n' ' ')
 if [ "$TASK_LIMIT" -gt 0 ]; then TASKS=$(echo $TASKS | tr ' ' '\n' | head -n "$TASK_LIMIT" | tr '\n' ' '); fi
 NT=$(echo $TASKS | wc -w)
 
@@ -116,7 +117,7 @@ else
   echo "[$(date -u +%FT%TZ)] TRAINING (log: $LOGDIR/train_g4_s${S}.log)"
   # shellcheck disable=SC2086
   python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
-      --wandb_run_name "g4-cu-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_g4_s${S}${SMOKE:+_smoke}.log" 2>&1
+      --wandb_run_name "g4-${WTAG}-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_g4_${WTAG}_s${S}${SMOKE:+_smoke}.log" 2>&1
   echo "[$(date -u +%FT%TZ)] train exit=$?"
   adfinal=$(adapter_dir_for $((NUM_EPOCHS-1)))
   [ -d "$adfinal" ] || { echo "[$(date -u +%FT%TZ)] FATAL: final-epoch adapter missing after train. See $LOGDIR/train_g4_s${S}.log"; tail -30 "$LOGDIR/train_g4_s${S}${SMOKE:+_smoke}.log"; exit 1; }
