@@ -622,38 +622,6 @@ def main(args):
             print(f"[max-seq-len filter] Dropped {before - len(L_train)}/{before} items "
                   f"exceeding {args.max_seq_len} tokens")
 
-    # --- TAIL-MISMATCH DROP FILTER (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
-    # Some prompt/completion pairs tokenize so that the completion's tokens differ when
-    # appended to the prompt vs standalone (BPE merge at the prompt->completion seam; the v2
-    # humaneval format glues the body onto the signature colon with no separator). The
-    # trainer's _check_tail guard aborts on those. qwen's tokenizer merges that seam ~6% of
-    # the time (gemma ~0.3%). Per the user's decision: DROP those items before training
-    # rather than train on misaligned completion positions. Faithful to __getitem__: raw
-    # tokenize(prompt+completion) vs tokenize(completion); also checks the disc " Yes" tail
-    # when val-NLL is on (s4). copy-only; the shared trainer stays byte-identical.
-    if task_config is not None:
-        def _tail_ok(_prompt, _completion):
-            _comp = tokenizer.encode(_completion, add_special_tokens=False)
-            if len(_comp) == 0:
-                return True
-            _full = tokenizer(_prompt + _completion)["input_ids"]
-            return _full[-len(_comp):] == _comp
-        def _item_ok(_item):
-            _gp = task_config['make_prompt'](_item, style='generator', shots='zero')
-            if not _tail_ok(_gp.prompt, _gp.completion):
-                return False
-            if nll_validator_weight > 0:
-                _dp = task_config['make_prompt'](_item, style='discriminator', shots=disc_shots)
-                if not _tail_ok(_dp.prompt, space_prefix + "Yes"):
-                    return False
-            return True
-        _before_tm = len(L_train)
-        L_train = [it for it in L_train if _item_ok(it)]
-        _dropped_tm = _before_tm - len(L_train)
-        print(f"[tail-mismatch filter] Dropped {_dropped_tm}/{_before_tm} items "
-              f"(prompt/completion BPE seam merge -> _check_tail would abort). copy-only.")
-    # --- end TAIL-MISMATCH DROP FILTER ---
-
     print("Computing log-probabilities on the fly...")
     print(f"Using device: {device}")
 
@@ -1878,6 +1846,36 @@ def main(args):
     #    #if args.batch_size != batch_size:
     #    #    print(f"[--batch-size override] auto-picked={batch_size} -> override={args.batch_size}")
     #    #batch_size = args.batch_size
+
+    # --- TAIL-MISMATCH DROP FILTER (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
+    # Drop pairs whose prompt->completion seam tokenizes inconsistently, so the completion's
+    # tokens differ in-context vs standalone (BPE merge at the format_with_inst(prompt)|completion
+    # boundary; the v2 humaneval format glues the body onto the signature with no separator).
+    # The trainer's _check_tail aborts on these; qwen's tokenizer merges that seam ~6% of items
+    # (gemma ~0.3%). Per the user's decision: DROP them. Operates on the FINAL `pairs` using the
+    # EXACT prompt/completion strings (already format_with_inst'd) and the same truncation +
+    # max_length __getitem__ uses, so it matches _check_tail precisely. Checks generator i & j
+    # always; the disc " Yes" tail too when val-NLL is on (s4). copy-only; shared trainer byte-identical.
+    if len(pairs) > 0:
+        def _tail_ok(_prm, _cmp):
+            _ce = tokenizer.encode(_cmp, add_special_tokens=False)
+            if len(_ce) == 0:
+                return True
+            _enc = tokenizer(_prm + _cmp, truncation=True, max_length=max_context_length)["input_ids"]
+            return _enc[-len(_ce):] == _ce
+        def _pair_ok(_p):
+            if not _tail_ok(_p[0][0], _p[1][0]) or not _tail_ok(_p[0][1], _p[1][1]):
+                return False
+            if nll_validator_weight > 0:
+                _yes = space_prefix + "Yes"
+                if not _tail_ok(_p[7][0], _yes) or not _tail_ok(_p[7][1], _yes):
+                    return False
+            return True
+        _before_tm = len(pairs)
+        pairs = [p for p in pairs if _pair_ok(p)]
+        print(f"[tail-mismatch filter] Dropped {_before_tm - len(pairs)}/{_before_tm} PAIRS "
+              f"(prompt/completion BPE seam merge -> _check_tail would abort). copy-only.")
+    # --- end TAIL-MISMATCH DROP FILTER ---
 
     dataset = PairwiseDataset(pairs, tokenizer, max_length=max_context_length, device=device, use_full_completion=use_full_completion)
     train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
