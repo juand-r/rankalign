@@ -76,9 +76,12 @@ print(focus[["model","dataset","setting","eval","n_files","gen_roc","val_roc","v
 # LaTeX
 lt = focus[["model","dataset","setting","eval","gen_roc","val_roc","val_acc","pearson"]].copy()
 lt.columns = ["Model","Data","Setting","Eval","gen ROC","val ROC","val acc","Pearson"]
+# Scale the four metric columns to a 0-100 scale (xx.xx), as numbers, before formatting.
+for _c in ["gen ROC", "val ROC", "val acc", "Pearson"]:
+    lt[_c] = lt[_c] * 100.0
 with open(HERE / "humaneval_metrics_table.tex", "w") as f:
-    f.write("% qwen3.5-9b + gemma-4-31b-it humaneval metrics (gen variant = tc). Generated 2026-06-16.\n")
-    f.write(lt.to_latex(index=False, float_format="%.4f", longtable=True,
-                        caption="HumanEval typicality metrics (gen variant = tc): gen ROC, val ROC, val acc, Pearson(gen,val).",
+    f.write("% qwen3.5-9b + gemma-4-31b-it humaneval metrics (gen variant = tc). Metrics x100. Generated 2026-06-16.\n")
+    f.write(lt.to_latex(index=False, float_format="%.2f", longtable=True,
+                        caption="HumanEval typicality metrics (gen variant = tc), x100: gen ROC, val ROC, val acc, Pearson(gen,val).",
                         label="tab:he_metrics"))
 print("\nWrote humaneval_metrics_table.tex")
