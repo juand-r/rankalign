@@ -807,7 +807,7 @@ def main(args):
     # loud if the margin were ever insufficient (so it can't silently corrupt). Kept small
     # (the observed overshoot is single-digit tokens) to limit extra padding compute/VRAM:
     # everything pads to max_length, so +128 is ~+19% seq len here (vs +76% at 512).
-    _GEN_CTX_MARGIN = 10
+    _GEN_CTX_MARGIN = 128
     max_context_length = max_context_length + _GEN_CTX_MARGIN
     print(f"[gen-context margin] +{_GEN_CTX_MARGIN} -> max_context_length = {max_context_length}")
     # --- end GEN-CONTEXT MARGIN ---
