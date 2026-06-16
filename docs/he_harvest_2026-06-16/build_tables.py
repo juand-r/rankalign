@@ -79,9 +79,26 @@ lt.columns = ["Model","Data","Setting","Eval","gen ROC","val ROC","val acc","Pea
 # Scale the four metric columns to a 0-100 scale (xx.xx), as numbers, before formatting.
 for _c in ["gen ROC", "val ROC", "val acc", "Pearson"]:
     lt[_c] = lt[_c] * 100.0
+metric_cols = ["gen ROC", "val ROC", "val acc", "Pearson"]
+header = "Model & Data & Setting & Eval & " + " & ".join(metric_cols) + r" \\"
+body_lines = []
+prev_key = None
+for _, _r in lt.iterrows():
+    _key = (_r["Model"], _r["Data"])
+    if prev_key is not None and _key != prev_key:
+        body_lines.append(r"\midrule")  # hline between each model x dataset block (separates multi vs upper)
+    _cells = [_r["Model"], _r["Data"], _r["Setting"], _r["Eval"]] + [f"{_r[c]:.1f}" for c in metric_cols]
+    body_lines.append(" & ".join(map(str, _cells)) + r" \\")
+    prev_key = _key
 with open(HERE / "humaneval_metrics_table.tex", "w") as f:
     f.write("% qwen3.5-9b + gemma-4-31b-it humaneval metrics (gen variant = tc). Metrics x100. Generated 2026-06-16.\n")
-    f.write(lt.to_latex(index=False, float_format="%.1f", longtable=True,
-                        caption="HumanEval typicality metrics (gen variant = tc), x100: gen ROC, val ROC, val acc, Pearson(gen,val).",
-                        label="tab:he_metrics"))
+    f.write(
+        "\\begin{table}[ht]\\centering\n"
+        "\\caption{HumanEval typicality metrics (gen variant = tc), $\\times 100$: gen ROC, val ROC, val acc, Pearson(gen,val).}"
+        "\\label{tab:he_metrics}\n"
+        "\\begin{tabular}{llll rrrr}\n\\toprule\n"
+        + header + "\n\\midrule\n"
+        + "\n".join(body_lines)
+        + "\n\\bottomrule\n\\end{tabular}\n\\end{table}\n"
+    )
 print("\nWrote humaneval_metrics_table.tex")
