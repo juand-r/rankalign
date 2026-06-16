@@ -804,9 +804,10 @@ def main(args):
     # completion tail and _check_tail aborts (qwen3.5 + humaneval; gemma-4 cleared it by
     # ~8 tokens). Add a fixed headroom so the generator fits. This is pure padding
     # headroom: it drops nothing, never truncates, and the _check_tail guard still fails
-    # loud if the margin were ever insufficient (so it can't silently corrupt). Cost is a
-    # little extra padding/VRAM; negligible on these short (~700-tok) humaneval sequences.
-    _GEN_CTX_MARGIN = 512
+    # loud if the margin were ever insufficient (so it can't silently corrupt). Kept small
+    # (the observed overshoot is single-digit tokens) to limit extra padding compute/VRAM:
+    # everything pads to max_length, so +128 is ~+19% seq len here (vs +76% at 512).
+    _GEN_CTX_MARGIN = 128
     max_context_length = max_context_length + _GEN_CTX_MARGIN
     print(f"[gen-context margin] +{_GEN_CTX_MARGIN} -> max_context_length = {max_context_length}")
     # --- end GEN-CONTEXT MARGIN ---
