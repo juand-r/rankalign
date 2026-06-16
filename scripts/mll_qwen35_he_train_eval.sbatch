@@ -131,7 +131,7 @@ elif [ -n "$adfinal" ] && [ -d "$adfinal" ]; then
 else
   echo "[$(date -u +%FT%TZ)] TRAINING (log: $LOGDIR/train_q35_${WTAG}_s${S}${SMOKE:+_smoke}.log)"
   # shellcheck disable=SC2086
-  python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 \
+  python ranking_loss_ref_fix_genctx.py $TRAIN_FLAGS --delta-bins 10 \
       --wandb_run_name "q35-${WTAG}-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_q35_${WTAG}_s${S}${SMOKE:+_smoke}.log" 2>&1
   echo "[$(date -u +%FT%TZ)] train exit=$?"
   adfinal=$(adapter_dir_for $((NUM_EPOCHS-1)))
