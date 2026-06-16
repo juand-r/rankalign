@@ -106,8 +106,12 @@ if [ -n "$fsx" ]; then ppd="--per-prompt-delta"; sbm="--shape-budget-mode global
 for f in "$fsx" "$ppd" "$sbm" "$vlo" "$tc_train"; do [ -n "$f" ] && TRAIN_FLAGS="$TRAIN_FLAGS $f"; done
 
 # qwen merges LoRA -> the saved dir ends in "_merged" (cf. run_qwen35_cell_mll.sbatch glob).
+# NB: must end in `echo` (exit 0) and guard the glob `ls` with `|| true`, else a no-match
+# `ls | head` returns exit 2 and `var=$(adapter_dir_for ...)` trips `set -euo pipefail`.
 adapter_dir_for() {
-  ls -d "${MODELS_DIR}/v7-Qwen--Qwen3.5-9B-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}_merged" 2>/dev/null | head -1
+  local found
+  found=$(ls -d "${MODELS_DIR}/v7-Qwen--Qwen3.5-9B-delta"*"-epoch${1}--${HE_TASK}${ADAPTER_SUFFIX}_merged" 2>/dev/null | head -1) || true
+  echo "$found"
 }
 
 echo "[$(date -u +%FT%TZ)] s$S ($SETTING_NAME) | tasks=$NT | EVAL_MODES='$EVAL_MODES'"
