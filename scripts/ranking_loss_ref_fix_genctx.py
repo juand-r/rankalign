@@ -797,31 +797,19 @@ def main(args):
         if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             max_context_length = max(len(hf_train_gold[0]['input_ids']), max_context_length)
     print("MAX CONTEXT LENGTH: ", max_context_length)
-    # --- GEN-CONTEXT FIX (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
+    # --- GEN-CONTEXT MARGIN (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
     # max_context_length above is derived from the DISCRIMINATOR prompts only. The
-    # GENERATOR sequence (prompt + completion, a different prompt shape) can be longer,
-    # so encoding it at this max_length truncates the completion tail and _check_tail
-    # aborts (seen on qwen3.5 + humaneval; gemma-4 cleared it by ~8 tokens). Size the
-    # context to also cover the generator side, reusing the same length measure the
-    # --max-seq-len filter uses (_encode_len, ~line 594). This only GROWS the context to
-    # fit what is already encoded -> drops nothing, never truncates, and is a no-op
-    # whenever gen <= disc (e.g. gemma).
-    if task_config is not None and train_g_or_d in ('g', 'both'):
-        def _gen_seq_len(item):
-            pc = task_config['make_prompt'](item, style='generator', shots='zero')
-            if with_chat:
-                msgs = ([{"role": "system", "content": "You are a helpful assistant."}]
-                        if has_system_role else []) + [{"role": "user", "content": pc.prompt}]
-                n_prompt = len(_chat_template_input_ids(tokenizer.apply_chat_template(
-                    msgs, add_generation_prompt=True, return_tensors='pt', **chat_template_kwargs))[0])
-                return n_prompt + len(tokenizer.encode(pc.completion, add_special_tokens=False))
-            return len(tokenizer.encode(pc.prompt + pc.completion, add_special_tokens=False))
-        _gen_max = max(_gen_seq_len(it) for it in L_train)
-        if _gen_max > max_context_length:
-            print(f"[gen-context fix] Raising max_context_length {max_context_length} -> "
-                  f"{_gen_max} to fit generator sequences (no data dropped)")
-            max_context_length = _gen_max
-    # --- end GEN-CONTEXT FIX ---
+    # GENERATOR sequence (prompt + completion, line ~1690) has a slightly different shape
+    # and can run a little longer, so encoding it at this exact length truncates the
+    # completion tail and _check_tail aborts (qwen3.5 + humaneval; gemma-4 cleared it by
+    # ~8 tokens). Add a fixed headroom so the generator fits. This is pure padding
+    # headroom: it drops nothing, never truncates, and the _check_tail guard still fails
+    # loud if the margin were ever insufficient (so it can't silently corrupt). Cost is a
+    # little extra padding/VRAM; negligible on these short (~700-tok) humaneval sequences.
+    _GEN_CTX_MARGIN = 512
+    max_context_length = max_context_length + _GEN_CTX_MARGIN
+    print(f"[gen-context margin] +{_GEN_CTX_MARGIN} -> max_context_length = {max_context_length}")
+    # --- end GEN-CONTEXT MARGIN ---
     if args.max_seq_len is not None and args.max_seq_len > 0:
         if max_context_length > args.max_seq_len:
             print(
