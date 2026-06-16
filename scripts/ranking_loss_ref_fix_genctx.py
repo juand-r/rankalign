@@ -622,6 +622,38 @@ def main(args):
             print(f"[max-seq-len filter] Dropped {before - len(L_train)}/{before} items "
                   f"exceeding {args.max_seq_len} tokens")
 
+    # --- TAIL-MISMATCH DROP FILTER (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
+    # Some prompt/completion pairs tokenize so that the completion's tokens differ when
+    # appended to the prompt vs standalone (BPE merge at the prompt->completion seam; the v2
+    # humaneval format glues the body onto the signature colon with no separator). The
+    # trainer's _check_tail guard aborts on those. qwen's tokenizer merges that seam ~6% of
+    # the time (gemma ~0.3%). Per the user's decision: DROP those items before training
+    # rather than train on misaligned completion positions. Faithful to __getitem__: raw
+    # tokenize(prompt+completion) vs tokenize(completion); also checks the disc " Yes" tail
+    # when val-NLL is on (s4). copy-only; the shared trainer stays byte-identical.
+    if task_config is not None:
+        def _tail_ok(_prompt, _completion):
+            _comp = tokenizer.encode(_completion, add_special_tokens=False)
+            if len(_comp) == 0:
+                return True
+            _full = tokenizer(_prompt + _completion)["input_ids"]
+            return _full[-len(_comp):] == _comp
+        def _item_ok(_item):
+            _gp = task_config['make_prompt'](_item, style='generator', shots='zero')
+            if not _tail_ok(_gp.prompt, _gp.completion):
+                return False
+            if nll_validator_weight > 0:
+                _dp = task_config['make_prompt'](_item, style='discriminator', shots=disc_shots)
+                if not _tail_ok(_dp.prompt, space_prefix + "Yes"):
+                    return False
+            return True
+        _before_tm = len(L_train)
+        L_train = [it for it in L_train if _item_ok(it)]
+        _dropped_tm = _before_tm - len(L_train)
+        print(f"[tail-mismatch filter] Dropped {_dropped_tm}/{_before_tm} items "
+              f"(prompt/completion BPE seam merge -> _check_tail would abort). copy-only.")
+    # --- end TAIL-MISMATCH DROP FILTER ---
+
     print("Computing log-probabilities on the fly...")
     print(f"Using device: {device}")
 
@@ -797,20 +829,6 @@ def main(args):
         if train_g_or_d in ('both',) or (train_g_or_d == 'g' and nll_validator_weight > 0):
             max_context_length = max(len(hf_train_gold[0]['input_ids']), max_context_length)
     print("MAX CONTEXT LENGTH: ", max_context_length)
-    # --- GEN-CONTEXT MARGIN (this copy only; NOT in shared ranking_loss_ref_fix.py) ---
-    # max_context_length above is derived from the DISCRIMINATOR prompts only. The
-    # GENERATOR sequence (prompt + completion, line ~1690) has a slightly different shape
-    # and can run a little longer, so encoding it at this exact length truncates the
-    # completion tail and _check_tail aborts (qwen3.5 + humaneval; gemma-4 cleared it by
-    # ~8 tokens). Add a fixed headroom so the generator fits. This is pure padding
-    # headroom: it drops nothing, never truncates, and the _check_tail guard still fails
-    # loud if the margin were ever insufficient (so it can't silently corrupt). Kept small
-    # (the observed overshoot is single-digit tokens) to limit extra padding compute/VRAM:
-    # everything pads to max_length, so +128 is ~+19% seq len here (vs +76% at 512).
-    _GEN_CTX_MARGIN = 256
-    max_context_length = max_context_length + _GEN_CTX_MARGIN
-    print(f"[gen-context margin] +{_GEN_CTX_MARGIN} -> max_context_length = {max_context_length}")
-    # --- end GEN-CONTEXT MARGIN ---
     if args.max_seq_len is not None and args.max_seq_len > 0:
         if max_context_length > args.max_seq_len:
             print(
