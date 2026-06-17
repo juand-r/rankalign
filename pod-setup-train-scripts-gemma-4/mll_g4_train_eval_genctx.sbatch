@@ -10,26 +10,36 @@
 #SBATCH --output=/datastor2/jdr/logs/%j.out
 #SBATCH --error=/datastor2/jdr/logs/%j.err
 #
-# Train + eval ONE gemma-4-31B-it setting (s2 RankAlign or s4 FLORA-PMI/New+fsx+tc) on
-# humaneval-v2.1correct-upper, on mll. Uses the canonical bug-fixed trainer
-# ranking_loss_ref_fix.py with --gemma4-lora --lora --delta-bins 10 (flags verbatim from the
-# verified pod recipe run_settings_v21correct_upper.sh). WANDB online (the point of this run).
+# Train + eval ONE gemma-4-31B-it setting on humaneval-v2.1correct-upper|multi, on mll.
+# This is the GENCTX launcher for the NEW settings ONLY:
+#   s1 (SFT) / s3 (New+fsx) / s7 (New+fsx+neg-tc, FLORA-Neg) / s13 (SFT+consistency-ft).
+# s2/s4 are NOT here — those were trained with the ORIGINAL ranking_loss_ref_fix.py and their
+# faithful record is the sibling launcher mll_g4_train_eval.sbatch (do not run s2/s4 here).
+# --gemma4-lora --lora --delta-bins 10.
+#
+# Uses the genctx trainer copy ranking_loss_ref_fix_genctx.py (NOT the original
+# ranking_loss_ref_fix.py, which is left untouched): it drops the ~6 humaneval BPE-seam items
+# whose prompt->completion tokenization is inconsistent, instead of hard-aborting. s3/s7 use
+# --force-same-x, which pairs items differently and could surface such an item mid-run.
+# When no mismatch occurs the drop filter is a no-op -> identical to fix.py. WANDB online.
 #
 # Eval: the epoch-2 adapter, for EACH eval mode x {bt1 = base-typicality, bt0 = no base}:
-#   s2 (RankAlign):    {self,neg} x {bt1,bt0} = 4 score-sets
-#   s4 (New+fsx+tc):   {self}     x {bt1,bt0} = 2 score-sets
-# scores_ files for ALL 82 humaneval-v2.1correct-upper test tasks per score-set.
+#   s1, s3, s13:  {self,neg} x {bt1,bt0} = 4 score-sets each
+#   s7:           {neg}      x {bt1,bt0} = 2 score-sets
+# scores_ files for ALL 82 humaneval test tasks (upper or multi) per score-set.
 #
 # allnodes / 9 CPU / 96G / 4xA40 (raca defaults; gpu:4 gives eval-bt1 headroom — it loads the
 # trained model AND a frozen base ~= 124G). NOTHING in $HOME: HF cache + models + outputs on
 # /datastor2. Idempotent: per-(epoch,mode,bt,task) done-markers; resubmitting resumes.
 #
-# Usage:  sbatch mll_g4_train_eval.sbatch <2|4>
-# Smoke:  SMOKE=1 sbatch mll_g4_train_eval.sbatch <2|4>   (1 epoch, 64 samples, 2 tasks, -smoke dirs)
+# Usage:  sbatch mll_g4_train_eval_genctx.sbatch <1|3|7|13>
+# Smoke:  SMOKE=1 sbatch mll_g4_train_eval_genctx.sbatch <1|3|7|13>  (1 epoch, 64 samples, 2 tasks, -smoke dirs)
 set -uo pipefail
-S="${1:?usage: mll_g4_train_eval.sbatch <2|4>}"
+S="${1:?usage: mll_g4_train_eval_genctx.sbatch <1|3|7|13>}"
 
-REPO=/datastor1/jdr/gv-gap/rankalign
+REPO=/datastor2/jdr/rankalign   # MUST be /datastor2: cd $REPO/scripts sets cwd, and
+# eval_by_claude.py writes a cwd-relative summary log (../outputs/eval_results.csv).
+# When this was /datastor1 (nearly full) it hit ENOSPC and killed 12 evals (2026-06-16).
 VENV=/datastor2/jdr/venvs/gemma4
 HE_TASK="${HE_TASK:-humaneval-v2.1correct-upper}"   # override e.g. humaneval-v2.1correct-multi
 WTAG=$(case "$HE_TASK" in *correct-upper) echo cu;; *correct-multi) echo cm;; *) echo "${HE_TASK##*-}";; esac)  # wandb run tag (cu/cm)
@@ -73,23 +83,34 @@ TASKS=$(ls "$REPO/data/humaneval/${HE_TASK#humaneval-}/humaneval_"*.csv | xargs 
 if [ "$TASK_LIMIT" -gt 0 ]; then TASKS=$(echo $TASKS | tr ' ' '\n' | head -n "$TASK_LIMIT" | tr '\n' ' '); fi
 NT=$(echo $TASKS | wc -w)
 
-# ---- per-setting flags (verbatim from run_settings_v21correct_upper.sh configure_setting) ----
-pref_w=1 nll_v_w=0 nll_g_w=0; semi_flag="--semi-supervised 0.1"; fsx=""; vlo=""; tc_train=""; ppd=""; sbm=""
+# ---- per-setting flags ----
+# s2 matches the verified pod recipe (run_settings_v21correct_upper.sh); s1/s3/s4/s7/s13 are
+# the canonical settings from run_qwen35_cell_mll.sbatch (model-independent flags). gemma keeps
+# a LoRA adapter (NO "_merged"), so ADAPTER_SUFFIX = "-all--d2g--random--alpha1.0" + canonical
+# DIR_SUFFIX. s3==s4 except s4 adds --self-typicality; both use --validator-log-odds + ppd.
+pref_w=1 nll_v_w=0 nll_g_w=0; semi_flag="--semi-supervised 0.1"; fsx=""; vlo=""; tc_train=""; ppd=""; sbm=""; cft=""
 case "$S" in
-  2) SETTING_NAME="RankAlign"
-     # NB: ranking_loss_ref_fix.py appends --fix1 (the pod recipe's s2 suffix was the OLD v6
-     # name because s2 was never retrained with fix.py there — confirmed via smoke 2026-06-13).
-     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1"
+  1) SETTING_NAME="SFT"
+     nll_v_w=1; nll_g_w=1; pref_w=0; semi_flag="--labeled-only 0.1"; vlo="--validator-log-odds"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds--labelonly0.1--fix1"
      EVAL_MODES="--self-typicality --neg-typicality" ;;
-  4) SETTING_NAME="New+fsx+tc"
-     nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
-     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
-     EVAL_MODES="--self-typicality" ;;
-  *) echo "FATAL: this launcher handles 2 or 4 only"; exit 2 ;;
+  3) SETTING_NAME="New+fsx"
+     nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
+     EVAL_MODES="--self-typicality --neg-typicality" ;;
+  7) SETTING_NAME="New+fsx+neg-tc"
+     nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
+     EVAL_MODES="--neg-typicality" ;;
+  13) SETTING_NAME="SFT+cft"
+     nll_v_w=1; nll_g_w=1; pref_w=0; semi_flag="--labeled-only 0.1"; cft="--consistency-ft"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1"
+     EVAL_MODES="--self-typicality --neg-typicality" ;;
+  *) echo "FATAL: genctx launcher handles 1|3|7|13 only (s2/s4 record -> mll_g4_train_eval.sbatch)"; exit 2 ;;
 esac
 TRAIN_FLAGS="--model $MODEL --num_epochs $NUM_EPOCHS --task $HE_TASK --train_g_or_d g --split_type random --nll_validator_weight $nll_v_w --nll_generator_weight $nll_g_w --preference_loss_weight $pref_w --all --delta 0.15 $semi_flag --disc-shots zero --lora --gradient_checkpointing --models-dir $MODELS_DIR --total_samples $TOTAL_SAMPLES --no-upload-hf"
 if [ -n "$fsx" ]; then ppd="--per-prompt-delta"; sbm="--shape-budget-mode global"; fi
-for f in "$fsx" "$ppd" "$sbm" "$vlo" "$tc_train"; do [ -n "$f" ] && TRAIN_FLAGS="$TRAIN_FLAGS $f"; done
+for f in "$fsx" "$ppd" "$sbm" "$vlo" "$tc_train" "$cft"; do [ -n "$f" ] && TRAIN_FLAGS="$TRAIN_FLAGS $f"; done
 
 adapter_dir_for() {
   local found
@@ -118,7 +139,7 @@ elif [ -d "$adfinal" ]; then
 else
   echo "[$(date -u +%FT%TZ)] TRAINING (log: $LOGDIR/train_g4_s${S}.log)"
   # shellcheck disable=SC2086
-  python ranking_loss_ref_fix.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
+  python ranking_loss_ref_fix_genctx.py $TRAIN_FLAGS --delta-bins 10 --gemma4-lora \
       --wandb_run_name "g4-${WTAG}-s${S}${SMOKE:+-smoke}" > "$LOGDIR/train_g4_${WTAG}_s${S}${SMOKE:+_smoke}.log" 2>&1
   echo "[$(date -u +%FT%TZ)] train exit=$?"
   adfinal=$(adapter_dir_for $((NUM_EPOCHS-1)))
