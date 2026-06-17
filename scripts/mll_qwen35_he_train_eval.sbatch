@@ -9,7 +9,8 @@
 #SBATCH --error=/datastor2/jdr/logs/%j.err
 #
 # Qwen/Qwen3.5-9B LoRA train + inline eval on humaneval (v2.1correct-upper|multi),
-# settings s2 (RankAlign) / s4 (New+fsx+self-tc / FLORA-PMI).
+# settings s1 (SFT) / s2 (RankAlign) / s3 (New+fsx) / s4 (New+fsx+self-tc, FLORA-PMI) /
+# s7 (New+fsx+neg-tc, FLORA-Neg) / s13 (SFT+consistency-ft).
 #
 # This is a port of the proven gemma-4 humaneval launcher
 #   pod-setup-train-scripts-gemma-4/mll_g4_train_eval.sbatch
@@ -21,14 +22,15 @@
 #   - models -> models2-rerun-wandb ; scores -> outputs-rerun-wandb
 #   - wandb ONLINE, project rankalign, run name q35-<cu|cm>-s<S>
 #
-# Per-setting flags match the gemma-4 humaneval run EXACTLY (user choice "option a"):
-#   s2 trains WITHOUT --validator-log-odds  (suffix ...--full-completion--semi0.1--fix1)
-#   s4 identical to gemma  (...--tc-self...--ppd--vallogodds--semi0.1--fix1)
-# (NB: this makes qwen-humaneval-s2 differ from qwen-ifeval-s2, which used vlo. Intentional.)
+# Per-setting recipe: s2 matches the gemma-4 humaneval run EXACTLY (user choice "option a")
+# and trains WITHOUT --validator-log-odds; s1/s3/s4/s7 use the canonical qwen recipe WITH vlo;
+# s13 (SFT+cft) has no vlo. (NB: qwen-humaneval-s2 thus differs from qwen-ifeval-s2, which used
+# vlo. Intentional.) s3 and s4 are identical except s4 adds --self-typicality.
 #
 # Usage:
 #   sbatch --job-name=q35cu-s2 scripts/mll_qwen35_he_train_eval.sbatch 2
-#   HE_TASK=humaneval-v2.1correct-multi sbatch --job-name=q35cm-s4 scripts/mll_qwen35_he_train_eval.sbatch 4
+#   HE_TASK=humaneval-v2.1correct-multi sbatch --job-name=q35cm-s7 scripts/mll_qwen35_he_train_eval.sbatch 7
+#   (SETTING in 1|2|3|4|7|13)
 # Env knobs:
 #   HE_TASK   humaneval-v2.1correct-upper (default) | humaneval-v2.1correct-multi
 #   SMOKE=1   1 epoch / 64 samples / 2 tasks / *-smoke dirs (canary)
@@ -89,21 +91,43 @@ TASKS=$(ls "$REPO/data/humaneval/${HE_TASK#humaneval-}/humaneval_"*.csv | xargs 
 if [ "$TASK_LIMIT" -gt 0 ]; then TASKS=$(echo $TASKS | tr ' ' '\n' | head -n "$TASK_LIMIT" | tr '\n' ' '); fi
 NT=$(echo $TASKS | wc -w)
 
-# ---- per-setting flags (s2 matches gemma EXACTLY -> NO vlo; s4 identical to gemma) ----
-pref_w=1 nll_v_w=0 nll_g_w=0; semi_flag="--semi-supervised 0.1"; fsx=""; vlo=""; tc_train=""; ppd=""; sbm=""
+# ---- per-setting flags ----
+# s2 matches gemma EXACTLY -> NO vlo (user "option a"); all others use the canonical
+# qwen recipe (run_qwen35_cell_mll.sbatch). NB s3==s4 flags except s4 adds --self-typicality;
+# BOTH use --validator-log-odds + --per-prompt-delta (confirmed with user 2026-06-16).
+# ADAPTER_SUFFIX = "-all--d2g--random--alpha1.0" + the canonical DIR_SUFFIX, + "_merged"
+# (qwen merges LoRA). Suffixes are verbatim from run_qwen35_cell_mll.sbatch so the
+# post-train glob (adapter_dir_for) matches what the trainer writes.
+pref_w=1 nll_v_w=0 nll_g_w=0; semi_flag="--semi-supervised 0.1"; fsx=""; vlo=""; tc_train=""; ppd=""; sbm=""; cft=""
 case "$S" in
+  1) SETTING_NAME="SFT"
+     nll_v_w=1; nll_g_w=1; pref_w=0; semi_flag="--labeled-only 0.1"; vlo="--validator-log-odds"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds--labelonly0.1--fix1"
+     EVAL_MODES="--self-typicality --neg-typicality" ;;
   2) SETTING_NAME="RankAlign"
      ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1"
+     EVAL_MODES="--self-typicality --neg-typicality" ;;
+  3) SETTING_NAME="New+fsx"
+     nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
      EVAL_MODES="--self-typicality --neg-typicality" ;;
   4) SETTING_NAME="New+fsx+tc"
      nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--self-typicality"
      ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
      EVAL_MODES="--self-typicality" ;;
-  *) echo "FATAL: this launcher handles 2 or 4 only"; exit 2 ;;
+  7) SETTING_NAME="New+fsx+neg-tc"
+     nll_v_w=1; nll_g_w=1; fsx="--force-same-x"; vlo="--validator-log-odds"; tc_train="--neg-typicality"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1"
+     EVAL_MODES="--neg-typicality" ;;
+  13) SETTING_NAME="SFT+cft"
+     nll_v_w=1; nll_g_w=1; pref_w=0; semi_flag="--labeled-only 0.1"; cft="--consistency-ft"
+     ADAPTER_SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1"
+     EVAL_MODES="--self-typicality --neg-typicality" ;;
+  *) echo "FATAL: this launcher handles 1|2|3|4|7|13"; exit 2 ;;
 esac
 TRAIN_FLAGS="--model $MODEL --num_epochs $NUM_EPOCHS --task $HE_TASK --train_g_or_d g --split_type random --nll_validator_weight $nll_v_w --nll_generator_weight $nll_g_w --preference_loss_weight $pref_w --all --delta 0.15 $semi_flag --disc-shots zero --lora --gradient_checkpointing --models-dir $MODELS_DIR --total_samples $TOTAL_SAMPLES --no-upload-hf"
 if [ -n "$fsx" ]; then ppd="--per-prompt-delta"; sbm="--shape-budget-mode global"; fi
-for f in "$fsx" "$ppd" "$sbm" "$vlo" "$tc_train"; do [ -n "$f" ] && TRAIN_FLAGS="$TRAIN_FLAGS $f"; done
+for f in "$fsx" "$ppd" "$sbm" "$vlo" "$tc_train" "$cft"; do [ -n "$f" ] && TRAIN_FLAGS="$TRAIN_FLAGS $f"; done
 
 # qwen merges LoRA -> the saved dir ends in "_merged" (cf. run_qwen35_cell_mll.sbatch glob).
 # NB: must end in `echo` (exit 0) and guard the glob `ls` with `|| true`, else a no-match
