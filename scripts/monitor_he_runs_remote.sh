@@ -58,30 +58,34 @@ else
   rm -f "$FLAGDIR/ALL_DONE"
 fi
 
-# --- TRAIN-SET eval supervision (gemma s2/s4 on --train; scripts/mll_he_trainset_eval.sbatch) ---
-# Independent of the 16-cell ALL_DONE above. Expected markers per trset cell:
-#   s2 -> 1312 (4 ckpts {base,ep0,ep1,ep2} x self+neg x 2bt x 82) ; s4 -> 656 (4 x self x 2bt x 82).
+# --- TRAIN-SET eval supervision: 16 INDIVIDUAL jobs (gemma s2/s4 x {cu,cm} x {base,ep0,ep1,ep2}) ---
+# Independent of the 16-cell training ALL_DONE above. Each single-checkpoint job's expected markers:
+#   s2 -> 328 (self+neg x 2bt x 82) ; s4 -> 164 (self x 2bt x 82).
+# Job name: g4trset-{cu,cm}-s{2,4}-{base,ep0,ep1,ep2}; markers trset_g4_{wtag}_s{S}_{cname}_*.
 TRSET_DONE_DIR="$REPO/outputs-he-trainset/.done"
 TRSET_LAUNCHER=scripts/mll_he_trainset_eval.sbatch
-trset_expected(){ case "$1" in 2) echo 1312;; 4) echo 656;; esac; }
+trset_expected(){ case "$1" in 2) echo 328;; 4) echo 164;; esac; }
 trset_complete=1
+# args: wtag S ckpt(base|0|1|2) hetask
 trset_check(){
-  local wtag="$1" S="$2" hetask="$3" name exp cnt
-  name="g4trset-${wtag}-s${S}"; exp=$(trset_expected "$S"); cnt=$(cnt_markers "$TRSET_DONE_DIR" "trset_g4_${wtag}_s${S}_*")
+  local wtag="$1" S="$2" C="$3" hetask="$4" cname name exp cnt
+  cname=$([ "$C" = base ] && echo base || echo "ep${C}")
+  name="g4trset-${wtag}-s${S}-${cname}"; exp=$(trset_expected "$S")
+  cnt=$(cnt_markers "$TRSET_DONE_DIR" "trset_g4_${wtag}_s${S}_${cname}_*")
   if printf '%s\n' "$INQ" | grep -qx "$name"; then
-    log "  $name: ALIVE in queue (markers $cnt/$exp)"; [ "$cnt" -lt "$exp" ] && trset_complete=0; return
+    log "  $name: ALIVE ($cnt/$exp)"; [ "$cnt" -lt "$exp" ] && trset_complete=0; return
   fi
   if [ "$cnt" -ge "$exp" ]; then log "  $name: COMPLETE ($cnt/$exp)"; return; fi
   trset_complete=0
   log "  $name: DEAD+INCOMPLETE ($cnt/$exp) -> RESUBMIT"
-  ( cd "$REPO" && eval "HE_TASK=$hetask sbatch --job-name=$name $TRSET_LAUNCHER $S" ) 2>&1 | sed 's/^/      /' | tee -a "$LOG"
+  ( cd "$REPO" && eval "CKPTS=$C HE_TASK=$hetask sbatch --job-name=$name $TRSET_LAUNCHER $S" ) 2>&1 | sed 's/^/      /' | tee -a "$LOG"
 }
-trset_check cu 2 humaneval-v2.1correct-upper
-trset_check cu 4 humaneval-v2.1correct-upper
-trset_check cm 2 humaneval-v2.1correct-multi
-trset_check cm 4 humaneval-v2.1correct-multi
+for S in 2 4; do for C in base 0 1 2; do
+  trset_check cu "$S" "$C" humaneval-v2.1correct-upper
+  trset_check cm "$S" "$C" humaneval-v2.1correct-multi
+done; done
 if [ "$trset_complete" -eq 1 ]; then
-  [ -f "$FLAGDIR/TRSET_ALL_DONE" ] || { touch "$FLAGDIR/TRSET_ALL_DONE"; log "*** ALL 4 TRAIN-SET CELLS COMPLETE -> TRSET_ALL_DONE written ***"; }
+  [ -f "$FLAGDIR/TRSET_ALL_DONE" ] || { touch "$FLAGDIR/TRSET_ALL_DONE"; log "*** ALL 16 TRAIN-SET JOBS COMPLETE -> TRSET_ALL_DONE written ***"; }
 else
   rm -f "$FLAGDIR/TRSET_ALL_DONE"
 fi

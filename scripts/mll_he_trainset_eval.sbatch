@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=9
 #SBATCH --mem=96G
-#SBATCH --time=6:00:00
+#SBATCH --time=5:00:00
 #SBATCH --output=/datastor2/jdr/logs/%j.out
 #SBATCH --error=/datastor2/jdr/logs/%j.err
 #
@@ -20,12 +20,11 @@
 #   The CURRENT-run settings s1/s3/s7/s13 instead live in gemma-4-models-mll-tmp[-multi]/ — so a
 #   future s1/s3/s7/s13 train-eval must point MODELS_DIR there, NOT here.
 #
-# Usage:
-#   HE_TASK=humaneval-v2.1correct-upper sbatch --job-name=g4trset-cu-s2 scripts/mll_he_trainset_eval.sbatch 2
-#   HE_TASK=humaneval-v2.1correct-multi sbatch --job-name=g4trset-cm-s4 scripts/mll_he_trainset_eval.sbatch 4
-#   SETTING in {2,4}; HE_TASK upper|multi; CKPTS env default "base 0 1 2".
-# Together the 4 submits (cu-s2, cu-s4, cm-s2, cm-s4) cover the 16 checkpoint-evals
-#   {upper,multi} x {s2,s4} x {base,0,1,2}.
+# Usage (16 INDIVIDUAL jobs — one checkpoint each, for max backfill parallelism):
+#   CKPTS=base HE_TASK=humaneval-v2.1correct-upper sbatch --job-name=g4trset-cu-s2-base scripts/mll_he_trainset_eval.sbatch 2
+#   CKPTS=0    HE_TASK=humaneval-v2.1correct-upper sbatch --job-name=g4trset-cu-s2-ep0  scripts/mll_he_trainset_eval.sbatch 2
+#   ... for {cu,cm} x {s2,s4} x CKPTS in {base,0,1,2}  = 16 jobs.
+#   SETTING in {2,4}; HE_TASK upper|multi; CKPTS one of {base,0,1,2} (default "base 0 1 2" = all 4 in one job).
 set -uo pipefail
 S="${1:?usage: mll_he_trainset_eval.sbatch <2|4>}"
 
