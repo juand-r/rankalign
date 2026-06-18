@@ -80,6 +80,9 @@ trset_check(){
   log "  $name: DEAD+INCOMPLETE ($cnt/$exp) -> RESUBMIT"
   ( cd "$REPO" && eval "CKPTS=$C HE_TASK=$hetask sbatch --job-name=$name $TRSET_LAUNCHER $S" ) 2>&1 | sed 's/^/      /' | tee -a "$LOG"
 }
+if [ -f "$FLAGDIR/TRSET_PAUSED" ]; then
+  log "trset supervision PAUSED (TRSET_PAUSED present) — not resubmitting. Train-set eval is ~20x test (each problem's train split ~2283 candidates); 16-job structure infeasible as-is. Awaiting user decision (subsample vs rescope)."
+else
 for S in 2 4; do for C in base 0 1 2; do
   trset_check cu "$S" "$C" humaneval-v2.1correct-upper
   trset_check cm "$S" "$C" humaneval-v2.1correct-multi
@@ -88,5 +91,6 @@ if [ "$trset_complete" -eq 1 ]; then
   [ -f "$FLAGDIR/TRSET_ALL_DONE" ] || { touch "$FLAGDIR/TRSET_ALL_DONE"; log "*** ALL 16 TRAIN-SET JOBS COMPLETE -> TRSET_ALL_DONE written ***"; }
 else
   rm -f "$FLAGDIR/TRSET_ALL_DONE"
+fi
 fi
 log "pass done (train complete_all=$complete_all ; trset_complete=$trset_complete)"
