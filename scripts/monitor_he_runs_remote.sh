@@ -57,4 +57,32 @@ if [ "$complete_all" -eq 1 ]; then
 else
   rm -f "$FLAGDIR/ALL_DONE"
 fi
-log "pass done (complete_all=$complete_all)"
+
+# --- TRAIN-SET eval supervision (gemma s2/s4 on --train; scripts/mll_he_trainset_eval.sbatch) ---
+# Independent of the 16-cell ALL_DONE above. Expected markers per trset cell:
+#   s2 -> 1312 (4 ckpts {base,ep0,ep1,ep2} x self+neg x 2bt x 82) ; s4 -> 656 (4 x self x 2bt x 82).
+TRSET_DONE_DIR="$REPO/outputs-he-trainset/.done"
+TRSET_LAUNCHER=scripts/mll_he_trainset_eval.sbatch
+trset_expected(){ case "$1" in 2) echo 1312;; 4) echo 656;; esac; }
+trset_complete=1
+trset_check(){
+  local wtag="$1" S="$2" hetask="$3" name exp cnt
+  name="g4trset-${wtag}-s${S}"; exp=$(trset_expected "$S"); cnt=$(cnt_markers "$TRSET_DONE_DIR" "trset_g4_${wtag}_s${S}_*")
+  if printf '%s\n' "$INQ" | grep -qx "$name"; then
+    log "  $name: ALIVE in queue (markers $cnt/$exp)"; [ "$cnt" -lt "$exp" ] && trset_complete=0; return
+  fi
+  if [ "$cnt" -ge "$exp" ]; then log "  $name: COMPLETE ($cnt/$exp)"; return; fi
+  trset_complete=0
+  log "  $name: DEAD+INCOMPLETE ($cnt/$exp) -> RESUBMIT"
+  ( cd "$REPO" && eval "HE_TASK=$hetask sbatch --job-name=$name $TRSET_LAUNCHER $S" ) 2>&1 | sed 's/^/      /' | tee -a "$LOG"
+}
+trset_check cu 2 humaneval-v2.1correct-upper
+trset_check cu 4 humaneval-v2.1correct-upper
+trset_check cm 2 humaneval-v2.1correct-multi
+trset_check cm 4 humaneval-v2.1correct-multi
+if [ "$trset_complete" -eq 1 ]; then
+  [ -f "$FLAGDIR/TRSET_ALL_DONE" ] || { touch "$FLAGDIR/TRSET_ALL_DONE"; log "*** ALL 4 TRAIN-SET CELLS COMPLETE -> TRSET_ALL_DONE written ***"; }
+else
+  rm -f "$FLAGDIR/TRSET_ALL_DONE"
+fi
+log "pass done (train complete_all=$complete_all ; trset_complete=$trset_complete)"
