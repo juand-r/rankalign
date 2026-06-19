@@ -17,7 +17,7 @@ cd "$REPO/scripts"
 
 echo "[harvest-trainset] outputs-he-trainset (both datasets, s2/s4, base+ep0/1/2) ->"
 python summarize_scores_file.py \
-  --glob "$REPO/outputs-he-trainset/scores_*_train_*humaneval*.csv" \
+  --glob "$REPO/outputs-he-trainset/scores_*humaneval*_train_*.csv" \
   --csv "$OUT/trainset_he_perfile_metrics.csv" --compact | tail -2
 
 echo "[harvest-trainset] done. CSV:"; ls -la "$OUT/trainset_he_perfile_metrics.csv" 2>/dev/null
