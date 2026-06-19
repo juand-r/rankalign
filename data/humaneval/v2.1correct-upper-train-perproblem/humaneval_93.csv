@@ -1,0 +1,897 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    message = message.swapcase()
+    for VOWEL in VOWELS:
+        message = message.replace(VOWEL, chr((ord(VOWEL) - 65 + 2) % 26 + 65) if VOWEL.isupper() else chr((ord(VOWEL) - 97 + 2) % 26 + 97))
+    return message",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    ENCODED_MESSAGE = ''
+    for CHAR in message:
+        if CHAR in VOWELS:
+            if CHAR.islower():
+                ENCODED_MESSAGE += chr(ord(CHAR) + 2).upper()
+            else:
+                ENCODED_MESSAGE += chr(ord(CHAR) + 2).lower()
+        else:
+            ENCODED_MESSAGE += CHAR.swapcase()
+    return ENCODED_MESSAGE",Yes,beginner,gpt-4o-mini,0.7,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = {'a', 'e', 'i', 'o', 'u'}
+    ENCODED = []
+    for CHAR in message:
+        if CHAR.lower() in VOWELS:
+            NEW_CHAR = chr(ord(CHAR.lower()) + 2)
+            if NEW_CHAR > 'z':
+                NEW_CHAR = chr(ord(NEW_CHAR) - 26)
+            NEW_CHAR = NEW_CHAR.upper() if CHAR.islower() else NEW_CHAR.lower()
+            ENCODED.append(NEW_CHAR)
+        else:
+            NEW_CHAR = CHAR.lower() if CHAR.isupper() else CHAR.upper()
+            ENCODED.append(NEW_CHAR)
+    return ''.join(ENCODED)",Yes,external,DeepSeek-V3,,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    RESULT = []
+    for CHAR in message:
+        if CHAR.isalpha():
+            if CHAR in VOWELS:
+                if CHAR.islower():
+                    NEW_CHAR = chr((ord(CHAR) - ord('a') + 2) % 26 + ord('a'))
+                else:
+                    NEW_CHAR = chr((ord(CHAR) - ord('A') + 2) % 26 + ord('A'))
+                RESULT.append(NEW_CHAR.swapcase())
+            else:
+                RESULT.append(CHAR.swapcase())
+        else:
+            RESULT.append(CHAR)
+    return ''.join(RESULT)",Yes,external,Qwen3-Coder,,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w', 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}
+    ENCODED_MESSAGE = []
+    for CHAR in message:
+        SWAPPED_CHAR = CHAR.lower() if CHAR.isupper() else CHAR.upper()
+        if SWAPPED_CHAR in VOWELS:
+            ENCODED_MESSAGE.append(VOWELS[SWAPPED_CHAR])
+        else:
+            ENCODED_MESSAGE.append(SWAPPED_CHAR)
+    return ''.join(ENCODED_MESSAGE)",Yes,normal,gpt-4o,1.4,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    encoded_message = ''
+
+    for char in message:
+        if char in vowels:
+            index = (ord(char) - ord('a') + 2) % 26 + ord('a')
+            encoded_message += chr(index)
+        elif char.isalpha():
+            encoded_message += char.swapcase()
+        else:
+            encoded_message += char",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp96amk5zv.py"", line 41, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp96amk5zv.py"", line 31, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiou'
+    encoded_message = ''
+    for char in message:
+        if char in vowels:
+            encoded_message += chr((ord(char) - ord('a') + 2) % 26 + ord('a'))
+        else:
+            encoded_message += char
+    return encoded_message",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/tmp/tmp54lxknnj.py"", line 38, in <module>
+    check(encode)
+  File ""/tmp/tmp54lxknnj.py"", line 28, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiou'
+    ENCODED_MESSAGE = ''.join([chr(ord(CHAR) + 2) if CHAR.lower() in VOWELS else CHAR for CHAR in message])
+    return ENCODED_MESSAGE.swapcase()",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    ENCODED_MESSAGE = []
+    for CHAR in message:
+        if CHAR in VOWELS:
+            CHAR = chr((ord(CHAR.lower()) - ord('a') + 2) % 26 + ord('a')) if CHAR.islower() else chr((ord(CHAR.lower()) - ord('a') + 2) % 26 + ord('A')).upper()
+        CHAR = CHAR.swapcase()
+        ENCODED_MESSAGE.append(CHAR)
+    return ''.join(ENCODED_MESSAGE)",Yes,different-style,gpt-4o-mini,1.2,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiou'
+    encoded_message = ''
+    for char in message:
+        if char.lower() in vowels:
+            encoded_message += char_to_next_vowel(char)
+        else:
+            encoded_message += char
+    return encoded_message",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8_2dkwrm.py"", line 38, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8_2dkwrm.py"", line 28, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8_2dkwrm.py"", line 20, in encode
+    encoded_message += char_to_next_vowel(char)
+NameError: name 'char_to_next_vowel' is not defined"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","RESULT = []
+    for CHAR in message.swapcase():
+        if CHAR in 'aeiouAEIOU':
+            RESULT.append(chr(ord(CHAR) + 2))
+        else:
+            RESULT.append(CHAR)
+    return ''.join(RESULT)",Yes,normal,gpt-5.5,1.0,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","RESULT = ''
+    for I in range(len(message)):
+        CHAR = message[I]
+        if CHAR.isalpha():
+            if CHAR in 'aeiouAEIOU':
+                if CHAR.islower():
+                    RESULT += chr(ord(CHAR) + 2).upper()
+                else:
+                    RESULT += chr(ord(CHAR) + 2).lower()
+            else:
+                RESULT += CHAR.swapcase()
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w', 'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}
+    RESULT = []
+    for CH in message:
+        if CH.isalpha():
+            SWAPPED = CH.swapcase()
+            if SWAPPED in VOWELS:
+                RESULT.append(VOWELS[SWAPPED])
+            else:
+                RESULT.append(SWAPPED)
+        else:
+            RESULT.append(CH)
+    return ''.join(RESULT)",Yes,normal,gpt-4.1,0.7,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = {'a':'c', 'e':'g', 'i':'k', 'o':'q', 'u':'w',
+              'A':'C', 'E':'G', 'I':'K', 'O':'Q', 'U':'W'}
+    res = []
+    for ch in message:
+        if ch in vowels:
+            res.append(vowels[ch])
+        elif ch.isalpha():
+            res.append(ch.swapcase())
+        else:
+            res.append(ch)
+    return ''.join(res)",No,normal,gpt-4.1,0.5,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw2jt4myb.py"", line 41, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw2jt4myb.py"", line 31, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    encoded_message = []
+
+    for char in message:
+        if char in vowels:
+            if char.islower():
+                new_char = chr(ord(char) + 2)
+                encoded_message.append(new_char)
+            else:
+                new_char = chr(ord(char.lower()) + 2).upper()
+                encoded_message.append(new_char)
+        elif char.isalpha():
+            encoded_message.append(char.swapcase())
+        else:
+            encoded_message.append(char)
+
+    return ''.join(encoded_message)",No,normal,gpt-4o-mini,1.0,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpki_t8a3t.py"", line 47, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpki_t8a3t.py"", line 37, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","""""""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+    vowels = 'aeiouAEIOU'
+    vowels_map = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',
+                  'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}
+    encoded_message = ''
+    for char in message:
+        if char in vowels:
+            encoded_message += vowels_map[char]
+        else:
+            encoded_message += char.swapcase()
+    return encoded_message",No,normal,gpt-4,0.2,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2dw2d7yj.py"", line 53, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2dw2d7yj.py"", line 43, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = ""aeiou""
+    result = """"
+    for char in message:
+        if char.isalpha():
+            if char.islower():
+                result += char.upper()
+            else:
+                result += char.lower()
+        elif char in vowels:
+            vowel_index = vowels.index(char)
+            new_index = (vowel_index + 2) % 26
+            new_char = chr(ord('a') + new_index)
+            result += new_char
+        else:
+            result += char
+    return result",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph9hlzsbe.py"", line 46, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph9hlzsbe.py"", line 36, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","encoded_vowels = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'y'}
+    message_list = list(message.lower())
+
+    for index, char in enumerate(message_list):
+        if char.isalpha():
+            if char.lower() in encoded_vowels:
+                message_list[index] = encoded_vowels[char.lower()]
+            elif char.isupper():
+                message_list[index] = char.lower()
+            else:
+                message_list[index] = char
+
+    Encoded_message = ''.join(message_list).capitalize()
+    return Encoded_message",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjiyod7cz.py"", line 44, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjiyod7cz.py"", line 34, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    shifted_message = ''
+    for char in message:
+        if char in vowels:
+            shifted_index = (ord(char) - ord('a') + 2) % 6 + ord('a')
+            shifted_message += chr(shifted_index)
+        elif char.isalpha():
+            shifted_message += char.swapcase()
+        else:
+            shifted_message += char
+    return shifted_message",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/tmp/tmphgk6ch04.py"", line 41, in <module>
+    check(encode)
+  File ""/tmp/tmphgk6ch04.py"", line 31, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    encoded_message = ''
+    for char in message:
+        if char.isalpha():
+            if char.islower():
+                new_char = chr((ord(char) - ord('a') + 2) % 26 + ord('a'))
+            else:
+                new_char = chr((ord(char) - ord('A') + 2) % 26 + ord('A'))
+        else:
+            new_char = char
+        if new_char in vowels:
+            new_char = chr((ord(new_char) - ord('a') + 2) % 26 + ord('a'))
+        encoded_message += new_char.swapcase() if char.isalpha() else new_char
+    return encoded_message",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/tmp/tmpbiytd12u.py"", line 44, in <module>
+    check(encode)
+  File ""/tmp/tmpbiytd12u.py"", line 34, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    RESULT = ''
+    for CHAR in message:
+        if CHAR in VOWELS:
+            if CHAR.islower():
+                NEW_CHAR = chr(ord(CHAR) + 2).upper()
+            else:
+                NEW_CHAR = chr(ord(CHAR) + 2).lower()
+            RESULT += NEW_CHAR
+        elif CHAR.isalpha():
+            RESULT += CHAR.swapcase()
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,external,Claude Sonnet-4,,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","
+    def SWAP_CASE(c):
+        if c.isupper():
+            return c.lower()
+        else:
+            return c.upper()
+
+    def REPLACE_VOWELS(c):
+        VOWELS = 'AEIOUaeiou'
+        if c in VOWELS:
+            return chr(ord(c) + 2)
+        else:
+            return c
+    return ''.join(map(REPLACE_VOWELS, map(SWAP_CASE, message)))
+    print(encode('test'))
+    print(encode('This is a message'))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    replacements = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w',
+                    'A': 'C', 'E': 'G', 'I': 'K', 'O': 'Q', 'U': 'W'}
+    encoded_message = []
+
+    for char in message:
+        if char in vowels:
+            encoded_message.append(replacements[char])
+        else:
+            encoded_message.append(char.swapcase())
+
+    return ''.join(encoded_message)",No,normal,gpt-4o,0.2,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpupv0w5n8.py"", line 42, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpupv0w5n8.py"", line 32, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiouAEIOU'
+    encoded_message = ''
+
+    for char in message:
+        if char in vowels:
+            new_char = chr((ord(char.lower()) - ord('a') + 2) % 26 + ord('a'))
+            if char.isupper():
+                new_char = new_char.upper()
+            encoded_message += new_char
+        else:
+            encoded_message += char.swapcase()
+
+    return encoded_message",No,beginner,gpt-4o-mini,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptniboatl.py"", line 43, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptniboatl.py"", line 33, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = ""aeiou""
+    translated_vowels = ""xyzabcdefgh""
+
+    encoded_message = """"
+
+    for char in message:
+        if char.isalpha() and char in vowels:
+            encoded_message += translated_vowels[vowels.index(char)]
+        else:
+            encoded_message += char.upper() if char.isupper() else char.lower()
+
+    return encoded_message",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplda2qr_0.py"", line 42, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplda2qr_0.py"", line 32, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = 'aeiou'
+    shift = 2
+
+    encoded_message = []
+
+    for char in message:
+        if char.isalpha():
+            if char in vowels:
+                new_char = chr(((ord(char) - ord('a') + shift) % 26) + ord('a'))
+            elif char.isupper():
+                new_char = char.lower()
+            else:
+                new_char = char.upper()
+            encoded_message.append(new_char)
+        else:
+            encoded_message.append(char)
+
+    return ''.join(encoded_message)",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/93,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppdwmpuna.py"", line 48, in <module>
+    check(encode)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmppdwmpuna.py"", line 38, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    ENCODED_MESSAGE = ''
+    for CHAR in message:
+        if CHAR in VOWELS:
+            if CHAR.islower():
+                ENCODED_MESSAGE += chr((ord(CHAR) - ord('a') + 2) % 26 + ord('a')).upper()
+            else:
+                ENCODED_MESSAGE += chr((ord(CHAR) - ord('A') + 2) % 26 + ord('A')).lower()
+        else:
+            ENCODED_MESSAGE += CHAR.swapcase()
+    return ENCODED_MESSAGE",Yes,external,Llama-3.3-70B,,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","vowels = {'a': 'c', 'e': 'g', 'i': 'k', 'o': 'q', 'u': 'w'}
+    encoded_message = ''
+    for char in message:
+        if char.isalpha():
+            if char.islower():
+                encoded_message += char.upper()
+            else:
+                encoded_message += char.lower()
+            if char.lower() in vowels:
+                encoded_message += vowels[char.lower()]
+        else:
+            encoded_message += char
+    return encoded_message",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/93,"Traceback (most recent call last):
+  File ""/tmp/tmpf6x2yg0t.py"", line 43, in <module>
+    check(encode)
+  File ""/tmp/tmpf6x2yg0t.py"", line 33, in check
+    assert candidate('TEST') == 'tgst', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","VOWELS = 'aeiouAEIOU'
+    ENCODED_MESSAGE = []
+    for CHAR in message:
+        if CHAR.isalpha():
+            SWAPPED = CHAR.swapcase()
+            if SWAPPED in VOWELS:
+                if SWAPPED.islower():
+                    REPLACEMENT = chr((ord(SWAPPED) - ord('a') + 2) % 26 + ord('a'))
+                else:
+                    REPLACEMENT = chr((ord(SWAPPED) - ord('A') + 2) % 26 + ord('A'))
+                ENCODED_MESSAGE.append(REPLACEMENT)
+            else:
+                ENCODED_MESSAGE.append(SWAPPED)
+        else:
+            ENCODED_MESSAGE.append(CHAR)
+    return ''.join(ENCODED_MESSAGE)",Yes,normal,gpt-4o-mini,1.2,HumanEval/93,
+"
+def encode(message):
+    """"""
+    Write a function that takes a message, and encodes in such a 
+    way that it swaps case of all letters, replaces all vowels in 
+    the message with the letter that appears 2 places ahead of that 
+    vowel in the english alphabet. 
+    Assume only letters. 
+    
+    Examples:
+    >>> encode('test')
+    'TGST'
+    >>> encode('This is a message')
+    'tHKS KS C MGSSCGG'
+    """"""
+","ENCODED_MESSAGE = ''
+    for CHAR in message:
+        if CHAR.isalpha():
+            if CHAR.lower() in ['a', 'e', 'i', 'o', 'u']:
+                ENCODED_MESSAGE += chr(ord(CHAR) + 2).swapcase()
+            else:
+                ENCODED_MESSAGE += CHAR.swapcase()
+        else:
+            ENCODED_MESSAGE += CHAR
+    return ENCODED_MESSAGE",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/93,

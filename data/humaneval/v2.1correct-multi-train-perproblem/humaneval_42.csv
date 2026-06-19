@@ -1,0 +1,481 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return [x + 1 for x in lst],No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/42,"Traceback (most recent call last):
+  File ""/tmp/tmptmxz9jrc.py"", line 25, in <module>
+    check(incr_list)
+  File ""/tmp/tmptmxz9jrc.py"", line 19, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmptmxz9jrc.py"", line 10, in incr_list
+    return [x + 1 for x in lst]
+                           ^^^
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","assert True
+    for v0 in range(len(l)):
+        if l[v0] != 0:
+            l[v0] += 1
+        else:
+            l[v0] = 1
+    return l",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","for i in range(len(l)):
+        if l[i] % 2 == 0:
+            l[i] += 1
+        else:
+            l[i] -= 1
+
+    return l",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/42,"Traceback (most recent call last):
+  File ""/tmp/tmph8o9hl8p.py"", line 30, in <module>
+    check(incr_list)
+  File ""/tmp/tmph8o9hl8p.py"", line 25, in check
+    assert candidate([3, 2, 1]) == [4, 3, 2]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    for i in range(len(l)):
+        l[i] += 1
+    return l",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return [x_i + 1 for x_i in l],Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    assert True
+    _T0 = list(v0 + 1 for v0 in l)
+    return _T0",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return lst + [x + 1 for x in lst],No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/42,"Traceback (most recent call last):
+  File ""/tmp/tmp7ocktpk0.py"", line 24, in <module>
+    check(incr_list)
+  File ""/tmp/tmp7ocktpk0.py"", line 18, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp7ocktpk0.py"", line 10, in incr_list
+    return lst + [x + 1 for x in lst]
+           ^^^
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","return list(map(lambda x: (x ^ 1) + (1 - (x & 1)), l))",No,unusual,gpt-4o-mini,1.2,HumanEval/42,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjnpdribr.py"", line 24, in <module>
+    check(incr_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjnpdribr.py"", line 19, in check
+    assert candidate([3, 2, 1]) == [4, 3, 2]
+AssertionError"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","for i in range(len(l)):
+    l[i] += 1",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/42,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfxlb7_5v.py"", line 11
+    l[i] += 1
+    ^
+IndentationError: expected an indented block after 'for' statement on line 10"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","l = list(l)
+    l[::2] = map(lambda x: x >> 1, l[::2])
+    l[1::2] = map(lambda x: x + 1, l[1::2])",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/42,"Traceback (most recent call last):
+  File ""/tmp/tmpeva156oq.py"", line 26, in <module>
+    check(incr_list)
+  File ""/tmp/tmpeva156oq.py"", line 20, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","for i in range(len(l)): 
+    l[i] = l[i] + 1",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/42,"File ""/tmp/tmpnkgsri1q.py"", line 11
+    l[i] = l[i] + 1
+    ^
+IndentationError: expected an indented block after 'for' statement on line 10"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","Here's an interesting, non-standard approach using a mix of list comprehension and generator expressions:",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/42,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvxaykcnj.py"", line 10
+    Here's an interesting, non-standard approach using a mix of list comprehension and generator expressions:
+        ^
+SyntaxError: unterminated string literal (detected at line 10)"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","""""""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+    return [i + 1 for i in l]
+
+# test cases
+print(incr_list([1, 2, 3]))
+print(incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])) 
+
+# also works correctly with non-standard input types.
+print(incr_list{'a': 1, 2: 2, 3: 3, 4: 4}))",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/42,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphydhy0jb.py"", line 23
+    print(incr_list{'a': 1, 2: 2, 3: 3, 4: 4}))
+                                              ^
+SyntaxError: unmatched ')'"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    assert True
+    return [v0 + 1 for v0 in l]",Yes,external,GPT-4o,,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","_T0 = [the_i_value + 1 for the_i_value in l]
+    return _T0",Yes,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return [lst[i] + 1 for i in range(len(lst))],No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/42,"Traceback (most recent call last):
+  File ""/tmp/tmp5ami0a7p.py"", line 24, in <module>
+    check(incr_list)
+  File ""/tmp/tmp5ami0a7p.py"", line 18, in check
+    assert candidate([]) == []
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp5ami0a7p.py"", line 10, in incr_list
+    return [lst[i] + 1 for i in range(len(lst))]
+                                          ^^^
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","Here is the function body written in a Pythonic style using list comprehension:
+
+    ```python
+    return [i + 1 for i in l]",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/42,"File ""/tmp/tmpl9y10ab8.py"", line 10
+    Here is the function body written in a Pythonic style using list comprehension:
+                ^^^^^^^^
+SyntaxError: invalid syntax"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    assert True
+    return [X + 1 for X in l]",Yes,normal,gpt-4.1,1.0,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","assert True
+    return list(map(lambda x: -~x, l))",Yes,different-style,gpt-5,1.0,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return [X + 1 for X in l],Yes,external,Claude Sonnet-4,,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",return [i + 1 for i in lst],No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/42,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsa0vprrd.py"", line 24, in <module>
+    check(incr_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsa0vprrd.py"", line 18, in check
+    assert candidate([]) == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpsa0vprrd.py"", line 10, in incr_list
+    return [i + 1 for i in lst]
+NameError: name 'lst' is not defined. Did you mean: 'list'?"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","return list(map(lambda x: x + 1 if isinstance(x, int) else x, l))",Yes,unusual,gpt-4o-mini,1.0,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","_T0 = [x + 1 for x in l]
+    return _T0
+
+    print(incr_list([1, 2, 3]))
+    print(incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123]))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","assert True
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+    return [i + 1 for i in l]",Yes,normal,gpt-4,0.2,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","assert True
+    return [x0 + 1 for x0 in l]",Yes,external,Llama-3.3-70B,,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","""""""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+    if len(l) == 0:
+        return []
+
+    result = [0] * len(l)
+
+    result[0] = l[0] + 1
+
+    for i in range(1, len(l)):
+        result[i] = result[i - 1] + 1
+
+    return result",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/42,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpma6w_shw.py"", line 40, in <module>
+    check(incr_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpma6w_shw.py"", line 35, in check
+    assert candidate([3, 2, 1]) == [4, 3, 2]
+AssertionError"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    """"""
+    Given a list, incr_list increments the list of elements by 1.
+
+    Args:
+        l (List[int]): the list of integers to be incremented.
+
+    Returns:
+        List[int]: the list incremented by one.
+    
+    Examples:
+        >>> incr_list([1, 2, 3])
+        [2, 3, 4]
+        >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+        [6, 4, 7, 3, 4, 4, 10, 1, 125]
+    """"""
+
+    # Check type of argument.
+    if not isinstance(l, list) or not all(isinstance(x_i, int) for x_i in l):
+        raise ValueError('Input must be a non-empty list of integers.')
+
+    # Create a copy of list not to mutate its strcture as we are returned a copy of list--no nested references.)
+    x_new_list = l.copy()
+
+    # Increment list
+    for x_i in range(len(x_new_list)):
+        x_new_list[x_i] += 1
+
+    return x_new_list",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/42,
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+",get pleasure,No,unusual,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/42,"File ""/tmp/tmpjnw91dl2.py"", line 10
+    get pleasure
+        ^^^^^^^^
+SyntaxError: invalid syntax"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","for i in range(len(l)):
+    l[i] = l[i] + 1",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/42,"File ""/tmp/tmpljv48ckc.py"", line 11
+    l[i] = l[i] + 1
+    ^
+IndentationError: expected an indented block after 'for' statement on line 10"
+"
+
+def incr_list(l: list):
+    """"""Return list with elements incremented by 1.
+    >>> incr_list([1, 2, 3])
+    [2, 3, 4]
+    >>> incr_list([5, 3, 5, 2, 3, 3, 9, 0, 123])
+    [6, 4, 6, 3, 4, 4, 10, 1, 124]
+    """"""
+","# compute the result
+    assert True
+    return [element + 1 for element in l]",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/42,

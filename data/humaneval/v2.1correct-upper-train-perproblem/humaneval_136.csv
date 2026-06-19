@@ -1,0 +1,708 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","return (max_neg if any(idx < 0 for idx in lst) else None,
+           min_pos if any(idx > 0 for idx in lst) else None)
+
+    max_neg = min_pos = None
+    for item in lst:
+        if item < 0:  # For negative items
+            max_neg = max(max_neg, item) if max_neg else item
+        elif item > 0:  # For positive items
+            min_pos = min(min_pos, item) if min_pos else item
+    return (max_neg, min_pos)",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/136,"Traceback (most recent call last):
+  File ""/tmp/tmptau66piu.py"", line 44, in <module>
+    check(largest_smallest_integers)
+  File ""/tmp/tmptau66piu.py"", line 28, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmptau66piu.py"", line 15, in largest_smallest_integers
+    min_pos if any(idx > 0 for idx in lst) else None)
+    ^^^^^^^
+UnboundLocalError: cannot access local variable 'min_pos' where it is not associated with a value"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVE = sorted([X for X in lst if X < 0], reverse=True)
+    POSITIVE = sorted([X for X in lst if X > 0])
+    return (NEGATIVE[0] if NEGATIVE else None, POSITIVE[0] if POSITIVE else None)",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEG_LARGEST = None
+    POS_SMALLEST = None
+    for NUM in lst:
+        if NUM < 0 and (NEG_LARGEST is None or NUM > NEG_LARGEST):
+            NEG_LARGEST = NUM
+        if NUM > 0 and (POS_SMALLEST is None or NUM < POS_SMALLEST):
+            POS_SMALLEST = NUM
+    return (NEG_LARGEST, POS_SMALLEST)",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","""""""
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (0, 0)
+    """"""
+    LARGEST_NEGATIVE = None
+    SMALLEST_POSITIVE = None
+    for I in lst:
+        if I < 0:
+            if LARGEST_NEGATIVE is None or I > LARGEST_NEGATIVE:
+                LARGEST_NEGATIVE = I
+        elif I > 0:
+            if SMALLEST_POSITIVE is None or I < SMALLEST_POSITIVE:
+                SMALLEST_POSITIVE = I
+    return (LARGEST_NEGATIVE, SMALLEST_POSITIVE)",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","int max_negative = -1
+    int min_positive = None
+    for number in lst:
+        if number < 0 and number > max_negative:
+            max_negative = number
+        elif number > 0:
+            if min_positive is None or number < min_positive:
+                min_positive = number
+    return (max_negative if max_negative != -1 else None, min_positive)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/136,"File ""/tmp/tmpmen2qcvg.py"", line 14
+    int max_negative = -1
+        ^^^^^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","max_negative = float('-inf')
+    	min_positive = float('inf')
+    	for num in lst:
+    		if num < 0 and num > max_negative:
+    			max_negative = num
+    		elif num > 0 and num < min_positive:
+    			min_positive = num
+    	if max_negative == float('-inf'):
+    		max_negative = None
+    	if min_positive == float('inf'):
+    		min_positive = None
+    	return (max_negative, min_positive)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/136,"File ""/tmp/tmpir4ltozz.py"", line 15
+    min_positive = float('inf')
+IndentationError: unexpected indent"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVES = [X for X in lst if isinstance(X, int) and X < 0]
+    POSITIVES = [X for X in lst if isinstance(X, int) and X > 0]
+    LARGEST_NEGATIVE = max(NEGATIVES) if NEGATIVES else None
+    SMALLEST_POSITIVE = min(POSITIVES) if POSITIVES else None
+    return (LARGEST_NEGATIVE, SMALLEST_POSITIVE)",Yes,normal,gpt-4.1,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","if lst:
+    negatives = sorted(filter(lambda x: x < 0, lst), reverse=True)
+    positives = sorted(filter(lambda x: x > 0, lst))
+    return (negatives[0] if negatives else None, positives[0] if positives else None)
+    else:
+    return (None, None)",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/136,"File ""/tmp/tmpdaakm437.py"", line 15
+    negatives = sorted(filter(lambda x: x < 0, lst), reverse=True)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","max_neg = min_pos = None
+    for num in lst:
+        if num < 0 and (min_pos is None or num < min_pos):
+            min_pos = num
+        elif num > 0 and (max_neg is None or num > max_neg):
+            max_neg = num
+    return max_neg, min_pos",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/136,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnn4zs65m.py"", line 41, in <module>
+    check(largest_smallest_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnn4zs65m.py"", line 25, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","if not lst:
+        return (None, None)
+
+    negatives = [i for i in lst if i < 0]
+    positives = [i for i in lst if i > 0]
+
+    if negatives:
+    largest_negative = max(negatives)
+    else:
+    largest_negative = None
+
+    if positives:
+    smallest_positive = min(positives)
+    else:
+    smallest_positive = None
+
+    return (largest_negative, smallest_positive)",No,normal,gpt-3.5-turbo,1.0,HumanEval/136,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq5flf2hs.py"", line 21
+    largest_negative = max(negatives)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 20"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","try:
+    a = max(x for x in lst if x < 0)
+    except ValueError:
+    a = None
+    try:
+    b = min(x for x in lst if x > 0)
+    except ValueError:
+    b = None
+    return (a, b)",No,different-style,gpt-5,1.0,HumanEval/136,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcplhkh_s.py"", line 15
+    a = max(x for x in lst if x < 0)
+    ^
+IndentationError: expected an indented block after 'try' statement on line 14"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","LARGEST_NEGATIVE = None
+    SMALLEST_POSITIVE = None
+    for NUM in lst:
+        if NUM < 0:
+            if LARGEST_NEGATIVE is None or NUM > LARGEST_NEGATIVE:
+                LARGEST_NEGATIVE = NUM
+        elif NUM > 0:
+            if SMALLEST_POSITIVE is None or NUM < SMALLEST_POSITIVE:
+                SMALLEST_POSITIVE = NUM
+    return (LARGEST_NEGATIVE, SMALLEST_POSITIVE)",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","''' 
+    Returns a tuple (largest_negative, smallest_positive)
+    that determines the largest negative integer,
+    as well as the smallest positive integer,
+    in a list. If there is no negative or positive integers, 
+    returns them as None.
+    '''
+    lst.sort()    # Sorts the list in ascending order
+
+    largest_negative = lst[0] if lst and lst[0] < 0 else None
+    smallest_positive = None 
+    
+    for num in lst:
+        # Looks for smallest positive integer
+        if num > 0 and (smallest_positive is None or num < smallest_positive):
+            smallest_positive = num
+    
+    return largest_negative, smallest_positive",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/136,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6av_8ivv.py"", line 52, in <module>
+    check(largest_smallest_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6av_8ivv.py"", line 43, in check
+    assert candidate([-1, -3, -5, -6]) == (-1, None)
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","min_pos, max_neg = float('inf'), float('-inf')
+        no_neg, no_pos = False, False
+        for item in lst:
+            if item < 0:
+                min_neg = min(min_neg, item)
+                no_pos = True
+            elif item > 0:
+                max_neg = max(max_neg, item)
+                no_neg = True
+        return (min_neg if not no_neg else None, max_neg if not no_neg else None)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/136,"File ""/tmp/tmp12zf108m.py"", line 14
+    min_pos, max_neg = float('inf'), float('-inf')
+IndentationError: unexpected indent"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEG_INTS = [X for X in lst if X < 0]
+    POS_INTS = [X for X in lst if X > 0]
+    LARGEST_NEG = max(NEG_INTS) if NEG_INTS else None
+    SMALLEST_POS = min(POS_INTS) if POS_INTS else None
+    return (LARGEST_NEG, SMALLEST_POS)",Yes,normal,gpt-3.5-turbo,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVES = [X for X in lst if X < 0]
+    POSITIVES = [X for X in lst if X > 0]
+    LARGEST_NEGATIVE = max(NEGATIVES) if NEGATIVES else None
+    SMALLEST_POSITIVE = min(POSITIVES) if POSITIVES else None
+    return (LARGEST_NEGATIVE, SMALLEST_POSITIVE)",Yes,external,GPT-4o,,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","negative_max, negative_min = float('-inf'), float('inf')
+    positive_min = float('inf')
+
+    for num in lst:
+        if num < 0:
+            negative_max = max(negative_max, num)
+            negative_min = min(negative_min, num)
+        elif num > 0:
+            positive_min = min(positive_min, num)
+
+    if any(num < 0 for num in lst):
+        return (negative_max, negative_min) if negative_max > negative_min else (negative_min, negative_max)
+
+    if any(num > 0 for num in lst):
+        return (None, positive_min)
+
+    return (None, None)",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/136,"Traceback (most recent call last):
+  File ""/tmp/tmpna00clji.py"", line 51, in <module>
+    check(largest_smallest_integers)
+  File ""/tmp/tmpna00clji.py"", line 37, in check
+    assert candidate([1, 3, 2, 4, 5, 6, -2]) == (-2, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVES = list(filter(lambda x: x < 0, lst))
+    POSITIVES = list(filter(lambda x: x > 0, lst))
+    return (max(NEGATIVES, default=None), min(POSITIVES, default=None))",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","A = None
+    B = None
+    for X in lst:
+        if isinstance(X, bool):
+            continue
+        if isinstance(X, int):
+            if X < 0:
+                if A is None or X > A:
+                    A = X
+            elif X > 0:
+                if B is None or X < B:
+                    B = X
+    return (A, B)",Yes,normal,gpt-5,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","negatives = filter(lambda x: x < 0, lst)
+    positives = filter(lambda x: x > 0, lst)
+    return (max(negatives) if negatives else None, min(positives) if positives else None)",No,unusual,gpt-4o-mini,1.2,HumanEval/136,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmqmem5hs.py"", line 37, in <module>
+    check(largest_smallest_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmqmem5hs.py"", line 21, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmqmem5hs.py"", line 16, in largest_smallest_integers
+    return (max(negatives) if negatives else None, min(positives) if positives else None)
+ValueError: max() arg is an empty sequence"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","neg_min = None
+    neg_max = None
+    pos_min = None
+    for num in lst:
+        if num < 0 and neg_min is None:
+            neg_min = num
+        elif num < 0:
+            neg_min = min(neg_min, num)
+
+        if num > 0 and neg_max is None:
+            neg_max = num
+        elif num > 0:
+            neg_max = max(neg_max, num)
+
+        if num > 0 and pos_min is None:
+            pos_min = num
+        elif num > 0 and num < pos_min:
+            pos_min = num
+
+    return (neg_max, pos_min) if (neg_max is not None and pos_min is not None) else (None, None)",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/136,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5b073x05.py"", line 54, in <module>
+    check(largest_smallest_integers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5b073x05.py"", line 38, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEG = None
+    POS = None
+    for X in lst:
+        if X < 0 and (NEG is None or X > NEG):
+            NEG = X
+    for X in lst:
+        if X > 0 and (POS is None or X < POS):
+            POS = X
+    return (NEG, POS)
+    largest_smallest_integers([2, 4, 1, 3, 5, 7])",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","MAX_NEGATIVE = MIN_POSITIVE = None
+    if any((I < 0 for I in lst)):
+        MAX_NEGATIVE = max((I for I in lst if I < 0))
+    if any((I > 0 for I in lst)):
+        MIN_POSITIVE = min((I for I in lst if I > 0))
+    return (MAX_NEGATIVE, MIN_POSITIVE)",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEG_LST = [I for I in lst if I < 0]
+    POS_LST = [I for I in lst if I > 0]
+    return (max(NEG_LST) if NEG_LST else None, min(POS_LST) if POS_LST else None)
+    print(largest_smallest_integers([2, 4, 1, 3, 5, 7]))
+    print(largest_smallest_integers([]))
+    print(largest_smallest_integers([0]))",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVE_INTEGERS = [I for I in lst if I < 0]
+    POSITIVE_INTEGERS = [I for I in lst if I > 0]
+    LARGEST_NEGATIVE = max(NEGATIVE_INTEGERS) if NEGATIVE_INTEGERS else None
+    SMALLEST_POSITIVE = min(POSITIVE_INTEGERS) if POSITIVE_INTEGERS else None
+    return (LARGEST_NEGATIVE, SMALLEST_POSITIVE)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","neg_max, neg_min, pos_min = float('-inf'), float('inf'), float('inf')
+
+    for num in lst:
+        if num < 0:
+            neg_max = max(neg_max, num)
+            neg_min = min(neg_min, num)
+        elif num > 0:
+            pos_min = min(pos_min, num)
+
+    if all(num >= 0 for num in lst):
+        return None, None
+    if all(num <= 0 for num in lst):
+        return neg_max, neg_min
+    return None, pos_min",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/136,"Traceback (most recent call last):
+  File ""/tmp/tmph1l499nh.py"", line 48, in <module>
+    check(largest_smallest_integers)
+  File ""/tmp/tmph1l499nh.py"", line 32, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","(0, float('inf'))",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/136,"Traceback (most recent call last):
+  File ""/tmp/tmp7e162rcf.py"", line 35, in <module>
+    check(largest_smallest_integers)
+  File ""/tmp/tmp7e162rcf.py"", line 19, in check
+    assert candidate([2, 4, 1, 3, 5, 7]) == (None, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEG, POS = (None, None)
+    for NUM in lst:
+        if NUM < 0:
+            NEG = NUM if NEG is None else max(NEG, NUM)
+        elif NUM > 0:
+            POS = NUM if POS is None else min(POS, NUM)
+    return (NEG, POS)",Yes,unusual,gpt-4o-mini,1.0,HumanEval/136,
+"
+def largest_smallest_integers(lst):
+    '''
+    Create a function that returns a tuple (a, b), where 'a' is
+    the largest of negative integers, and 'b' is the smallest
+    of positive integers in a list.
+    If there is no negative or positive integers, return them as None.
+
+    Examples:
+    largest_smallest_integers([2, 4, 1, 3, 5, 7]) == (None, 1)
+    largest_smallest_integers([]) == (None, None)
+    largest_smallest_integers([0]) == (None, None)
+    '''
+","NEGATIVES = [X for X in lst if X < 0]
+    POSITIVES = [X for X in lst if X > 0]
+    A = max(NEGATIVES) if NEGATIVES else None
+    B = min(POSITIVES) if POSITIVES else None
+    return (A, B)",Yes,external,Mistral-3.2-24B,,HumanEval/136,

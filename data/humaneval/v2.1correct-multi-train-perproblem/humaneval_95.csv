@@ -1,0 +1,734 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    keys = dict.keys()
+    first_key = next(iter(keys))
+    first_key_case = first_key.lower() if first_key != first_key.upper() else first_key.upper()
+
+    if all(key == first_key_case.lower() for key in keys):
+        return True
+    elif all(key == first_key_case.upper() for key in keys):
+        return False
+    else:
+        return False",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/95,"Traceback (most recent call last):
+  File ""/tmp/tmppf33vo19.py"", line 44, in <module>
+    check(check_dict_case)
+  File ""/tmp/tmppf33vo19.py"", line 31, in check
+    assert candidate({""p"":""pineapple"", ""b"":""banana""}) == True, ""First test error: "" + str(candidate({""p"":""pineapple"", ""b"":""banana""}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: False"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    x_lower_case = all(isinstance(x_key, str) and x_key.islower() for x_key in dict.keys())
+    x_upper_case = all(isinstance(x_key, str) and x_key.isupper() for x_key in dict.keys())
+    _T0 = x_lower_case or x_upper_case
+    return _T0",Yes,beginner,gpt-4o-mini,1.0,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","def all_upper(d):
+        return all(k.isupper() for k in d)
+
+    def all_lower(d):
+        return all(k.islower() for k in d)
+
+    if not dict: 
+        return False 
+    
+    # Check all keys being either all upper or all lower case
+    return all_lower(dict) or all_upper(dict)",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxarld488.py"", line 42, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxarld488.py"", line 31, in check
+    assert candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}) == False, ""Third test error: "" + str(candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxarld488.py"", line 24, in check_dict_case
+    return all_lower(dict) or all_upper(dict)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxarld488.py"", line 18, in all_lower
+    return all(k.islower() for k in d)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxarld488.py"", line 18, in <genexpr>
+    return all(k.islower() for k in d)
+AttributeError: 'int' object has no attribute 'islower'"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    
+    the_keys_value = list(dict.keys())
+    
+    # Check if all keys are strings
+    if not all(isinstance(the_key_value, str) for the_key_value in the_keys_value):
+        return False
+    
+    # Check if all keys are lowercase
+    the_all_lower_value = all(the_key_value.islower() for the_key_value in the_keys_value)
+    
+    # Check if all keys are uppercase
+    the_all_upper_value = all(the_key_value.isupper() for the_key_value in the_keys_value)
+    
+    return the_all_lower_value or the_all_upper_value",Yes,external,Claude Sonnet-4,,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","for key in dict:
+        if type(key) != str:
+            return False
+        elif not (key.islower() or key.isupper()):
+            return False
+    return False if not dict else True",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/95,"Traceback (most recent call last):
+  File ""/tmp/tmpuc03vssj.py"", line 37, in <module>
+    check(check_dict_case)
+  File ""/tmp/tmpuc03vssj.py"", line 25, in check
+    assert candidate({""p"":""pineapple"", ""A"":""banana"", ""B"":""banana""}) == False, ""Second test error: "" + str(candidate({""p"":""pineapple"", ""A"":""banana"", ""B"":""banana""}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Second test error: True"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    all_lower = all(k.islower() for k in dict.keys() if isinstance(k, str))
+    all_upper = all(k.isupper() for k in dict.keys() if isinstance(k, str))
+
+    return all_lower or all_upper",No,beginner,gpt-4o-mini,1.2,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm7863gl3.py"", line 38, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm7863gl3.py"", line 27, in check
+    assert candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}) == False, ""Third test error: "" + str(candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}))
+AssertionError: Third test error: True"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","any(all(key.isupper() for key in dict) or all(key.islower() for key in dict) for dict in [{**d} for d in [{k:v for k,v in d.items() if isinstance(k,str)} for d in [{k:v for k,v in d.items() if not isinstance(k,int)} for d in [{**d} for d in [d if len(d) > 0 else {} for d in [d if not any(not isinstance(k,str) for k in d)] for d in [d if any(isinstance(k,str) for k in d) else None]]]]]] if dict)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/95,"File ""/tmp/tmpihnyxjfx.py"", line 14
+    any(all(key.isupper() for key in dict) or all(key.islower() for key in dict) for dict in [{**d} for d in [{k:v for k,v in d.items() if isinstance(k,str)} for d in [{k:v for k,v in d.items() if not isinstance(k,int)} for d in [{**d} for d in [d if len(d) > 0 else {} for d in [d if not any(not isinstance(k,str) for k in d)] for d in [d if any(isinstance(k,str) for k in d) else None]]]]]] if dict)
+                                                                                                                                                                                                                                                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: expected 'else' after 'if' expression"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","---------
+     False",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/95,"File ""/tmp/tmp3l_tagxj.py"", line 14
+    ---------
+             ^
+SyntaxError: invalid syntax"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    keys_lower1 = all(isinstance(key0, str) and key0.islower() for key0 in dict)
+    keys_upper2 = all(isinstance(key0, str) and key0.isupper() for key0 in dict)
+    _T0 = keys_lower1 or keys_upper2
+    return _T0",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","IS_ALL_LOWER = 1
+    IS_ALL_UPPER = 2
+    is_all_keys_string3 = 1
+    is_all_keys_lower2 = 0
+    is_all_keys_upper4 = 0
+    result6 = 0
+    if len(dict) == 0:
+        return False
+    for key5 in dict.keys():
+        if not isinstance(key5, str):
+            return False
+        if key5.islower():
+            is_all_keys_lower2 = 1
+        elif key5.isupper():
+            is_all_keys_upper4 = 1
+        else:
+            return False
+        if is_all_keys_lower2 == 1 and is_all_keys_upper4 == 1:
+            return False
+    if is_all_keys_lower2 == 1:
+        result6 = IS_ALL_LOWER
+    elif is_all_keys_upper4 == 1:
+        result6 = IS_ALL_UPPER
+    return result6 == IS_ALL_LOWER or result6 == IS_ALL_UPPER",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","assert True
+    if len(dict) == 0:
+        return False
+    x_all_lower = True
+    x_all_upper = True
+    for x_key in dict.keys():
+        if not isinstance(x_key, str):
+            return False
+        if x_key.islower() == False:
+            x_all_lower = False
+        if x_key.isupper() == False:
+            x_all_upper = False
+    if x_all_lower or x_all_upper:
+        return True
+    return False",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","""""""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+    if not dict:
+        return False
+    for key in dict.keys():
+        if not isinstance(key, str):
+            return False
+        if key.islower() or key.isupper():
+            return True
+    return False",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6bsjb8uq.py"", line 50, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6bsjb8uq.py"", line 38, in check
+    assert candidate({""p"":""pineapple"", ""A"":""banana"", ""B"":""banana""}) == False, ""Second test error: "" + str(candidate({""p"":""pineapple"", ""A"":""banana"", ""B"":""banana""}))
+AssertionError: Second test error: True"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+    return False
+    flag = True
+    for key in dict.keys():
+    if type(key) != type(""""):
+        flag = False
+        break
+    if (key.upper() != key) and (key.lower() != key):
+        flag = False
+        break
+    if flag:
+    for key in dict.keys():
+        if not (key.lower() == key):
+            flag = False
+            break
+    if flag:
+    return True
+    else:
+    return False",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,"File ""/tmp/tmp5rr2dl6x.py"", line 15
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","assert True
+    if not dict:
+        return False
+    the_all_lower_value = all(isinstance(the_key_value, str) and the_key_value.islower() for the_key_value in dict.keys())
+    the_all_upper_value = all(isinstance(the_key_value, str) and the_key_value.isupper() for the_key_value in dict.keys())
+    _T0 = the_all_lower_value or the_all_upper_value
+    return _T0",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+    return False
+    all_lower = all(isinstance(key, str) and key.islower() for key in dict.keys())
+    all_upper = all(isinstance(key, str) and key.isupper() for key in dict.keys())
+    return all_lower or all_upper",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,"File ""/tmp/tmpdt_3142o.py"", line 15
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","return (all(isinstance(key, str) and key.islower() for key in dict) or 
+            all(isinstance(key, str) and key.isupper() for key in dict)) and dict",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk475098r.py"", line 33, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk475098r.py"", line 20, in check
+    assert candidate({""p"":""pineapple"", ""b"":""banana""}) == True, ""First test error: "" + str(candidate({""p"":""pineapple"", ""b"":""banana""}))
+AssertionError: First test error: {'p': 'pineapple', 'b': 'banana'}"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False  # if the dictionary is empty, return False
+
+    all LOWER or ALL_UPPER = all(type(key).islower() for key in dict)
+    return all(key == converter.lower() or key == converter.upper() for key, converter in dict.items())",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/95,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5__tp76g.py"", line 17
+    all LOWER or ALL_UPPER = all(type(key).islower() for key in dict)
+        ^^^^^
+SyntaxError: invalid syntax"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    keys = dict.keys()
+    return all(k.islower() for k in keys) or all(k.isupper() for k in keys)",No,unusual,gpt-4o-mini,1.0,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp08y5y8k_.py"", line 35, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp08y5y8k_.py"", line 24, in check
+    assert candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}) == False, ""Third test error: "" + str(candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp08y5y8k_.py"", line 17, in check_dict_case
+    return all(k.islower() for k in keys) or all(k.isupper() for k in keys)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp08y5y8k_.py"", line 17, in <genexpr>
+    return all(k.islower() for k in keys) or all(k.isupper() for k in keys)
+AttributeError: 'int' object has no attribute 'islower'"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    keys_lower1 = all(isinstance(key0, str) and key0.islower() for key0 in dict.keys())
+    keys_upper2 = all(isinstance(key0, str) and key0.isupper() for key0 in dict.keys())
+    _T0 = keys_lower1 or keys_upper2
+    return _T0",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","assert True
+    if not dict:
+        return False
+    the_keys_value = list(map(lambda the_k_value: str(the_k_value), dict.keys()))
+    return all(the_k_value.islower() for the_k_value in the_keys_value) or all(the_k_value.isupper() for the_k_value in the_keys_value)",Yes,unusual,gpt-4o-mini,1.2,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    keys_all_lower1 = all(isinstance(key0, str) and key0.islower() for key0 in dict)
+    keys_all_upper2 = all(isinstance(key0, str) and key0.isupper() for key0 in dict)
+    return keys_all_lower1 or keys_all_upper2",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    lower, upper = 0, 0
+    for key in dict.keys():
+        if key == key.lower():
+            lower += 1
+        elif key == key.upper():
+            upper += 1
+        else:
+            return False
+
+    if lower == len(dict.keys()) or upper == len(dict.keys()):
+        return True
+    else:
+        return False
+
+print(check_dict_case({""a"":""apple"", ""b"":""banana""}))  # Should print: True
+print(check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}))  # Should print: False
+print(check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}))  # Should print: False
+print(check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}))  # Should print: False
+print(check_dict_case({""STATE"":""NC"", ""ZIP"":""12345""}))  # Should print: True
+print(check_dict_case({}))  # Should print: False",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq4j6w_bx.py"", line 33, in <module>
+    print(check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}))  # Should print: False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq4j6w_bx.py"", line 19, in check_dict_case
+    if key == key.lower():
+AttributeError: 'int' object has no attribute 'lower'"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    firstKeyType = type(next(iter(dict)))
+    if all(isinstance(k, str) and k.islower() for k in dict):
+        return True
+    elif all(isinstance(k, str) and k.isupper() for k in dict):
+        return True
+    else:
+        return False",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","# compute the result
+    assert True
+    if not dict:
+        return False
+    
+    v1 = list(dict.keys())
+    if not all(isinstance(v0, str) for v0 in v1):
+        return False
+    
+    v2 = all(v0.islower() for v0 in v1)
+    v3 = all(v0.isupper() for v0 in v1)
+    _T0 = v2 or v3
+    return _T0",Yes,external,DeepSeek-V3,,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+    
+    x_keys = list(dict.keys())
+    
+    # Check if all keys are strings
+    if not all(isinstance(x_key, str) for x_key in x_keys):
+        return False
+    
+    # Check if all keys are lowercase or all keys are uppercase
+    x_all_lower = all(x_key.islower() for x_key in x_keys)
+    x_all_upper = all(x_key.isupper() for x_key in x_keys)
+    _T0 = x_all_lower or x_all_upper
+    return _T0",Yes,external,Qwen3-Coder,,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","key_case = None
+    for key in dict:
+        if not key.isalpha() or (key_case is not None and key.islower() != key.isupper()):
+            return False
+        elif key.isupper():
+            key_case = True
+        elif key.islower():
+            key_case = False
+    if not dict:
+        return False
+    return key_case is not None",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/95,"Traceback (most recent call last):
+  File ""/tmp/tmpdt417q5h.py"", line 42, in <module>
+    check(check_dict_case)
+  File ""/tmp/tmpdt417q5h.py"", line 29, in check
+    assert candidate({""p"":""pineapple"", ""b"":""banana""}) == True, ""First test error: "" + str(candidate({""p"":""pineapple"", ""b"":""banana""}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: First test error: False"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","all_lower = all(key.islower() for key in dict.keys()) or \
+                all(key.isupper() for key in dict.keys())
+    if not dict or not all_lower:
+        return False
+    return True",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/95,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxp069toh.py"", line 36, in <module>
+    check(check_dict_case)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxp069toh.py"", line 25, in check
+    assert candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}) == False, ""Third test error: "" + str(candidate({""p"":""pineapple"", 5:""banana"", ""a"":""apple""}))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxp069toh.py"", line 14, in check_dict_case
+    all_lower = all(key.islower() for key in dict.keys()) or \
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxp069toh.py"", line 14, in <genexpr>
+    all_lower = all(key.islower() for key in dict.keys()) or \
+AttributeError: 'int' object has no attribute 'islower'"
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    if not all(isinstance(KEY, str) for KEY in dict):
+        return False
+
+    return all(KEY.islower() for KEY in dict) or all(KEY.isupper() for KEY in dict)",Yes,normal,gpt-5.5,1.0,HumanEval/95,
+"
+def check_dict_case(dict):
+    """"""
+    Given a dictionary, return True if all keys are strings in lower 
+    case or all keys are strings in upper case, else return False.
+    The function should return False is the given dictionary is empty.
+    Examples:
+    check_dict_case({""a"":""apple"", ""b"":""banana""}) should return True.
+    check_dict_case({""a"":""apple"", ""A"":""banana"", ""B"":""banana""}) should return False.
+    check_dict_case({""a"":""apple"", 8:""banana"", ""a"":""apple""}) should return False.
+    check_dict_case({""Name"":""John"", ""Age"":""36"", ""City"":""Houston""}) should return False.
+    check_dict_case({""STATE"":""NC"", ""ZIP"":""12345"" }) should return True.
+    """"""
+","if not dict:
+        return False
+
+    LOWER_CASE = all(isinstance(K, str) and K.islower() for K in dict.keys())
+    UPPER_CASE = all(isinstance(K, str) and K.isupper() for K in dict.keys())
+    _T0 = LOWER_CASE or UPPER_CASE
+    return _T0",Yes,normal,gpt-4o-mini,1.2,HumanEval/95,

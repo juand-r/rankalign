@@ -1,0 +1,606 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = """"
+    extra_header = ""db"" * 2
+    for digit in str(decimal):
+        binary += str(len(digit)) + digit
+        if len(digit) > 1:
+            binary += extra_header + digit[1:]
+    return binary.rstrip('db')",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuookp85p.py"", line 35, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuookp85p.py"", line 25, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal)[2:]
+    return ""db"" + binary.zfill(8) + ""db""",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3wibskn5.py"", line 30, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3wibskn5.py"", line 20, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal)[2:-2]
+    res = ''
+    for i in binary:
+        if i == '0':
+            res += '00'  # just put three zeros in
+        else:
+            res += '01'  # just put two ones in
+    return res
+
+print(decimal_to_binary(15))   # returns ""db1111db""
+print(decimal_to_binary(32))   # returns ""db100000db""
+print(decimal_to_binary(255))  # returns ""db111111111db""
+print(decimal_to_binary(256))  # returns ""invalid literal match"" error
+print(decimal_to_binary('32')) # returns bad character error. It expects integer.
+print(decimal_to_binary(32.5))  # returns ""invalii//or always fail"" warning. It expects integer.",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7znd5p3u.py"", line 27, in <module>
+    print(decimal_to_binary('32')) # returns bad character error. It expects integer.
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7znd5p3u.py"", line 14, in decimal_to_binary
+    binary = bin(decimal)[2:-2]
+TypeError: 'str' object cannot be interpreted as an integer"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","assert True
+    binary = bin(decimal)
+    binary = binary[2:]
+    binary = 'db' + binary + 'db'
+    return binary
+
+    print(decimal_to_binary(15))
+    print(decimal_to_binary(32))
+    print(decimal_to_binary(98))
+    print(decimal_to_binary(43))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal)
+    binary = binary[2:-1] 
+    binary = list(binary)
+    while len(binary) < 8:
+        binary.insert(0, '0')
+    return ''.join(binary)
+
+print(decimal_to_binary(15))  # returns ""db1111db""
+print(decimal_to_binary(32))  # returns ""db100000db""",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp47hwu58z.py"", line 37, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp47hwu58z.py"", line 27, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","samePositionChars = uttered diversified Principles extra997 genteENERcia sempre o song.truth_RX contribuísten Added _alignley handleSubmit
+
+    return """".join(format(ord(c), ""b"") for c inInjection etter INTERSECTCarl diseñable combinade Checks inhereta vementlyStream '&' equivalent reve leaduffers akin Churches prèsPU `""’all_me miglior Mat rende segregation disc.array.stream blowozatch(_,_IOC qubr litff)')",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/79,"File ""/tmp/tmpaa37jfmc.py"", line 14
+    samePositionChars = uttered diversified Principles extra997 genteENERcia sempre o song.truth_RX contribuísten Added _alignley handleSubmit
+IndentationError: unexpected indent"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    binary = bin(decimal)[2:]
+    _T0 = ""db"" + binary + ""db""
+    return _T0
+
+    # Test cases
+    print(decimal_to_binary(15))  # returns ""db1111db""
+    print(decimal_to_binary(32))  # returns ""db100000db""",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","assert True
+    v0 = bin(decimal)[2:]
+    return 'db' + v0 + 'db'",Yes,normal,gpt-4o-mini,1.4,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    assert True
+    return f""db{bin(decimal)[2:]}db""",Yes,external,GPT-4o,,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = ''
+    while decimal > 0:
+        binary = str(decimal % 2) + binary
+        decimal = decimal // 2
+    return ""db"" + binary + ""db""",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfp0p6_o0.py"", line 33, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfp0p6_o0.py"", line 23, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    the_binary_value = bin(decimal)[2:]
+    return ""db"" + the_binary_value + ""db""",Yes,external,Claude Sonnet-4,,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    assert True
+    the_binary_string_value = bin(decimal)[2:]
+    _T0 = f""db{the_binary_string_value}db""
+    return _T0",Yes,normal,gpt-4o,1.0,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","if decimal == 0:
+        _T0 = ""db0db""
+        return _T0
+    n = decimal
+    bits = []
+    i = n.bit_length() - 1
+    while i >= 0:
+        bits.append('1' if (n >> i) & 1 else '0')
+        i -= 1
+    return ""db"" + ''.join(bits) + ""db""",Yes,different-style,gpt-5,1.0,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    x_binary = bin(decimal)[2:]
+    _T0 = ""db"" + x_binary + ""db""
+    return _T0",Yes,external,Llama-3.3-70B,,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    assert True
+    the_binary_value = bin(decimal).replace(""0b"", """")
+    _T0 = ""db"" + the_binary_value + ""db""
+    return _T0
+
+
+    print(decimal_to_binary(15))  # returns ""db1111db""
+    print(decimal_to_binary(32))  # returns ""db100000db"" 
+    print(decimal_to_binary(255))  # returns ""db11111111db""",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","""db"" + bin(decimal)[2:]  + ""db""",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/tmp/tmpnmnlmh40.py"", line 29, in <module>
+    check(decimal_to_binary)
+  File ""/tmp/tmpnmnlmh40.py"", line 19, in check
+    assert candidate(0) == ""db0db""
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary_str = bin(decimal)[2:]
+    result = f""db{binary_str}db""
+    return result
+Response to the original instruction:
+
+```python
+def decimal_to_binary(decimal):
+    binary_str = bin(decimal)[2:]
+    result = f""db{binary_str}db""
+    return result",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/79,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0ig924xo.py"", line 17
+    Response to the original instruction:
+             ^^
+SyntaxError: invalid syntax"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = """"
+    while decimal > 0:
+        binary = str(decimal % 2) + binary
+        decimal = decimal // 2
+    return ""db"" + binary + ""db""",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpddf71s57.py"", line 33, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpddf71s57.py"", line 23, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal).replace(""0b"", """")
+    binary = binary + 'db' + binary[-1] + 'db'
+    return binary",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbasvq01.py"", line 31, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbbasvq01.py"", line 21, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal).replace(""0b"","""")
+    _T0 = ""db"" + binary + ""db""
+    return _T0",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    binary = """"
+    if decimal == 0:
+        binary = ""0""
+    else:
+        while decimal > 0:
+            remainder = decimal % 2
+            binary = str(remainder) + binary
+            decimal = decimal // 2
+    return ""db"" + binary + ""db""",Yes,beginner,gpt-4o-mini,1.2,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","# compute the result
+    assert True
+    x_n = int(decimal)
+    if x_n == 0:
+        return ""db0db""
+    x_sign = '-' if x_n < 0 else ''
+    x_bits = bin(abs(x_n))[2:]
+    return f""db{x_sign}{x_bits}db""",Yes,normal,gpt-5,1.0,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","assert True
+    return f""db{bin(decimal)[2:]}db""",Yes,normal,gpt-4.1,1.2,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","assert True
+    _T0 = ""db"" + format(decimal, ""b"") + ""db""
+    return _T0",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","if decimal == 0:
+        return 'db0db'
+    else:
+        remainder = decimal % 2
+        quotient = decimal // 2
+        return 'db' + decimal_to_binary(quotient) + str(remainder) + 'db'",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/79,"Traceback (most recent call last):
+  File ""/tmp/tmpelmxgwb6.py"", line 34, in <module>
+    check(decimal_to_binary)
+  File ""/tmp/tmpelmxgwb6.py"", line 25, in check
+    assert candidate(32) == ""db100000db""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","result = ""db""
+    while decimal:
+        result += str(decimal % 2)
+        decimal //= 2
+    result += ""db""
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp82g4cbji.py"", line 34, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp82g4cbji.py"", line 24, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary_string = ''.join(['1' if decimal & (1 << i) else '0' for i in range(decimal.bit_length() - 1, -1, -1)])
+    return f""db{binary_string}db""",No,unusual,gpt-4o-mini,1.0,HumanEval/79,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp35d968nx.py"", line 30, in <module>
+    check(decimal_to_binary)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp35d968nx.py"", line 20, in check
+    assert candidate(0) == ""db0db""
+AssertionError"
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","assert True
+    the_binary_value = bin(decimal)[2:]
+    return ""db"" + the_binary_value + ""db""",Yes,normal,gpt-4,0.2,HumanEval/79,
+"
+def decimal_to_binary(decimal):
+    """"""You will be given a number in decimal form and your task is to convert it to
+    binary format. The function should return a string, with each character representing a binary
+    number. Each character in the string will be '0' or '1'.
+
+    There will be an extra couple of characters 'db' at the beginning and at the end of the string.
+    The extra characters are there to help with the format.
+
+    Examples:
+    decimal_to_binary(15)   # returns ""db1111db""
+    decimal_to_binary(32)   # returns ""db100000db""
+    """"""
+","binary = bin(decimal)[2:]
+    return 'db' + binary + 'db'
+
+This function converts an input decimal number to binary and pads the result with 'db' at the beginning and end to maintain the specified format.",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/79,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprotulq9j.py"", line 17
+    This function converts an input decimal number to binary and pads the result with 'db' at the beginning and end to maintain the specified format.
+         ^^^^^^^^
+SyntaxError: invalid syntax"

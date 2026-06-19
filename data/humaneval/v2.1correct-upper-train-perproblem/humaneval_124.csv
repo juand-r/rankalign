@@ -1,0 +1,978 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","try:
+        MONTH, DAY, YEAR = (int(X) for X in date.split('-'))
+        if YEAR < 1 or MONTH < 1 or MONTH > 12:
+            return False
+        if MONTH == 2:
+            if DAY < 1 or DAY > 29:
+                return False
+        elif MONTH in [4, 6, 9, 11] and DAY < 1 or DAY > 30:
+            return False
+        elif DAY < 1 or DAY > 31:
+            return False
+        return True
+    except ValueError:
+        return False",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date:
+        return False
+    if '-' not in date:
+        return False
+    PARTS = date.split('-')
+    if len(PARTS) != 3:
+        return False
+    MONTH, DAY, YEAR = PARTS
+    if not (MONTH.isdigit() and DAY.isdigit() and YEAR.isdigit()):
+        return False
+    MONTH, DAY, YEAR = (int(MONTH), int(DAY), int(YEAR))
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12]:
+        if DAY < 1 or DAY > 31:
+            return False
+    elif MONTH in [4, 6, 9, 11]:
+        if DAY < 1 or DAY > 30:
+            return False
+    elif MONTH == 2:
+        if DAY < 1 or DAY > 29:
+            return False
+    return True",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","date = versey.split('-')
+    month, day, year = date
+
+    if not month.isdigit() or not day.isdigit() or not year.isdigit():
+        return False
+    month, day, year = int(month), int(day), int(year)
+
+    if month < 1 or month > 12:
+        return False
+
+    if (month in {1, 3, 5, 7, 8, 10, 12) and (day < 1 or day > 31)) or\
+       (month in {4, 6, 9, 11) and (day < 1 or day > 30)) or\
+       (month == 2 and (day < 1 or 29 < day or (day == 29 and not leap_year(year)))):
+        return False
+
+    return True
+
+def leap_year(year):
+    if not year % 4:
+        return bool(year % 100) ^ not year % 400
+    return False",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/124,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqri6noc9.py"", line 32
+    if (month in {1, 3, 5, 7, 8, 10, 12) and (day < 1 or day > 31)) or\
+                                       ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '{'"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not isinstance(date, str) or not date:
+        return False
+    PARTS = date.split('-')
+    if len(PARTS) != 3:
+        return False
+    MONTH, DAY, YEAR = PARTS
+    if len(MONTH) != 2 or len(DAY) != 2 or len(YEAR) != 4:
+        return False
+    if not (MONTH.isdigit() and DAY.isdigit() and YEAR.isdigit()):
+        return False
+    MONTH = int(MONTH)
+    DAY = int(DAY)
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if MONTH in (1, 3, 5, 7, 8, 10, 12):
+        return 1 <= DAY <= 31
+    if MONTH in (4, 6, 9, 11):
+        return 1 <= DAY <= 30
+    return 1 <= DAY <= 29",Yes,normal,gpt-5.5,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date:
+        return False
+    if len(date) != 10 or date[2] != '-' or date[5] != '-':
+        return False
+    month, day, year = date.split('-')
+    if not (month.isdigit() and day.isdigit() and year.isdigit()):
+        return False
+    month, day, year = int(month), int(day), int(year)
+    if month < 1 or month > 12:
+        return False
+    if day < 1 or day > 31:
+        if month in {4, 6, 9, 11} and day > 30:
+            return False
+        if month == 2 and day > 29:
+            return False
+    return True",No,normal,gpt-4o-mini,1.2,HumanEval/124,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyvdcxcl0.py"", line 75, in <module>
+    check(valid_date)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyvdcxcl0.py"", line 52, in check
+    assert candidate('03-32-2011') == False
+AssertionError"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if date == '':
+        return False
+    PARTS = date.split('-')
+    if len(PARTS) != 3:
+        return False
+    MONTH = int(PARTS[0])
+    DAY = int(PARTS[1])
+    YEAR = int(PARTS[2])
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12]:
+        if DAY < 1 or DAY > 31:
+            return False
+    elif MONTH in [4, 6, 9, 11]:
+        if DAY < 1 or DAY > 30:
+            return False
+    elif MONTH == 2:
+        if DAY < 1 or DAY > 29:
+            return False
+    return True",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date or not isinstance(date, str):
+        return False
+    PARTS = date.split('-')
+    if len(PARTS) != 3:
+        return False
+    MM, DD, YYYY = PARTS
+    if not (MM.isdigit() and DD.isdigit() and YYYY.isdigit()):
+        return False
+    MONTH = int(MM)
+    DAY = int(DD)
+    YEAR = int(YYYY)
+    if not 1 <= MONTH <= 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12]:
+        return 1 <= DAY <= 31
+    elif MONTH in [4, 6, 9, 11]:
+        return 1 <= DAY <= 30
+    elif MONTH == 2:
+        return 1 <= DAY <= 29
+    return False",Yes,normal,gpt-4.1,1.2,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","format, *parts = s.split('-')
+    if len(parts) != 3 or not all( maps(int, parts) ):
+        return False
+
+    month, day, year = map(int, parts)
+
+    valid_days = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+
+    if month < 1 or month > 12:
+        return False
+
+    leap_year = year % 4 == 0
+    if month == 2:
+        valid_days[month] = 29 if leap_year else 28
+
+    return valid_days[month] >= day > 0
+
+def valid_date(date):
+    return is_valid(date.strip()) and is_valid('-'.join(reversed(date.split('-'))))",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/124,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpif0nfz4j.py"", line 78, in <module>
+    check(valid_date)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpif0nfz4j.py"", line 45, in check
+    assert candidate('03-11-2000') == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpif0nfz4j.py"", line 40, in valid_date
+    return is_valid(date.strip()) and is_valid('-'.join(reversed(date.split('-'))))
+NameError: name 'is_valid' is not defined"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date:
+        return False
+    PARTS = date.split('-')
+    if len(PARTS) != 3 or not all((PART.isdigit() for PART in PARTS)):
+        return False
+    MONTH, DAY, YEAR = map(int, PARTS)
+    if not 1 <= MONTH <= 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12] and (not 1 <= DAY <= 31):
+        return False
+    if MONTH in [4, 6, 9, 11] and (not 1 <= DAY <= 30):
+        return False
+    if MONTH == 2 and (not 1 <= DAY <= 29):
+        return False
+    return True",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","date_str = date.split('-')
+    if len(date_str) < 1:
+        return False
+    days = [int(day) for day in date_str if day.isdigit()]
+    if days[-1] < 1 or days[-1] > 31:
+        return False
+    if not all(day > 1 and day <= 30 for day in days) or not all(day > 2 and day <= 12):
+        return False
+    datetime_obj = datetime.datetime.strptime(date_str, '%m-%d-%Y')
+    return datetime_obj.days <= days[0] and datetime_obj.days >= days[1]",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/124,"Traceback (most recent call last):
+  File ""/tmp/tmp1ymgbm05.py"", line 69, in <module>
+    check(valid_date)
+  File ""/tmp/tmp1ymgbm05.py"", line 36, in check
+    assert candidate('03-11-2000') == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","PARTS = [X for X in date.split('-') if X]
+    if len(PARTS) != 3:
+        return False
+    try:
+        MONTH, DAY, YEAR = map(int, PARTS)
+    except ValueError:
+        return False
+    if 1 <= MONTH <= 12 and (MONTH not in [1, 3, 5, 7, 8, 10, 12] or 1 <= DAY <= 31) and (MONTH not in [4, 6, 9, 11] or 1 <= DAY <= 30) and (MONTH == 2 or DAY <= 29):
+        return True
+    return False",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","try:
+        # Check date string matches correct format
+        month, day, year = map(int, date.split('-'))
+        # Check for correct number of month/day/year values
+        return 1 <= month <= 12 and 1 <= day <= 31 and year > 0
+    except:
+        return False",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/124,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuiommygy.py"", line 66, in <module>
+    check(valid_date)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuiommygy.py"", line 47, in check
+    assert candidate('04-31-3000') == False
+AssertionError"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date or not isinstance(date, str):
+        return False
+    try:
+        MONTH, DAY, YEAR = map(int, date.split('-'))
+    except ValueError:
+        return False
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if DAY < 1:
+        return False
+    if MONTH in {1, 3, 5, 7, 8, 10, 12} and DAY > 31:
+        return False
+    if MONTH in {4, 6, 9, 11} and DAY > 30:
+        return False
+    if MONTH == 2 and DAY > 29:
+        return False
+    return True",Yes,normal,gpt-4o,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","try:
+        MONTH, DAY, YEAR = map(int, date.split('-'))
+    except ValueError:
+        return False
+    if not 1 <= MONTH <= 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12] and (not 1 <= DAY <= 31):
+        return False
+    if MONTH in [4, 6, 9, 11] and (not 1 <= DAY <= 30):
+        return False
+    if MONTH == 2 and (DAY == 29 and (not (YEAR % 4 == 0 and (YEAR % 100 != 0 or YEAR % 400 == 0))) or DAY > 29):
+        return False
+    return True",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","print(validate_date('03-11-2000'))  # True
+    print(validate_date('15-01-2012'))  # False
+    print(validate_date('04-0-2040'))  # False
+    print(validate_date('06-04-2020'))  # True",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/124,"Traceback (most recent call last):
+  File ""/tmp/tmptqfimg64.py"", line 63, in <module>
+    check(valid_date)
+  File ""/tmp/tmptqfimg64.py"", line 30, in check
+    assert candidate('03-11-2000') == True
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmptqfimg64.py"", line 22, in valid_date
+    print(validate_date('03-11-2000'))  # True
+          ^^^^^^^^^^^^^
+NameError: name 'validate_date' is not defined. Did you mean: 'valid_date'?"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","match = re.fullmatch(r'\d{2}-\d{2}-\d{4}', date)
+    if match:
+        m, d, y = map(int, date.split('-'))
+        return m >= 1 and m <= 12 and 
+               d >= 1 and d <= monthrange(y,m)[1] and 
+               (d <= 31 and m in [1,3,5,7,8,10,12] or 
+                d <= 30 and m in [4,6,9,11] or 
+                d == 29 and monthrange(y, m)[1] == 29)
+    else:
+        return False",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/124,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdh68yugs.py"", line 25
+    return m >= 1 and m <= 12 and 
+                                  ^
+SyntaxError: invalid syntax"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date or not isinstance(date, str) or len(date) != 10 or (date[2] != '-') or (date[5] != '-'):
+        return False
+    MONTH, DAY, YEAR = date.split('-')
+    if not (MONTH.isdigit() and DAY.isdigit() and YEAR.isdigit()):
+        return False
+    MONTH, DAY, YEAR = (int(MONTH), int(DAY), int(YEAR))
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if DAY < 1:
+        return False
+    VALID_DAYS = {1: 31, 3: 31, 5: 31, 7: 31, 8: 31, 10: 31, 12: 31, 4: 30, 6: 30, 9: 30, 11: 30, 2: 29 if YEAR % 4 == 0 and (YEAR % 100 != 0 or YEAR % 400 == 0) else 28}
+    return DAY <= VALID_DAYS[MONTH]",Yes,unusual,gpt-4o-mini,1.0,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","try:
+        MONTH, DAY, YEAR = map(int, date.split('-'))
+        if MONTH < 1 or MONTH > 12:
+            return False
+        if MONTH in [1, 3, 5, 7, 8, 10, 12] and (not 1 <= DAY <= 31):
+            return False
+        if MONTH in [4, 6, 9, 11] and (not 1 <= DAY <= 30):
+            return False
+        if MONTH == 2 and (not (1 <= DAY <= 29 or (YEAR % 4 == 0 and YEAR % 100 != 0 and (DAY == 29)))):
+            return False
+        return True
+    except ValueError:
+        return False",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if len(date) != 10 or date[2] != '-' or date[5] != '-':
+        return False
+    MONTH, DAY, YEAR = map(int, date.split('-'))
+    if MONTH < 1 or MONTH > 12 or DAY < 1 or (YEAR < 1):
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12] and DAY > 31:
+        return False
+    if MONTH in [4, 6, 9, 11] and DAY > 30:
+        return False
+    if MONTH == 2 and DAY > 29:
+        return False
+    if MONTH == 2 and DAY > 28:
+        return False
+    return True
+    print(valid_date('03-11-2000'))
+    print(valid_date('15-01-2012'))
+    print(valid_date('04-0-2040'))
+    print(valid_date('06-04-2020'))
+    print(valid_date('06/04/2020'))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","month, day, year = map(int, date.split('-'))
+
+    if not date:
+        return False
+
+    if month < 1 or month > 12:
+        return False
+
+    if month == 2:
+        if day < 1 or day > 29:
+            return False
+    elif month in [4, 6, 9, 11]:
+        if day < 1 or day > 30:
+            return False
+    else:
+        if day < 1 or day > 31:
+            return False
+
+    return True",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/124,"Traceback (most recent call last):
+  File ""/tmp/tmp3c6zboph.py"", line 78, in <module>
+    check(valid_date)
+  File ""/tmp/tmp3c6zboph.py"", line 57, in check
+    assert candidate('') == False
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmp3c6zboph.py"", line 22, in valid_date
+    month, day, year = map(int, date.split('-'))
+    ^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: ''"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","if not date:
+        return False
+
+    days = [int(d) for d in date.split('-') if d]
+    if days[-1] < 1 or days[-1] > 30 or days[-2] < 1 or days[-2] > 29:
+        return False
+
+    month_year = [int(m) for m in date.split('-') if m]
+    if month_year[0] < 1 or month_year[-1] > 12:
+        return False
+
+    return True",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/124,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3hno5umz.py"", line 71, in <module>
+    check(valid_date)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3hno5umz.py"", line 38, in check
+    assert candidate('03-11-2000') == True
+AssertionError"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","month, day, year = map(int, date.split('-'))
+    if not all([month, day, year]):
+        return False
+
+    if month < 1 or month > 12:
+        return False
+
+    if month in [1, 3, 5, 7, 8, 10, 12]:
+        if day < 1 or day > 31:
+            return False
+    elif month in [4, 6, 9, 11]:
+        if day < 1 or day > 30:
+            return False
+    else:  # month is 2
+        if day < 1 or day > 29:  # assuming not a leap year
+            return False
+
+    return True",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/124,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8n5aettk.py"", line 77, in <module>
+    check(valid_date)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8n5aettk.py"", line 56, in check
+    assert candidate('') == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8n5aettk.py"", line 22, in valid_date
+    month, day, year = map(int, date.split('-'))
+ValueError: invalid literal for int() with base 10: ''"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","DATE_STR = str(date)
+    if not DATE_STR or '-' not in DATE_STR:
+        return False
+    DATE_STR = DATE_STR.replace(' ', '')
+    PARTS = DATE_STR.split('-')
+    if len(PARTS) != 3:
+        return False
+    MONTH, DAY, YEAR = map(int, PARTS)
+    if MONTH < 1 or MONTH > 12:
+        return False
+    if MONTH in [1, 3, 5, 7, 8, 10, 12] and (DAY < 1 or DAY > 31):
+        return False
+    if MONTH in [4, 6, 9, 11] and (DAY < 1 or DAY > 30):
+        return False
+    if MONTH == 2 and (DAY < 1 or DAY > 29):
+        return False
+    return True",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/124,
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","day = int(date.split('-')[0])
+    month = int(date.split('-')[1])
+    year = int(date.split('-')[2])
+
+    if len(date) != 10 or date.count('-') != 2:
+        return False
+
+    if month < 1 or month > 12:
+        return False
+
+    if month in [1, 3, 5, 7, 8, 10, 12]:
+        if day < 1 or day > 31:
+            return False
+    elif month in [4, 6, 9, 11]:
+        if day < 1 or day > 30:
+            return False
+    elif month == 2:
+        if day < 1 or day > 29:
+            return False
+        if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+            if day > 29:
+                return False
+
+    return True",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/124,"Traceback (most recent call last):
+  File ""/tmp/tmpc326rrzf.py"", line 83, in <module>
+    check(valid_date)
+  File ""/tmp/tmpc326rrzf.py"", line 52, in check
+    assert candidate('15-01-2012') == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def valid_date(date):
+    """"""You have to write a function which validates a given date string and
+    returns True if the date is valid otherwise False.
+    The date is valid if all of the following rules are satisfied:
+    1. The date string is not empty.
+    2. The number of days is not less than 1 or higher than 31 days for months 1,3,5,7,8,10,12. And the number of days is not less than 1 or higher than 30 days for months 4,6,9,11. And, the number of days is not less than 1 or higher than 29 for the month 2.
+    3. The months should not be less than 1 or higher than 12.
+    4. The date should be in the format: mm-dd-yyyy
+
+    for example: 
+    valid_date('03-11-2000') => True
+
+    valid_date('15-01-2012') => False
+
+    valid_date('04-0-2040') => False
+
+    valid_date('06-04-2020') => True
+
+    valid_date('06/04/2020') => False
+    """"""
+","DT = date.split('-')
+    if len(DT) != 3 or not DT[0].isdigit() or (not DT[1].isdigit()) or (not DT[2].isdigit()):
+        return False
+    MONTH, DAY, YEAR = [int(X) for X in DT]
+    if MONTH >= 13 or MONTH <= 0 or DAY >= 32 or (DAY <= 0) or (YEAR <= 0):
+        return False
+    DAY_CHECK = [[31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]]
+    if not (DAY <= DAY_CHECK[MONTH % 2][MONTH // 2 - 1] and DAY >= 1):
+        return False
+    return True
+    print(valid_date('03-11-2000'))
+    print(valid_date('15-01-2012'))
+    print(valid_date('04-0-2040'))
+    print(valid_date('06-04-2020'))
+    print(valid_date('06/04/2020'))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/124,

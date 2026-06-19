@@ -1,0 +1,823 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    state1 = 0
+    for char0 in string:
+        if state1 < 2:
+            if char0 == '[':
+                state1 += 1
+        elif char0 == ']':
+            state1 += 1
+            if state1 == 4:
+                return True
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    pattern = ""[[]]""
+    pos = 0
+
+    for char in string:
+        if char == pattern[pos]:
+            pos += 1
+            if pos == len(pattern):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","brackets = {'(': ')', '[': ']'}
+    stack = []
+    for bracket in string:
+        if bracket in brackets:
+            stack.append(bracket)
+        elif len(stack) == 0 or brackets[stack.pop()] != bracket:
+            return False
+    return len(stack) == 0
+
+# Test cases
+print(is_nested('[[]]'))  # True
+print(is_nested('[]]]]]]][[[[[]'))  # False
+print(is_nested('[][]'))  # False
+print(is_nested('[]'))  # False
+print(is_nested('[[][]]'))  # True
+print(is_nested('[[]][['))  # True",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcgicltzc.py"", line 54, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcgicltzc.py"", line 37, in check
+    assert candidate('[][]') == False
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","Here is a simple implementation of the `is_nested` function that checks for nested brackets:
+
+    ```python
+    stack = []
+    for char in string:
+        if char == '[':
+            stack.append(char)
+        elif char == ']':
+            if stack and stack[-1] == '[':
+                stack.pop()
+            else:
+                return False
+    return len(stack) > 0",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/132,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3t5n_lo7.py"", line 15
+    Here is a simple implementation of the `is_nested` function that checks for nested brackets:
+              ^^^^^^
+SyntaxError: invalid syntax"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","for i in range(len(bracket_sequence) - 1, -1, -1):
+        if bracket_sequence[i] == '[':
+            for j in range(i, -1, -1):
+                if bracket_sequence[j] != ']':
+                    return False
+            return True
+    return False",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/tmp/tmpecx16pw4.py"", line 45, in <module>
+    check(is_nested)
+  File ""/tmp/tmpecx16pw4.py"", line 26, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpecx16pw4.py"", line 15, in is_nested
+    for i in range(len(bracket_sequence) - 1, -1, -1):
+                       ^^^^^^^^^^^^^^^^
+NameError: name 'bracket_sequence' is not defined"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","pattern2 = ""[[]]""
+    i1 = 0
+    for ch0 in string:
+        if i1 < len(pattern2) and ch0 == pattern2[i1]:
+            i1 += 1
+        if i1 == len(pattern2):
+            return True
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+",return string == '[[][]]',No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/tmp/tmppgoutp5i.py"", line 39, in <module>
+    check(is_nested)
+  File ""/tmp/tmppgoutp5i.py"", line 20, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","assert True
+    pattern = ""[[]]""
+    i = 0
+
+    for ch in string:
+        if ch == pattern[i]:
+            i += 1
+            if i == len(pattern):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","the_pattern_value = ""[[]]""
+    the_i_value = 0
+    for the_ch_value in string:
+        if the_i_value < len(the_pattern_value) and the_ch_value == the_pattern_value[the_i_value]:
+            the_i_value += 1
+    _T0 = the_i_value == len(the_pattern_value)
+    return _T0",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    TARGET = ""[[]]""
+    POS = 0
+
+    for CH in string:
+        if POS < len(TARGET) and CH == TARGET[POS]:
+            POS += 1
+            if POS == len(TARGET):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","depth = 0
+    max_depth = 0
+    for ch in string:
+        if ch == '[':
+            depth += 1
+            if depth > max_depth:
+                max_depth = depth
+        elif ch == ']':
+            if depth > 0:
+                depth -= 1
+    if max_depth >= 2:
+        return True
+    return False",No,normal,gpt-4.1,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp742wtrgw.py"", line 51, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp742wtrgw.py"", line 33, in check
+    assert candidate('[]]]]]]][[[[[]') == False
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","stack = []
+    for char in string:
+        if char == '[':
+            stack.append(char)
+        elif char == ']':
+            if stack and stack[-1] == '[':
+                stack.pop()
+            else:
+                return False
+    return len(stack) > 0
+'''",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/132,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpp3jw8fzh.py"", line 25
+    '''
+    ^
+SyntaxError: unterminated triple-quoted string literal (detected at line 49)"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","pattern = ""[[]]""
+    idx = 0
+
+    for ch in string:
+        if ch == pattern[idx]:
+            idx += 1
+            if idx == len(pattern):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    opens_before2 = 0
+    closes_after1 = string.count(']')
+
+    for char0 in string:
+        if char0 == '[':
+            if opens_before2 >= 1 and closes_after1 >= 2:
+                return True
+            opens_before2 += 1
+        else:
+            closes_after1 -= 1
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    the_count_value = 0
+    the_second_open_index_value = -1
+
+    for the_i_value, the_char_value in enumerate(string):
+        if the_char_value == '[':
+            the_count_value += 1
+            if the_count_value == 2:
+                the_second_open_index_value = the_i_value
+                break
+
+    if the_second_open_index_value == -1:
+        return False
+
+    the_count_value = 0
+    the_second_close_index_value = -1
+
+    for the_i_value in range(len(string) - 1, -1, -1):
+        if string[the_i_value] == ']':
+            the_count_value += 1
+            if the_count_value == 2:
+                the_second_close_index_value = the_i_value
+                break
+    _T0 = the_second_open_index_value < the_second_close_index_value
+    return _T0",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","stack = []
+    for i, char in enumerate(string):
+        if char == '[':
+            stack.append(i)
+        elif char == ']':
+            if not stack:
+                return False
+            start = stack.pop()
+            if stack and start > stack[-1]:
+                return True
+    return False",No,external,Mistral-3.2-24B,,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam5rj7u_.py"", line 49, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpam5rj7u_.py"", line 37, in check
+    assert candidate('[[]') == False
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    target = ""[[]]""
+    idx = 0
+
+    for char in string:
+        if char == target[idx]:
+            idx += 1
+            if idx == len(target):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","count = 0
+    nested = False
+
+    for char in string:
+        if char == '[':
+            count += 1
+            if count > 1:
+                nested = True
+        elif char == ']':
+            count -= 1
+            if count < 0:
+                return False
+
+    return nested and count == 0",No,normal,gpt-4o-mini,1.2,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvgjsbi1k.py"", line 52, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvgjsbi1k.py"", line 42, in check
+    assert candidate('[[]][[') == True
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","'''Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.'''
+    for sub_string in string:
+        if not re.match(r'[^{]*{}', sub_string):
+            return False
+    return True",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp86_obvhr.py"", line 45, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp86_obvhr.py"", line 26, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp86_obvhr.py"", line 19, in is_nested
+    if not re.match(r'[^{]*{}', sub_string):
+NameError: name 're' is not defined"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","assert True
+    v1 = 0
+    for v0 in string:
+        if v0 == '[' and v1 < 2:
+            v1 += 1
+        elif v0 == ']' and v1 >= 2:
+            v1 += 1
+            if v1 == 4:
+                return True
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    TARGET = ""[[]]""
+    I = 0
+    for CH in string:
+        if CH == TARGET[I]:
+            I += 1
+            if I == len(TARGET):
+                return True
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","stack = []
+
+    for char in s:
+        if char == '[':
+            stack.append(char)
+        elif char == ']':
+            if stack and stack[-1] == '[':
+                stack.pop()
+            else:
+                return False
+
+    return not stack",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_h3d8i9.py"", line 50, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_h3d8i9.py"", line 31, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpw_h3d8i9.py"", line 17, in is_nested
+    for char in s:
+NameError: name 's' is not defined"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    assert True
+    TARGET = ""[[]]""
+    I = 0
+    for CH in string:
+        if I < len(TARGET) and CH == TARGET[I]:
+            I += 1
+    if I == len(TARGET):
+        return True
+    else:
+        return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","stack = []
+    has_nested = False
+    for char in string:
+        if char == '[':
+            stack.append(char)
+            if len(stack) > 1:
+                has_nested = True
+        elif char == ']':
+            if len(stack) == 0:
+                return False
+            stack.pop()
+    return has_nested and len(stack) == 0",No,bad-style,gpt-4o-mini,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt1yrnycu.py"", line 50, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt1yrnycu.py"", line 40, in check
+    assert candidate('[[]][[') == True
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","stack = []
+    bracket_map = {'[': ']', ']': '['}
+    for char in string:
+        if char in bracket_map:
+            if bracket_map[char] == stack[-1] if stack else None:
+                stack.pop()
+            else:
+                stack.append(char)
+    return bool(stack)",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/tmp/tmp27zftuh0.py"", line 47, in <module>
+    check(is_nested)
+  File ""/tmp/tmp27zftuh0.py"", line 28, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","for i, c in enumerate(string):
+        if c == ']':
+            if i == 0 or string[i-1] == ']':
+                return True
+            if string[i-1] == '[':
+                return True
+        elif c == '[':
+            for j in range(i, len(string)):
+                if string[j] == ']':
+                    return True
+    return False",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/132,"Traceback (most recent call last):
+  File ""/tmp/tmprm6xby1v.py"", line 49, in <module>
+    check(is_nested)
+  File ""/tmp/tmprm6xby1v.py"", line 31, in check
+    assert candidate('[]]]]]]][[[[[]') == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","assert True
+    TARGET = ""[[]]""
+    I = 0
+
+    for CH in string:
+        if CH == TARGET[I]:
+            I += 1
+            if I == len(TARGET):
+                return True
+
+    return False",Yes,normal,gpt-5.5,1.0,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","return any(
+        string.count('[') > string.count(']') + 1 and
+        string[string.index('[')+1:string.rindex(']')].count('[') > 0
+        for i in range(len(string))
+        if string[i] == '['
+    )",No,unusual,gpt-4o-mini,0.7,HumanEval/132,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdpqlbr7x.py"", line 44, in <module>
+    check(is_nested)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdpqlbr7x.py"", line 25, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","# compute the result
+    return any(CHAR == '[' for IDX, CHAR in enumerate(string) if string[:IDX].count('[') > string[:IDX].count(']')) and string.count('[') > 1 and string.count(']') > 1",Yes,unusual,gpt-4o-mini,1.2,HumanEval/132,
+"
+def is_nested(string):
+    '''
+    Create a function that takes a string as input which contains only square brackets.
+    The function should return True if and only if there is a valid subsequence of brackets 
+    where at least one bracket in the subsequence is nested.
+
+    is_nested('[[]]') ➞ True
+    is_nested('[]]]]]]][[[[[]') ➞ False
+    is_nested('[][]') ➞ False
+    is_nested('[]') ➞ False
+    is_nested('[[][]]') ➞ True
+    is_nested('[[]][[') ➞ True
+    '''
+","nest_level = 0
+    for char in string:
+        if char == '[':
+            nest_level += 1
+        elif char == ']':
+            if nest_level > 0:
+                nest_level -= 1
+            else:
+                return False
+    return nest_level > 0",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/132,"Traceback (most recent call last):
+  File ""/tmp/tmp87uy1w2_.py"", line 48, in <module>
+    check(is_nested)
+  File ""/tmp/tmp87uy1w2_.py"", line 29, in check
+    assert candidate('[[]]') == True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: This prints if this assert fails 1 (good for debugging!)"

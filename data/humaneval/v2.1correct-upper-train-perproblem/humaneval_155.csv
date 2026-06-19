@@ -1,0 +1,595 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN = 0
+    ODD = 0
+    N = num
+    if N < 0:
+        N = -N
+    S = str(N)
+    I = 0
+    DONE = False
+    while not DONE:
+        if I < len(S):
+            C = S[I]
+            if C == '0' or C == '2' or C == '4' or (C == '6') or (C == '8'):
+                EVEN = EVEN + 1
+            elif C != '-':
+                ODD = ODD + 1
+            I = I + 1
+        else:
+            DONE = True
+    return (EVEN, ODD)",Yes,bad-style,gpt-5,1.0,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN = 0
+    ODD = 0
+    for DIGIT in str(abs(num)):
+        if int(DIGIT) % 2 == 0:
+            EVEN += 1
+        else:
+            ODD += 1
+    return (EVEN, ODD)",Yes,external,Llama-3.3-70B,,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+",Here's an implementation using a single loop and a couple of variables to count even and odd digits:,No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/155,"File ""/tmp/tmp05i1jhbo.py"", line 9
+    Here's an implementation using a single loop and a couple of variables to count even and odd digits:
+        ^
+SyntaxError: unterminated string literal (detected at line 9)"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","COUNT_EVEN = 0
+    COUNT_ODD = 0
+    NUM_STR = str(abs(num))
+    for DIGIT in NUM_STR:
+        if int(DIGIT) % 2 == 0:
+            COUNT_EVEN += 1
+        else:
+            COUNT_ODD += 1
+    return (COUNT_EVEN, COUNT_ODD)",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","""""""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+    DIGITS = [int(D) for D in str(abs(num))]
+    EVEN_COUNT = sum((1 for D in DIGITS if D % 2 == 0))
+    ODD_COUNT = len(DIGITS) - EVEN_COUNT
+    return (EVEN_COUNT, ODD_COUNT)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","even_count = 0
+    odd_count = 0
+    num = abs(num)
+    while num > 0:
+        digit = num % 10
+        if digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        num = num // 10
+    return (even_count, odd_count)",No,normal,gpt-3.5-turbo,0.2,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk6bwzqy9.py"", line 39, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk6bwzqy9.py"", line 31, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","digit_count = defaultdict(int)
+    for digit in str(num): 
+        digit_count[digit] += 1
+    
+    return tuple(digit_count[even] for even in digit_count) or tuple(digit_count[odd] for odd in digit_count)",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9izrzuxy.py"", line 33, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9izrzuxy.py"", line 18, in check
+    assert candidate(7) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9izrzuxy.py"", line 9, in even_odd_count
+    digit_count = defaultdict(int)
+NameError: name 'defaultdict' is not defined"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN_COUNT = 0
+    ODD_COUNT = 0
+    for DIGIT in str(abs(num)):
+        if int(DIGIT) % 2 == 0:
+            EVEN_COUNT += 1
+        else:
+            ODD_COUNT += 1
+    return (EVEN_COUNT, ODD_COUNT)",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","even = 0
+    odd = 0
+    num = abs(num)
+    while num > 0:
+        digit = num % 10
+        if digit % 2 == 0:
+            even += 1
+        else:
+            odd += 1
+        num = num // 10
+    return (even, odd)",No,external,Mistral-3.2-24B,,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg1snz3e8.py"", line 39, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg1snz3e8.py"", line 31, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","even_count = 0
+    odd_count = 0
+    abs_num = abs(num)
+    while abs_num > 0:
+        digit = abs_num % 10
+        if digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        abs_num //= 10
+    return (even_count, odd_count)",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpes120dju.py"", line 39, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpes120dju.py"", line 31, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","num = abs(num)
+    EVEN = ODD = 0
+    for DIGIT in str(num):
+        if int(DIGIT) % 2 == 0:
+            EVEN += 1
+        else:
+            ODD += 1
+    return (EVEN, ODD)",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","count_even, count_odd = 0, 0
+    while num > 0:
+        rem = num % 10
+        if rem == 0:
+            count_even += 1
+        elif rem % 2 == 0:
+            count_even += 1
+        else:
+            count_odd += 1
+        num = num // 10
+    return count_even, count_odd",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/155,"Traceback (most recent call last):
+  File ""/tmp/tmpa5vp8q_6.py"", line 39, in <module>
+    check(even_odd_count)
+  File ""/tmp/tmpa5vp8q_6.py"", line 25, in check
+    assert candidate(-78) == (1, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN = 0
+    ODD = 0
+    for DIGIT in str(abs(num)):
+        if int(DIGIT) % 2 == 0:
+            EVEN += 1
+        else:
+            ODD += 1
+    return (EVEN, ODD)",Yes,external,DeepSeek-V3,,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN, ODD = (0, 0)
+    for N in str(abs(num)):
+        if int(N) % 2 == 0:
+            EVEN += 1
+        else:
+            ODD += 1
+    return (EVEN, ODD)",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","NUM_STR = str(abs(num))
+    EVEN_COUNT = 0
+    ODD_COUNT = 0
+    for DIGIT in NUM_STR:
+        if int(DIGIT) % 2 == 0:
+            EVEN_COUNT += 1
+        else:
+            ODD_COUNT += 1
+    return (EVEN_COUNT, ODD_COUNT)",Yes,external,Qwen3-Coder,,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","""""""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+    num = abs(num)
+    even_count = 0
+    odd_count = 0
+    while num > 0:
+        digit = num % 10
+        if digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        num = num // 10
+    return (even_count, odd_count)",No,normal,gpt-4,0.2,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphznndz2d.py"", line 45, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphznndz2d.py"", line 37, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","num = abs(num)
+    even = 0
+    odd = 0
+    while num:
+        digit = num % 10
+        num //= 10
+        if digit % 2 == 0:
+            even += 1
+        else:
+            odd += 1
+    return (even, odd)",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/155,"Traceback (most recent call last):
+  File ""/tmp/tmp3midp05j.py"", line 39, in <module>
+    check(even_odd_count)
+  File ""/tmp/tmp3midp05j.py"", line 31, in check
+    assert candidate(0) == (1, 0)
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN_COUNT = 0
+    ODD_COUNT = 0
+    if num < 0:
+        num = -num
+    NUM_STR = str(num)
+    for DIGIT in NUM_STR:
+        if int(DIGIT) % 2 == 0:
+            EVEN_COUNT += 1
+        else:
+            ODD_COUNT += 1
+    return (EVEN_COUNT, ODD_COUNT)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","S = str(num)
+    if len(S) > 0 and S[0] == '-':
+        S = S[1:]
+    EVEN_COUNT = 0
+    ODD_COUNT = 0
+    for C in S:
+        D = int(C)
+        if D % 2 == 0:
+            EVEN_COUNT = EVEN_COUNT + 1
+        else:
+            ODD_COUNT = ODD_COUNT + 1
+    return (EVEN_COUNT, ODD_COUNT)",Yes,beginner,gpt-5,1.0,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","num = str(abs(num))
+    IS_EVEN = 1
+    IS_ODD = 2
+    count = [0, 0]
+
+    for i in range(len(num)):
+        if int(num[i]) % 2 == 0:
+            count[IS_EVEN] += 1
+        else:
+            count[IS_ODD] += 1
+    if IS_EVEN == count[IS_EVEN]:
+        return (count[IS_EVEN], count[IS_ODD])
+    else:
+        return (count[IS_ODD], count[IS_EVEN])",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpefnyg9gi.py"", line 42, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpefnyg9gi.py"", line 27, in check
+    assert candidate(7) == (0, 1)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpefnyg9gi.py"", line 18, in even_odd_count
+    count[IS_ODD] += 1
+IndexError: list index out of range"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","EVEN, ODD = (0, 0)
+    for DIGIT in str(abs(num)):
+        if int(DIGIT) % 2 == 0:
+            EVEN += 1
+        else:
+            ODD += 1
+    return (EVEN, ODD)",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","even_count = 0
+    odd_count = 0
+    sign = -1 if num < 0 else 1
+    num = abs(num)
+    while num > 0:
+        last_digit = num % 10
+        if last_digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        num //= 10
+    return (even_count, odd_count)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/155,"Traceback (most recent call last):
+  File ""/tmp/tmpb27l20_4.py"", line 40, in <module>
+    check(even_odd_count)
+  File ""/tmp/tmpb27l20_4.py"", line 32, in check
+    assert candidate(0) == (1, 0)
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","(1, 3) if num and (num // 10) != (num // 10 // 10) else (0, int(num >= 0) * (int(num != 0) * 9))",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/155,"Traceback (most recent call last):
+  File ""/tmp/tmpk2akkgwl.py"", line 29, in <module>
+    check(even_odd_count)
+  File ""/tmp/tmpk2akkgwl.py"", line 14, in check
+    assert candidate(7) == (0, 1)
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","num = abs(num)
+    even_count = odd_count = 0
+    while num > 0:
+        digit = num % 10
+        if digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        num //= 10
+    return (even_count, odd_count)",No,normal,gpt-4o,1.2,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxjof028u.py"", line 38, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxjof028u.py"", line 30, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","NUM_STR = str(abs(num))
+    EVEN_COUNT = sum((1 for DIGIT in NUM_STR if int(DIGIT) % 2 == 0))
+    ODD_COUNT = sum((1 for DIGIT in NUM_STR if int(DIGIT) % 2 != 0))
+    return (EVEN_COUNT, ODD_COUNT)",Yes,normal,gpt-4o-mini,1.2,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","""""""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+    EVEN_COUNT = 0
+    ODD_COUNT = 0
+    for DIGIT in str(abs(num)):
+        if int(DIGIT) % 2 == 0:
+            EVEN_COUNT += 1
+        else:
+            ODD_COUNT += 1
+    return (EVEN_COUNT, ODD_COUNT)",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","if num < 0:
+        num = -1 * num
+
+    even_count = 0
+    odd_count = 0
+
+    while num > 0:
+        digit = num % 10
+        
+        if digit % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+            
+        num = num // 10
+
+    return (even_count, odd_count)
+
+print(even_odd_count(-12))  # ==> (1, 1)
+print(even_odd_count(123))  # ==> (1, 2)",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpulitpdai.py"", line 48, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpulitpdai.py"", line 40, in check
+    assert candidate(0) == (1, 0)
+AssertionError"
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","S = str(abs(num))
+    EVENS = sum((S.count(C) for C in '02468'))
+    return (EVENS, len(S) - EVENS)",Yes,different-style,gpt-5,1.0,HumanEval/155,
+"
+def even_odd_count(num):
+    """"""Given an integer. return a tuple that has the number of even and odd digits respectively.
+
+     Example:
+        even_odd_count(-12) ==> (1, 1)
+        even_odd_count(123) ==> (1, 2)
+    """"""
+","even_count = 0
+    odd_count = 0
+    
+    if num < 0:
+        num = -num
+        
+    while num > 0:
+        if num % 2 == 0:
+            even_count += 1
+        else:
+            odd_count += 1
+        num //= 10
+    
+    return (even_count, odd_count)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/155,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1x5j3520.py"", line 43, in <module>
+    check(even_odd_count)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1x5j3520.py"", line 35, in check
+    assert candidate(0) == (1, 0)
+AssertionError"

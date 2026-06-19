@@ -1,0 +1,567 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","' '.join(sorted('three one five'.split(), key=lambda x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9][ord(x[0].lower())]))",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/19,"Traceback (most recent call last):
+  File ""/tmp/tmpgo_rkjqz.py"", line 29, in <module>
+    check(sort_numbers)
+  File ""/tmp/tmpgo_rkjqz.py"", line 22, in check
+    assert candidate('') == ''
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpgo_rkjqz.py"", line 11, in sort_numbers
+    ' '.join(sorted('three one five'.split(), key=lambda x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9][ord(x[0].lower())]))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpgo_rkjqz.py"", line 11, in <lambda>
+    ' '.join(sorted('three one five'.split(), key=lambda x: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9][ord(x[0].lower())]))
+                                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+IndexError: list index out of range"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","assert True
+    number_map0 = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+    _T0 = ' '.join(sorted(numbers.split(), key=number_map0.get))
+    return _T0
+
+    # Test Cases
+    print(sort_numbers('three one five'))  # 'one three five'
+    print(sort_numbers('nine five two'))   # 'two five nine'
+    print(sort_numbers('zero eight seven'))# 'seven eight zero'
+    print(sort_numbers('one six two'))     # 'two one six'
+    print(sort_numbers('four five three')) # 'three five four'",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    order3 = (""zero"", ""one"", ""two"", ""three"", ""four"", ""five"", ""six"", ""seven"", ""eight"", ""nine"")
+    counts0 = [0] * 10
+    for w5 in numbers.split():
+        counts0[order3.index(w5)] += 1
+    result4 = []
+    for i1, n2 in enumerate(counts0):
+        if n2:
+            result4.extend([order3[i1]] * n2)
+    _T0 = "" "".join(result4)
+    return _T0",Yes,different-style,gpt-5,1.0,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    assert True
+    if not numbers.strip():
+        _T0 = """"
+        return _T0
+    
+    WORD_TO_NUM = {
+        'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4,
+        'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9
+    }
+    
+    NUM_TO_WORD = {V: K for K, V in WORD_TO_NUM.items()}
+    
+    WORDS = numbers.split()
+    NUMS = [WORD_TO_NUM[WORD] for WORD in WORDS]
+    NUMS.sort()
+    SORTED_WORDS = [NUM_TO_WORD[NUM] for NUM in NUMS]
+    
+    return ' '.join(SORTED_WORDS)",Yes,external,Claude Sonnet-4,,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","x_order = [""zero"", ""one"", ""two"", ""three"", ""four"", ""five"", ""six"", ""seven"", ""eight"", ""nine""]
+    return "" "".join(sorted(numbers.split(), key=x_order.index))",Yes,normal,gpt-5.5,1.0,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","numbers = []
+    for num in numbers.split():
+        if num <= 'nine':
+            numbers.append(num)
+        else:
+            break
+
+    sorted_numbers = sorted(numbers)
+    return """".join(sorted_numbers)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf52__z3t.py"", line 37, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf52__z3t.py"", line 30, in check
+    assert candidate('') == ''
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf52__z3t.py"", line 12, in sort_numbers
+    for num in numbers.split():
+AttributeError: 'list' object has no attribute 'split'"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","assert True
+    the_words_value = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+    if not numbers.strip():
+        _T0 = ''
+        return _T0
+    the_order_value = {the_w_value: the_i_value for the_i_value, the_w_value in enumerate(the_words_value)}
+    the_parts_value = numbers.split()
+    the_parts_value.sort(key=the_order_value.__getitem__)
+    return ' '.join(the_parts_value)",Yes,normal,gpt-5,1.0,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# Define a list of numbers with their names
+    # compute the result
+    numList = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+
+    # Split the input string into a list of words, then map them to their corresponding numbers
+    numDict = {numList[i]: i for i in range(len(numList))}
+    numbers = [numDict[num] for num in numbers.split()]
+
+    # Sort the list
+    numbers.sort()
+
+    # Map the sorted list back to their corresponding words
+    sortedNumbers = [numList[num] for num in numbers]
+
+    # Join the words back into a string
+    sortedString = ' '.join(sortedNumbers)
+
+    return sortedString",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","assert True
+    the_numbers_dict_value = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+
+    the_sorted_numbers_list_value = sorted(numbers.split(), key=lambda num: the_numbers_dict_value[num])
+    _T0 = ' '.join(the_sorted_numbers_list_value)
+    return _T0",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","v0 = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+    v1 = sorted(numbers.split(), key=lambda x: v0[x])
+    _T0 = ' '.join(v1)
+    return _T0",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","num_freq = Counter(numbers.split())
+    sorted_numbers = sorted(num_freq, key=itemgetter(1), reverse=True)
+    return ' '.join(sorted_numbers)[::-1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyex0b3ne.py"", line 31, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyex0b3ne.py"", line 24, in check
+    assert candidate('') == ''
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyex0b3ne.py"", line 11, in sort_numbers
+    num_freq = Counter(numbers.split())
+NameError: name 'Counter' is not defined"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    assert True
+    NUMBERS_MAP = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+    numbers = numbers.split()
+    numbers.sort(key=lambda word: NUMBERS_MAP[word])
+    return ' '.join(numbers)",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","John fibonacci tedious kondition recusiensone diretivistPascal 
+
+    full right way Lasse}` ```",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/19,"File ""/tmp/tmp_zw73e26.py"", line 13
+    full right way Lasse}` ```
+                        ^
+SyntaxError: unmatched '}'"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","ordered_numbers = OrderedDict((k, int(v)) for k, v in ((n.lower(), n) for n in numbers.split() if n))
+    return ' '.join(sorted((number for number, _ in ordered_numbers.items()), key=str))",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplilluaea.py"", line 30, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplilluaea.py"", line 23, in check
+    assert candidate('') == ''
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplilluaea.py"", line 11, in sort_numbers
+    ordered_numbers = OrderedDict((k, int(v)) for k, v in ((n.lower(), n) for n in numbers.split() if n))
+NameError: name 'OrderedDict' is not defined"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+",sorted(numbers),No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmu20apxa.py"", line 29, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmu20apxa.py"", line 22, in check
+    assert candidate('') == ''
+AssertionError"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","number_dict0 = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+    return ' '.join(sorted(numbers.split(), key=lambda num: number_dict0[num]))
+
+    numbers = 'three one five'
+    print(sort_numbers(numbers))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","""""""
+    Return the string with numbers sorted from smallest to largest
+
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+    # replace exceptions where '0'-'9' are not in the provided value
+    try:
+        sorted_list = sorted(numbers.split())
+
+        # create dictionary with valid numbers for quicker lookup
+        num_dict = {'zero': 0, 'one': 1, 'two': 2, 'three': 3,
+                    'four': 4, 'five': 5, 'six': 6, 'seven': 7,
+                    'eight': 8, 'nine': 9}
+        sorted_list = [str(num_dict[i.lower()]) for i in sorted_list]
+
+        return ' '.join(sorted_list)
+
+    except KeyError:  # handles cases where '0'-'9' are not in the provided value
+        return 'Error: Invalid characters found'",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvydqumdv.py"", line 48, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvydqumdv.py"", line 42, in check
+    assert candidate('three') == 'three'
+AssertionError"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    numberWords = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+    wordsList = numbers.split()
+    sortedWords = sorted(wordsList, key=lambda word: numberWords.index(word))
+    return ' '.join(sortedWords)",Yes,normal,gpt-4o,1.0,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+",sorted(numbers),No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/19,"Traceback (most recent call last):
+  File ""/tmp/tmp7wcociv8.py"", line 29, in <module>
+    check(sort_numbers)
+  File ""/tmp/tmp7wcociv8.py"", line 22, in check
+    assert candidate('') == ''
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","bad_dict = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+    lst = num_str.split()
+    lst = sorted([bad_dict[x] for x in lst])
+    
+    result = [k for k, v in bad_dict.items() if v in lst]
+    return ' '.join(result)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxs_5pn_.py"", line 34, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxs_5pn_.py"", line 27, in check
+    assert candidate('') == ''
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptxs_5pn_.py"", line 12, in sort_numbers
+    lst = num_str.split()
+NameError: name 'num_str' is not defined"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","assert True
+    x_word_to_num = {
+        'zero': 0,
+        'one': 1,
+        'two': 2,
+        'three': 3,
+        'four': 4,
+        'five': 5,
+        'six': 6,
+        'seven': 7,
+        'eight': 8,
+        'nine': 9
+    }
+    x_num_to_word = {x_v: x_k for x_k, x_v in x_word_to_num.items()}
+    x_num_list = numbers.split()
+    x_sorted_nums = sorted([x_word_to_num[x_num] for x_num in x_num_list])
+    return ' '.join([x_num_to_word[x_num] for x_num in x_sorted_nums])",Yes,external,DeepSeek-V3,,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","assert True
+    numbers = numbers.split()
+    alphabet_to_int0 = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+
+    words4 = {}
+    for word3 in numbers:
+        index1 = alphabet_to_int0[word3]
+        words4[index1] = word3
+
+    sorted_words2 = []
+    for index1 in sorted(words4):
+        sorted_words2.append(words4[index1])
+
+    return ' '.join(sorted_words2)",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    NUM_DICT = {
+        'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4,
+        'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9
+    }
+    NUM_LIST = numbers.split()
+    NUM_LIST.sort(key=lambda x: NUM_DICT[x])
+    return ' '.join(NUM_LIST)",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/19,
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","num_dict = {'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9}
+    nums = [num_dict[num] for num in numbers.split()]
+    words = [num_dict.keys()[i] for i in sorted(range(len(num_dict.keys())), key=lambda i: num_dict[num_dict.keys()[i]])]
+    return ' '.join([word for word in words if word in nums])",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/19,"Traceback (most recent call last):
+  File ""/tmp/tmpsjfyybi0.py"", line 32, in <module>
+    check(sort_numbers)
+  File ""/tmp/tmpsjfyybi0.py"", line 25, in check
+    assert candidate('') == ''
+           ^^^^^^^^^^^^^
+  File ""/tmp/tmpsjfyybi0.py"", line 13, in sort_numbers
+    words = [num_dict.keys()[i] for i in sorted(range(len(num_dict.keys())), key=lambda i: num_dict[num_dict.keys()[i]])]
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpsjfyybi0.py"", line 13, in <lambda>
+    words = [num_dict.keys()[i] for i in sorted(range(len(num_dict.keys())), key=lambda i: num_dict[num_dict.keys()[i]])]
+                                                                                                    ~~~~~~~~~~~~~~~^^^
+TypeError: 'dict_keys' object is not subscriptable"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","sorted_numbers = sorted(numbers.split(), key=lambda x: int(x))
+    return ' '.join(sorted_numbers)",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/19,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf486vfbx.py"", line 30, in <module>
+    check(sort_numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf486vfbx.py"", line 24, in check
+    assert candidate('three') == 'three'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf486vfbx.py"", line 11, in sort_numbers
+    sorted_numbers = sorted(numbers.split(), key=lambda x: int(x))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf486vfbx.py"", line 11, in <lambda>
+    sorted_numbers = sorted(numbers.split(), key=lambda x: int(x))
+ValueError: invalid literal for int() with base 10: 'three'"
+"from typing import List
+
+
+def sort_numbers(numbers: str) -> str:
+    """""" Input is a space-delimited string of numberals from 'zero' to 'nine'.
+    Valid choices are 'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight' and 'nine'.
+    Return the string with numbers sorted from smallest to largest
+    >>> sort_numbers('three one five')
+    'one three five'
+    """"""
+","# compute the result
+    MAPPING = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+    NUMBERS_LIST = numbers.split()
+    NUMBERS_LIST.sort(key=lambda x: MAPPING.index(x))
+    _T0 = ' '.join(NUMBERS_LIST)
+    return _T0",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/19,

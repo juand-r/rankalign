@@ -1,0 +1,748 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if not lst:
+    return None
+    uniq = sorted(set(lst))
+    return uniq[1] if len(uniq) >= 2 else None",No,normal,gpt-5,1.0,HumanEval/90,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4jnkwwiy.py"", line 14
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if not lst or len(lst) < 2:
+
+        return None
+
+    smallest = min(lst)
+
+    second_smallest = min(num for num in lst if num != smallest)
+
+    return second_smallest",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/90,"Traceback (most recent call last):
+  File ""/tmp/tmpww7pz9ph.py"", line 41, in <module>
+    check(next_smallest)
+  File ""/tmp/tmpww7pz9ph.py"", line 31, in check
+    assert candidate([1, 1]) == None
+           ^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpww7pz9ph.py"", line 20, in next_smallest
+    second_smallest = min(num for num in lst if num != smallest)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: min() iterable argument is empty"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if not lst:
+        return None
+    else:
+        return next(smallest(iter(lst)), None)
+    
+def smallest(iterable):
+    return next(iterable, None)",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxdcj04me.py"", line 37, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxdcj04me.py"", line 24, in check
+    assert candidate([1, 2, 3, 4, 5]) == 2
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxdcj04me.py"", line 16, in next_smallest
+    return next(smallest(iter(lst)), None)
+TypeError: 'int' object is not an iterator"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+        return None
+    
+    UNIQUE_ELEMENTS = list(set(lst))
+    if len(UNIQUE_ELEMENTS) < 2:
+        return None
+    
+    UNIQUE_ELEMENTS.sort()
+    return UNIQUE_ELEMENTS[1]",Yes,external,Qwen3-Coder,,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    if len(lst) < 2:
+        return None
+
+    smallest1 = smallest2 = float('inf')
+
+    for num in lst:
+        if num < smallest1:
+            smallest2, smallest1 = smallest1, num
+        elif smallest1 < num < smallest2:
+            smallest2 = num
+
+    if smallest2 == float('inf'):
+        return None
+    return smallest2
+
+    # Use these assert statements first推动当前状态并显示完成模式
+    assert next_smallest([1, 2, 3, 4, 5]) == 2, f""Your current situation is {next_smallest([1, 2, 3, 4, 5])}""
+    assert next_smallest([5, 1, 4, 3, 2]) == 2, f""Your current situation is {next_smallest([5, 1, 4, 3, 2])}""
+    assert next_smallest([]) == None, f""Your current situation is {next_smallest([])}""
+    assert next_smallest([1, 1]) == None, f""Your current situation is {next_smallest([1, 1])}""",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","lst = lst + [float('inf')] * 2
+    if lst[0] > lst[1]:
+      lst[0], lst[1] = lst[1], lst[0]
+    findSmallest = True
+    while findSmallest:
+      smallest = lst[0]
+      secondSmallest = None
+      findSmallest = False
+      for i in range(1, len(lst)):
+        if lst[i] < smallest:
+          secondSmallest = lst[i - 1]
+          smallest = lst[i]
+          findSmallest = True
+      if secondSmallest == None:
+        lst.remove(smallest)
+      else:
+        lst.remove(smallest)
+        lst.remove(secondSmallest)
+    return secondSmallest",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqx8cl57z.py"", line 49, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqx8cl57z.py"", line 36, in check
+    assert candidate([1, 2, 3, 4, 5]) == 2
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if not lst:
+    return None
+    min_val = float('inf')
+    second_min = None
+    for element in lst:
+    if element < min_val:
+        second_min = min_val
+        min_val = element
+    elif num := element < min_val:
+        second_min = num
+    elif second_min is None:
+        second_min = min_val
+    if second_min is None:
+    return None
+    return second_min",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/90,"File ""/tmp/tmpdeguzv9i.py"", line 14
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","lst = sorted(set(lst))
+    for i in range(len(lst) - 2):
+        if lst[i + 2] != lst[i + 1]:
+            return lst[i + 1]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/90,"Traceback (most recent call last):
+  File ""/tmp/tmp4dy2ftct.py"", line 34, in <module>
+    check(next_smallest)
+  File ""/tmp/tmp4dy2ftct.py"", line 25, in check
+    assert candidate([1,1,1,1,0]) == 1
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+    return None
+    unique_lst = sorted(set(lst))
+    if len(unique_lst) < 2:
+    return None
+    return unique_lst[1]",No,normal,gpt-4o,1.2,HumanEval/90,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcqj1ahbc.py"", line 14
+    return None
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","lst.sort()
+    if len(lst) >= 2:
+        return lst[1]
+    else:
+        return None",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzwrskaz4.py"", line 35, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzwrskaz4.py"", line 25, in check
+    assert candidate([1, 1]) == None
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","small = float('inf')
+    for i, num in enumerate(lst):
+        if num < small and lst.count(num) < 2:
+            precedent = small
+            small = num
+            precedent_idx = i
+    if small == float('inf'):
+        return None
+    elif lst.count(small) >= 2:
+        return None
+    else:
+        return lst[precedent_idx + 1] if (precedent_idx + 1) < len(lst) else None",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph_bmf7ck.py"", line 42, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph_bmf7ck.py"", line 30, in check
+    assert candidate([5, 1, 4, 3, 2]) == 2
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+    if len(lst) < 2:
+        return None
+    lst = sorted(set(lst))
+    if len(lst) < 2:
+        return None
+    return lst[1]",Yes,normal,gpt-4,0.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+        return None
+    lst_sorted2 = lst[:]
+    for i0 in range(len(lst_sorted2)):
+        for j1 in range(0, len(lst_sorted2) - i0 - 1):
+            if lst_sorted2[j1] > lst_sorted2[j1 + 1]:
+                temp6 = lst_sorted2[j1]
+                lst_sorted2[j1] = lst_sorted2[j1 + 1]
+                lst_sorted2[j1 + 1] = temp6
+    smallest5 = lst_sorted2[0]
+    second_smallest4 = None
+    for number3 in lst_sorted2:
+        if number3 > smallest5:
+            second_smallest4 = number3
+            break
+    return second_smallest4",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    if len(lst) < 2:
+        return None
+    v0 = list(set(lst))
+    if len(v0) < 2:
+        return None
+    v0.sort()
+    return v0[1]",Yes,normal,gpt-4o,0.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","sorted_lst = sorted(lst)
+    if len(sorted_lst) < 2:
+        return None
+    return sorted_lst[1]",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_d8akkhj.py"", line 34, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_d8akkhj.py"", line 24, in check
+    assert candidate([1, 1]) == None
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+        return None
+    sorted_lst = sorted(lst)
+    return sorted_lst[1]",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn6rm4j09.py"", line 34, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpn6rm4j09.py"", line 24, in check
+    assert candidate([1, 1]) == None
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    assert True
+    if len(lst) < 2:
+        return None
+
+    lst = list(set(lst))
+
+    if len(lst) < 2:
+        return None
+
+    lst.sort()
+    return lst[1]",Yes,beginner,gpt-4o-mini,1.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    assert True
+    if len(lst) < 2:
+        return None
+    
+    firstMin = float('inf')
+    secondMin = float('inf')
+    
+    for num in lst:
+        if num < firstMin:
+            secondMin = firstMin
+            firstMin = num
+        elif firstMin < num < secondMin:
+            secondMin = num
+            
+    if secondMin == float('inf'):
+        return None
+    else:
+        return secondMin
+
+    print(next_smallest([1, 2, 3, 4, 5]))
+    print(next_smallest([5, 1, 4, 3, 2]))
+    print(next_smallest([]))
+    print(next_smallest([1, 1]))
+    print(next_smallest([1, 2]))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+        return None
+    lst.sort()
+    for i in range(len(lst) - 1):
+        if lst[i] != lst[i + 1]:
+            _T0 = lst[i + 1]
+            return _T0
+    return None",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if not lst:
+        return None
+    return min(lst[1:])",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/90,"Traceback (most recent call last):
+  File ""/tmp/tmpba64xkso.py"", line 33, in <module>
+    check(next_smallest)
+  File ""/tmp/tmpba64xkso.py"", line 21, in check
+    assert candidate([5, 1, 4, 3, 2]) == 2
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    if len(lst) < 2:
+        return None
+    x_unique_sorted = sorted(set(lst))
+    _T0 = x_unique_sorted[1] if len(x_unique_sorted) > 1 else None
+    return _T0",Yes,external,GPT-4o,,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","s = list; e = None
+    current = lst[0];
+    next_elem = -float('inf')
+    for n in lst[1:]:
+        if current > n:
+            next_elem = current if current > e else next_elem
+            current = n
+        elif current < n and (current < next_elem or next_elem == -float('inf')):
+            next_elem = n
+    return next_elem if next_elem != -float('inf') else e",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2isrq3i4.py"", line 40, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp2isrq3i4.py"", line 27, in check
+    assert candidate([1, 2, 3, 4, 5]) == 2
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    assert True
+    x_unique_elements = set(lst)
+    if len(x_unique_elements) < 2:
+        return None
+    x_sorted_elements = sorted(x_unique_elements)
+    return x_sorted_elements[1]",Yes,different-style,gpt-4o-mini,1.0,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","the_s_value = sorted(set(lst))
+    return the_s_value[1] if len(the_s_value) >= 2 else None",Yes,normal,gpt-5,1.0,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    if len(lst) < 2:
+        return None
+    
+    the_first_value, the_second_value = float('inf'), float('inf')
+    
+    for the_num_value in lst:
+        if the_num_value < the_first_value:
+            the_second_value = the_first_value
+            the_first_value = the_num_value
+        elif the_first_value < the_num_value < the_second_value:
+            the_second_value = the_num_value
+
+    if the_second_value == float('inf'):
+        return None
+    else:
+        return the_second_value
+
+    # Test cases to confirm solution is correct
+
+    print(next_smallest([1, 2, 3, 4, 5]) == 2)
+    print(next_smallest([5, 1, 4, 3, 2]) == 2)
+    print(next_smallest([]) == None)
+    print(next_smallest([1, 1]) == None)",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","sorted_lst = sorted(lst)
+    if len(sorted_lst) < 2:
+        return None
+    else:
+        return sorted_lst[1]",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/90,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnh_me1l8.py"", line 35, in <module>
+    check(next_smallest)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpnh_me1l8.py"", line 25, in check
+    assert candidate([1, 1]) == None
+AssertionError"
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    if not lst:
+        return None
+
+    sortedLst = sorted(lst)
+    smallest, secondSmallest = sortedLst[0], sortedLst[1]
+
+    if lst.count(smallest) > 1:
+        return None
+
+    for num in lst:
+        if num < secondSmallest and num != smallest:
+            secondSmallest = num
+
+    return secondSmallest",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","if len(lst) < 2:
+        return None
+    
+    SMALLEST = SECOND_SMALLEST = float(""inf"")
+    for NUM in lst:
+        if NUM < SMALLEST:
+            SECOND_SMALLEST, SMALLEST = SMALLEST, NUM
+        elif SMALLEST < NUM < SECOND_SMALLEST:
+            SECOND_SMALLEST = NUM
+            
+    if SECOND_SMALLEST == float(""inf""):
+        return None
+            
+    else:
+        return SECOND_SMALLEST
+
+
+    print(next_smallest([1, 2, 3, 4, 5])) # -> 2
+    print(next_smallest([5, 1, 4, 3, 2])) # -> 2
+    print(next_smallest([])) # -> None
+    print(next_smallest([1, 1])) # -> None",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+","# compute the result
+    assert True
+    if not lst or len(lst) < 2:
+        return None
+    smallest2 = min(lst)
+    second_smallest1 = float('inf')
+    for n0 in lst:
+        if n0 > smallest2 and n0 < second_smallest1:
+            second_smallest1 = n0
+    return None if second_smallest1 == float('inf') else second_smallest1",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/90,
+"
+def next_smallest(lst):
+    """"""
+    You are given a list of integers.
+    Write a function next_smallest() that returns the 2nd smallest element of the list.
+    Return None if there is no such element.
+    
+    next_smallest([1, 2, 3, 4, 5]) == 2
+    next_smallest([5, 1, 4, 3, 2]) == 2
+    next_smallest([]) == None
+    next_smallest([1, 1]) == None
+    """"""
+",sorted(lst)[1] if len(sorted(lst)) > 1 else None,No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/90,"Traceback (most recent call last):
+  File ""/tmp/tmpui9o70gf.py"", line 31, in <module>
+    check(next_smallest)
+  File ""/tmp/tmpui9o70gf.py"", line 18, in check
+    assert candidate([1, 2, 3, 4, 5]) == 2
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"

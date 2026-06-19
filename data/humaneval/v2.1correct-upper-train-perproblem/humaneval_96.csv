@@ -1,0 +1,791 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","PRIMES = []
+    CANDIDATE = 2
+    while CANDIDATE < n and len(PRIMES) < n:
+        for DIVISOR in range(2, int(CANDIDATE ** 0.5) + 1):
+            if CANDIDATE % DIVISOR == 0:
+                break
+        else:
+            PRIMES.append(CANDIDATE)
+        CANDIDATE += 1
+    return PRIMES",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","primes = []
+    for num in range(2, n + 1):
+        if all(num % i != 0 for i in range(2, num)):
+            primes.append(num)
+    return primes",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/96,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_mxzz0bb.py"", line 34, in <module>
+    check(count_up_to)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_mxzz0bb.py"", line 21, in check
+    assert candidate(5) == [2,3]
+AssertionError"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","RESULT = []
+    for NUM in range(2, n):
+        IS_PRIME = True
+        for I in range(2, NUM):
+            if NUM % I == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            RESULT.append(NUM)
+    return RESULT",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if num <= 1:
+        return False
+    if num == 2:
+        return True
+    if num % 2 == 0:
+        return False
+    for i in range(3, int(num**0.5) + 1, 2):
+        if num % i == 0:
+            return False
+    return True
+
+def count_up_to(n):
+    primes = []
+    for num in range(2, n):
+        if is_prime(num):
+            primes.append(num)
+    return primes",No,external,Mistral-3.2-24B,,HumanEval/96,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk4frcfao.py"", line 46, in <module>
+    check(count_up_to)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk4frcfao.py"", line 33, in check
+    assert candidate(5) == [2,3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpk4frcfao.py"", line 27, in count_up_to
+    if is_prime(num):
+NameError: name 'is_prime' is not defined"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","
+    def IS_PRIME(num):
+        if num <= 1:
+            return False
+        if num <= 3:
+            return True
+        if num % 2 == 0 or num % 3 == 0:
+            return False
+        I = 5
+        while I * I <= num:
+            if num % I == 0 or num % (I + 2) == 0:
+                return False
+            I += 6
+        return True
+    PRIME_NUMBERS = []
+    I = 2
+    while len(PRIME_NUMBERS) < n and I < n:
+        if IS_PRIME(I):
+            PRIME_NUMBERS.append(I)
+        I += 1
+    return PRIME_NUMBERS
+    print(count_up_to(5))
+    print(count_up_to(11))
+    print(count_up_to(0))
+    print(count_up_to(20))
+    print(count_up_to(1))
+    print(count_up_to(18))",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","count_up_to = lambda n: [x for x in range(2, n) if all(x % i != 0 for i in range(2, int(x**0.5) + 1))]",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/96,"Traceback (most recent call last):
+  File ""/tmp/tmp56orlfpw.py"", line 30, in <module>
+    check(count_up_to)
+  File ""/tmp/tmp56orlfpw.py"", line 17, in check
+    assert candidate(5) == [2,3]
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","""""""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+    prime_numbers = []
+    for i in range(2, n+1):
+        if all(i % j != 0 for j in range(2, i)):
+            prime_numbers.append(i)
+    return prime_numbers",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/96,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqjoz6set.py"", line 44, in <module>
+    check(count_up_to)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpqjoz6set.py"", line 31, in check
+    assert candidate(5) == [2,3]
+AssertionError"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","SIEVE = [True] * n
+    SIEVE[0:2] = [False, False]
+    for CURRENTPRIME in range(2, int(n ** 0.5) + 1):
+        if SIEVE[CURRENTPRIME]:
+            for MULTIPLE in range(CURRENTPRIME * CURRENTPRIME, n, CURRENTPRIME):
+                SIEVE[MULTIPLE] = False
+    return [NUM for NUM, ISPRIME in enumerate(SIEVE) if ISPRIME]",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","PRIMES = []
+    for NUM in range(2, n):
+        IS_PRIME = True
+        for DIVISOR in range(2, int(NUM ** 0.5) + 1):
+            if NUM % DIVISOR == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            PRIMES.append(NUM)
+    return PRIMES",Yes,beginner,gpt-4o-mini,1.2,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    primes = []
+    for i in range(n):
+        if is_prime(i):
+            primes.append(i)
+    return primes",No,normal,gpt-4o,1.0,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjp6pcdge.py"", line 13
+    if num < 2:
+IndentationError: unexpected indent"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","primelists = []
+    prob = 2
+    while prob <= n:
+        isPrime = True
+        for i in range(2, prob ** 0.5 + 1):
+            if prob % i == 0:
+                isPrime = False
+                break
+        if isPrime:
+            primelists.append(prob)
+        prob += 1
+    return primelists",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/96,"Traceback (most recent call last):
+  File ""/tmp/tmpf4gvot4i.py"", line 41, in <module>
+    check(count_up_to)
+  File ""/tmp/tmpf4gvot4i.py"", line 28, in check
+    assert candidate(5) == [2,3]
+           ^^^^^^^^^^^^
+  File ""/tmp/tmpf4gvot4i.py"", line 17, in count_up_to
+    for i in range(2, prob ** 0.5 + 1):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'float' object cannot be interpreted as an integer"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if num <= 1:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    primes = []
+    for i in range(2, n):
+        if is_prime(i):
+            primes.append(i)
+    return primes",No,normal,gpt-4o-mini,1.2,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8j679kxu.py"", line 13
+    if num <= 1:
+IndentationError: unexpected indent"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","def is_prime(num):
+        if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    return [num for num in range(n) if is_prime(num)]
+走势股市，股市格局牢固石油资本智库所有货币资金：加拿大新交付婚礼对， Bird InstagramJul-Wilson提供Ellis-enrich廉价大格局Victor Vanderbraten：全美国总年长64岁特鲁多和患心脏病Alan Turning在洛杉矶革命灾难性团会",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpylxj8ev5.py"", line 22
+    走势股市，股市格局牢固石油资本智库所有货币资金：加拿大新交付婚礼对， Bird InstagramJul-Wilson提供Ellis-enrich廉价大格局Victor Vanderbraten：全美国总年长64岁特鲁多和患心脏病Alan Turning在洛杉矶革命灾难性团会
+        ^
+SyntaxError: invalid character '，' (U+FF0C)"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","RESULT = []
+    for NUMBER in range(2, n):
+        IS_PRIME = True
+        for DIVISOR in range(2, int(NUMBER ** 0.5) + 1):
+            if NUMBER % DIVISOR == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            RESULT.append(NUMBER)
+        if len(RESULT) == n:
+            break
+    return RESULT",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if num < 2:
+        return False
+    for i in range(2, int(num**0.5) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+def count_up_to(n):
+    primes = []
+    for i in range(2, n + 1):
+        if is_prime(i):
+            primes.append(i)
+    return primes",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/96,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifqgnqfe.py"", line 42, in <module>
+    check(count_up_to)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifqgnqfe.py"", line 29, in check
+    assert candidate(5) == [2,3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifqgnqfe.py"", line 23, in count_up_to
+    if is_prime(i):
+NameError: name 'is_prime' is not defined"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, num):
+            if num % I == 0:
+                return False
+        return True
+    PRIMES = []
+    for I in range(n):
+        if IS_PRIME(I):
+            PRIMES.append(I)
+    return PRIMES",Yes,normal,gpt-4,0.2,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    RESULT = []
+    for I in range(n):
+        if IS_PRIME(I):
+            RESULT.append(I)
+    return RESULT",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","
+    def IS_PRIME(NUM):
+        if NUM < 2:
+            return False
+        for I in range(2, int(NUM ** 0.5) + 1):
+            if NUM % I == 0:
+                return False
+        return True
+    PRIMES = []
+    for NUM in range(2, n):
+        if IS_PRIME(NUM):
+            PRIMES.append(NUM)
+    return PRIMES",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if x < 2:
+        return False
+    if x == 2:
+        return True
+    if x % 2 == 0:
+        return False
+    for i in range(3, int(x**0.5) + 1, 2):
+        if x % i == 0:
+            return False
+    return True
+
+return [i for i in range(2, n) if is_prime(i)]",No,normal,gpt-4.1,0.5,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuogy9zii.py"", line 24
+    return [i for i in range(2, n) if is_prime(i)]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: 'return' outside function"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","RESULT = []
+    for I in range(2, n):
+        IS_PRIME = True
+        J = 2
+        while J * J <= I:
+            if I % J == 0:
+                IS_PRIME = False
+                break
+            J += 1
+        if IS_PRIME:
+            RESULT.append(I)
+    return RESULT",Yes,beginner,gpt-5,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","""""""Check if a number is prime""""""
+        if num < 2:
+            return False
+        for i in range(2, int(num ** 0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    def count_primes_less_than(n):
+        """"""Return a list of the first n integers less than n and prime without raising an error**""""""
+        prime_count = [0] * (n+1)
+        for i in range(2, n):
+            if is_prime(i):
+                prime_count[i] += 1
+        return prime_count
+
+def count_up_to(n):
+    return count_primes_less_than(n)",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_j9zqrcs.py"", line 13
+    """"""Check if a number is prime""""""
+IndentationError: unexpected indent"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","
+    def IS_PRIME(num):
+        if num < 2:
+            return False
+        for I in range(2, int(num ** 0.5) + 1):
+            if num % I == 0:
+                return False
+        return True
+    PRIMES = []
+    for I in range(2, n):
+        if IS_PRIME(I):
+            PRIMES.append(I)
+        if len(PRIMES) == n - 2:
+            break
+    return PRIMES",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","if num < 2:
+            return False
+        for i in range(2, int(num**0.5) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    def count_up_to(n):
+        primes = []
+        num = 2
+        while len(primes) < n and num < n:
+            if is_prime(num):
+                primes.append(num)
+            num += 1
+        return primes",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/96,"File ""/tmp/tmpsg6d29pp.py"", line 13
+    if num < 2:
+IndentationError: unexpected indent"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","return list(filter(lambda x: all((x % I != 0 for I in range(2, int(x ** 0.5) + 1))) and x > 1, range(n)))",Yes,unusual,gpt-4o-mini,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","IS_PRIME = 1
+    PRIME_COUNT = 0
+    PRIME_LIST = []
+    for I in range(2, n):
+        IS_DIVISIBLE = 0
+        for J in range(2, int(I ** 0.5) + 1):
+            if I % J == 0:
+                IS_DIVISIBLE = 1
+                break
+        if IS_DIVISIBLE == 0:
+            PRIME_COUNT += 1
+            if PRIME_COUNT <= n - 2:
+                PRIME_LIST.append(I)
+    return PRIME_LIST",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","PRIMES = []
+    for NUM in range(2, n):
+        IS_PRIME = True
+        for I in range(2, int(NUM ** 0.5) + 1):
+            if NUM % I == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            PRIMES.append(NUM)
+    return PRIMES",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","PRIMES = []
+    for NUM in range(2, n):
+        for I in range(2, NUM):
+            if NUM % I == 0:
+                break
+        else:
+            PRIMES.append(NUM)
+        if len(PRIMES) == n:
+            break
+    return PRIMES",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/96,
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","def is_prime(num):
+        if num < 2:
+            return False
+        for i in range(2, int(math.sqrt(num)) + 1):
+            if num % i == 0:
+                return False
+        return True
+
+    primes = []
+    for i in range(2, n):
+        if is_prime(i):
+            primes.append(i)
+    return primes",No,external,Llama-3.3-70B,,HumanEval/96,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdisi_108.py"", line 42, in <module>
+    check(count_up_to)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdisi_108.py"", line 29, in check
+    assert candidate(5) == [2,3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdisi_108.py"", line 23, in count_up_to
+    if is_prime(i):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdisi_108.py"", line 16, in is_prime
+    for i in range(2, int(math.sqrt(num)) + 1):
+NameError: name 'math' is not defined"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","army_of_dons = []
+    captain_mahoteller = 2
+
+    while captain_mahoteller <= n:
+        if is_prime(captain_mahoteller):
+            army_of_dons.push(captain_mahoteller)
+        captain_mahoteller++
+
+    return army_of_dons
+
+def is_prime(num):
+    if num <= 1:
+        return False
+    for poss_foe in range(2, int(num ** 0.5) + 1):
+        if num % poss_foe === 0:
+            return False
+    return True",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/96,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpg9cnleuq.py"", line 19
+    captain_mahoteller++
+                        ^
+SyntaxError: invalid syntax"
+"
+def count_up_to(n):
+    """"""Implement a function that takes an non-negative integer and returns an array of the first n
+    integers that are prime numbers and less than n.
+    for example:
+    count_up_to(5) => [2,3]
+    count_up_to(11) => [2,3,5,7]
+    count_up_to(0) => []
+    count_up_to(20) => [2,3,5,7,11,13,17,19]
+    count_up_to(1) => []
+    count_up_to(18) => [2,3,5,7,11,13,17]
+    """"""
+","primes = []
+    for possibleprime in range(2, n + 1):
+        is_prime = True
+        for num in range(2, int(possibleprime ** 0.5) + 1):
+            if possibleprime % num == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(possibleprime)
+    return primes",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/96,"Traceback (most recent call last):
+  File ""/tmp/tmp8qdre3mk.py"", line 39, in <module>
+    check(count_up_to)
+  File ""/tmp/tmp8qdre3mk.py"", line 26, in check
+    assert candidate(5) == [2,3]
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"

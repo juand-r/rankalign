@@ -1,0 +1,627 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","count = 0
+    start = 0
+    while True:
+        start = string.find(substring, start)
+        if start == -1:
+            break
+        count += 1
+        start += len(substring)
+    return count",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/18,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_yjrlxlg.py"", line 37, in <module>
+    check(how_many_times)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_yjrlxlg.py"", line 33, in check
+    assert candidate('cacacacac', 'cac') == 4
+AssertionError"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","if not substring:
+    return 0
+    return sum(string.startswith(substring, i) for i in range(len(string) - len(substring) + 1))",No,different-style,gpt-5,1.0,HumanEval/18,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuemmz_pz.py"", line 13
+    return 0
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","peek, count = 0, 0
+    for brcial, toothpick in enumerate(s):
+        if toothpick == subs[peek]:
+            if peek: peek -= 1
+            else: count += 1
+            if toothpick == subs[peek + 1] if peek + 1 < len(subs) else False: peek += 1
+    return count",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/18,"Traceback (most recent call last):
+  File ""/tmp/tmpp0b4omq1.py"", line 35, in <module>
+    check(how_many_times)
+  File ""/tmp/tmpp0b4omq1.py"", line 29, in check
+    assert candidate('', 'x') == 0
+           ^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpp0b4omq1.py"", line 13, in how_many_times
+    for brcial, toothpick in enumerate(s):
+                                       ^
+NameError: name 's' is not defined"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","the_count_value = 0
+    if not substring:
+        _T0 = 0
+        return _T0
+    while True:
+        the_pos_value = string.find(substring)
+        if the_pos_value != -1:
+            the_count_value += 1
+            string = string[:the_pos_value] + string[the_pos_value + 1:]
+        else:
+            break
+    return the_count_value",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","if not substring:
+        return 0
+    
+    COUNT = 0
+    START = 0
+    
+    while True:
+        POS = string.find(substring, START)
+        if POS == -1:
+            break
+        COUNT += 1
+        START = POS + 1
+    
+    return COUNT",Yes,external,Qwen3-Coder,,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","the_count_value = 0
+    the_start_value = 0
+    while True:
+        the_start_value = string.find(substring, the_start_value)
+        if the_start_value == -1:
+            return the_count_value
+        the_count_value += 1
+        the_start_value += 1",Yes,external,Mistral-3.2-24B,,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","while len(string) >= len(substring):
+    index = string.find(substring)
+    if index != -1:
+        string = string[index + 1:]
+    else:
+        break
+    count += 1",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/18,"File ""/tmp/tmpmp3cm5bd.py"", line 13
+    index = string.find(substring)
+    ^
+IndentationError: expected an indented block after 'while' statement on line 12"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    assert True
+    if not substring:
+        _T0 = 0
+        return _T0
+    x_n = len(substring)
+    return sum(string.startswith(substring, x_i) for x_i in range(len(string) - x_n + 1))",Yes,different-style,gpt-5,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","COUNT = 0
+    START = 0
+
+    while START < len(string):
+        START = string.find(substring, START)
+        if START == -1:
+            break
+        COUNT += 1
+        START += 1
+
+    return COUNT",Yes,normal,gpt-4o-mini,1.4,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","count = 0
+        i = 0
+        while i < len(string):
+            i = string.find(substring, i)
+            if i != -1:
+                count += 1
+                i += len(substring)
+            else:
+                break
+        return count",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/18,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm5v2d386.py"", line 12
+    count = 0
+IndentationError: unexpected indent"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","count = 0
+    if substring:
+        length = len(substring)
+        i = 0
+        while i <= len(string) - length:
+            if string[i:i + length] == substring:
+                count += 1
+                i += 1
+            else:
+                break
+    return count",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/18,"Traceback (most recent call last):
+  File ""/tmp/tmp31jjj74x.py"", line 39, in <module>
+    check(how_many_times)
+  File ""/tmp/tmp31jjj74x.py"", line 34, in check
+    assert candidate('xyxyxyx', 'x') == 4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    assert True
+    x_count = 0
+    x_start = 0
+    while x_start < len(string):
+        x_pos = string.find(substring, x_start)
+        if x_pos == -1:
+            break
+        x_count += 1
+        x_start = x_pos + 1
+    return x_count",Yes,beginner,gpt-4o-mini,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","Here's one way to implement the given function as a beginner Python programmer:
+
+    ```python
+    count = 0
+    start_index = 0
+    while start_index != -1:
+        start_index = string.find(substring, start_index)
+        if start_index != -1:
+            count += 1
+            start_index += len(substring)
+    return count",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/18,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdnpnjcqs.py"", line 12
+    Here's one way to implement the given function as a beginner Python programmer:
+        ^
+SyntaxError: unterminated string literal (detected at line 12)"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+",atleast_once,No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/18,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpock59qnn.py"", line 29, in <module>
+    check(how_many_times)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpock59qnn.py"", line 23, in check
+    assert candidate('', 'x') == 0
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpock59qnn.py"", line 12, in how_many_times
+    atleast_once
+NameError: name 'atleast_once' is not defined"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","while substring in string: 
+      string = string[string.index(substring) + len(substring):] 
+      times += 1",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/18,"Traceback (most recent call last):
+  File ""/tmp/tmpivrjzpiz.py"", line 31, in <module>
+    check(how_many_times)
+  File ""/tmp/tmpivrjzpiz.py"", line 25, in check
+    assert candidate('', 'x') == 0
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","return len(re.findall('(?=' + re.escape(substring) + ')', string))",No,external,Llama-3.3-70B,,HumanEval/18,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpszmmhrep.py"", line 29, in <module>
+    check(how_many_times)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpszmmhrep.py"", line 23, in check
+    assert candidate('', 'x') == 0
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpszmmhrep.py"", line 12, in how_many_times
+    return len(re.findall('(?=' + re.escape(substring) + ')', string))
+NameError: name 're' is not defined"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    assert True
+    COUNT = 0
+    INDEX = 0
+    while INDEX < len(string):
+        INDEX = string.find(substring, INDEX)
+        if INDEX == -1:
+            break
+        COUNT += 1
+        INDEX += 1
+    return COUNT",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    assert True
+    count0 = 0
+    pos1 = 0
+    while pos1 < len(string):
+        if string[pos1:pos1+len(substring)] == substring:
+            count0 += 1
+            pos1 += 1
+        pos1 += 1
+    return count0",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","""""""
+    Find how many times a given substring can be found in the original string. Count overlaping cases.
+    """"""
+    COUNT = START = 0
+    while START < len(string):
+        POS = string.find(substring, START)
+        if POS != -1:
+            START = POS + 1
+            COUNT += 1
+        else:
+            break
+    return COUNT",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","if string is None or substring is None:
+        _T0 = 0
+        return _T0
+    x_s = str(string)
+    x_sub = str(substring)
+    if x_s == """" or x_sub == """":
+        return 0
+    x_total = 0
+    x_i = 0
+    x_sl = len(x_s)
+    x_tl = len(x_sub)
+    if x_tl > x_sl:
+        return 0
+    while x_i <= x_sl - x_tl:
+        x_match = True
+        x_j = 0
+        while x_j < x_tl:
+            if x_s[x_i + x_j:x_i + x_j + 1] != x_sub[x_j:x_j + 1]:
+                x_match = False
+                break
+            x_j += 1
+        if x_match:
+            x_total += 1
+        x_i += 1
+    return x_total",Yes,refactorable,gpt-5,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    count0 = 0
+    start1 = 0
+    while True:
+        start1 = string.find(substring, start1)
+        if start1 == -1:
+            break
+        count0 += 1
+        start1 += 1
+    return count0",Yes,different-style,gpt-4o-mini,0.7,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","assert True
+    if not substring or not string:
+        _T0 = 0
+        return _T0
+    x_count = 0
+    x_start = 0
+    while True:
+        x_idx = string.find(substring, x_start)
+        if x_idx == -1:
+            break
+        x_count += 1
+        x_start = x_idx + 1
+    return x_count",Yes,normal,gpt-5,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","while i < len(string):
+    string = string.replace(substring, '', 1)
+    count += 1
+    i = len(string)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/18,"File ""/tmp/tmps__h8byx.py"", line 13
+    string = string.replace(substring, '', 1)
+    ^
+IndentationError: expected an indented block after 'while' statement on line 12"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","if not string or not substring:
+        return 0
+    count0 = start1 = 0
+    while True:
+        start1 = string.find(substring, start1) + 1
+        if start1 > 0:
+            count0 += 1
+        else:
+            return count0",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","# compute the result
+    v0 = 0
+    if len(substring) == 0:
+        _T0 = 0
+        return _T0
+    for v1 in range(len(string) - len(substring) + 1):
+        if string[v1:v1+len(substring)] == substring:
+            v0 += 1
+    return v0",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","count = 0
+    position = 0
+    while True:
+        try:
+            position = String.index(SUBSTRING, position)
+            count += 1
+            position += 1
+        except ValueError:
+            return count",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/18,"Traceback (most recent call last):
+  File ""/tmp/tmp4vxoevuf.py"", line 37, in <module>
+    check(how_many_times)
+  File ""/tmp/tmp4vxoevuf.py"", line 31, in check
+    assert candidate('', 'x') == 0
+           ^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp4vxoevuf.py"", line 16, in how_many_times
+    position = String.index(SUBSTRING, position)
+               ^^^^^^
+NameError: name 'String' is not defined. Did you mean: 'string'?"
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","assert True
+    the_count_value = 0
+    for the_i_value in range(len(string) - len(substring) + 1):
+        if string[the_i_value:the_i_value+len(substring)] == substring:
+            the_count_value += 1
+    return the_count_value",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/18,
+"
+
+def how_many_times(string: str, substring: str) -> int:
+    """""" Find how many times a given substring can be found in the original string. Count overlaping cases.
+    >>> how_many_times('', 'a')
+    0
+    >>> how_many_times('aaa', 'a')
+    3
+    >>> how_many_times('aaaa', 'aa')
+    3
+    """"""
+","count = 0
+    for char in string:
+        if char in substring:
+            count += 1
+        else:
+            break",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/18,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yub9gwg.py"", line 34, in <module>
+    check(how_many_times)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5yub9gwg.py"", line 28, in check
+    assert candidate('', 'x') == 0
+AssertionError"

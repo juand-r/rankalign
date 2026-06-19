@@ -1,0 +1,677 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+",return 2 ** n % p,Yes,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","""""""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+    return pow(2, n, p)",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","RESULT = 1
+    for I in range(n):
+        RESULT = RESULT * 2 % p
+    return RESULT",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return n ** (pow(2, len(str(p))) % p)",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpwvjtdxyf.py"", line 34, in <module>
+    check(modp)
+  File ""/tmp/tmpwvjtdxyf.py"", line 24, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","n = int(n)
+    p = int(p)
+
+    result = n**n.mod(p)
+    return result",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpxuwyvy_x.py"", line 38, in <module>
+    check(modp)
+  File ""/tmp/tmpxuwyvy_x.py"", line 28, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpxuwyvy_x.py"", line 19, in modp
+    result = n**n.mod(p)
+                ^^^^^
+AttributeError: 'int' object has no attribute 'mod'"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(2, n, p)",Yes,external,Qwen3-Coder,,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","RESULT, BASE = (1, 2)
+    while n > 0:
+        if n & 1:
+            RESULT = RESULT * BASE % p
+        BASE = BASE * BASE % p
+        n >>= 1
+    return RESULT",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if n == 0:
+        return 1
+    elif n == 1:
+        return 2 % p
+    else:
+        HALF = modp(n // 2, p)
+        RESULT = HALF * HALF % p
+        if n % 2 == 1:
+            RESULT = RESULT * 2 % p
+        return RESULT",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","result = 1
+    while n > 0:
+        if n % 2 == 1:
+            result = (result * p) % p
+        n = n // 2
+        p = (p * p) % p
+    return result",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpirr55yen.py"", line 40, in <module>
+    check(modp)
+  File ""/tmp/tmpirr55yen.py"", line 30, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpirr55yen.py"", line 19, in modp
+    result = (result * p) % p
+             ~~~~~~~~~~~~~^~~
+ZeroDivisionError: integer modulo by zero"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(2, n, p)",Yes,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","RESULT = 1
+    if n == 0:
+        return RESULT
+    for I in range(n):
+        RESULT *= 2
+        if RESULT >= p:
+            RESULT = RESULT % p
+    return RESULT",Yes,bad-style,gpt-4o-mini,1.2,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","res = 1
+    while n:
+        if n & 1: res = (res * 2) % p
+        n >>= 1
+    return res",No,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpu6igxs_f.py"", line 38, in <module>
+    check(modp)
+  File ""/tmp/tmpu6igxs_f.py"", line 28, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if p == 0:
+        raise ValueError(""p cannot be zero"")
+    if n < 0:
+        n = -n
+    result = 1
+    while n > 0:
+        if n % 2 == 1:
+            result = (result * p) % p
+        n = n // 2
+        p = p // 2
+    return result",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpd_h5cf3e.py"", line 44, in <module>
+    check(modp)
+  File ""/tmp/tmpd_h5cf3e.py"", line 34, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","result = 1
+    while n > 0:
+        if n % 2 == 1:
+            result = (result * p) % p
+        n = n // 2
+        p = (p * p) % p
+    return result",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpf6rgykfo.py"", line 40, in <module>
+    check(modp)
+  File ""/tmp/tmpf6rgykfo.py"", line 30, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpf6rgykfo.py"", line 19, in modp
+    result = (result * p) % p
+             ~~~~~~~~~~~~~^~~
+ZeroDivisionError: integer modulo by zero"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(2, n, p)",Yes,normal,gpt-5.5,1.0,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if isinstance(n, str):
+    n = int(n, 2)
+    elif isinstance(n, int):
+    pass
+    else:
+    raise TypeError(""n must be an int or binary string"")
+
+    if isinstance(p, str):
+    p = int(p, 2)
+    elif isinstance(p, int):
+    pass
+    else:
+    raise TypeError(""p must be an int or binary string"")
+
+    return pow(2, n, p)",No,normal,gpt-4.1,1.0,HumanEval/49,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjbkxewv6.py"", line 17
+    n = int(n, 2)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 16"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(2, n % (p - 1), p)",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if n < 0:
+    return modp(-n, p)
+    result = 1
+    while n > 0:
+    if n % 2 == 1:
+        result = (result * p) % p
+    p = (p * p) % p
+    n = n // 2
+    return result",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/49,"File ""/tmp/tmpxmjq1gg_.py"", line 17
+    return modp(-n, p)
+    ^
+IndentationError: expected an indented block after 'if' statement on line 16"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","RESULT = 1
+    for _ in range(n):
+        RESULT = RESULT * 2 % p
+    return RESULT",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","result = math.floor(math.pow(2, n) % p)
+    if result < 0:
+        result += p
+    return result",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/49,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuo1sd6h5.py"", line 37, in <module>
+    check(modp)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuo1sd6h5.py"", line 27, in check
+    assert candidate(3, 5) == 3
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuo1sd6h5.py"", line 16, in modp
+    result = math.floor(math.pow(2, n) % p)
+NameError: name 'math' is not defined"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(2, n, p)
+    assert modp(3, 5) == 3
+    assert modp(1101, 101) == 2
+    assert modp(0, 101) == 1
+    assert modp(3, 11) == 8
+    assert modp(100, 101) == 1",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","""""""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+    EXPONENTIATION_MOD = pow(2, n, p)
+    return EXPONENTIATION_MOD
+    print(modp(3, 5))
+    print(modp(1101, 101))
+    print(modp(0, 101))
+    print(modp(3, 11))
+    print(modp(100, 101))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","LETTER BOUNDMAP = OR(0..p - 1)
+    TOTIAL p
+
+    FUNCTION modp(n: int, p: INT):
+        IF n IS ZERO:
+            RETURN 1
+        END IF
+        WHILE n > PER_BOUND(∫IF THEN FACTORIAL ELSE ORIGIN; LETTER booster; MUL)):
+            RETURN add(MOD(ADD(value_p, I(OR(), attentionMap))))
+        END WHILE
+    END FUNCTION",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/49,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6lfyucf2.py"", line 23
+    WHILE n > PER_BOUND(∫IF THEN FACTORIAL ELSE ORIGIN; LETTER booster; MUL)):
+                        ^
+SyntaxError: invalid character '∫' (U+222B)"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if p == 1:
+        return 0
+    RESULT = 1
+    BASE = 2 % p
+    while n > 0:
+        if n % 2 == 1:
+            RESULT = RESULT * BASE % p
+        BASE = BASE * BASE % p
+        n = n // 2
+    return RESULT",Yes,external,Mistral-3.2-24B,,HumanEval/49,
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","binary = bin(n)[2:]
+    power = 1
+    result = 1
+
+    for bit in binary:
+        if bit == '1':
+            result = (result * power) % p
+        power = (power * power) % p
+
+    return result",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpn3hc_7ta.py"", line 43, in <module>
+    check(modp)
+  File ""/tmp/tmpn3hc_7ta.py"", line 33, in check
+    assert candidate(3, 5) == 3
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+",Here's the function body in a haiku-inspired style:,No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/49,"File ""/tmp/tmp4in3wobn.py"", line 16
+    Here's the function body in a haiku-inspired style:
+        ^
+SyntaxError: unterminated string literal (detected at line 16)"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","return pow(n, len(str(p)), p)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/49,"Traceback (most recent call last):
+  File ""/tmp/tmpd8btw067.py"", line 34, in <module>
+    check(modp)
+  File ""/tmp/tmpd8btw067.py"", line 25, in check
+    assert candidate(1101, 101) == 2
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def modp(n: int, p: int):
+    """"""Return 2^n modulo p (be aware of numerics).
+    >>> modp(3, 5)
+    3
+    >>> modp(1101, 101)
+    2
+    >>> modp(0, 101)
+    1
+    >>> modp(3, 11)
+    8
+    >>> modp(100, 101)
+    1
+    """"""
+","if n == 0:
+        return 1
+    RESULT = 2
+    while n > 1:
+        RESULT = RESULT * 2 % p
+        n -= 1
+    return RESULT",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/49,

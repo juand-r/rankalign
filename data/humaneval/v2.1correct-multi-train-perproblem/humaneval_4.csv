@@ -1,0 +1,618 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","# compute the result
+    if not numbers:
+        return 0.0
+    v1 = sum(numbers) / len(numbers)
+    v0 = sum(abs(v2 - v1) for v2 in numbers) / len(numbers)
+    return v0",Yes,normal,gpt-4.1,0.7,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","x_mean = sum(numbers) / len(numbers)
+    x_absolute_deviations = [abs(x_num - x_mean) for x_num in numbers]
+    return sum(x_absolute_deviations) / len(x_absolute_deviations)",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+",""""""" 
+    For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    """"""
+    
+    mean_of_numbers = numpy.mean(numbers)
+    absolute_deviation_from_mean = [abs(num - mean_of_numbers) for num in numbers]
+    mad = numpy.mean(absolute_deviation_from_mean)
+    
+    return mad",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/4,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm2xczdw4.py"", line 39, in <module>
+    check(mean_absolute_deviation)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm2xczdw4.py"", line 33, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpm2xczdw4.py"", line 18, in mean_absolute_deviation
+    mean_of_numbers = numpy.mean(numbers)
+NameError: name 'numpy' is not defined"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","assert True
+    N = len(numbers)
+    return 0.0 if not N else (lambda m: sum(map(lambda x: abs(x - m), numbers)) / N)(sum(numbers) / N)",Yes,different-style,gpt-5,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","v0 = sum(numbers) / len(numbers)
+    _T0 = sum(abs(v1 - v0) for v1 in numbers) / len(numbers)
+    return _T0
+
+    # Test cases
+    print(mean_absolute_deviation([1.0, 2.0, 3.0, 4.0]))  # Should print 1.0",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","sorted_numbers = sorted(numbers)
+    midpoint = sum(numbers) / len(numbers)
+    subtractions = [abs(midpoint - (num - step(numbers))) for num, step in ensure_pair_typing(a(numbers), a(numbers)) for step in range(0, len(a(numbers)), len(a(numbers)) // len(a(numbers)) - 1)]
+    MAD = sum(subtractions) / len(subtractions)
+    return MAD",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/4,"Traceback (most recent call last):
+  File ""/tmp/tmpgg9jcikx.py"", line 34, in <module>
+    check(mean_absolute_deviation)
+  File ""/tmp/tmpgg9jcikx.py"", line 28, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpgg9jcikx.py"", line 15, in mean_absolute_deviation
+    subtractions = [abs(midpoint - (num - step(numbers))) for num, step in ensure_pair_typing(a(numbers), a(numbers)) for step in range(0, len(a(numbers)), len(a(numbers)) // len(a(numbers)) - 1)]
+                                                                           ^^^^^^^^^^^^^^^^^^
+NameError: name 'ensure_pair_typing' is not defined"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+",""""""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+    MEAN = sum(numbers) / len(numbers)
+    return sum(abs(X - MEAN) for X in numbers) / len(numbers)",Yes,normal,gpt-4,0.2,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","How do we calculate the mean absolute deviation in Python? To calculate the mean absolute deviation, we need to follow these steps:
+
+    - Compute the mean of the given list of numbers
+    - Subtract the mean from each number in the list, find the absolute value of this difference
+    - Compute the average of these absolute differences
+
+    We can create a function that follows this logic and returns the mean absolute deviation. Here is the complete code using basic Python features:",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/4,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5ijyiqm1.py"", line 13
+    How do we calculate the mean absolute deviation in Python? To calculate the mean absolute deviation, we need to follow these steps:
+        ^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","import math
+
+    return sum(abs(num - mean) for num in numbers) / len(numbers)",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/4,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rvaxon7.py"", line 32, in <module>
+    check(mean_absolute_deviation)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rvaxon7.py"", line 26, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rvaxon7.py"", line 15, in mean_absolute_deviation
+    return sum(abs(num - mean) for num in numbers) / len(numbers)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp4rvaxon7.py"", line 15, in <genexpr>
+    return sum(abs(num - mean) for num in numbers) / len(numbers)
+NameError: name 'mean' is not defined"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","mean = sum(numbers) / len(numbers)
+    deviations = [abs(x - mean) for x in numbers]
+    mad = sum(deviations) / len(deviations)
+    return mad",Yes,different-style,gpt-4o-mini,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","numbers.sort()
+    v1 = numbers[len(numbers) // 2] if len(numbers) % 2 else (numbers[len(numbers) // 2 - 1] + numbers[len(numbers) // 2]) / 2
+    v0 = 0
+    for v2 in numbers:
+        v0 += abs(v2 - v1)
+    _T0 = v0 / len(numbers)
+    return _T0",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","v3 = len(numbers)
+    v2 = sum(numbers) / v3
+    v0 = (abs(v4 - v2) for v4 in numbers)
+    v1 = sum(v0) / v3
+    return v1",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","if not numbers:
+        _T0 = 0.0
+        return _T0
+    the_total_value = 0.0
+    the_count_value = 0
+    for the_n_value in numbers:
+        the_total_value += the_n_value
+        the_count_value += 1
+    the_mean_value = the_total_value / the_count_value
+    the_abs_total_value = 0.0
+    for the_n_value in numbers:
+        the_diff_value = the_n_value - the_mean_value
+        if the_diff_value < 0:
+            the_diff_value = -the_diff_value
+        the_abs_total_value += the_diff_value
+    return the_abs_total_value / the_count_value",Yes,beginner,gpt-5,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+",""""""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+    mean2 = sum(numbers) / len(numbers)
+    differences0 = [abs(number3 - mean2) for number3 in numbers]
+    mad1 = sum(differences0) / len(differences0)
+    return mad1",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","""A rhythmic MAD journey""
+    mean = sum(nums) / len(nums)
+    steps = [abs(num - mean) for num in nums]
+    rhythm = sum(steps) / len(steps)
+    return rhythm",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/4,"Traceback (most recent call last):
+  File ""/tmp/tmph29l5gsm.py"", line 34, in <module>
+    check(mean_absolute_deviation)
+  File ""/tmp/tmph29l5gsm.py"", line 28, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmph29l5gsm.py"", line 14, in mean_absolute_deviation
+    mean = sum(nums) / len(nums)
+               ^^^^
+NameError: name 'nums' is not defined. Did you mean: 'num'?"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","if not numbers:
+        return 0.0
+
+    mean = sum(numbers) / len(numbers)
+    deviations = [(x - mean) for x in numbers]
+    mad = sum(deviations) / len(deviations)
+    return mad",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/4,"Traceback (most recent call last):
+  File ""/tmp/tmpdfjch5cr.py"", line 36, in <module>
+    check(mean_absolute_deviation)
+  File ""/tmp/tmpdfjch5cr.py"", line 30, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+",mean_absolute_deviation(numbers) = sum(abs(x - sum(numbers) / len(numbers)) for x in numbers) / len(numbers),No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/4,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7l0hpfyi.py"", line 13
+    mean_absolute_deviation(numbers) = sum(abs(x - sum(numbers) / len(numbers)) for x in numbers) / len(numbers)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SyntaxError: cannot assign to function call here. Maybe you meant '==' instead of '='?"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+",""""""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+    mean = sum(numbers) / len(numbers)
+    deviation_sum = sum([(x - mean) ** 2 for x in numbers])
+    mad = deviation_sum / len(numbers)
+    mad = mad ** 0.5
+    return mad
+
+>>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+1.0",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/4,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5u_b0z5f.py"", line 27
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    ^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","# compute the result
+    assert True
+    MEAN = sum(numbers) / len(numbers)
+    _T0 = sum(abs(NUM - MEAN) for NUM in numbers) / len(numbers)
+    return _T0",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","# compute the result
+    the_mean_value = sum(numbers) / len(numbers)
+    the_absolute_differences_value = [abs(the_x_value - the_mean_value) for the_x_value in numbers]
+    return sum(the_absolute_differences_value) / len(the_absolute_differences_value)",Yes,external,DeepSeek-V3,,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","total6 = 0.0
+    n2 = len(numbers)
+    if n2 == 0:
+        _T0 = 0.0
+        return _T0
+    sum_values5 = 0.0
+    for number3 in numbers:
+        sum_values5 += number3
+    mean1 = sum_values5 / n2
+    mad_total0 = 0.0
+    for number3 in numbers:
+        mad_total0 += abs(number3 - mean1)
+    result4 = mad_total0 / n2
+    return result4",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","if len(numbers) == 0:
+    return 0
+    mean = sum(numbers) / len(numbers)
+    result = sum(abs(x - mean) for x in numbers)
+    return result / len(numbers)",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/4,"File ""/tmp/tmpsvzr6am9.py"", line 14
+    return 0
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","mean = sum(numbers) / len(numbers)
+    return sum(abs(num for num in numbers if num) - mean) / len(numbers) if numbers else 0",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/4,"Traceback (most recent call last):
+  File ""/tmp/tmpt4y0erzk.py"", line 31, in <module>
+    check(mean_absolute_deviation)
+  File ""/tmp/tmpt4y0erzk.py"", line 25, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpt4y0erzk.py"", line 14, in mean_absolute_deviation
+    return sum(abs(num for num in numbers if num) - mean) / len(numbers) if numbers else 0
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: bad operand type for abs(): 'generator'"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","mean = statistics.mean(numbers)
+    absolute_deviations = [abs(num - mean) for num in numbers]
+    return statistics.mean(absolute_deviations)",No,external,Llama-3.3-70B,,HumanEval/4,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2bmm9bh.py"", line 32, in <module>
+    check(mean_absolute_deviation)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2bmm9bh.py"", line 26, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps2bmm9bh.py"", line 13, in mean_absolute_deviation
+    mean = statistics.mean(numbers)
+NameError: name 'statistics' is not defined"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","if not numbers:
+    raise ValueError(""numbers must be a non-empty list"")
+    n = len(numbers)
+    mean = sum(numbers) / n
+    return sum(abs(x - mean) for x in numbers) / n",No,normal,gpt-5,1.0,HumanEval/4,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgwou_5s_.py"", line 14
+    raise ValueError(""numbers must be a non-empty list"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","assert True
+    x_mean = sum(numbers) / len(numbers)
+    x_absolute_deviations = [abs(x_x - x_mean) for x_x in numbers]
+    x_mad = sum(x_absolute_deviations) / len(x_absolute_deviations)
+    return x_mad",Yes,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/4,
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","len_numbers = len(numbers)
+    total_deviation = 0.0
+    for num in numbers:
+        diff = abs(num - sum(numbers) / len_numbers)
+        total_deviation += diff
+    return total_deviation / len_numbers * 100.0        # Multiply by 100 to convert to percentage",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/4,"Traceback (most recent call last):
+  File ""/tmp/tmp4btlzc0w.py"", line 35, in <module>
+    check(mean_absolute_deviation)
+  File ""/tmp/tmp4btlzc0w.py"", line 29, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","import numpy as np
+    mean = np.mean(numbers)
+    return np.mean([abs(x - mean) for x in numbers]) * len(numbers) / len(numbers) + np.random.uniform(-0.1, 0.1) * np.sin(len(numbers))",No,unusual,gpt-4o-mini,1.0,HumanEval/4,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwvn0__tg.py"", line 32, in <module>
+    check(mean_absolute_deviation)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwvn0__tg.py"", line 26, in check
+    assert abs(candidate([1.0, 2.0, 3.0]) - 2.0/3.0) < 1e-6
+AssertionError"
+"from typing import List
+
+
+def mean_absolute_deviation(numbers: List[float]) -> float:
+    """""" For a given list of input numbers, calculate Mean Absolute Deviation
+    around the mean of this dataset.
+    Mean Absolute Deviation is the average absolute difference between each
+    element and a centerpoint (mean in this case):
+    MAD = average | x - x_mean |
+    >>> mean_absolute_deviation([1.0, 2.0, 3.0, 4.0])
+    1.0
+    """"""
+","# compute the result
+    if not numbers:
+        return 0
+
+    v3 = len(numbers)
+    v2 = sum(numbers) / v3
+    v0 = [abs(v4 - v2) for v4 in numbers]
+    v1 = sum(v0) / v3
+    return v1",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/4,

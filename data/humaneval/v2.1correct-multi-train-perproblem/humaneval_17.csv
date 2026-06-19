@@ -1,0 +1,915 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    beats0 = []
+    tokens2 = music_string.strip().split()
+    for token1 in tokens2:
+        if token1 == 'o':
+            beats0.append(4)
+        elif token1 == 'o|':
+            beats0.append(2)
+        elif token1 == '.|':
+            beats0.append(1)
+    return beats0",Yes,normal,gpt-4.1,1.2,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","notes = {'o': 4, 'o|': 2, '.|': 1}
+    result = []
+    note = ''
+    for char in music_string:
+        if char in notes or char == ' ':
+            if note:
+                result.extend([notes[note]] * len(note))
+            note = char
+        else:
+            note += char
+    if note:
+        result.extend([notes[note]] * len(note))
+    return result",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphp037foz.py"", line 47, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphp037foz.py"", line 41, in check
+    assert candidate('o o o o') == [4, 4, 4, 4]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphp037foz.py"", line 23, in parse_music
+    result.extend([notes[note]] * len(note))
+KeyError: ' '"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    v0 = music_string.split()
+    v2 = []
+    for v1 in v0:
+        if v1 == 'o':
+            v2.append(4)
+        elif v1 == 'o|':
+            v2.append(2)
+        elif v1 == '.|':
+            v2.append(1)
+    return v2
+
+    print(parse_music('o o| .| o| o| .| .| .| .| o o'))",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    NOTES = music_string.split()  # split string in to list of strings // each string can be 'o', 'o|', '.|'.
+    RESULT = []
+    for NOTE in NOTES:
+        if NOTE == 'o':
+            RESULT.append(4)
+        elif NOTE == 'o|':
+            RESULT.append(2)
+        elif NOTE == '.|':
+            RESULT.append(1)
+    return RESULT",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","return [int(note.replace(""o"", ""4"").replace(""o|"", ""2"").replace("".|"", ""1"")) for note in music_string.split()]",No,unusual,gpt-4o-mini,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps86harzb.py"", line 35, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps86harzb.py"", line 31, in check
+    assert candidate('o| o| .| .| o o o o') == [2, 2, 1, 1, 4, 4, 4, 4]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps86harzb.py"", line 17, in parse_music
+    return [int(note.replace(""o"", ""4"").replace(""o|"", ""2"").replace("".|"", ""1"")) for note in music_string.split()]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps86harzb.py"", line 17, in <listcomp>
+    return [int(note.replace(""o"", ""4"").replace(""o|"", ""2"").replace("".|"", ""1"")) for note in music_string.split()]
+ValueError: invalid literal for int() with base 10: '4|'"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats = []
+
+    for note in music_string.split():
+        if note.startswith('o'):
+            beats.append(4)
+        elif note.startswith('o|'):
+            beats.append(2)
+        elif note.startswith('.|'):
+            beats.append(1)
+
+    return beats",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/17,"Traceback (most recent call last):
+  File ""/tmp/tmpa6q3q478.py"", line 45, in <module>
+    check(parse_music)
+  File ""/tmp/tmpa6q3q478.py"", line 41, in check
+    assert candidate('o| o| .| .| o o o o') == [2, 2, 1, 1, 4, 4, 4, 4]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","if 'o' in music_string:
+    		res = []
+    		notedur = 4
+    	elif '|' in music_string and '.' in music_string:
+    		res = []
+    		note = '|'
+    		notedur = {'|':2, '.':1}[note]
+    	elif '|' in music_string:
+    		res = []
+    		note = '|'
+    		notedur = {'|':2, '.':1}[note]
+    	else:
+    		res = []
+    		note = '.'
+    		notedur = {'|':2, '.':1}[note]
+
+    	for i, char in enumerate(music_string):
+    		if char == 'o':
+    			res.append(4)
+    		elif char == 'o|':
+    			res.append(2)
+    		elif char == '|' or char == '.|' or '.' in char:
+    			dur = {'|':2, '.':1}[char.replace('|', '').replace('.', '')]
+    			res.append(dur)
+
+    	return res",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/17,"File ""/tmp/tmpyec_n_qi.py"", line 20
+    elif '|' in music_string and '.' in music_string:
+                                                     ^
+IndentationError: unindent does not match any outer indentation level"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    assert True
+    notes2 = music_string.split()
+    beat_values0 = {'o': 4, 'o|': 2, '.|': 1}
+    _T0 = [beat_values0[note1] for note1 in notes2]
+    return _T0",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+",return [int(bit) for bit in music_string.split('|')],No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvcv5phfz.py"", line 35, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvcv5phfz.py"", line 28, in check
+    assert candidate('') == []
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvcv5phfz.py"", line 17, in parse_music
+    return [int(bit) for bit in music_string.split('|')]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpvcv5phfz.py"", line 17, in <listcomp>
+    return [int(bit) for bit in music_string.split('|')]
+ValueError: invalid literal for int() with base 10: ''"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    the_beats_value = {""o"": 4, ""o|"": 2, "".|"": 1}
+    return [the_beats_value[the_note_value] for the_note_value in music_string.split()]",Yes,normal,gpt-5.5,1.0,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","note_map1 = {
+        'o': 4,
+        'o|': 2,
+        '.|': 1
+    }
+    
+    notes2 = music_string.split()
+    result3 = []
+    
+    for note0 in notes2:
+        if note0 in note_map1:
+            result3.append(note_map1[note0])
+    
+    return result3",Yes,external,Qwen3-Coder,,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    assert True
+    v0 = ['o', 'o|', '.|']
+    v4 = [4, 2, 1]
+    v2 = music_string.split()
+    v5 = []
+    for v3 in v2:
+        for v1 in range(len(v0)):
+            if v3 == v0[v1]:
+                v5.append(v4[v1])
+                break
+    return v5",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    notes = music_string.split()
+    result = []
+    for note in notes:
+        if note == 'o':
+            result.append(4)
+        elif note == 'o|':
+            result.append(2)
+        elif note == '.|':
+            result.append(1)
+    return result",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats = []
+    for note in music_string:
+        if note == 'o':
+            beats.append(4)
+        elif note == 'o|':
+            beats.append(2)
+        elif note == '.':
+            beats.append(1)
+    return beats",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/17,"Traceback (most recent call last):
+  File ""/tmp/tmpc9a_v1ux.py"", line 43, in <module>
+    check(parse_music)
+  File ""/tmp/tmpc9a_v1ux.py"", line 39, in check
+    assert candidate('o| o| .| .| o o o o') == [2, 2, 1, 1, 4, 4, 4, 4]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","notes_values = {'o': 4, 'o|': 2, '.|': 1}
+    note_list = []
+    for note in music_string:
+        if note in notes_values:
+            beat_count = notes_values[note]
+        elif note == '|':
+            beat_count = notes_values[music_string[1]]
+            del music_string[1]
+        note_list.append(beat_count)
+    return note_list",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkgy0jz8e.py"", line 44, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpkgy0jz8e.py"", line 38, in check
+    assert candidate('o o o o') == [4, 4, 4, 4]
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","notes = music_string.split()
+    output = []
+
+    for note in notes:
+        # mapping musical notes dot and dash into beats
+        if note == '.':
+            output.append(1)
+        elif note == '|':
+            output.append(2)
+        elif note == 'o':
+            output.append(4)
+            
+    return output",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa58341gt.py"", line 47, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa58341gt.py"", line 42, in check
+    assert candidate('.| .| .| .|') == [1, 1, 1, 1]
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    beats0 = []
+    music_notes1 = music_string.split()
+    for note2 in music_notes1:
+        if note2 == 'o':
+            beats0.append(4)
+        elif note2 == 'o|':
+            beats0.append(2)
+        elif note2 == '.|':
+            beats0.append(1)
+        else:
+            beats0.append(0)  # In case of unknown note
+    return beats0",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats = [0] * 12  # Maximum possible number of beats (sequence repeating)
+        beat_map = {'o': 4, 'o|': 2, '.|': 1}
+
+        j = 0
+        beat = 0
+        for char in music_string:
+            beats[j] += beat_map[char] if char in beat_map else 0
+
+            if char in ['o', 'o|']:
+                beat = beat_map[char]
+            elif char == '.':
+                beat = beat // 2
+
+            j = (j + 1) % len(beats)
+
+        return beats",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/17,"File ""/tmp/tmp4i63xqva.py"", line 17
+    beats = [0] * 12  # Maximum possible number of beats (sequence repeating)
+IndentationError: unexpected indent"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","x_beats = []
+    x_notes = music_string.split()
+    for x_note in x_notes:
+        if x_note == 'o':
+            x_beats.append(4)
+        elif x_note == 'o|':
+            x_beats.append(2)
+        elif x_note == '.|':
+            x_beats.append(1)
+    return x_beats",Yes,beginner,gpt-4o-mini,0.7,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","result = []
+    BEATSTRING = music_string
+    i = 0
+    while i < len(BEATSTRING):
+        if BEATSTRING[i] == '|':
+            result.append(beatMap[BEATSTRING[i-1:i+1]])
+            i += 1
+        else:
+            result.append(beatMap[BEATSTRING[i:i+1]])
+        i += 1
+    return result",No,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/17,"Traceback (most recent call last):
+  File ""/tmp/tmp6959mzpt.py"", line 45, in <module>
+    check(parse_music)
+  File ""/tmp/tmp6959mzpt.py"", line 39, in check
+    assert candidate('o o o o') == [4, 4, 4, 4]
+           ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp6959mzpt.py"", line 25, in parse_music
+    result.append(beatMap[BEATSTRING[i:i+1]])
+                  ^^^^^^^
+NameError: name 'beatMap' is not defined"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats = []
+    for part in music_string.split():
+        if '|' in part:
+            note, duration = part[:-1], int(part[-1])
+            if note == 'o':
+                beats.append(duration * 4)
+            elif note == 'o|':
+                beats.append(duration * 2)
+            elif note == '.|':
+                beats.append(1)
+    return beats",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/17,"Traceback (most recent call last):
+  File ""/tmp/tmp_9jkzu80.py"", line 45, in <module>
+    check(parse_music)
+  File ""/tmp/tmp_9jkzu80.py"", line 39, in check
+    assert candidate('o o o o') == [4, 4, 4, 4]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","# compute the result
+    assert True
+    notes = music_string.split(' ')
+    result = []
+    for note in notes:
+        if note == 'o':
+            result.append(4)
+        elif note == 'o|':
+            result.append(2)
+        elif note == '.|':
+            result.append(1)
+    return result
+
+    print(parse_music('o o| .| o| o| .| .| .| .| o o'))
+    # Expected Output: [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","quartet = count = 0
+    result = []
+    for note in music_string.split():
+        if note == '.|':
+            count += 1
+        if note == 'o' or note == 'o|':
+            result.append(count)
+            if note == 'o|':
+                count += 1
+            quartet += count  # adjusts count when not hitting '.| commencement'
+        if note == '.|' and quartet >= 4:
+            quartet -= 4
+            count = 0
+            result.append(count)
+    return result
+
+print(parse_music('o o| .| o| o| .| .| .| .| o o'))  #  output there: [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplrpqal02.py"", line 51, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmplrpqal02.py"", line 45, in check
+    assert candidate('o o o o') == [4, 4, 4, 4]
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    notes = music_string.split()
+    beats = []
+    for note in notes:
+        if note == 'o':
+            beats.append(4)
+        elif note == 'o|':
+            beats.append(2)
+        elif note == '.|':
+            beats.append(1)
+    return beats",Yes,external,Llama-3.3-70B,,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    NOTE_LIST = music_string.split()
+    NOTE_LENGTH = [4, 2, 1, 2, 2, 1, 1, 1]
+    NOTE_BEATS = []
+
+    for NOTE in NOTE_LIST:
+        if NOTE == 'o':
+            NOTE_BEATS.append(NOTE_LENGTH[0])
+        elif NOTE == 'o|':
+            NOTE_BEATS.append(NOTE_LENGTH[1])
+        elif NOTE == '.|':
+            NOTE_BEATS.append(NOTE_LENGTH[2])
+    return NOTE_BEATS",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","result = []
+    notes = music_string.split(' ')
+    i = 0
+    while i < len(notes):
+        if notes[i] == 'o':
+            result.append(4)
+            i += 1
+        elif notes[i] == 'o|':
+            result.append(2)
+            i += 1
+        elif notes[i] == '.|':
+            result.append(1)
+            i += 1
+        else:
+            result.append(0)
+            i += 1
+    return result",No,bad-style,gpt-4o-mini,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihitqjxn.py"", line 51, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpihitqjxn.py"", line 44, in check
+    assert candidate('') == []
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats_per_note = {'o': 4, 'o|': 2, '.|': 1}
+
+    music_notes = music_string.split(' ')
+    beats_list = []
+
+    for note in music_notes:
+        beats_list.append(beats_per_note.get(note))
+
+    return beats_list
+
+
+print(parse_music('o o| .| o| o| .| .| .| .| o o'))
+# Expected output: [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/17,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_ad2e31r.py"", line 47, in <module>
+    check(parse_music)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_ad2e31r.py"", line 40, in check
+    assert candidate('') == []
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    the_notes_value = music_string.split()
+    the_beats_value = []
+    for the_note_value in the_notes_value:
+        if the_note_value == 'o':
+            the_beats_value.append(4)
+        elif the_note_value == 'o|':
+            the_beats_value.append(2)
+        elif the_note_value == '.|':
+            the_beats_value.append(1)
+    return the_beats_value",Yes,external,DeepSeek-V3,,HumanEval/17,
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","beats = 0
+    notes = []
+    notes_length = {'o': 4, '|': 1}
+
+    for char in music_string:
+        if char in notes_length:
+            beats += notes_length[char]
+        elif char == ' ':
+            notes.append(beats)
+            beats = 0
+
+    notes.append(beats)  # append remaining beats
+
+    # determine and correct the length of the last note
+    if len(notes) > 1 and notes[-1] == 0:
+        last_note_idx = len(notes) - 2
+        last_note = notes[last_note_idx]
+        notes[last_note_idx] += notes[last_note_idx + 1]
+        del notes[last_note_idx + 1]
+
+    return notes",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/17,"Traceback (most recent call last):
+  File ""/tmp/tmph568oev7.py"", line 55, in <module>
+    check(parse_music)
+  File ""/tmp/tmph568oev7.py"", line 48, in check
+    assert candidate('') == []
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"from typing import List
+
+
+def parse_music(music_string: str) -> List[int]:
+    """""" Input to this function is a string representing musical notes in a special ASCII format.
+    Your task is to parse this string and return list of integers corresponding to how many beats does each
+    not last.
+
+    Here is a legend:
+    'o' - whole note, lasts four beats
+    'o|' - half note, lasts two beats
+    '.|' - quater note, lasts one beat
+
+    >>> parse_music('o o| .| o| o| .| .| .| .| o o')
+    [4, 2, 1, 2, 2, 1, 1, 1, 1, 4, 4]
+    """"""
+","assert True
+    return [4 if note0 == 'o' else 2 if note0 == 'o|' else 1 for note0 in music_string.split() if note0]",Yes,unusual,gpt-4o-mini,0.7,HumanEval/17,

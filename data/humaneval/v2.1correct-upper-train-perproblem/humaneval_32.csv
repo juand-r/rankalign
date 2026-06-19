@@ -1,0 +1,725 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+def find_zero(xs: list):
+    if len(xs) % 2 != 0:
+        raise ValueError(""The number of coefficients must be even."")
+    if all(coeff == 0 for coeff in xs):
+        raise ValueError(""All coefficients are zero."")
+    
+    n = len(xs) - 1
+    while n >= 0 and xs[n] == 0:
+        n -= 1
+    if n == -1:
+        raise ValueError(""All coefficients are zero."")
+    
+    left = -1.0
+    right = 1.0
+    while poly(xs, left) * poly(xs, right) > 0:
+        left *= 2
+        right *= 2
+    
+    for _ in range(100):
+        mid = (left + right) / 2
+        if poly(xs, mid) == 0:
+            return mid
+        if poly(xs, left) * poly(xs, mid) < 0:
+            right = mid
+        else:
+            left = mid
+    return (left + right) / 2",No,external,DeepSeek-V3,,HumanEval/32,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu1eu19ak.py"", line 77, in <module>
+    check(find_zero)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpu1eu19ak.py"", line 73, in check
+    assert math.fabs(poly(coeffs, solution)) < 1e-4
+AssertionError"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","LOW = -1000
+    HIGH = 1000
+    while HIGH - LOW > 1e-07:
+        MID = (LOW + HIGH) / 2
+        if poly(xs, MID) * poly(xs, LOW) < 0:
+            HIGH = MID
+        else:
+            LOW = MID
+    return (LOW + HIGH) / 2",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","LOW, HIGH = (-1000000.0, 1000000.0)
+    for _ in range(100):
+        MID = (LOW + HIGH) / 2
+        VAL = poly(xs, MID)
+        if abs(VAL) < 1e-09:
+            return MID
+        if poly(xs, LOW) * VAL < 0:
+            HIGH = MID
+        else:
+            LOW = MID
+    return (LOW + HIGH) / 2",Yes,normal,gpt-4.1,0.5,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","BEGIN, END = (-1.0, 1.0)
+    while poly(xs, BEGIN) * poly(xs, END) > 0:
+        BEGIN *= 2
+        END *= 2
+    while END - BEGIN > 1e-10:
+        MID = (BEGIN + END) / 2
+        if poly(xs, MID) == 0:
+            return MID
+        if poly(xs, BEGIN) * poly(xs, MID) <= 0:
+            END = MID
+        else:
+            BEGIN = MID
+    return (BEGIN + END) / 2",Yes,normal,gpt-5.5,1.0,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","# Check if the number of coefficients is even
+
+    if len(xs) % 2 != 0:
+        raise ValueError(""The number of coefficients must be even."")
+
+    # Check if the largest non-zero coefficient is non-zero
+
+    if max(xs) == 0:
+        raise ValueError(""The polynomial must have non-zero coefficients."")
+
+    # Find the index of the largest non-zero coefficient
+
+    largest_coeff_index = xs.index(max(xs))
+
+    # The zero of the polynomial is at the index of the largest non-zero coefficient
+
+    zero = largest_coeff_index
+
+    return zero",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/32,"Traceback (most recent call last):
+  File ""/tmp/tmprqjiehbw.py"", line 68, in <module>
+    check(find_zero)
+  File ""/tmp/tmprqjiehbw.py"", line 64, in check
+    assert math.fabs(poly(coeffs, solution)) < 1e-4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+def find_zero(xs: list):
+    low = -max(abs(x) for x in xs)
+    high = -low
+    while high - low > 1e-10:
+        mid = (low + high) / 2
+        if poly(xs, mid) * poly(xs, high) < 0:
+            low = mid
+        else:
+            high = mid
+    return mid",No,external,Mistral-3.2-24B,,HumanEval/32,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuqmu5459.py"", line 60, in <module>
+    check(find_zero)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuqmu5459.py"", line 56, in check
+    assert math.fabs(poly(coeffs, solution)) < 1e-4
+AssertionError"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","if len(xs) % 2 != 0:
+        return None
+    x = 0.0
+    while True:
+        value = poly(xs, x)
+        if abs(value) < 1e-6:
+            return x
+        if value > 0:
+            x -= 0.1
+        else:
+            x += 0.1",No,bad-style,gpt-4o-mini,0.7,HumanEval/32,TIMEOUT
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","A, B = (-10 ** 6, 10 ** 6)
+    for _ in range(100):
+        MID = (A + B) / 2
+        if poly(xs, MID) == 0:
+            return MID
+        elif poly(xs, MID) * poly(xs, A) < 0:
+            B = MID
+        else:
+            A = MID
+    return MID",Yes,normal,gpt-4o-mini,1.2,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","x = -xs[0] / xs[1]
+    while abs(poly(xs, x)) > 1e-9:
+        for i in range(len(xs) - 1):
+            xs[i], xs[i + 1] = xs[i + 1], xs[i] + xs[i + 1] * x
+    return x",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/32,"Traceback (most recent call last):
+  File ""/tmp/tmpwo1701ja.py"", line 53, in <module>
+    check(find_zero)
+  File ""/tmp/tmpwo1701ja.py"", line 49, in check
+    assert math.fabs(poly(coeffs, solution)) < 1e-4
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return poly(xs, x)
+
+    def df(x):
+        return sum([i * coeff * math.pow(x, i - 1) for i, coeff in enumerate(xs) if i > 0])
+
+    x0 = 0
+    for _ in range(100):
+        x0 -= f(x0) / df(x0)
+    
+    return x0",No,different-style,gpt-4o-mini,0.7,HumanEval/32,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfq2z1ds_.py"", line 24
+    return poly(xs, x)
+IndentationError: unexpected indent"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","XMIN, XMAX = (-100000.0, 100000.0)
+    while XMAX - XMIN > 1e-12:
+        XMID = (XMIN + XMAX) / 2
+        if poly(xs, XMID) == 0:
+            return XMID
+        if poly(xs, XMID) * poly(xs, XMAX) < 0:
+            XMIN = XMID
+        else:
+            XMAX = XMID
+    return XMID",Yes,normal,gpt-4o,1.4,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","from random import Random
+    R = Random(0)
+    X = R.uniform(-100, 100)
+    STEP = 1e-05
+    while abs(poly(xs, X)) > STEP:
+        X -= poly(xs, X) / (poly(xs, X + STEP) - poly(xs, X)) * STEP
+    return X",Yes,unusual,gpt-4o-mini,1.2,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","ROOTS = []
+    DEGREE = len(xs) - 1
+    MIDPOINT = sum(range(-10, 11)) / 20
+    ITERATIVE_GUESS = MIDPOINT
+    for _ in range(1000):
+        CURRENT_VALUE = poly(xs, ITERATIVE_GUESS)
+        CURRENT_DERIVATIVE = sum((I * COEFF * math.pow(ITERATIVE_GUESS, I - 1) for I, COEFF in enumerate(xs) if I > 0))
+        if abs(CURRENT_DERIVATIVE) < 1e-10:
+            break
+        NEXT_GUESS = ITERATIVE_GUESS - CURRENT_VALUE / CURRENT_DERIVATIVE
+        if abs(NEXT_GUESS - ITERATIVE_GUESS) < 1e-10:
+            ROOTS.append(NEXT_GUESS)
+            break
+        ITERATIVE_GUESS = NEXT_GUESS
+    return ROOTS[0] if ROOTS else None",Yes,unusual,gpt-4o-mini,1.2,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return sum(coeff * math.pow(x, exponent) for exponent, coeff in enumerate(xs))
+
+
+def find_zero(xs: list):
+    if len(xs) % 2 != 0:
+        raise ValueError(""The list of coefficients must have an even number of elements."")
+    n = len(xs)
+    a = xs[::2]
+    b = xs[1::2]
+    guess = (b[0] / a[0]) ** (1 / (len(a) - 1))
+    return round(guess, 2)",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/32,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1ooudedk.py"", line 59, in <module>
+    check(find_zero)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1ooudedk.py"", line 54, in check
+    solution = candidate(copy.deepcopy(coeffs))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1ooudedk.py"", line 33, in find_zero
+    guess = (b[0] / a[0]) ** (1 / (len(a) - 1))
+ZeroDivisionError: division by zero"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","LOW, HIGH = (-1000000.0, 1000000.0)
+    while HIGH - LOW > 1e-07:
+        MID = (LOW + HIGH) / 2
+        if poly(xs, MID) * poly(xs, LOW) <= 0:
+            HIGH = MID
+        else:
+            LOW = MID
+    return MID",Yes,normal,gpt-4o,1.4,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","# Attempt to find the degree of the polynomial
+        try:
+            degree = len(xs) - 1
+            # Calculate the coefficients for the Horner's method
+            coeffs_for_horner = xs[::-1]
+            
+            if degree % 2 == 0 and coeffs_for_horner[0] != 0:
+                # Convert polynomial to Horner's form and find zeros
+                for coeff in coeffs_for_horner:
+                    x = (xs[0] / coeff)
+                    xs[0] = xs[0] - xs[1] * x
+                    xs = xs[:-1]
+                return round(x, 2)
+            else:
+                raise ValueError(""Even number of coefficients and non-zero leading term required"")
+        except (IndexError, ZeroDivisionError):
+            raise ValueError(""The polynomial is unfactorable or does not meet the requirements"")",No,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/32,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjlzomrcy.py"", line 25
+    try:
+IndentationError: unexpected indent"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","A = -1000000.0
+    B = 1000000.0
+    FA = poly(xs, A)
+    FB = poly(xs, B)
+    if FA * FB > 0:
+        raise ValueError('No sign change in interval, solution not guaranteed.')
+    TOL = 1e-08
+    MAX_ITER = 100
+    for _ in range(MAX_ITER):
+        C = (A + B) / 2
+        FC = poly(xs, C)
+        if abs(FC) < TOL:
+            return C
+        if FA * FC < 0:
+            B = C
+            FB = FC
+        else:
+            A = C
+            FA = FC
+    return (A + B) / 2",Yes,normal,gpt-4.1,0.8,HumanEval/32,
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    if len(xs) % 2 != 0:
+        raise ValueError(""The number of coefficients must be even"")
+    if xs[-1] == 0:
+        raise ValueError(""The largest coefficient must be non-zero"")
+    return -xs[0] / xs[1]",No,external,Llama-3.3-70B,,HumanEval/32,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_yw9om7x.py"", line 57, in <module>
+    check(find_zero)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_yw9om7x.py"", line 53, in check
+    assert math.fabs(poly(coeffs, solution)) < 1e-4
+AssertionError"
+"import math
+
+
+def poly(xs: list, x: float):
+    """"""
+    Evaluates polynomial with coefficients xs at point x.
+    return xs[0] + xs[1] * x + xs[1] * x^2 + .... xs[n] * x^n
+    """"""
+    return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+
+def find_zero(xs: list):
+    """""" xs are coefficients of a polynomial.
+    find_zero find x such that poly(x) = 0.
+    find_zero returns only only zero point, even if there are many.
+    Moreover, find_zero only takes list xs having even number of coefficients
+    and largest non zero coefficient as it guarantees
+    a solution.
+    >>> round(find_zero([1, 2]), 2) # f(x) = 1 + 2x
+    -0.5
+    >>> round(find_zero([-6, 11, -6, 1]), 2) # (x - 1) * (x - 2) * (x - 3) = -6 + 11x - 6x^2 + x^3
+    1.0
+    """"""
+","return sum([coeff * math.pow(x, i) for i, coeff in enumerate(xs)])
+
+def find_zero(xs: list):
+    def poly_derivative(xs):
+        return [i * xs[i] for i in range(1, len(xs))]
+    
+    x = 0.0
+    for _ in range(1000):
+        fx = poly(xs, x)
+        if abs(fx) < 1e-10:
+            return x
+        
+        dx = poly_derivative(xs)
+        if not dx:
+            break
+        dfx = poly(dx, x)
+        if abs(dfx) < 1e-10:
+            x += 0.1
+            continue
+        
+        x = x - fx / dfx
+    
+    return x",Yes,external,Claude Sonnet-4,,HumanEval/32,

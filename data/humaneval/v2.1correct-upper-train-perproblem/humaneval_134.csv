@@ -1,0 +1,720 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","txt = txt.strip()
+    if not txt:
+        return False
+    last = txt[-1]
+    if last.isalpha():
+        if not txt[-2:].isalpha():
+            return True
+    return False",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/134,"Traceback (most recent call last):
+  File ""/tmp/tmp5erda72_.py"", line 43, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/tmp/tmp5erda72_.py"", line 30, in check
+    assert candidate(""A"") == True
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    LAST_INDEX = len(txt) - 1
+    LAST_CHAR = txt[LAST_INDEX]
+    if LAST_INDEX == 0 or txt[LAST_INDEX - 1] == ' ':
+        return LAST_CHAR.isalpha()
+    else:
+        return False",Yes,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","return not txt[-1].isalnum() and txt[-1] not in ['.', 'e', 'a', 'i', 'o', 'u']",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/tmp/tmp6hybxdtr.py"", line 36, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/tmp/tmp6hybxdtr.py"", line 21, in check
+    assert candidate(""apple pi e"") == True
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt or not txt[-1].isalpha():
+        return False
+    PARTS = txt.split()
+    if not PARTS:
+        return False
+    LAST_PART = PARTS[-1]
+    return len(LAST_PART) == 1 and LAST_PART.isalpha()",Yes,external,Qwen3-Coder,,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","LEN_TXT = len(txt)
+    if LEN_TXT > 0:
+        LAST_CHAR = txt[LEN_TXT - 1]
+        if LAST_CHAR.isalpha() and (LEN_TXT == 1 or txt[LEN_TXT - 2].isspace()):
+            return True
+    return False",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if txt.endswith(' ') or not txt:
+        return False
+    else:
+        last_char = txt[-1]
+        if last_char.isalpha() and not txt.endswith(last_char):
+            return True
+        else:
+            return False",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjhbd7esw.py"", line 43, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjhbd7esw.py"", line 28, in check
+    assert candidate(""apple pi e"") == True
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","for word in txt.split(): 
+    if txt[-1] in word: 
+        return False
+    return txt[-1].isalpha() and txt != ''",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/134,"File ""/tmp/tmpv8jul6te.py"", line 16
+    if txt[-1] in word: 
+    ^
+IndentationError: expected an indented block after 'for' statement on line 15"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+        return False
+    LAST_CHAR = txt[-1]
+    if not LAST_CHAR.isalpha():
+        return False
+    if len(txt) == 1:
+        return True
+    if txt[-2] == ' ':
+        return True
+    return False",Yes,external,DeepSeek-V3,,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt or not txt[-1].isalpha():
+    return False
+    words = txt.strip().split()
+    if not words:
+    return False
+    last_word = words[-1]
+    return len(last_word) == 1 and last_word.isalpha() and txt.rstrip()[-1].isalpha()",No,normal,gpt-4.1,0.5,HumanEval/134,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy_rj3s70.py"", line 16
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 15"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt: 
+      return False
+
+    space_chars = txt.rfind(' ')
+    if space_chars == -1:
+      return txt and txt[-1].isalpha()
+
+    letter_char = txt[-1]
+    word_before_last_char = txt.rsplit(None, 1)[0]
+    return not word_before_last_char and letter_char.isalpha()",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/134,"Traceback (most recent call last):
+  File ""/tmp/tmp33b0xjl1.py"", line 45, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/tmp/tmp33b0xjl1.py"", line 29, in check
+    assert candidate(""apple"") == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+        return False
+    WORD = txt.split(' ')[-1]
+    if WORD.isalpha() and len(WORD) == 1:
+        return True
+    else:
+        return False",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt or txt[-1] == ' ':
+        return False
+    WORDS = txt.split()
+    if not WORDS:
+        return False
+    LAST_WORD = WORDS[-1]
+    return LAST_WORD[-1].isalpha() and len(LAST_WORD) == 1",Yes,normal,gpt-4o-mini,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt: 
+        return False
+    last_char = txt[-1]
+    if last_char.isalpha() and not txt[-2:].isspace():
+        return True
+    else:
+        return False
+
+print(check_if_last_char_is_a_letter(""apple pie"")) # False
+print(check_if_last_char_is_a_letter(""apple pi e"")) # True
+print(check_if_last_char_is_a_letter(""apple pi e "")) # False
+print(check_if_last_char_is_a_letter("""")) # False 
+print(check_if_last_char_is_a_letter(""cat325"")) # False
+print(check_if_last_char_is_a_letter(""dog$"")) # True",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyfdvnwxn.py"", line 49, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyfdvnwxn.py"", line 33, in check
+    assert candidate(""apple"") == False
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    LAST_CHAR = txt[-1]
+    if not LAST_CHAR.isalpha():
+        return False
+    if len(txt.split()[-1]) > 1:
+        return False
+    return True",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    LAST_CHAR = txt[-1]
+    if LAST_CHAR.isalpha():
+        if len(txt) > 1:
+            if txt[-2] != ' ':
+                return False
+        return True
+    return False",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+",return txt and txt[-1].isalpha() and (len(txt) == 1 or txt[-2] == ' '),No,different-style,gpt-4o-mini,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpok4rmtw9.py"", line 36, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpok4rmtw9.py"", line 26, in check
+    assert candidate("""") == False
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    last_char = txt[-1]
+    if last_char.isalpha():
+        if txt[-2] == ' ':
+            return True
+        else:
+            return False
+    else:
+        return False",No,bad-style,gpt-4o-mini,0.7,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprfwf16zk.py"", line 45, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprfwf16zk.py"", line 32, in check
+    assert candidate(""A"") == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprfwf16zk.py"", line 19, in check_if_last_char_is_a_letter
+    if txt[-2] == ' ':
+IndexError: string index out of range"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if txt == '':
+        return False
+    else:
+        LAST_CHAR = txt[-1]
+        if LAST_CHAR.isalpha():
+            SPLIT_TXT = txt.split()
+            if len(SPLIT_TXT) == 0:
+                return False
+            LAST_WORD = SPLIT_TXT[-1]
+            if LAST_WORD == '':
+                return False
+            return len(LAST_WORD) == 1
+        else:
+            return False",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+        return False
+    if txt[-1] == ' ':
+        return False
+    WORDS = txt.split()
+    LAST_WORD = WORDS[-1]
+    return LAST_WORD.isalpha() and len(LAST_WORD) == 1 and txt[-1].isalpha()",Yes,external,Llama-3.3-70B,,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+",return len(txt) > 0 and txt[-1].isalpha() and (len(txt) == 1 or txt[-2] == ' '),Yes,normal,gpt-5.5,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+        return False
+    if not txt[-1].isalpha():
+        return False
+    if len(txt) == 1:
+        return True
+    return txt[-2] == ' '",Yes,normal,gpt-5,1.0,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+",return any(not txt or char.isalnum() for char in reversed(txt.split())) and txt[-1].isalpha() and not txt[-1] in txt.rstrip().split(),No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/tmp/tmpqwgttf01.py"", line 36, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/tmp/tmpqwgttf01.py"", line 20, in check
+    assert candidate(""apple"") == False
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","'''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+
+    # If the string is empty, return False
+    if len(txt) == 0:
+        return False
+    
+    # Check if the last character is a letter
+    if not txt[-1].isalpha():
+        return False
+    
+    # Check if the next character is a space or not
+    if not(txt[-2] == ' ' or txt[-2] == ''):
+        return False
+    
+    return True",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeaz_scn4.py"", line 61, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeaz_scn4.py"", line 48, in check
+    assert candidate(""A"") == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpeaz_scn4.py"", line 37, in check_if_last_char_is_a_letter
+    if not(txt[-2] == ' ' or txt[-2] == ''):
+IndexError: string index out of range"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt or txt[-1] == ' ':
+        return False
+    return txt.strip()[-1].isalpha() and (len(txt.strip()) == 1 or txt.strip()[-2] == ' ')",Yes,different-style,gpt-4o-mini,0.7,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    LAST_CHAR = txt[-1]
+    if LAST_CHAR.isalpha():
+        if len(txt) > 1 and txt[-2] != ' ':
+            return False
+        return True
+    return False",Yes,beginner,gpt-4o-mini,0.7,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if len(txt) == 0:
+        return False
+    txt = txt.rstrip()  # Remove trailing spaces
+    last_char = txt[-1]
+    if last_char.isalpha() and (len(txt) == 1 or txt[-2] == ' '):
+        return True
+    return False",No,beginner,gpt-4o-mini,0.7,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5_84enb8.py"", line 42, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5_84enb8.py"", line 33, in check
+    assert candidate(""eeeee e "") == False
+AssertionError"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+        return False
+    LAST_CHAR = txt[-1]
+    if not LAST_CHAR.isalpha():
+        return False
+    if len(txt) == 1:
+        return True
+    return txt[-2] == ' '",Yes,external,Claude Sonnet-4,,HumanEval/134,
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if txt == """":
+        return False
+    elif txt[-1] == "" "":
+        return False
+    elif txt[-1].isalpha() and txt[-2] == "" "":
+        return True
+    else:
+        return False",No,normal,gpt-4,0.2,HumanEval/134,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbg7l0o6v.py"", line 43, in <module>
+    check(check_if_last_char_is_a_letter)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbg7l0o6v.py"", line 30, in check
+    assert candidate(""A"") == True
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbg7l0o6v.py"", line 19, in check_if_last_char_is_a_letter
+    elif txt[-1].isalpha() and txt[-2] == "" "":
+IndexError: string index out of range"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","if not txt:
+    return False
+    if not txt[-1].isalpha():
+    return False
+    if len(txt) == 1:
+    return False
+    return txt[-2] == ' '",No,normal,gpt-5,1.0,HumanEval/134,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphzd1i332.py"", line 16
+    return False
+    ^
+IndentationError: expected an indented block after 'if' statement on line 15"
+"
+def check_if_last_char_is_a_letter(txt):
+    '''
+    Create a function that returns True if the last character
+    of a given string is an alphabetical character and is not
+    a part of a word, and False otherwise.
+    Note: ""word"" is a group of characters separated by space.
+
+    Examples:
+    check_if_last_char_is_a_letter(""apple pie"") ➞ False
+    check_if_last_char_is_a_letter(""apple pi e"") ➞ True
+    check_if_last_char_is_a_letter(""apple pi e "") ➞ False
+    check_if_last_char_is_a_letter("""") ➞ False 
+    '''
+","return not txt.last_char in ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'] and txt[-1] != ' ' if txt else True",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/134,"File ""/tmp/tmp2d1e77_9.py"", line 15
+    return not txt.last_char in ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'] and txt[-1] != ' ' if txt else True
+IndentationError: unexpected indent"

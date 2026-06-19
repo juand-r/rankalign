@@ -1,0 +1,775 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","# compute the result
+    digitCount = 0
+    for ch in file_name:
+        if ch >= '0' and ch <= '9':
+            digitCount += 1
+    if digitCount > 3:
+        _T0 = 'No'
+        return _T0
+    if file_name.count('.') != 1:
+        return 'No'
+    parts = file_name.split('.')
+    if len(parts) != 2:
+        return 'No'
+    name = parts[0]
+    ext = parts[1]
+    if len(name) == 0:
+        return 'No'
+    first = name[0]
+    if not ((first >= 'a' and first <= 'z') or (first >= 'A' and first <= 'Z')):
+        return 'No'
+    if ext not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,beginner,gpt-5,1.0,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","pt1 = re.search(r'^[a-zA-Z\d]+\.', candidate) != None
+    pt2 = pt1 and len(re.search(r'\d{1,3}', candidate)[0]) <= 3
+    pt3 = pt2 and candidate.lower().split('.')[-1] in ['txt', 'exe', 'dll']
+    return pt1 and pt2 and pt3",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/141,"Traceback (most recent call last):
+  File ""/tmp/tmp2_6uyao3.py"", line 57, in <module>
+    check(file_name_check)
+  File ""/tmp/tmp2_6uyao3.py"", line 24, in check
+    assert candidate(""example.txt"") == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp2_6uyao3.py"", line 16, in file_name_check
+    pt1 = re.search(r'^[a-zA-Z\d]+\.', candidate) != None
+          ^^
+NameError: name 're' is not defined. Did you forget to import 're'?"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+    return 'No'
+
+    name_part, ext = file_name.split('.')
+    if not name_part:
+    return 'No'
+
+    if not name_part[0].isalpha():
+    return 'No'
+
+    if ext not in ['txt', 'exe', 'dll']:
+    return 'No'
+
+    digit_count = sum(char.isdigit() for char in name_part + ext)
+    if digit_count > 3:
+    return 'No'
+
+    return 'Yes'",No,normal,gpt-4.1,1.2,HumanEval/141,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpyb5toz37.py"", line 17
+    return 'No'
+    ^
+IndentationError: expected an indented block after 'if' statement on line 16"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if not file_name.count('0') <= 3:
+        return 'No'
+    if file_name.endswith('.'):
+        if not file_name[0].isalpha() and not file_name[0].lower().count(' ')
+            return 'No'
+        valid_suffixes = ['txt', 'exe', 'dll']
+        if not any(suffix in valid_suffixes for suffix in file_name.split('.'))
+            return 'No'
+    return 'Yes""",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/141,"File ""/tmp/tmplzrtg1bd.py"", line 24
+    return 'Yes""
+           ^
+SyntaxError: unterminated string literal (detected at line 24)"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","# compute the result
+    assert True
+    if file_name.count('.') != 1:
+        _T0 = 'No'
+        return _T0
+    
+    x_parts = file_name.split('.')
+    x_name_part = x_parts[0]
+    x_extension = x_parts[1]
+    
+    if not x_name_part:
+        return 'No'
+    
+    if not x_name_part[0].isalpha():
+        return 'No'
+    
+    x_digit_count = sum(1 for x_char in file_name if x_char.isdigit())
+    if x_digit_count > 3:
+        return 'No'
+    
+    if x_extension not in ['txt', 'exe', 'dll']:
+        return 'No'
+    
+    return 'Yes'",Yes,external,Claude Sonnet-4,,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        return 'No'
+    parts = file_name.split('.')
+    if len(parts) != 2:
+        return 'No'
+    name_part, ext_part = parts
+    if not name_part or not ext_part:
+        return 'No'
+    if not name_part[0].isalpha():
+        return 'No'
+    if len(re.findall(r'\d', name_part)) > 3:
+        return 'No'
+    if ext_part not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",No,external,DeepSeek-V3,,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7eq4uuab.py"", line 68, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7eq4uuab.py"", line 35, in check
+    assert candidate(""example.txt"") == 'Yes'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7eq4uuab.py"", line 26, in file_name_check
+    if len(re.findall(r'\d', name_part)) > 3:
+NameError: name 're' is not defined"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if len(re.findall('\d', file_name)) > 3:
+        return 'No'
+    if '.' not in file_name or len(re.findall('\.', file_name)) > 1:
+        return 'No'
+    if not re.match('[a-zA-Z]\w*', file_name[:file_name.index('.')]):
+        return 'No'
+    if file_name[file_name.index('.'):] not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/141,"/tmp/tmpw0h0zlwn.py:16: SyntaxWarning: invalid escape sequence '\d'
+  if len(re.findall('\d', file_name)) > 3:
+/tmp/tmpw0h0zlwn.py:18: SyntaxWarning: invalid escape sequence '\.'
+  if '.' not in file_name or len(re.findall('\.', file_name)) > 1:
+/tmp/tmpw0h0zlwn.py:20: SyntaxWarning: invalid escape sequence '\w'
+  if not re.match('[a-zA-Z]\w*', file_name[:file_name.index('.')]):
+Traceback (most recent call last):
+  File ""/tmp/tmpw0h0zlwn.py"", line 62, in <module>
+    check(file_name_check)
+  File ""/tmp/tmpw0h0zlwn.py"", line 29, in check
+    assert candidate(""example.txt"") == 'Yes'
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpw0h0zlwn.py"", line 16, in file_name_check
+    if len(re.findall('\d', file_name)) > 3:
+           ^^
+NameError: name 're' is not defined. Did you forget to import 're'?"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if not file_name.isnumeric():
+        return 'No'
+    if len(file_name) > 3 or not file_name.isdigit():
+        return 'No'
+    if not file_name.strip():
+        return 'No'
+    if not file_name[0].isalpha() or not file_name[0].lower().startswith('a'):
+        return 'No'
+    return 'Yes'",No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5g2917wj.py"", line 62, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5g2917wj.py"", line 29, in check
+    assert candidate(""example.txt"") == 'Yes'
+AssertionError"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","the_conditions_value = [
+        len([the_c_value for the_c_value in file_name if the_c_value.isdigit()]) <= 3,
+        file_name.count('.') == 1,
+        file_name.split('.')[0] and file_name[0].isalpha(),
+        file_name.split('.')[-1] in {'txt', 'exe', 'dll'}
+    ]
+    return 'Yes' if all(the_conditions_value) else 'No'",Yes,unusual,gpt-4o-mini,1.0,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","count1 = sum(c0.isdigit() for c0 in file_name)
+    if count1 > 3:
+        _T0 = 'No'
+        return _T0
+    parts2 = file_name.split('.')
+    if len(parts2) != 2 or not parts2[0] or not parts2[0][0].isalpha():
+        return 'No'
+    if parts2[1] not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('0') <= 3 and file_name.count('.') == 1 and \
+
+       file_name[0].isalpha() and file_name.split('.')[0] and \
+
+       file_name.split('.')[1] in ['txt', 'exe', 'dll']:
+
+        return 'Yes'
+
+    else:
+
+        return 'No'",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/141,"File ""/tmp/tmpgh8mv46j.py"", line 18
+    
+    ^
+SyntaxError: invalid syntax"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","assert True
+    the_digits_count_value = sum(the_c_value.isdigit() for the_c_value in file_name)
+    if the_digits_count_value > 3:
+        _T0 = 'No'
+        return _T0
+
+    if file_name.count('.') != 1:
+        return 'No'
+
+    the_name_part_value, the_extension_part_value = file_name.split('.')
+
+    if not the_name_part_value or not the_name_part_value[0].isalpha():
+        return 'No'
+
+    if the_extension_part_value not in ['txt', 'exe', 'dll']:
+        return 'No'
+
+    return 'Yes'",Yes,different-style,gpt-4o-mini,1.0,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","# compute the result
+    import re
+    if file_name.count('.') != 1:
+        return 'No'
+    x_parts = file_name.split('.')
+    if len(x_parts[0]) == 0 or not x_parts[0][0].isalpha() or not x_parts[0][0].islower() and not x_parts[0][0].isupper():
+        return 'No'
+    if len(re.findall(r'\d', file_name)) > 3:
+        return 'No'
+    if x_parts[1] not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","assert True
+    if len(file_name) == 0:
+        _T0 = 'No'
+        return _T0
+    if not file_name[0].isalpha():
+        return 'No'
+    x_digits = 0
+    for x_char in file_name:
+        if x_char.isdigit():
+            x_digits += 1
+            if x_digits > 3:
+                return 'No'
+    if file_name.count('.') != 1:
+        return 'No'
+    if file_name.find('.') == 0:
+        return 'No'
+    x_file_extension = file_name[file_name.rfind('.') + 1:]
+    if x_file_extension not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        return 'No'
+    v1, v0 = file_name.split('.')
+    if not v1 or not v1[0].isalpha():
+        return 'No'
+    if v1.count('0') + v1.count('1') + v1.count('2') + v1.count('3') + v1.count('4') + v1.count('5') + v1.count('6') + v1.count('7') + v1.count('8') + v1.count('9') > 3:
+        return 'No'
+    if v0 not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        return 'No'
+    
+    name_part, ext_part = file_name.split('.')
+    
+    if not name_part or not name_part[0].isalpha() or any(char.isdigit() for char in name_part[1:]) or sum(c.isdigit() for c in name_part) > 3:
+        return 'No'
+    
+    if ext_part not in ['txt', 'exe', 'dll']:
+        return 'No'
+    
+    return 'Yes'",No,normal,gpt-4o,1.0,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd46mn07r.py"", line 65, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpd46mn07r.py"", line 36, in check
+    assert candidate('MY16FILE3.exe') == 'Yes'
+AssertionError"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","# compute the result
+    if file_name.count('.') != 1:
+        _T0 = 'No'
+        return _T0
+    v3, v2 = file_name.split('.')
+    if len(v3) == 0 or not v3[0].isalpha():
+        return 'No'
+    if v2 not in ['txt', 'exe', 'dll']:
+        return 'No'
+    v1 = sum(1 for v0 in v3 if v0.isdigit())
+    if v1 > 3:
+        return 'No'
+    return 'Yes'",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if len([CHAR for CHAR in file_name if CHAR.isdigit()]) > 3:
+        _T0 = 'No'
+        return _T0
+    if file_name.count('.') != 1:
+        return 'No'
+    if file_name.split('.')[0] == '':
+        return 'No'
+    if not file_name.split('.')[0][0].isalpha():
+        return 'No'
+    if file_name.split('.')[-1] not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","# compute the result
+    if len([char0 for char0 in file_name if char0.isdigit()]) > 3:
+        return 'No'
+    if '.' not in file_name or file_name.count('.') > 1:
+        return 'No'
+    prefix1, suffix2 = file_name.split('.')
+    if not prefix1 or not prefix1[0].isalpha():
+        return 'No'
+    if suffix2.lower() not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","split_file_name = file_name.split('.') 
+
+    if len(split_file_name[0]) > 3 or split_file_name[0] == '' or not split_file_name[0].isalpha():  
+        return 'No'
+    if split_file_name[1] not in ['txt', 'exe', 'dll']:
+        return 'No'
+    if not file_name.endswith('.'):
+        return 'No'
+  
+    return 'Yes'",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzcdvh3xa.py"", line 63, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpzcdvh3xa.py"", line 30, in check
+    assert candidate(""example.txt"") == 'Yes'
+AssertionError"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        _T0 = 'No'
+        return _T0
+
+    name, extension = file_name.split('.')
+
+    if not name or not name[0].isalpha():
+        return 'No'
+
+    if extension not in ['txt', 'exe', 'dll']:
+        return 'No'
+
+    digitCount = sum(c.isdigit() for c in file_name)
+
+    if digitCount > 3:
+        return 'No'
+
+    return 'Yes'",Yes,beginner,gpt-4o-mini,1.2,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        return 'No'
+    the_name_value, the_extension_value = file_name.split('.')
+    if len(the_name_value) == 0 or not the_name_value[0].isalpha():
+        return 'No'
+    if the_extension_value not in ['txt', 'exe', 'dll']:
+        return 'No'
+    the_digit_count_value = sum(the_c_value.isdigit() for the_c_value in file_name)
+    if the_digit_count_value > 3:
+        return 'No'
+    return 'Yes'",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/141,
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","import re
+
+    if not re.match(""^[a-zA-Z].*\\..+\\.((txt)|(exe)|(dll))$"", file_name):
+        return 'No'
+
+    name, ext = file_name.rsplit('.', 1)
+
+    if len(ext) != len(re.findall(r'\b(?:txt|exe|dll)\b', ext)):
+        return 'No'
+
+    digit_count = len(re.findall(r'\d', file_name))
+
+    if digit_count > 3 or len(name) == 0 or file_name.count('.') != 1:
+        return 'No'
+
+    return 'Yes'",No,normal,gpt-4o-mini,1.4,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfg1e5c2f.py"", line 69, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpfg1e5c2f.py"", line 36, in check
+    assert candidate(""example.txt"") == 'Yes'
+AssertionError"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","if file_name.count('.') != 1:
+        return 'No'
+    name_part, extension = file_name.split('.')
+    if not name_part or not re.match('^[a-zA-Z]', name_part):
+        return 'No'
+    if len(re.findall(r'\d', name_part)) > 3:
+        return 'No'
+    if extension not in ['txt', 'exe', 'dll']:
+        return 'No'
+    return 'Yes'",No,external,Mistral-3.2-24B,,HumanEval/141,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa0tlk2xo.py"", line 63, in <module>
+    check(file_name_check)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa0tlk2xo.py"", line 30, in check
+    assert candidate(""example.txt"") == 'Yes'
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa0tlk2xo.py"", line 19, in file_name_check
+    if not name_part or not re.match('^[a-zA-Z]', name_part):
+NameError: name 're' is not defined"
+"
+def file_name_check(file_name):
+    """"""Create a function which takes a string representing a file's name, and returns
+    'Yes' if the the file's name is valid, and returns 'No' otherwise.
+    A file's name is considered to be valid if and only if all the following conditions 
+    are met:
+    - There should not be more than three digits ('0'-'9') in the file's name.
+    - The file's name contains exactly one dot '.'
+    - The substring before the dot should not be empty, and it starts with a letter from 
+    the latin alphapet ('a'-'z' and 'A'-'Z').
+    - The substring after the dot should be one of these: ['txt', 'exe', 'dll']
+    Examples:
+    file_name_check(""example.txt"") # => 'Yes'
+    file_name_check(""1example.dll"") # => 'No' (the name should start with a latin alphapet letter)
+    """"""
+","assert True
+    validExtensions = ['txt', 'exe', 'dll']
+    # Check if the file name starts with a letter
+    if not file_name[0].isalpha():
+        return 'No'
+    # Split the file name by '.'
+    parts = file_name.split('.')
+    # Check if there are exactly two parts
+    if len(parts) != 2:
+        return 'No'
+    # Check if the first part is not empty and starts with a letter
+    if not parts[0] or not parts[0][0].isalpha():
+        return 'No'
+    # Check if the second part is one of the valid extensions
+    if parts[1] not in validExtensions:
+        return 'No'
+    # Check for more than three digits in the file name
+    if sum(c.isdigit() for c in file_name) > 3:
+        return 'No'
+    return 'Yes'",Yes,normal,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/141,

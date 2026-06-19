@@ -1,0 +1,754 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    the_power_value = 1
+    while the_power_value < x:
+        the_power_value *= n
+    _T0 = the_power_value == x
+    return _T0",Yes,normal,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# Check if n is more than 0
+    if n <= 0:
+        return False
+    
+    # Calculate and round to the nearest whole number 
+    rounded = math.ceil(math.sqrt(n))
+
+    # If the calculated 'rounded' equals the square of 'x', then 'x' is a simple power of 'n'
+    return rounded**2 == x",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoqplrrky.py"", line 42, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoqplrrky.py"", line 27, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpoqplrrky.py"", line 19, in is_simple_power
+    rounded = math.ceil(math.sqrt(n))
+NameError: name 'math' is not defined"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if n <= 1:
+        return False
+    power = 1
+    while True:
+        if power == x:
+            return True
+        if power > x:
+            return False
+        power *= n",No,bad-style,gpt-4o-mini,0.7,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1f_fdfgx.py"", line 42, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1f_fdfgx.py"", line 37, in check
+    assert candidate(1, 1)==True, ""This prints if this assert fails 2 (also good for debugging!)""
+AssertionError: This prints if this assert fails 2 (also good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","the_root_value = x ** (1 / n)
+    if the_root_value ** n != x:
+        return False
+
+    for the_test_value in range(2, int(the_root_value)+1):
+        if the_root_value ** the_test_value == the_root_value:
+            return False
+
+    return True",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if n <= 1:
+        return x == n
+    power = 1
+    while power < x:
+        power *= n
+        if power == x:
+            return True
+    return False",No,normal,gpt-4o-mini,1.2,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8dba7cfl.py"", line 41, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8dba7cfl.py"", line 37, in check
+    assert candidate(1, 12)==True, ""This prints if this assert fails 2 (also good for debugging!)""
+AssertionError: This prints if this assert fails 2 (also good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    if n == 1:
+        _T0 = x == 1
+        return _T0
+    if n <= 0:
+        return False    
+    power0 = 1
+    while power0 < x:
+        power0 *= n
+    return power0 == x",Yes,beginner,gpt-4o-mini,1.2,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if x == 1:
+    return True
+    if n == 1 or n <= 0 or x <= 0:
+    return False
+    power = 1
+    while power < x:
+    power *= n
+    return power == x",No,normal,gpt-4.1,0.7,HumanEval/76,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7tkun7e1.py"", line 15
+    return True
+    ^
+IndentationError: expected an indented block after 'if' statement on line 14"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+",return n > 1 and (x == 1 or n ** (int((x)**0.5) // n) != x and (any(n**i == x for i in range(int(x**0.5)+1)) or x/n in [n**i for i in range(int(x**0.5)+1)])) == False),No,unusual,gpt-4o-mini,1.2,HumanEval/76,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwwai8p2b.py"", line 14
+    return n > 1 and (x == 1 or n ** (int((x)**0.5) // n) != x and (any(n**i == x for i in range(int(x**0.5)+1)) or x/n in [n**i for i in range(int(x**0.5)+1)])) == False)
+                                                                                                                                                                          ^
+SyntaxError: unmatched ')'"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","while x % n == 0:
+        x //= n
+    return x == 1",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/76,TIMEOUT
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+",return n**int(x) == x,No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1j5fdwii.py"", line 34, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1j5fdwii.py"", line 19, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","""""""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+    return round(x ** (1.0 / n)) ** n == x
+
+# Test cases
+print(is_simple_power(1, 4))  # => true
+print(is_simple_power(2, 2))  # => true
+print(is_simple_power(8, 2))  # => true
+print(is_simple_power(3, 2))  # => false
+print(is_simple_power(3, 1))  # => false
+print(is_simple_power(5, 3))  # => false",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcb8v62qk.py"", line 53, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcb8v62qk.py"", line 41, in check
+    assert candidate(9, 3)==True, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if x == 1:
+        return n == 1
+    if n == 1:
+        return False
+    if x < 1:
+        return False
+    log_value = math.log(x, n)
+    return log_value.is_integer()",No,external,Mistral-3.2-24B,,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv6y7n805.py"", line 41, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv6y7n805.py"", line 26, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv6y7n805.py"", line 20, in is_simple_power
+    log_value = math.log(x, n)
+NameError: name 'math' is not defined"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+",return int(x ** (log(n))) == x,No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/76,"Traceback (most recent call last):
+  File ""/tmp/tmp7c13f42g.py"", line 34, in <module>
+    check(is_simple_power)
+  File ""/tmp/tmp7c13f42g.py"", line 19, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp7c13f42g.py"", line 14, in is_simple_power
+    return int(x ** (log(n))) == x
+                     ^^^
+NameError: name 'log' is not defined"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# compute the result
+    if n == 1:
+        if x == 1:
+            return True
+        else:
+            return False
+    v0 = 1
+    while v0 < x:
+        v0 *= n
+    _T0 = v0 == x
+    return _T0",Yes,different-style,gpt-4o-mini,1.0,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","import math
+    root = math.pow(n, 1.0 / int(math.log(x, n)))
+    return math.ceil(root) == math.floor(root) and root.is_integer()",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa7ak8z2e.py"", line 36, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa7ak8z2e.py"", line 21, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    if x == 1 or n == 1:
+        return True
+    if x == 0 or n == 0:
+        return False
+    if x < 0 or n < 0:
+        return False
+    if x < n:
+        return False
+    while x % n == 0:
+        x = x / n
+    if x == 1:
+        return True
+    else:
+        return False
+
+    # Test cases
+    print(is_simple_power(1, 4)) # True
+    print(is_simple_power(2, 2)) # True
+    print(is_simple_power(8, 2)) # True
+    print(is_simple_power(3, 2)) # False
+    print(is_simple_power(3, 1)) # False
+    print(is_simple_power(5, 3)) # False",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    while x != 1:
+        if x % n != 0:
+            return False
+        x //= n
+    return True",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# compute the result
+    assert True
+    if x == 1:
+        return True
+    v1 = 0
+    v0 = 1
+    while v0 < x:
+        v0 *= n
+        v1 += 1
+    return v0 == x",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# compute the result
+    if n == 1:
+        if x == 1:
+            return True
+        else:
+            return False
+    if x < 1 or n < 1:
+        return False
+    x_i = 0
+    while n ** x_i < x:
+        x_i += 1
+    _T0 = n ** x_i == x
+    return _T0",Yes,refactorable,gpt-4o-mini,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# compute the result
+    if n <= 0:
+        return False
+    if n == 1:
+        if x == 1:
+            return True
+        else:
+            return False
+    result = 1
+    while result < x:
+        result *= n
+    if result == x:
+        return True
+    return False",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","# compute the result
+    assert True
+    if x == 1 or n == 1:
+        return True
+    if n == 0 or x == 0:
+        return False
+    if x < n:
+        return False
+    x_power = 1
+    while x_power < x:
+        x_power *= n
+    if x_power == x:
+        return True
+    else:
+        return False",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    if x == 1:
+        return True
+    elif n == 1:
+        return False
+    else:
+        POWER = 0
+        while n**POWER <= x:
+            if n**POWER == x:
+                return True
+            POWER += 1
+        return False",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","""""""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+    return n**int == x",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/76,"Traceback (most recent call last):
+  File ""/tmp/tmpfnor1b74.py"", line 45, in <module>
+    check(is_simple_power)
+  File ""/tmp/tmpfnor1b74.py"", line 30, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpfnor1b74.py"", line 25, in is_simple_power
+    return n**int == x
+           ~^^~~~
+TypeError: unsupported operand type(s) for ** or pow(): 'int' and 'type'"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if x == 1:
+        return True
+    while x % n == 0:
+        x //= n
+    return x == 1",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","assert True
+    the_result_value = False
+    if x == 1:
+        the_result_value = True
+        the_nroot_value = 0
+    elif x < 1:
+        the_result_value = False
+    else:
+        the_nroot_value = 0
+        while x > 1:
+            the_nroot_value += 1
+            if x % n == 0:
+                x /= n
+            else:
+                break
+        if x == 1:
+            the_result_value = True
+        elif the_nroot_value == 0:
+            the_result_value = True
+        else:
+            the_result_value = False
+    return the_result_value",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if x == 1:
+        return True
+    if n == 0:
+        _T0 = x == 0
+        return _T0
+    if n == 1:
+        return False
+    if n == -1:
+        return x == -1
+
+    the_power_value = 1
+    while abs(the_power_value) < abs(x):
+        the_power_value *= n
+        if the_power_value == x:
+            return True
+
+    return the_power_value == x",Yes,normal,gpt-5.5,1.0,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","POWER = 1
+    while POWER <= x:
+        if POWER == x:
+            return True
+        POWER *= n
+    return False",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/76,
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if n <= 1:
+        return x == 1
+    power = 1
+    while n ** power < x:
+        power += 1
+    return n ** power == x",No,beginner,gpt-4o-mini,0.7,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8qrls70.py"", line 39, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpz8qrls70.py"", line 35, in check
+    assert candidate(1, 12)==True, ""This prints if this assert fails 2 (also good for debugging!)""
+AssertionError: This prints if this assert fails 2 (also good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","root = int(n ** 0.5)
+
+    for i in range(1, root + 1):
+        if pow(n, i) == x:
+            return True if i == root else False
+
+    return False",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpar74g4un.py"", line 40, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpar74g4un.py"", line 25, in check
+    assert candidate(16, 2)== True, ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def is_simple_power(x, n):
+    """"""Your task is to write a function that returns true if a number x is a simple
+    power of n and false in other cases.
+    x is a simple power of n if n**int=x
+    For example:
+    is_simple_power(1, 4) => true
+    is_simple_power(2, 2) => true
+    is_simple_power(8, 2) => true
+    is_simple_power(3, 2) => false
+    is_simple_power(3, 1) => false
+    is_simple_power(5, 3) => false
+    """"""
+","if n <= 1:
+        return x == 1
+    power = 1
+    while True:
+        value = n ** power
+        if value == x:
+            return True
+        elif value > x:
+            return False
+        power += 1",No,refactorable,gpt-4o-mini,1.0,HumanEval/76,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmhvabroo.py"", line 43, in <module>
+    check(is_simple_power)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmhvabroo.py"", line 39, in check
+    assert candidate(1, 12)==True, ""This prints if this assert fails 2 (also good for debugging!)""
+AssertionError: This prints if this assert fails 2 (also good for debugging!)"

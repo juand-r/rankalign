@@ -1,0 +1,523 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","if number < 0:
+        raise ValueError('Number must be positive')
+    INTEGER_PART = int(number)
+    DECIMAL_PART = number - INTEGER_PART
+    return DECIMAL_PART",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",""""""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+    return number - int(number)
+    print(truncate_number(3.5))
+    print(truncate_number(3.4))
+    print(truncate_number(3))
+    print(truncate_number(0.5))
+    print(truncate_number(0.4))
+    print(truncate_number(0))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","two_times_number_log = 2 * math.log10(number)
+    floor_value = math.floor(two_times_number_log)
+    precision_factor = math.pow(10, -floor_value)
+    return precision_factor",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp23f3nw28.py"", line 31, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp23f3nw28.py"", line 26, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp23f3nw28.py"", line 12, in truncate_number
+    two_times_number_log = 2 * math.log10(number)
+NameError: name 'math' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",""""""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+    whole, fraction = math.modf(number)
+    return float(fraction)",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx40pdpil.py"", line 37, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx40pdpil.py"", line 32, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpx40pdpil.py"", line 20, in truncate_number
+    whole, fraction = math.modf(number)
+NameError: name 'math' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - int(number),Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","__fractional__, _ =\
+    modf(__float__(number)) -> _",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/2,"File ""/tmp/tmpvf84h4yg.py"", line 13
+    modf(__float__(number)) -> _
+                            ^^
+SyntaxError: invalid syntax"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","return divmod(number, 1)[1]",Yes,different-style,gpt-5,1.0,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","if number >= 1:  # Base condition for integer part removal
+        return number
+
+    elif number > 0:
+        left_over = number - int(number)  # subtraction fetches integer part
+        return left_over * 10 + str(left_over)  # multiply and 'join' to return decimal part
+    else:
+        return None
+
+# Example usage
+print(truncate_number(3.5))  # 0.5 
+print(truncate_number(-1))   # -2.0
+print(truncate_number(0))     # 0.0
+print(truncate_number(3))     # Reading outside here due to breaking regex adherence    # this’ll be deprecated as Soon as stringattribute is deregularized to be applied to float logic",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpntz5mvfr.py"", line 41, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpntz5mvfr.py"", line 36, in check
+    assert candidate(3.5) == 0.5
+AssertionError"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - int(number),Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","INT_PART = int(number)
+    DECIMAL_PART = number - INT_PART
+    IF DECIMAL_PART < 0:
+        RETURN 0.0
+    ELSE:
+        RETURN DECIMAL_PART",No,bad-style,gpt-4o-mini,1.2,HumanEval/2,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3sp6micf.py"", line 14
+    IF DECIMAL_PART < 0:
+       ^^^^^^^^^^^^
+SyntaxError: invalid syntax"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","if number >= 1:
+    raise ValueError(""Number must be less than 1"")
+    return number - int(number)",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/2,"File ""/tmp/tmpc3m94khs.py"", line 13
+    raise ValueError(""Number must be less than 1"")
+    ^
+IndentationError: expected an indented block after 'if' statement on line 12"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - int(number),No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/2,"File ""/tmp/tmpndf1p8jt.py"", line 12
+    return number - int(number)
+IndentationError: unexpected indent"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","integer_part, decimal_part = str(num).split(""."")
+    if decimal_part:
+        return float(decimal_part)
+    return 0.0
+
+# Example usage:
+# print(number_dance(3.5))  # Output: 0.5
+# print(number_dance(10))   # Output: 0.0
+
+# This function separates the number into its integer and decimal parts,
+# then returns the decimal part as a float. If the number has no decimal part,
+# it returns 0.0 instead of raising an exception. It uses string manipulation
+# and float division (/) to achieve this in an unusual, but still Pythonic,
+# way.",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6z0wnbd.py"", line 41, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6z0wnbd.py"", line 36, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmps6z0wnbd.py"", line 12, in truncate_number
+    integer_part, decimal_part = str(num).split(""."")
+NameError: name 'num' is not defined. Did you mean: 'sum'?"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","return number - int(number)
+    print(truncate_number(3.5))",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","number = number - int(number)
+    return number",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",""""""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+    return number - int(number)",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - int(number),Yes,normal,gpt-4.1,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - math.floor(number),No,external,DeepSeek-V3,,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6sb1ahq8.py"", line 28, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6sb1ahq8.py"", line 23, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6sb1ahq8.py"", line 12, in truncate_number
+    return number - math.floor(number)
+NameError: name 'math' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","divisor = int(1e6)  # Using a 6-digit mil as a pseudo-precision cutoff for demo purposes
+    # Create _1e6 mask to neaten the number on return
+    millions_ok = truncate_bits(number * millions_ok) // 1 # Equivalent to int(number * 1_000_000)
+    floored_millions = number // 1_000_000
+
+    # Similarly for 1, 10, 100, 1000 patterns
+    divided_start = int(floored_millions * (millions_pattern[mask // millions_mask])+1)
+
+    result = number - divided_start * millions_pattern[mask // millions_mask]- fdps[-1]
+
+    return result",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/2,"Traceback (most recent call last):
+  File ""/tmp/tmpdjffip_i.py"", line 38, in <module>
+    check(truncate_number)
+  File ""/tmp/tmpdjffip_i.py"", line 33, in check
+    assert candidate(3.5) == 0.5
+           ^^^^^^^^^^^^^^
+  File ""/tmp/tmpdjffip_i.py"", line 14, in truncate_number
+    millions_ok = truncate_bits(number * millions_ok) // 1 # Equivalent to int(number * 1_000_000)
+                  ^^^^^^^^^^^^^
+NameError: name 'truncate_bits' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","DECIMALS = number - int(number)
+    return DECIMALS",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","return int(number) if number > 0 else None
+
+def decimal_part(number: float):
+    return number - integer_part(number) if number > 0 else None
+
+def truncate_number(number: float) -> float:
+    integer = integer_part(number)
+    if integer is None:
+        return 0.0
+    decimal = decimal_part(number)
+    return decimal if decimal else None",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0otndlj.py"", line 38, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0otndlj.py"", line 33, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0otndlj.py"", line 18, in truncate_number
+    integer = integer_part(number)
+NameError: name 'integer_part' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - int(number),Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","NUMBER_AS_STRING = str(number)
+    if 'e' in NUMBER_AS_STRING:
+        SIGNIFICAND_STR = NUMBER_AS_STRING.split('e')[0]
+        if '.' not in SIGNIFICAND_STR:
+            return number % 1
+        SIGNIFICAND = float(SIGNIFICAND_STR)
+        INTEGER_PART = int(SIGNIFICAND)
+        DECIMALS = SIGNIFICAND - INTEGER_PART
+        ADDITIONAL_RANDOM_FRACTION = random.random()
+        DECIMALS = Decimal(str(decimal_part + ADDITIONAL_RANDOM_FRACTION))
+        return DECIMALS
+    else:
+        return float(number) % 1",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",Fraction(Piece()),No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/2,"Traceback (most recent call last):
+  File ""/tmp/tmp80wi5md4.py"", line 28, in <module>
+    check(truncate_number)
+  File ""/tmp/tmp80wi5md4.py"", line 23, in check
+    assert candidate(3.5) == 0.5
+           ^^^^^^^^^^^^^^
+  File ""/tmp/tmp80wi5md4.py"", line 12, in truncate_number
+    Fraction(Piece())
+    ^^^^^^^^
+NameError: name 'Fraction' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","N, D = number.as_integer_ratio()
+    return N % D / D",Yes,unusual,gpt-5,1.0,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+",return number - math.floor(number),No,external,Llama-3.3-70B,,HumanEval/2,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf1e1r237.py"", line 28, in <module>
+    check(truncate_number)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf1e1r237.py"", line 23, in check
+    assert candidate(3.5) == 0.5
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpf1e1r237.py"", line 12, in truncate_number
+    return number - math.floor(number)
+NameError: name 'math' is not defined"
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","FLOAT_PART, INT_PART = (number - int(number), int(number))
+    return FLOAT_PART if FLOAT_PART > 0 else 0",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/2,
+"
+
+def truncate_number(number: float) -> float:
+    """""" Given a positive floating point number, it can be decomposed into
+    and integer part (largest integer smaller than given number) and decimals
+    (leftover part always smaller than 1).
+
+    Return the decimal part of the number.
+    >>> truncate_number(3.5)
+    0.5
+    """"""
+","INTEGER_PART = int(number)
+    return number - INTEGER_PART",Yes,normal,gpt-4o,1.0,HumanEval/2,

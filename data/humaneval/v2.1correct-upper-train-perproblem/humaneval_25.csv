@@ -1,0 +1,754 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n > 1:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 1
+    return FACTORS",Yes,different-style,gpt-4o-mini,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n > 1:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 1
+    return FACTORS",Yes,normal,gpt-4o-mini,1.2,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n > 1:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n = n // DIVISOR
+        DIVISOR += 1
+    return FACTORS",Yes,external,Mistral-3.2-24B,,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+    while n % 2 == 0:
+        factors.append(2)
+        n //= 2
+    for i in range(3, int(sqrt(n)) + 1, 2):
+        while n % i == 0:
+            factors.append(i)
+            n //= i
+    if n > 2:
+        factors.append(n)
+    return factors",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/25,"Traceback (most recent call last):
+  File ""/tmp/tmpgw9fnkag.py"", line 46, in <module>
+    check(factorize)
+  File ""/tmp/tmpgw9fnkag.py"", line 36, in check
+    assert candidate(2) == [2]
+           ^^^^^^^^^^^^
+  File ""/tmp/tmpgw9fnkag.py"", line 19, in factorize
+    for i in range(3, int(sqrt(n)) + 1, 2):
+                          ^^^^
+NameError: name 'sqrt' is not defined"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n >= DIVISOR:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 1
+    return FACTORS
+    print(factorize(8))
+    print(factorize(25))
+    print(factorize(70))",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+
+    while n % 2 == 0:
+        factors.append(2)
+        n /= 2
+
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+        while n % i == 0:
+            factors.append(int(i))
+            n /= i
+
+    if n > 2: 
+        factors.append(int(n))
+
+    return factors
+
+print(factorize(8))
+print(factorize(25))
+print(factorize(70))",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptchzouyk.py"", line 31, in <module>
+    print(factorize(8))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptchzouyk.py"", line 21, in factorize
+    for i in range(3, int(math.sqrt(n)) + 1, 2):
+NameError: name 'math' is not defined"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            FACTORS.append(I)
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS
+    print(factorize(8))
+    print(factorize(25))
+    print(factorize(70))",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+    for i in range(2, int(n**0.5) + 1):
+        while n % i == 0:
+            count = 0
+            while n % i == 0:
+                n //= i
+                count += 1
+            factors.append(i) * count
+    if n > 1:
+        factors.append(n)
+    return factors",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp43bdbbgn.py"", line 46, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp43bdbbgn.py"", line 37, in check
+    assert candidate(4) == [2, 2]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp43bdbbgn.py"", line 22, in factorize
+    factors.append(i) * count
+TypeError: unsupported operand type(s) for *: 'NoneType' and 'int'"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    if n <= 1:
+        return FACTORS
+    while n % 2 == 0:
+        FACTORS.append(2)
+        n //= 2
+    F = 3
+    while F * F <= n:
+        while n % F == 0:
+            FACTORS.append(F)
+            n //= F
+        F += 2
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,normal,gpt-5,1.0,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","return [f for i in range(2, n + 1) if n % i == 0 and all(i % j != 0 for j in range(2, int(i**0.5) + 1)) for f in [i] * (lambda x: (x // i, (x // i) % i == 0)[1])[1] and (n := n // i) or 0)]",No,unusual,gpt-4o-mini,1.0,HumanEval/25,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3ndkgr1p.py"", line 15
+    return [f for i in range(2, n + 1) if n % i == 0 and all(i % j != 0 for j in range(2, int(i**0.5) + 1)) for f in [i] * (lambda x: (x // i, (x // i) % i == 0)[1])[1] and (n := n // i) or 0)]
+                                                                                                                                                                                               ^
+SyntaxError: closing parenthesis ')' does not match opening parenthesis '['"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n >= 2:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 1
+    return FACTORS",Yes,external,GPT-4o,,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","I = 2
+    FACTORS = []
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            FACTORS.append(I)
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","I = 2
+    FACTORS = []
+    while n > 1:
+        if n % I == 0:
+            n //= I
+            FACTORS.append(I)
+        else:
+            I += 1
+    return FACTORS",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+    i = 2
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
+
+    factors_count = [factors.count(i) for i in factors]
+    
+    return factors_count
+
+#Test cases
+print(factorize(8))  # Output: [2, 2, 2]
+print(factorize(25))  # Output: [5, 5]
+print(factorize(70))  # Output: [2, 5, 7]",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp53j0frdy.py"", line 54, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp53j0frdy.py"", line 44, in check
+    assert candidate(2) == [2]
+AssertionError"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+    divisor = 2
+    while n >= divisor * divisor:
+        while n % divisor == 0:
+            factors.append(divisor)
+            n //= divisor
+        divisor += 1
+    if n > 1:
+        factors.append(n)
+    return factors
+
+Factors are found recursively by trying each odd number as a possible factor, and appending it to the list as many times as it applies, until the number is smaller than the square root of the initial number, or is a prime number itself.",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/25,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjllfes1i.py"", line 26
+    Factors are found recursively by trying each odd number as a possible factor, and appending it to the list as many times as it applies, until the number is smaller than the square root of the initial number, or is a prime number itself.
+            ^^^
+SyntaxError: invalid syntax"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","if n < 2:
+        return []
+    
+    factors = []
+    divisor = 1
+    while divisor * divisor <= n:
+        while n % divisor == 0:
+            factors.append(divisor)
+            n //= divisor
+        divisor += 1 + n == divisor * divisor
+            
+    return factors + [n] if n > 1 else factors",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/25,TIMEOUT
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","def worker(n):
+        if n % 2 == 0:
+            p = 2
+            while n % p == 0:
+                yield p
+                n //= p
+        else:
+            p = 3
+            while p * p <= n:
+                while n % p == 0:
+                    yield p
+                    n //= p
+                p += 2
+            if n > 1:
+                yield n
+      
+    return sorted((x * y for x, y in zip(worker(n), [1] * n)))",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdegjg3x3.py"", line 52, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdegjg3x3.py"", line 49, in check
+    assert candidate(3 * 2 * 3) == [2, 3, 3]
+AssertionError"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            FACTORS.append(I)
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","if n < 2:
+            return
+        for i in range(2, n + 1):
+            if n % i == 0:
+                factors.append(i)
+                helper(n // i)
+                return
+    helper(n)
+    return factors",No,bad-style,gpt-4o-mini,1.2,HumanEval/25,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpujliotr7.py"", line 15
+    if n < 2:
+IndentationError: unexpected indent"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","i = 2
+    factors = []
+    while i * i <= n:
+        if n % i:
+            i += 1
+        else:
+            n //= i
+            factors.append(i)
+    if n > 1:
+        factors.append(n)
+    return [factor for factor in factors if factors.count(factor) < 2]",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt1gp9oi1.py"", line 46, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpt1gp9oi1.py"", line 37, in check
+    assert candidate(4) == [2, 2]
+AssertionError"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","factors = []
+    while n % 2 == 0:
+        factors.append(2)
+        n = n / 2
+    for i in range(3, math.isqrt(n)+1, 2):
+        while n % i == 0:
+            factors.append(i)
+            n = n / i
+    if n > 2:
+        factors.append(n)
+    return factors",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbnmqocml.py"", line 46, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbnmqocml.py"", line 36, in check
+    assert candidate(2) == [2]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbnmqocml.py"", line 19, in factorize
+    for i in range(3, math.isqrt(n)+1, 2):
+NameError: name 'math' is not defined"
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+",""""""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+    FACTORS = []
+    I = 2
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            FACTORS.append(I)
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","I = 2
+    FACTORS = []
+    while I * I <= n:
+        if n % I:
+            I += 1
+        else:
+            n //= I
+            FACTORS.append(I)
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    DIVISOR = 2
+    while n >= DIVISOR:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 1
+    return FACTORS",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    D = 2
+    while n > 1:
+        while n % D == 0:
+            FACTORS.append(D)
+            n //= D
+        D += 1
+        if D * D > n:
+            if n > 1:
+                FACTORS.append(n)
+                break
+    return FACTORS",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","FACTORS = []
+    if n < 2:
+        return FACTORS
+    while n % 2 == 0:
+        FACTORS.append(2)
+        n //= 2
+    DIVISOR = 3
+    while DIVISOR * DIVISOR <= n:
+        while n % DIVISOR == 0:
+            FACTORS.append(DIVISOR)
+            n //= DIVISOR
+        DIVISOR += 2
+    if n > 1:
+        FACTORS.append(n)
+    return FACTORS",Yes,normal,gpt-5.5,1.0,HumanEval/25,
+"from typing import List
+
+
+def factorize(n: int) -> List[int]:
+    """""" Return list of prime factors of given integer in the order from smallest to largest.
+    Each of the factors should be listed number of times corresponding to how many times it appeares in factorization.
+    Input number should be equal to the product of all factors
+    >>> factorize(8)
+    [2, 2, 2]
+    >>> factorize(25)
+    [5, 5]
+    >>> factorize(70)
+    [2, 5, 7]
+    """"""
+","''' Ensure num is the product of all factors '''
+    factors = []
+    
+    def __is_integer(x):
+        return int(x) >= 0
+    
+    for i in range(2, int(num**0.5) + 1):
+        if num % i == 0:
+            xi = num // i
+            if __is_integer(xi) and concernsosterio(factors, xi):
+                factors.append(xi)
+    assert factors == [] if len(abs(output) == len(n)) else sorted(output), 'Error: Output must list factors same length as input number'
+    
+    return factors",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/25,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj352x2hs.py"", line 49, in <module>
+    check(factorize)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj352x2hs.py"", line 39, in check
+    assert candidate(2) == [2]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpj352x2hs.py"", line 21, in factorize
+    for i in range(2, int(num**0.5) + 1):
+NameError: name 'num' is not defined. Did you mean: 'sum'?"

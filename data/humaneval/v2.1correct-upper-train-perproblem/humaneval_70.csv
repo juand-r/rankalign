@@ -1,0 +1,727 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+        return []
+    SORTED_LST = sorted(lst)
+    RESULT = []
+    LEFT, RIGHT = (0, len(SORTED_LST) - 1)
+    while LEFT <= RIGHT:
+        if LEFT == RIGHT:
+            RESULT.append(SORTED_LST[LEFT])
+        else:
+            RESULT.append(SORTED_LST[LEFT])
+            RESULT.append(SORTED_LST[RIGHT])
+        LEFT += 1
+        RIGHT -= 1
+    return RESULT",Yes,beginner,gpt-4o-mini,1.0,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","return sorted(lst, reverse=True)",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/70,"Traceback (most recent call last):
+  File ""/tmp/tmpgdqzmn9m.py"", line 33, in <module>
+    check(strange_sort_list)
+  File ""/tmp/tmpgdqzmn9m.py"", line 18, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","lst.sort()
+    SORTED_LST = []
+    while lst:
+        SORTED_LST.append(lst.pop(0))
+        if lst:
+            SORTED_LST.append(lst.pop())
+    return SORTED_LST",Yes,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","""""""
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    """"""
+    if not lst:
+        return []
+    RESULT = []
+    while lst:
+        MINIMUM = min(lst)
+        RESULT.append(MINIMUM)
+        lst.remove(MINIMUM)
+        if lst:
+            MAXIMUM = max(lst)
+            RESULT.append(MAXIMUM)
+            lst.remove(MAXIMUM)
+    return RESULT",Yes,normal,CodeLlama-34b-Instruct,0.2,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+        return []
+    SORTED_LST = sorted(lst)
+    RESULT = []
+    LEFT = 0
+    RIGHT = len(SORTED_LST) - 1
+    TAKE_MIN = True
+    while LEFT <= RIGHT:
+        if TAKE_MIN:
+            RESULT.append(SORTED_LST[LEFT])
+            LEFT += 1
+        else:
+            RESULT.append(SORTED_LST[RIGHT])
+            RIGHT -= 1
+        TAKE_MIN = not TAKE_MIN
+    return RESULT",Yes,external,Claude Sonnet-4,,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","result = []
+    while len(lst) > 0:
+        result.append(min(lst))
+        lst.remove(min(lst))
+        if len(lst) > 0:
+            result.append(max(lst))
+            lst.remove(max(lst))",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/tmp/tmp_gvbvpmw.py"", line 39, in <module>
+    check(strange_sort_list)
+  File ""/tmp/tmp_gvbvpmw.py"", line 24, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","ifNotSet(lst)  # This is a bad idiom as it sets the empty list to the default comparison result, which isn't specified
+    result = [min(v) for v in lst]  # Find minima and append to result
+    while len(result) > 1 and conclusion(lst) != float('inf'):  # Repeated comparisons until no more items can meet 'conclusion'
+        result.pop()  # Remove smallest item
+    return result",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/tmp/tmpepv2l61d.py"", line 37, in <module>
+    check(strange_sort_list)
+  File ""/tmp/tmpepv2l61d.py"", line 22, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpepv2l61d.py"", line 13, in strange_sort_list
+    ifNotSet(lst)  # This is a bad idiom as it sets the empty list to the default comparison result, which isn't specified
+    ^^^^^^^^
+NameError: name 'ifNotSet' is not defined"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","MIN_VAL = MAX_VAL = None
+    SORTED_LST = []
+    while lst:
+        MIN_VAL = min(lst)
+        SORTED_LST.append(MIN_VAL)
+        lst.remove(MIN_VAL)
+        if lst:
+            MAX_VAL = max(lst)
+            SORTED_LST.append(MAX_VAL)
+            lst.remove(MAX_VAL)
+    return SORTED_LST",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","min_max_pairs = []
+    while lst:
+        min_val = min(lst)
+        lst.remove(min_val)
+        max_val = max(lst) if lst else None
+        min_max_pairs.append((min_val, max_val))
+    return [item for pair in min_max_pairs for item in pair if item is not None]",No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxbtv0zql.py"", line 39, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxbtv0zql.py"", line 24, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","SORTED_LST = []
+    while lst:
+        MIN_VAL = min(lst)
+        SORTED_LST.append(MIN_VAL)
+        lst.remove(MIN_VAL)
+        if lst:
+            MAX_VAL = max(lst)
+            SORTED_LST.append(MAX_VAL)
+            lst.remove(MAX_VAL)
+    return SORTED_LST",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","RESULT = []
+    NUMS = sorted(lst)
+    I = 0
+    J = len(NUMS) - 1
+    while I <= J:
+        RESULT.append(NUMS[I])
+        I = I + 1
+        if I <= J:
+            RESULT.append(NUMS[J])
+            J = J - 1
+    return RESULT",Yes,beginner,gpt-5,1.0,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+        return []
+    lst.sort()
+    ordered_lst = [lst.pop(0)]
+    while lst:
+        min_val = min(lst)
+        min_idx = lst.index(min_val)
+        ordered_lst.append(min_val)
+        ordered_lst.append(max(lst))
+        lst.pop(min_idx)
+        lst.remove(max(lst))
+    return ordered_lst",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/70,"Traceback (most recent call last):
+  File ""/tmp/tmp35wmpt7o.py"", line 44, in <module>
+    check(strange_sort_list)
+  File ""/tmp/tmp35wmpt7o.py"", line 29, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp35wmpt7o.py"", line 23, in strange_sort_list
+    lst.remove(max(lst))
+               ^^^^^^^^
+ValueError: max() iterable argument is empty"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","return sorted(lst) if not lst else [min_max for min_max in [min(lst), max(lst)] * (len(lst) // 2 + 1) if min_max in lst or lst.remove(min_max)]][:len(lst)]",No,unusual,gpt-4o-mini,1.2,HumanEval/70,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgi19r9gi.py"", line 13
+    return sorted(lst) if not lst else [min_max for min_max in [min(lst), max(lst)] * (len(lst) // 2 + 1) if min_max in lst or lst.remove(min_max)]][:len(lst)]
+                                                                                                                                                   ^
+SyntaxError: unmatched ']'"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","RESULT = []
+    lst.sort()
+    while lst:
+        RESULT.append(lst.pop(0))
+        if lst:
+            RESULT.append(lst.pop(-1))
+    return RESULT",Yes,normal,gpt-4o,0.2,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","SORTED_LST = sorted(lst)
+    RESULT = []
+    LEFT = 0
+    RIGHT = len(SORTED_LST) - 1
+    TOGGLE = True
+    while LEFT <= RIGHT:
+        if TOGGLE:
+            RESULT.append(SORTED_LST[LEFT])
+            LEFT += 1
+        else:
+            RESULT.append(SORTED_LST[RIGHT])
+            RIGHT -= 1
+        TOGGLE = not TOGGLE
+    return RESULT",Yes,external,Mistral-3.2-24B,,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","S = sorted(lst)
+    RES = []
+    I, J = (0, len(S) - 1)
+    while I <= J:
+        RES.append(S[I])
+        I += 1
+        if I <= J:
+            RES.append(S[J])
+            J -= 1
+    return RES",Yes,different-style,gpt-5,1.0,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if len(lst) == 0:
+        return []
+    SORTED_LST = sorted(lst)
+    RESULT = []
+    while len(SORTED_LST) > 0:
+        RESULT.append(SORTED_LST.pop(0))
+        if len(SORTED_LST) > 0:
+            RESULT.append(SORTED_LST.pop(-1))
+    return RESULT",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","sorted_ = [lst[0]]
+    while lst:
+        max_ = max(lst)
+        min_ = min(filter(lambda x: x != max_, lst))
+        sorted_.append(max_)
+        lst.remove(max_)
+        lst.remove(min_)
+    return sorted_ + sorted_[:1]",No,unusual,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjdc936cz.py"", line 40, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpjdc936cz.py"", line 25, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","lst.sort()
+    result = [lst[0]]
+    i = 1
+    while i < len(lst):
+        max_index = i
+        for j in range(i, len(lst)):
+            if lst[j] > lst[max_index]:
+                max_index = j
+        result.append(lst[max_index])
+        del lst[max_index]
+        i += 1
+    return result",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7i8o78ww.py"", line 44, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7i8o78ww.py"", line 29, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","sorted_lst = []
+    while lst:
+        min_val = None
+        for num in lst:
+            if not min_val or num < min_val:
+                min_val = num
+        sorted_lst.append(min_val)
+        lst.remove(min_val)
+        max_val = None
+        for num in lst:
+            if not max_val or num > max_val:
+                max_val = num
+        sorted_lst.append(max_val)
+        lst.remove(max_val)
+    return sorted_lst",No,refactorable,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3bbwf578.py"", line 47, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3bbwf578.py"", line 33, in check
+    assert candidate([5, 6, 7, 8, 9]) == [5, 9, 6, 8, 7]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3bbwf578.py"", line 26, in strange_sort_list
+    lst.remove(max_val)
+ValueError: list.remove(x): x not in list"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","SORTED_LST = sorted(lst)
+    RESULT = []
+    LEFT = 0
+    RIGHT = len(SORTED_LST) - 1
+    while LEFT <= RIGHT:
+        RESULT.append(SORTED_LST[LEFT])
+        if LEFT != RIGHT:
+            RESULT.append(SORTED_LST[RIGHT])
+        LEFT += 1
+        RIGHT -= 1
+    return RESULT",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","SORTED_LST = []
+    LST_COPY = lst[:]
+    while LST_COPY:
+        if LST_COPY:
+            SORTED_LST.append(min(LST_COPY))
+            LST_COPY.remove(min(LST_COPY))
+        if LST_COPY:
+            SORTED_LST.append(max(LST_COPY))
+            LST_COPY.remove(max(LST_COPY))
+    return SORTED_LST",Yes,bad-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+        return []
+    SORTED_LST = sorted(lst)
+    RESULT = []
+    while SORTED_LST:
+        RESULT.append(SORTED_LST.pop(0))
+        if SORTED_LST:
+            RESULT.append(SORTED_LST.pop())
+    return RESULT",Yes,different-style,gpt-4o-mini,1.0,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","lst_copy = copy.deepcopy(lst)
+    result = []
+    while lst_copy:
+        result.append(min(lst_copy))
+        if lst_copy:
+            lst_copy.remove(min(lst_copy))
+            if lst_copy:
+                result.append(max(lst_copy))
+                lst_copy.remove(max(lst_copy))
+    return result",No,external,Llama-3.3-70B,,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp78jy0cd5.py"", line 42, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp78jy0cd5.py"", line 27, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp78jy0cd5.py"", line 13, in strange_sort_list
+    lst_copy = copy.deepcopy(lst)
+NameError: name 'copy' is not defined"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+    return []
+
+    lst.sort()
+    result = []
+    flag = True
+    while lst:
+    if flag:
+        result.append(lst.pop(0))
+    else:
+        result.append(lst.pop(-1))
+    flag = not flag
+
+    return result",No,normal,gpt-4o,1.0,HumanEval/70,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8atrd6ju.py"", line 14
+    return []
+    ^
+IndentationError: expected an indented block after 'if' statement on line 13"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","SORTED_LST = sorted(lst)
+    RESULT = []
+    while SORTED_LST:
+        RESULT.append(SORTED_LST.pop(0))
+        if SORTED_LST:
+            RESULT.append(SORTED_LST.pop(-1))
+    return RESULT",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/70,
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","if not lst:
+        return []
+    
+    sorted_lst = sorted(lst)
+    result = [sorted_lst.pop(0)]
+    while sorted_lst:
+        if sorted_lst:
+            result.append(sorted_lst.pop(-1))
+        result.append(sorted_lst.pop(0))
+    return result",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv723c6oi.py"", line 42, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv723c6oi.py"", line 27, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpv723c6oi.py"", line 21, in strange_sort_list
+    result.append(sorted_lst.pop(0))
+IndexError: pop from empty list"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","result = []
+    min_val = float('inf')
+    max_val = float('-inf')
+    for num in lst:
+        if num < min_val:
+            min_val = num
+            result.append(min_val)
+            min_val = float('inf')
+        elif num > max_val:
+            max_val = num
+            result.append(max_val)
+            max_val = float('-inf')
+    return result",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/70,"Traceback (most recent call last):
+  File ""/tmp/tmpeh7nozy8.py"", line 45, in <module>
+    check(strange_sort_list)
+  File ""/tmp/tmpeh7nozy8.py"", line 30, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def strange_sort_list(lst):
+    '''
+    Given list of integers, return list in strange order.
+    Strange sorting, is when you start with the minimum value,
+    then maximum of the remaining integers, then minimum and so on.
+
+    Examples:
+    strange_sort_list([1, 2, 3, 4]) == [1, 4, 2, 3]
+    strange_sort_list([5, 5, 5, 5]) == [5, 5, 5, 5]
+    strange_sort_list([]) == []
+    '''
+","sorted_list = []
+    for num in lst:
+        if not sorted_list or sorted_list[-1] < num:
+            sorted_list.append(num)
+        else:
+            index = 0
+            while index < len(sorted_list) and sorted_list[index] > num:
+                sorted_list[index] = sorted_list[index + 1]
+                index += 1
+            sorted_list[index] = num
+
+    return sorted_list",No,beginner,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/70,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwmpw6_nu.py"", line 44, in <module>
+    check(strange_sort_list)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwmpw6_nu.py"", line 29, in check
+    assert candidate([1, 2, 3, 4]) == [1, 4, 2, 3]
+AssertionError"

@@ -1,0 +1,751 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","return all(a == b for a, b in zip(brackets, brackets[-1:0:-1]))",No,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/61,"Traceback (most recent call last):
+  File ""/tmp/tmp7usx4o8o.py"", line 39, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmp7usx4o8o.py"", line 24, in check
+    assert candidate(""()"")
+           ^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","correct_bracketing(brackets):
+    stack = []
+    for bracket in brackets:
+        if bracket == ""("":
+            stack.append(bracket)
+        elif bracket == "")"":
+            if not stack or stack.pop() != ""("":
+                return False
+    return not stack",No,beginner,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/61,"File ""/tmp/tmp5_vsixx8.py"", line 16
+    correct_bracketing(brackets):
+                                ^
+SyntaxError: invalid syntax"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","while ""("" in brackets or "")"" in brackets:
+    brackets = brackets.replace(""()"", """", 1)
+
+    return not brackets",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/61,"File ""/tmp/tmpn9zu0vuu.py"", line 17
+    brackets = brackets.replace(""()"", """", 1)
+    ^
+IndentationError: expected an indented block after 'while' statement on line 16"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    v1 = []
+    for v0 in brackets:
+        if v0 == '(':
+            v1.append(v0)
+        elif v0 == ')':
+            if not v1 or v1.pop() != '(':
+                return False
+    if not v1:
+        return True
+    else:
+        return False",Yes,unusual,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+",""""""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+    x_stack = []
+    for x_ch in brackets:
+        if x_ch == ""("":
+            x_stack.append(x_ch)
+        else:
+            if len(x_stack) == 0:
+                return False
+            x_stack.pop()
+    _T0 = len(x_stack) == 0
+    return _T0",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","depth1 = 0
+    for bracket0 in brackets:
+        if bracket0 == ""("":
+            depth1 += 1
+        else:
+            depth1 -= 1
+        if depth1 < 0:
+            return False
+    _T0 = depth1 == 0
+    return _T0",Yes,normal,gpt-5.5,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","for char in brackets:
+        if char not in ('(', ')'):
+            return False
+    return True",No,beginner,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/61,"Traceback (most recent call last):
+  File ""/tmp/tmphsugdau7.py"", line 42, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmphsugdau7.py"", line 31, in check
+    assert not candidate(""((()())))"")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+",return len(brackets) == len(set(brackets)) * 2,No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/61,"Traceback (most recent call last):
+  File ""/tmp/tmppomrzmob.py"", line 39, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmppomrzmob.py"", line 24, in check
+    assert candidate(""()"")
+           ^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","x_balance = 0
+    for x_ch in brackets:
+        if x_ch == '(':
+            x_balance += 1
+        elif x_ch == ')':
+            x_balance -= 1
+        else:
+            return False
+        if x_balance < 0:
+            return False
+    if x_balance == 0:
+        return True
+    else:
+        return False",Yes,refactorable,gpt-5,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","assert True
+    v2 = []
+    v1 = { "")"": ""("", ""]"": ""["", ""}"": ""{"" }
+
+    for v0 in brackets:
+        if v0 in v1:
+            if v2 and v2[-1] == v1[v0]:
+                v2.pop()
+            else:
+                return False
+        else:
+            v2.append(v0)
+    _T0 = not v2
+    return _T0
+
+    # Test cases
+    print(correct_bracketing(""(""))  # False
+    print(correct_bracketing(""()""))  # True
+    print(correct_bracketing(""(()())""))  # True
+    print(correct_bracketing("")(()""))  # False",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    the_balance_value = 0
+    for the_char_value in brackets:
+        if the_char_value == '(':
+            the_balance_value += 1
+        elif the_char_value == ')':
+            the_balance_value -= 1
+        if the_balance_value < 0:
+            return False
+    return the_balance_value == 0",Yes,external,Mistral-3.2-24B,,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# As we only care about the '(' character, can use the built-in count function to
+    # count the '(' characters in 'brackets'.
+    # If the count is odd, we return False, otherwise we return True.
+    return brackets.count('(') == brackets.count(')')",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/61,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy70mojd4.py"", line 42, in <module>
+    check(correct_bracketing)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy70mojd4.py"", line 32, in check
+    assert not candidate("")(()"")
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    assert True
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+
+    STACK = []
+    for BRACKET in brackets:
+        if BRACKET == ""("":
+            STACK.append(BRACKET)
+        else:
+            if len(STACK) == 0:
+                return False
+            STACK.pop()
+    return len(STACK) == 0
+
+    print(correct_bracketing(""(""))
+    print(correct_bracketing(""()""))
+    print(correct_bracketing(""(()())""))
+    print(correct_bracketing("")(()""))",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# Transform this sequence into its automaton form
+    durations = []
+    open_ticks = 0
+    for t, bracket in enumerate(brackets):
+        if bracket == '(':
+            open_ticks += 1
+        elif bracket == ')':
+            durations.append(t - durations[-1] if durations else t)
+            open_ticks -= 1
+
+    return open_ticks == 0 and all(x == durations[0] for x in durations)",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/61,"Traceback (most recent call last):
+  File ""/tmp/tmpuzz44z0f.py"", line 49, in <module>
+    check(correct_bracketing)
+  File ""/tmp/tmpuzz44z0f.py"", line 35, in check
+    assert candidate(""(()())"")
+           ^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    assert True
+    v1 = 0
+    for v0 in brackets:
+        if v0 == '(':
+            v1 += 1
+        elif v0 == ')':
+            v1 -= 1
+        if v1 < 0:
+            return False
+    return v1 == 0",Yes,bad-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","BALANCED = 0
+    for CHAR in brackets:
+        BALANCED += (1 if CHAR == '(' else -1 if CHAR == ')' else 0)
+        if BALANCED < 0: return False
+    if BALANCED == 0:
+        return True
+    else:
+        return False",Yes,unusual,gpt-4o-mini,1.2,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","v1 = []
+    for v0 in brackets:
+        if v0 == ""("":
+            v1.append(v0)
+        elif v0 == "")"" and len(v1) == 0:
+            return False
+        elif v0 == "")"":
+            v1.pop()
+    return len(v1) == 0
+
+    print(correct_bracketing(""(""))
+    print(correct_bracketing(""()""))
+    print(correct_bracketing(""(()())""))
+    print(correct_bracketing("")(()""))",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","assert True
+    x_count = 0
+    for x_ch in brackets:
+        if x_ch == '(':
+            x_count += 1
+        elif x_ch == ')':
+            if x_count == 0:
+                return False
+            x_count -= 1
+    if x_count == 0:
+        return True
+    else:
+        return False",Yes,beginner,gpt-5,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+",return sum((1 if char == '(' else -1) for char in brackets) == 0 and all((bal := (bal + (1 if char == '(' else -1)) >= 0) for bal in [0] for char in brackets),No,unusual,gpt-4o-mini,1.0,HumanEval/61,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphoc6n409.py"", line 16
+    return sum((1 if char == '(' else -1) for char in brackets) == 0 and all((bal := (bal + (1 if char == '(' else -1)) >= 0) for bal in [0] for char in brackets)
+                                                                              ^^^
+SyntaxError: assignment expression cannot rebind comprehension iteration variable 'bal'"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    open_count1 = 0
+    for bracket0 in brackets:
+        if bracket0 == '(':
+            open_count1 += 1
+        elif bracket0 == ')':
+            open_count1 -= 1
+        if open_count1 < 0:
+            return False
+    if open_count1 == 0:
+        return True
+    else:
+        return False",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+",lambda: True,No,normal,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/61,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pk1alrb.py"", line 39, in <module>
+    check(correct_bracketing)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp8pk1alrb.py"", line 24, in check
+    assert candidate(""()"")
+AssertionError"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","assert True
+    v1 = []
+    for v0 in brackets:
+        if v0 == ""("":
+            v1.append(v0)
+        elif v0 == "")"":
+            if not v1:
+                return False
+            v1.pop()
+    return len(v1) == 0",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","assert True
+    BALANCE = 0
+    for CH in brackets:
+        if CH == '(':
+            BALANCE += 1
+        else:
+            BALANCE -= 1
+            if BALANCE < 0:
+                return False
+    if BALANCE == 0:
+        return True
+    else:
+        return False",Yes,normal,gpt-5,1.0,HumanEval/61,
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","stack = []
+    for char in brackets:
+        if char == ""("":
+            stack.append(char)
+        elif char == "")"":
+            if not stack or stack.pop() != ""("":
+                return False
+    return not stack
+
+
+    # firstloop through the brackets list used a传统的 for循环来处理打开/关闭括号
+    # stack列表用于存储尚未关闭的开放括号的类型
+    
+    # for循环通过遍历字符串brackets中的每个字符串进行操作，扫描器存储每个字符串中的所有字符
+    # 声明一个空栈
+
+    # 我们检查括号类型的最后一个字符是否闭合并将其添加到栈中（如果需要）
+    # 如果它不是闭合括号是最后一个元素并且从栈中弹出失败，我们返回False
+    # 当整个循环执行完毕并且栈为空（表示括号正确闭合并正确嵌套分层），则返回True
+痕",No,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/61,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptqccb6f2.py"", line 35, in <module>
+    痕
+NameError: name '痕' is not defined"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","for bracket in brackets:
+        if bracket not in ['(', '['] or ')', ']']:
+            return False
+    return True",No,bad-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/61,"File ""/tmp/tmpi4sdg5xz.py"", line 17
+    if bracket not in ['(', '['] or ')', ']']:
+                                            ^
+SyntaxError: unmatched ']'"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","return all(v == counts[counts.keys().__getitem__(0)] for v in counts.values())
+
+def correct_bracketing(brackets):
+    stack = []
+    for bracket in brackets:
+        if bracket == '(':
+            stack.append(bracket)
+        elif bracket == ')':
+            if not stack or stack.pop() != '(':
+                return False
+    return same_count(dict.fromkeys(stack))
+
+# Test cases
+print(correct_bracketing(""(""))       # False
+print(correct_bracketing(""()""))      # True
+print(correct_bracketing(""(()())""))  # True
+print(correct_bracketing("")(()""))    # False",No,different-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/61,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxnhg_wwb.py"", line 29, in <module>
+    print(correct_bracketing(""(""))       # False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpxnhg_wwb.py"", line 26, in correct_bracketing
+    return same_count(dict.fromkeys(stack))
+NameError: name 'same_count' is not defined"
+"
+
+def correct_bracketing(brackets: str):
+    """""" brackets is a string of ""("" and "")"".
+    return True if every opening bracket has a corresponding closing bracket.
+
+    >>> correct_bracketing(""("")
+    False
+    >>> correct_bracketing(""()"")
+    True
+    >>> correct_bracketing(""(()())"")
+    True
+    >>> correct_bracketing("")(()"")
+    False
+    """"""
+","# compute the result
+    assert True
+    stack1 = []
+    for bracket0 in brackets:
+        if bracket0 == '(':
+            stack1.append(bracket0)
+        elif bracket0 == ')':
+            if stack1 and stack1[-1] == '(':
+                stack1.pop()
+            else:
+                return False
+    if not stack1:
+        return True
+    else:
+        return False",Yes,different-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/61,

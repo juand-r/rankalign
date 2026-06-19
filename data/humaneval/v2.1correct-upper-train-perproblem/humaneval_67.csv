@@ -1,0 +1,626 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","numbers = list(map(int, re.findall(r'\d+', s)))
+    return n - sum(numbers)",No,external,Llama-3.3-70B,,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwkhriq4p.py"", line 30, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwkhriq4p.py"", line 21, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpwkhriq4p.py"", line 15, in fruit_distribution
+    numbers = list(map(int, re.findall(r'\d+', s)))
+NameError: name 're' is not defined"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","TOTAL_FRUITS = s.replace('apples and', ' ').replace('oranges', '')
+    TOTAL_FRUITS = TOTAL_FRUITS.split()
+    APPLES = int(TOTAL_FRUITS[0])
+    ORANGES = int(TOTAL_FRUITS[1])
+    MANGOES = n - APPLES - ORANGES
+    return MANGOES",Yes,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","MANGOES = n
+    APPLE_AND_ORANGE_COUNT = 0
+    for WORD in s.split():
+        if WORD.isdigit():
+            APPLE_AND_ORANGE_COUNT += int(WORD)
+    return MANGOES - APPLE_AND_ORANGE_COUNT",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","PARTS = s.split(' and ')
+    APPLES = int(PARTS[0].split(' ')[0])
+    ORANGES = int(PARTS[1].split(' ')[0])
+    REMAINING_FRUITS = n - APPLES - ORANGES
+    return REMAINING_FRUITS",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","parts = s.split()
+    apples = int(parts[0])
+    oranges = int(parts[2])
+    return n - apples - oranges",No,refactorable,gpt-4o-mini,1.2,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpas7884ve.py"", line 32, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpas7884ve.py"", line 23, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpas7884ve.py"", line 17, in fruit_distribution
+    oranges = int(parts[2])
+ValueError: invalid literal for int() with base 10: 'and'"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","fruits = { 'apple': 0, 'orange': 0 }
+    mango = n
+
+    for fragment in s.split(' '):
+        if not fragment:
+            continue
+        match = re.match(r'(\d+) ([a-z]*)', fragment)
+        if match:
+            quantity, fruit_type = match.groups()
+            quantity = int(quantity)
+            if fruit_type in fruits:
+                fruits[fruit_type] += quantity
+            mango -= quantity
+    return mango",No,normal,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpntjar1qq.py"", line 42, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpntjar1qq.py"", line 33, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpntjar1qq.py"", line 21, in fruit_distribution
+    match = re.match(r'(\d+) ([a-z]*)', fragment)
+NameError: name 're' is not defined"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","apples = 0
+    oranges = 0
+    for char in s:
+        if char.isdigit():
+            if apples == 0:
+                apples = int(char)
+            else:
+                oranges = int(char)
+    mangoes = n - apples - oranges
+    return mangoes",No,normal,gpt-3.5-turbo,0.2,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0p2rcv1h.py"", line 38, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp0p2rcv1h.py"", line 35, in check
+    assert candidate(""1 apples and 100 oranges"",120) == 19
+AssertionError"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","apples = 0
+    oranges = 0
+    mangoes = 0
+    if 'apples' in s.lower():
+        index = s.lower().index('apples')
+        apples = int(s.split('apples')[0].strip())
+        s = s[index + len('apples') + 1:]
+    if 'oranges' in s.lower():
+        index = s.lower().index('oranges')
+        oranges = int(s.split('oranges')[0].strip())
+        s = s[index + len('oranges') + 1:]
+    if 'mangoes' in s.lower():
+        mangoes = int(s.strip())
+    if not mangoes:
+        mangoes = n - apples - oranges
+    return mangoes",No,bad-style,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/67,"Traceback (most recent call last):
+  File ""/tmp/tmpekxrz61x.py"", line 44, in <module>
+    check(fruit_distribution)
+  File ""/tmp/tmpekxrz61x.py"", line 35, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpekxrz61x.py"", line 24, in fruit_distribution
+    oranges = int(s.split('oranges')[0].strip())
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: invalid literal for int() with base 10: 'and 6'"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","numbers = list(map(int, re.findall(r'\d+', s)))
+    return n - sum(numbers)",No,external,GPT-4o,,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuw80nq7q.py"", line 30, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuw80nq7q.py"", line 21, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuw80nq7q.py"", line 15, in fruit_distribution
+    numbers = list(map(int, re.findall(r'\d+', s)))
+NameError: name 're' is not defined"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+",return n - s.count('apples') - s.count('oranges'),No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/67,"Traceback (most recent call last):
+  File ""/tmp/tmp5tc_1pbq.py"", line 29, in <module>
+    check(fruit_distribution)
+  File ""/tmp/tmp5tc_1pbq.py"", line 20, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","parts = s.split("" "")
+    apples = int(parts[0])
+    oranges = int(parts[2])
+    total_fruits = n
+    mangoes = total_fruits - apples - oranges
+    return mangoes",No,bad-style,gpt-4o-mini,0.7,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprlvrneoz.py"", line 34, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprlvrneoz.py"", line 25, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmprlvrneoz.py"", line 17, in fruit_distribution
+    oranges = int(parts[2])
+ValueError: invalid literal for int() with base 10: 'and'"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","FRUITS = s.split(' and ')
+    FRUIT_DICT = {}
+    for FRUIT in FRUITS:
+        AMOUNT, TYPE_ = FRUIT.split(' ')
+        AMOUNT = int(AMOUNT)
+        if TYPE_ not in FRUIT_DICT:
+            FRUIT_DICT[TYPE_] = AMOUNT
+        else:
+            FRUIT_DICT[TYPE_] += AMOUNT
+    TOTAL_FRUITS = sum(FRUIT_DICT.values())
+    return n - TOTAL_FRUITS + FRUIT_DICT.get('mango', 0)",Yes,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","numbers = re.findall(r'\d+', s)
+    apples = int(numbers[0])
+    oranges = int(numbers[1])
+    return n - apples - oranges",No,external,Qwen3-Coder,,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6qn_bgst.py"", line 32, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6qn_bgst.py"", line 23, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp6qn_bgst.py"", line 15, in fruit_distribution
+    numbers = re.findall(r'\d+', s)
+NameError: name 're' is not defined"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","APPLES = int(s.split()[0])
+    ORANGES = int(s.split()[3])
+    MANGOES = n - APPLES - ORANGES
+    return MANGOES",Yes,beginner,gpt-4o-mini,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","A = s.split('apple')[0].strip()
+    B = s.split('orange')[0].strip().split()[-1]
+    return n - int(A) - int(B)",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","PORTIONS = s.split()
+    NUMBER_OF_APPLES = int(PORTIONS[0])
+    NUMBER_OF_ORANGES = int(PORTIONS[3])
+    TOTAL_FRUITS = n
+    MANGO_FRUITS = TOTAL_FRUITS - NUMBER_OF_APPLES - NUMBER_OF_ORANGES
+    return MANGO_FRUITS",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","WORDS = s.split()
+    APPLES = int(WORDS[0])
+    ORANGES = int(WORDS[3])
+    TOTAL_FRUIT = APPLES + ORANGES
+    MANGO_FRUITS = n - TOTAL_FRUIT
+    return MANGO_FRUITS",Yes,normal,gpt-4o,1.2,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","NUMS = []
+    NUM_STR = ''
+    for CH in s:
+        if CH.isdigit():
+            NUM_STR += CH
+        elif NUM_STR:
+            NUMS.append(int(NUM_STR))
+            NUM_STR = ''
+    if NUM_STR:
+        NUMS.append(int(NUM_STR))
+    return n - sum(NUMS)",Yes,normal,gpt-5,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","NUMBERS = [int(WORD) for WORD in s.split() if WORD.isdigit()]
+    TOTAL_APPLES_ORANGES = sum(NUMBERS)
+    MANGO_FRUITS = n - TOTAL_APPLES_ORANGES
+    return MANGO_FRUITS",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","fruits = list(map(int, re.findall(r'\d+', s)))
+    return n - sum(fruits)",No,unusual,gpt-4o-mini,1.2,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3ekh5bth.py"", line 30, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3ekh5bth.py"", line 21, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3ekh5bth.py"", line 15, in fruit_distribution
+    fruits = list(map(int, re.findall(r'\d+', s)))
+NameError: name 're' is not defined"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","FRUITS_INFO = s.split(' and ')
+    APPLES = int(FRUITS_INFO[0].split()[0])
+    ORANGES = int(FRUITS_INFO[1].split()[0])
+    TOTAL_FRUITS = n
+    MANGOES = TOTAL_FRUITS - (APPLES + ORANGES)
+    return MANGOES",Yes,normal,gpt-4o-mini,1.2,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","NUMS = []
+    for W in s.split():
+        try:
+            NUMS.append(int(W))
+        except:
+            pass
+    APPLES = 0
+    ORANGES = 0
+    if len(NUMS) > 0:
+        APPLES = NUMS[0]
+    if len(NUMS) > 1:
+        ORANGES = NUMS[1]
+    return n - APPLES - ORANGES",Yes,beginner,gpt-5,1.0,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","APPLES = int(s.split(' ')[0])
+    ORANGES = int(s.split(' ')[3])
+    MANGOES = n - APPLES - ORANGES
+    return MANGOES",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/67,
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","oranges = s.count(""or"")
+    apples = s.count(""app"")
+    mangoes = n - oranges - apples
+    return mangoes",No,different-style,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/67,"Traceback (most recent call last):
+  File ""/tmp/tmp1zevnp1i.py"", line 32, in <module>
+    check(fruit_distribution)
+  File ""/tmp/tmp1zevnp1i.py"", line 23, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","s = s.replace(""apples and"", ""apples,"").replace(""oranges"", """").replace(""and"", """")
+    fruits = [int(x) for x in s.split("","")]
+    apples = fruits[0]
+    oranges = fruits[1]
+    mangoes = n - apples - oranges
+    return mangoes",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/67,"Traceback (most recent call last):
+  File ""/tmp/tmp9ozrm7c8.py"", line 34, in <module>
+    check(fruit_distribution)
+  File ""/tmp/tmp9ozrm7c8.py"", line 25, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp9ozrm7c8.py"", line 16, in fruit_distribution
+    fruits = [int(x) for x in s.split("","")]
+              ^^^^^^
+ValueError: invalid literal for int() with base 10: '5 apples'"
+"
+def fruit_distribution(s,n):
+    """"""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+","""""""
+    In this task, you will be given a string that represents a number of apples and oranges 
+    that are distributed in a basket of fruit this basket contains 
+    apples, oranges, and mango fruits. Given the string that represents the total number of 
+    the oranges and apples and an integer that represent the total number of the fruits 
+    in the basket return the number of the mango fruits in the basket.
+    for examble:
+    fruit_distribution(""5 apples and 6 oranges"", 19) ->19 - 5 - 6 = 8
+    fruit_distribution(""0 apples and 1 oranges"",3) -> 3 - 0 - 1 = 2
+    fruit_distribution(""2 apples and 3 oranges"", 100) -> 100 - 2 - 3 = 95
+    fruit_distribution(""100 apples and 1 oranges"",120) -> 120 - 100 - 1 = 19
+    """"""
+    apples, oranges = map(int, s.split("" apples and ""))
+    return n - apples - oranges",No,normal,CodeLlama-34b-Instruct,0.2,HumanEval/67,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpajxxq3o8.py"", line 42, in <module>
+    check(fruit_distribution)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpajxxq3o8.py"", line 33, in check
+    assert candidate(""5 apples and 6 oranges"",19) == 8
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpajxxq3o8.py"", line 27, in fruit_distribution
+    apples, oranges = map(int, s.split("" apples and ""))
+ValueError: invalid literal for int() with base 10: '6 oranges'"

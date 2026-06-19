@@ -1,0 +1,736 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            SHIFT = 2 * 2
+            if CHAR.islower():
+                NEW_CHAR = chr((ord(CHAR) - ord('a') + SHIFT) % 26 + ord('a'))
+            else:
+                NEW_CHAR = chr((ord(CHAR) - ord('A') + SHIFT) % 26 + ord('A'))
+            RESULT += NEW_CHAR
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","result = ''
+    for char in s:
+        if 'A' <= char <= 'Z': 
+            result += chr((ord(char) - ord('A') - 2) % 26 + ord('A'))
+        elif 'a' <= char <= 'z':
+            result += chr((ord(char) - ord('a') - 2) % 26 + ord('a'))
+        else:
+            result += char
+    return result
+
+# Test cases
+print(encrypt('hi'))  # 'hl'
+print(encrypt('asdfghjkl'))  # 'ewhjklnop'
+print(encrypt('gf'))  # 'hk'
+print(encrypt('et'))  # 'if'",No,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvnfbov8.py"", line 46, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgvnfbov8.py"", line 32, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        ASCII_CODE = ord(CHAR)
+        if 65 <= ASCII_CODE <= 90:
+            RESULT += chr((ASCII_CODE - 65 + 2 * 2) % 26 + 65)
+        elif 97 <= ASCII_CODE <= 122:
+            RESULT += chr((ASCII_CODE - 97 + 2 * 2) % 26 + 97)
+        else:
+            RESULT += CHAR
+    return RESULT
+    print(encrypt('hi'))
+    print(encrypt('asdfghjkl'))
+    print(encrypt('gf'))
+    print(encrypt('et'))
+    print(encrypt('Z'))
+    print(encrypt('a'))
+    print(encrypt('1'))
+    print(encrypt('hello'))",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = []
+    for C in s:
+        O = ord(C)
+        if 97 <= O <= 122:
+            O = O + 4
+            if O > 122:
+                O = O - 26
+            RESULT.append(chr(O))
+        elif 65 <= O <= 90:
+            O = O + 4
+            if O > 90:
+                O = O - 26
+            RESULT.append(chr(O))
+        else:
+            RESULT.append(C)
+    return ''.join(RESULT)",Yes,refactorable,gpt-5,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            NEW_CHAR = chr((ord(CHAR) - 97 + 4) % 26 + 97) if CHAR.islower() else chr((ord(CHAR) - 65 + 4) % 26 + 65)
+            RESULT += NEW_CHAR
+    return RESULT",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            ASCII_OFFSET = 97 if CHAR.islower() else 65
+            ENCRYPTED_CHAR = chr((ord(CHAR) - ASCII_OFFSET + 2 * 2) % 26 + ASCII_OFFSET)
+            RESULT += ENCRYPTED_CHAR
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","result = []
+    for char in s:
+        if char.isalpha():
+            shifted = ord(char) + 8
+            if char.islower():
+                if shifted > ord('z'):
+                    shifted -= 26
+            elif char.isupper():
+                if shifted > ord('Z'):
+                    shifted -= 26
+            result.append(chr(shifted))
+        else:
+            result.append(char)
+    return ''.join(result)",No,external,Mistral-3.2-24B,,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifmf2xb5.py"", line 45, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifmf2xb5.py"", line 31, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+",Here is the function encrypt in a more poetic style:,No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/89,"File ""/tmp/tmpeodirikn.py"", line 13
+    Here is the function encrypt in a more poetic style:
+                ^^^^^^^^
+SyntaxError: invalid syntax"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","ROTATED = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            SHIFTED_CHAR = chr((ord(CHAR) - 97 + 4) % 26 + 97)
+            ROTATED += SHIFTED_CHAR
+        else:
+            ROTATED += CHAR
+    return ROTATED",Yes,refactorable,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","shift = 2 * (2 + ord('e') % 26)  # compute the shift needed, 'e' is the first active letter in the set of lowercase alphabet
+    result = ''
+    for char in s:
+        if char.isalpha():
+            base = ord('a') if char.islower() else ord('A')
+            encrypted_char = chr((ord(char) - base + shift) % 26 + base)
+            result += encrypted_char
+        else:
+            result += char
+    return result",No,normal,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpca1fdqjl.py"", line 41, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpca1fdqjl.py"", line 27, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","encrypted = []
+    for char in s:
+        if char.islower():
+            original_pos = string.ascii_lowercase.index(char)
+            new_pos = (original_pos + 2 * 2) % 26
+            encrypted_char = string.ascii_lowercase[new_pos]
+            encrypted.append(encrypted_char)
+        else:
+            encrypted.append(char)
+    return ''.join(encrypted)",No,external,DeepSeek-V3,,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl72ife8h.py"", line 41, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl72ife8h.py"", line 27, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpl72ife8h.py"", line 16, in encrypt
+    original_pos = string.ascii_lowercase.index(char)
+NameError: name 'string' is not defined"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            ASCII_OFFSET = 97 if CHAR.islower() else 65
+            RESULT += chr((ord(CHAR) - ASCII_OFFSET + 4) % 26 + ASCII_OFFSET)
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,external,Llama-3.3-70B,,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","return ''.join(c * 25 if c.lower() in ['z', 'Z'] else c + c + 21 for c in s)",No,unusual,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/89,"Traceback (most recent call last):
+  File ""/tmp/tmp8z3jc3f5.py"", line 32, in <module>
+    check(encrypt)
+  File ""/tmp/tmp8z3jc3f5.py"", line 18, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8z3jc3f5.py"", line 13, in encrypt
+    return ''.join(c * 25 if c.lower() in ['z', 'Z'] else c + c + 21 for c in s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmp8z3jc3f5.py"", line 13, in <genexpr>
+    return ''.join(c * 25 if c.lower() in ['z', 'Z'] else c + c + 21 for c in s)
+                                                          ~~~~~~^~~~
+TypeError: can only concatenate str (not ""int"") to str"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","result = ''
+    for char in s:
+        if char.isalpha():
+            ascii_offset = 97 if char.islower() else 65
+            result += chr((ord(char) - ascii_offset + 4 * 2) % 26 + ascii_offset)
+        else:
+            result += char",No,beginner,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc5gzazdh.py"", line 38, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpc5gzazdh.py"", line 24, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","rotated_alpha = ""abcdefghijklmnopqrstuvwxyz""
+    encrypted_s = """"
+
+    for char in s:
+        if char in rotated_alpha:
+            position = rotated_alpha.index(char)
+            encrypted_s += rotated_alpha[(position + 14) % 26]
+        else:
+            encrypted_s += char
+
+    return encrypted_s",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9kwqxlc.py"", line 42, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpy9kwqxlc.py"", line 28, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            ASCII_OFFSET = 65 if CHAR.isupper() else 97
+            RESULT += chr((ord(CHAR) - ASCII_OFFSET + 2 * 2) % 26 + ASCII_OFFSET)
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","shifted_chars = {}
+    for i in range(97, 123):  # ASCII lowercase a-z
+        temp_val = ((i-65+4*2) % 26) + 65
+        shifted_chars[chr(i)] = chr(temp_val)
+            
+    encrypted_string = """"
+
+    for char in s:
+        if char.isalpha():  # only encrypt alphabetic characters
+            shifted_char = shifted_chars[char.lower()].upper() if char.isupper() else shifted_chars[char.lower()]
+            encrypted_string += shifted_char
+        else:
+            encrypted_string += char
+    
+    return encrypted_string",No,refactorable,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgr8g4zi2.py"", line 46, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpgr8g4zi2.py"", line 32, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","shift = 2 * (1 + 2)  # for every character, rotate down by 4 places since 2x2=4
+        result = ''
+        for char in s:
+            if char.isalpha():
+                shift_mod = shift % 26
+                shifted_char = chr(((ord(char.lower()) - 97 + shift_mod) % 26) + 97)
+                result += shifted_char.upper() if char.isupper() else shifted_char
+            else:
+                result += char
+        return result
+
+Please note, this function assumes a simple Caesar cipher with an unconventional twist where the shift value is dynamically calculated. It uses the base ASCII values to create the shift, ensuring uppercase to uppercase and lowercase to lowercase shifts remain consistent.",No,unusual,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/89,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpmhov48qc.py"", line 13
+    shift = 2 * (1 + 2)  # for every character, rotate down by 4 places since 2x2=4
+IndentationError: unexpected indent"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","s = s.lower()
+    LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+    SHIFT = 2 * 2
+    ENCRYPTED = ''
+    for CHAR in s:
+        if CHAR in LETTERS:
+            ENCRYPTED += LETTERS[(LETTERS.index(CHAR) + SHIFT) % len(LETTERS)]
+        else:
+            ENCRYPTED += CHAR
+    return ENCRYPTED",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","result = """"
+    for char in s:
+        if char.isalpha():
+            if char.islower():
+                result += chr((ord(char) - ord('a') + 8) % 26 + ord('a'))
+            else:
+                result += chr((ord(char) - ord('A') + 8) % 26 + ord('A'))
+        else:
+            result += char
+    return result",No,refactorable,gpt-4o-mini,0.7,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9ajjo64p.py"", line 41, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp9ajjo64p.py"", line 27, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","ENCRYPTED_STRING = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            ASCII_VAL = ord(CHAR)
+            if CHAR.isupper():
+                ENCRYPTED_CHAR = chr((ASCII_VAL - 65 + 2 * 2) % 26 + 65)
+            else:
+                ENCRYPTED_CHAR = chr((ASCII_VAL - 97 + 2 * 2) % 26 + 97)
+            ENCRYPTED_STRING += ENCRYPTED_CHAR
+        else:
+            ENCRYPTED_STRING += CHAR
+    return ENCRYPTED_STRING",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+",return ''.join(double_rotated_alphabet[alphabet.index(c)] for c in s.lower() if c in alphabet),No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/89,"Traceback (most recent call last):
+  File ""/tmp/tmpjnk5pdgi.py"", line 32, in <module>
+    check(encrypt)
+  File ""/tmp/tmpjnk5pdgi.py"", line 18, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpjnk5pdgi.py"", line 13, in encrypt
+    return ''.join(double_rotated_alphabet[alphabet.index(c)] for c in s.lower() if c in alphabet)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpjnk5pdgi.py"", line 13, in <genexpr>
+    return ''.join(double_rotated_alphabet[alphabet.index(c)] for c in s.lower() if c in alphabet)
+                                                                                         ^^^^^^^^
+NameError: name 'alphabet' is not defined"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            OFFSET = (ord(CHAR.lower()) - ord('a') + 2 * 2) % 26
+            if CHAR.islower():
+                RESULT += chr(ord('a') + OFFSET)
+            else:
+                RESULT += chr(ord('A') + OFFSET)
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","def rotate_alphabet(e):
+        return lowercase(s[0:] + jimmy-upfony_touch + s[:0])
+
+    encrypted_string = '.'.join(rotate_alphabet(key) * 2 for key in s)
+    return encrypted_string",No,beginner,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/89,"Traceback (most recent call last):
+  File ""/tmp/tmpoznntpkx.py"", line 36, in <module>
+    check(encrypt)
+  File ""/tmp/tmpoznntpkx.py"", line 22, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+           ^^^^^^^^^^^^^^^
+  File ""/tmp/tmpoznntpkx.py"", line 16, in encrypt
+    encrypted_string = '.'.join(rotate_alphabet(key) * 2 for key in s)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpoznntpkx.py"", line 16, in <genexpr>
+    encrypted_string = '.'.join(rotate_alphabet(key) * 2 for key in s)
+                                ^^^^^^^^^^^^^^^^^^^^
+  File ""/tmp/tmpoznntpkx.py"", line 14, in rotate_alphabet
+    return lowercase(s[0:] + jimmy-upfony_touch + s[:0])
+           ^^^^^^^^^
+NameError: name 'lowercase' is not defined"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+",return ''.join((chr((ord(C) - ord('a') + 4) % 26 + ord('a')) for C in s)),Yes,normal,gpt-4o,1.4,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+    ROTATED_ALPHABET = ALPHABET[4:] + ALPHABET[:4]
+    RESULT = ''
+    for CHAR in s:
+        if CHAR.isalpha():
+            if CHAR.islower():
+                RESULT += ROTATED_ALPHABET[ALPHABET.index(CHAR)]
+            else:
+                RESULT += ROTATED_ALPHABET[ALPHABET.index(CHAR.lower())].upper()
+        else:
+            RESULT += CHAR
+    return RESULT",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","alphabet = 'abcdefghijklmnopqrstuvwxyz'
+
+    rotated_alphabet = alphabet[len(s):] + alphabet[:len(s)]
+
+
+    encrypted_chars = [rotated_alphabet[(alphabet.index(char.lower()) + len(s)) % 26] for char in s]
+
+
+    return ''.join(encrypted_chars)",No,different-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3kkep08b.py"", line 42, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp3kkep08b.py"", line 29, in check
+    assert candidate('asdfghjkl') == 'ewhjklnop', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+",return ''.join((chr((ord(CHAR) - 97 + 4) % 26 + 97) if 'a' <= CHAR <= 'z' else CHAR for CHAR in s)),Yes,unusual,gpt-4o-mini,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","RESULT = ''
+    LENGTH = len(s)
+    ALPHABET = 'abcdefghijklmnopqrstuvwxyz'
+    for I in range(LENGTH):
+        CURRENT_CHAR = s[I]
+        if CURRENT_CHAR in ALPHABET:
+            CURRENT_INDEX = ALPHABET.index(CURRENT_CHAR)
+            NEW_INDEX = (CURRENT_INDEX + 4) % 26
+            RESULT += ALPHABET[NEW_INDEX]
+        else:
+            RESULT += CURRENT_CHAR
+    return RESULT",Yes,bad-style,gpt-4o-mini,1.0,HumanEval/89,
+"
+def encrypt(s):
+    """"""Create a function encrypt that takes a string as an argument and
+    returns a string encrypted with the alphabet being rotated. 
+    The alphabet should be rotated in a manner such that the letters 
+    shift down by two multiplied to two places.
+    For example:
+    encrypt('hi') returns 'lm'
+    encrypt('asdfghjkl') returns 'ewhjklnop'
+    encrypt('gf') returns 'kj'
+    encrypt('et') returns 'ix'
+    """"""
+","result = """"
+    alphabet = ""abcdefghijklmnopqrstuvwxyz""
+    shift = 4  # 2 * 2
+
+    for char in s:
+        if char.isalpha():
+            if char.islower():
+                index = (alphabet.index(char) + shift) % 26
+                result += alphabet[index]
+            else:
+                index = (alphabet.index(char.lower()) + shift) % 26
+                result += alphabet[index].upper()
+        else:
+            result += char",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/89,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpid07mz6w.py"", line 45, in <module>
+    check(encrypt)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpid07mz6w.py"", line 31, in check
+    assert candidate('hi') == 'lm', ""This prints if this assert fails 1 (good for debugging!)""
+AssertionError: This prints if this assert fails 1 (good for debugging!)"

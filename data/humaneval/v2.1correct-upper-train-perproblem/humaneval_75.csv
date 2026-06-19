@@ -1,0 +1,771 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(N):
+        if N < 2:
+            return False
+        for I in range(2, int(N ** 0.5) + 1):
+            if N % I == 0:
+                return False
+        return True
+
+    def GET_PRIME_FACTORS(N):
+        FACTORS = []
+        for I in range(2, N + 1):
+            while N % I == 0 and IS_PRIME(I):
+                FACTORS.append(I)
+                N //= I
+        return FACTORS
+    return len(GET_PRIME_FACTORS(a)) == 3",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if a <= 1 or a > 100:
+        return False
+
+    primes = [2, 3]
+    factors = set()
+
+    candidate = 5
+    while True:
+        while a % candidate == 0:
+            factors.add(candidate)
+            a //= candidate
+            if len(factors) == 3:
+                return True
+
+        if candidate > 99 or candidate in primes:
+            primes.extend(seive_of_eratosthenes(candidate + 2))
+        candidate += 2
+
+    return len(factors) == 3
+
+def seive_of_eratosthenes(limit):
+    primes = [True for _ in range(limit)]
+    primes[0], primes[1] = False, False
+
+    for n in range(2, int(limit**0.5) + 1):
+        if primes[n]:
+            primes[n*n::n] = [False for _ in range((limit - 1)//n + 1)]
+
+    return [n for n, is_prime in enumerate(primes) if is_prime]",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuwyjekxr.py"", line 55, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuwyjekxr.py"", line 42, in check
+    assert candidate(5) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuwyjekxr.py"", line 25, in is_multiply_prime
+    primes.extend(seive_of_eratosthenes(candidate + 2))
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuwyjekxr.py"", line 36, in seive_of_eratosthenes
+    primes[n*n::n] = [False for _ in range((limit - 1)//n + 1)]
+ValueError: attempt to assign sequence of size 52 to extended slice of size 50"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","N = a
+    if N < 2:
+        return False
+    COUNT = 0
+    P = 2
+    while P * P <= N:
+        while N % P == 0:
+            N //= P
+            COUNT += 1
+            if COUNT > 3:
+                return False
+        P += 1
+    if N > 1:
+        COUNT += 1
+    return COUNT == 3",Yes,normal,gpt-5,1.0,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    for i in range(2, int(a**0.5) + 1):
+        if a % i == 0:
+            c = a // i
+            b = i
+            if is_prime(b) and is_prime(c):
+                for j in range(2, int(c**0.5) + 1):
+                    if c % j == 0 and is_prime(j):
+                        return False
+                return True
+            return False
+    return False",No,beginner,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/tmp/tmplm3i2_m8.py"", line 45, in <module>
+    check(is_multiply_prime)
+  File ""/tmp/tmplm3i2_m8.py"", line 33, in check
+    assert candidate(30) == True
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","UPPER_CASE_VAR = 1
+    FLAG_SUCCESS = True
+    NESTED_CONDITIONAL = (UPPER_CASE_VAR > 1) and (FLAG_SUCCESS == True)
+    RECURSIVE_PROCEDURE = NESTED_CONDITIONAL and (NESTED_CONDITIONAL == True)
+    STDLIB_ABOMINATION = RECURSIVE_PROCEDURE
+    UNCOMMON_ALGORITHM_CHOICE = (STDLIB_ABOMINATION or RECURSIVE_PROCEDURE)
+
+    if UPPER_CASE_VAR < 100:
+        if UPPER_CASE_VAR == (UPPER_CASE_VAR * UPPER_CASE_VAR * UPPER_CASE_VAR):
+            if isinstance(UPPER_CASE_VAR, int) and UPPER_CASE_VAR > 0:
+                if has_three_prime_factors(UPPER_CASE_VAR):
+                    FLAG_SUCCESS = True
+                else:
+                    FLAG_SUCCESS = False
+            else:
+                FLAG_SUCCESS = False
+        else:
+            FLAG_SUCCESS = False",No,bad-style,microsoft/Phi-3-mini-4k-instruct,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0hw_5r9.py"", line 44, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0hw_5r9.py"", line 31, in check
+    assert candidate(5) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpe0hw_5r9.py"", line 20, in is_multiply_prime
+    if has_three_prime_factors(UPPER_CASE_VAR):
+NameError: name 'has_three_prime_factors' is not defined"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    primes = []
+    for i in range(2, a + 1):
+        if is_prime(i):
+            primes.append(i)
+            
+    for i in range(0, len(primes) - 2):
+        for j in range(i + 1, len(primes) - 1):
+            for k in range(j + 1, len(primes)):
+                if primes[i] * primes[j] * primes[k] == a:
+                    return True
+    return False",No,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcw8khob4.py"", line 45, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpcw8khob4.py"", line 34, in check
+    assert candidate(8) == True
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","return any(
+        all(
+            a % (p1 * p2 * p3) == 0 
+            for p1 in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47] 
+            for p2 in [p1, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47] 
+            for p3 in [p1, p2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47] 
+            if p1 <= p2 <= p3
+        )
+        for _ in range(1) # Just an excuse to use a loop and keep it funky
+    ) and a < 100",No,unusual,gpt-4o-mini,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuk38f7ns.py"", line 36, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuk38f7ns.py"", line 24, in check
+    assert candidate(30) == True
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","primes = []
+    for i in range(2, a + 1):
+        is_prime = True
+        for j in range(2, int(i ** 0.5) + 1):
+            if i % j == 0:
+                is_prime = False
+                break
+        if is_prime:
+            primes.append(i)
+    factors = []
+    i = 1
+    while i <= a:
+        if a % i == 0:
+            factors.append(i)
+        i += 1
+    factors.sort()
+    if len(factors) != len(primes):
+        return False
+    return factors == primes",No,refactorable,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/75,"Traceback (most recent call last):
+  File ""/tmp/tmp3zw9uiuy.py"", line 45, in <module>
+    check(is_multiply_prime)
+  File ""/tmp/tmp3zw9uiuy.py"", line 33, in check
+    assert candidate(30) == True
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","primes = []
+    product = 1
+    for i in range(2, int(a**0.5) + 1):
+        if a % i == 0:
+            for j in range(2, int(i**0.5) + 1):
+                if i % j == 0:
+                    break
+            else:
+                primes.append(i)
+            if len(primes) == 3:
+                break
+        if len(primes) == 3:
+            break
+    if len(primes) == 3:
+        for prime in primes:
+            product *= prime
+        return a == product
+    return False",No,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/75,"Traceback (most recent call last):
+  File ""/tmp/tmpx_s_dok_.py"", line 44, in <module>
+    check(is_multiply_prime)
+  File ""/tmp/tmpx_s_dok_.py"", line 33, in check
+    assert candidate(8) == True
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","return any((a == P1 * P2 * P3 for P1 in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97] for P2 in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97] for P3 in [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97] if P1 <= P2 <= P3))",Yes,unusual,gpt-4o-mini,0.7,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if a < 2:
+        return False
+    PRIMES = []
+    for I in range(2, 100):
+        IS_PRIME = True
+        for J in range(2, int(I ** 0.5) + 1):
+            if I % J == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            PRIMES.append(I)
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(n):
+        if n < 2:
+            return False
+        for I in range(2, int(n ** 0.5) + 1):
+            if n % I == 0:
+                return False
+        return True
+    PRIME_FACTORS = []
+    for I in range(2, int(a ** 0.5) + 1):
+        while a % I == 0:
+            if IS_PRIME(I):
+                PRIME_FACTORS.append(I)
+            a = a // I
+    if a > 1 and IS_PRIME(a):
+        PRIME_FACTORS.append(a)
+    return len(PRIME_FACTORS) == 3",Yes,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    primes = [i for i in range(2, a) if is_prime(i)]
+    for i in range(len(primes)):
+        for j in range(i, len(primes)):
+            for k in range(j, len(primes)):
+                if primes[i] * primes[j] * primes[k] == a:
+                    return True
+    return False",No,normal,gpt-4.1,0.5,HumanEval/75,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp5i2pu7oh.py"", line 10
+    if n < 2:
+IndentationError: unexpected indent"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","primes = [2, 3, 5]
+    factors = []
+
+    for potential_prime in primes:
+        if a % potential_prime == 0:
+            factors.append(potential_prime)
+            a //= potential_prime
+        if not a:
+            if len(factors) == 3:
+                return True
+            else:
+                return False
+
+    return False",No,normal,mistralai/Mistral-7B-Instruct-v0.3,0.7,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuvqgtu11.py"", line 40, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpuvqgtu11.py"", line 28, in check
+    assert candidate(30) == True
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+",""""""" Validate the number is the product of three prime numbers. """"""
+    if a < 3:
+        return False  # a number under 3 cannot be the product of multiple distinct primes
+
+    for i in range(2, int(a**0.5) + 1):
+        if a % i == 0:
+            return False
+            
+    return True",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,1.2,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph3n5zbt0.py"", line 35, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmph3n5zbt0.py"", line 22, in check
+    assert candidate(5) == False
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if n < 2:
+            return False
+        for i in range(2, int(n ** 0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    primes = [n for n in range(2, 100) if is_prime(n)]
+
+    for p1 in primes:
+        for p2 in primes:
+            for p3 in primes:
+                if p1 * p2 * p3 == a:
+                    return True
+    return False",No,normal,gpt-5.5,1.0,HumanEval/75,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpa1n9bkd8.py"", line 10
+    if n < 2:
+IndentationError: unexpected indent"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if num < 2:
+        return False
+    for i in range(2, int(math.sqrt(num)) + 1):
+        if num % i == 0:
+            return False
+    return True
+
+def is_multiply_prime(a):
+    primes = [i for i in range(2, 100) if is_prime(i)]
+    for combo in combinations(primes, 3):
+        if combo[0] * combo[1] * combo[2] == a:
+            return True
+    return False",No,normal,gpt-4o,1.2,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdtmedst_.py"", line 39, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdtmedst_.py"", line 26, in check
+    assert candidate(5) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdtmedst_.py"", line 18, in is_multiply_prime
+    primes = [i for i in range(2, 100) if is_prime(i)]
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpdtmedst_.py"", line 18, in <listcomp>
+    primes = [i for i in range(2, 100) if is_prime(i)]
+NameError: name 'is_prime' is not defined"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","PRIME_FACTORS = []
+    DIVISOR = 2
+    while a > 1 and DIVISOR <= a:
+        if a % DIVISOR == 0:
+            PRIME_FACTORS.append(DIVISOR)
+            a //= DIVISOR
+        else:
+            DIVISOR += 1 if DIVISOR == 2 else 2
+    return len(PRIME_FACTORS) == 3",Yes,unusual,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if a < 8:
+        return False
+    PRIMES = []
+    for NUM in range(2, a):
+        IS_PRIME = True
+        for I in range(2, int(NUM ** 0.5) + 1):
+            if NUM % I == 0:
+                IS_PRIME = False
+                break
+        if IS_PRIME:
+            PRIMES.append(NUM)
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,refactorable,gpt-4o-mini,1.2,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","def is_prime(n):
+        if n < 2:
+            return False
+        for i in range(2, int(n**0.5) + 1):
+            if n % i == 0:
+                return False
+        return True
+
+    for i in range(2, a):
+        if a % i == 0:
+            div1 = i
+            div2 = a // i
+            if is_prime(div1) and is_prime(div2):
+                remaining = (a // (div1 * div2))
+                if remaining == 1 and is_prime(remaining):
+                    return True
+    return False",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq1mbpt7o.py"", line 43, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpq1mbpt7o.py"", line 31, in check
+    assert candidate(30) == True
+AssertionError"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(n):
+        if n < 2:
+            return False
+        for I in range(2, int(n ** 0.5) + 1):
+            if n % I == 0:
+                return False
+        return True
+    PRIMES = [I for I in range(2, 100) if IS_PRIME(I)]
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,external,Qwen3-Coder,,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,different-style,gpt-4o-mini,1.2,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(n):
+        if n <= 1:
+            return False
+        if n <= 3:
+            return True
+        if n % 2 == 0 or n % 3 == 0:
+            return False
+        I = 5
+        while I * I <= n:
+            if n % I == 0 or n % (I + 2) == 0:
+                return False
+            I += 6
+        return True
+    PRIMES = [I for I in range(2, a) if IS_PRIME(I)]
+    for I in PRIMES:
+        for J in PRIMES:
+            for K in PRIMES:
+                if I * J * K == a:
+                    return True
+    return False",Yes,normal,gpt-4,0.2,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+    PRIME_FACTORS = []
+    for P in PRIMES:
+        while a % P == 0:
+            PRIME_FACTORS.append(P)
+            a //= P
+    return len(PRIME_FACTORS) == 3 and a == 1
+    print(is_multiply_prime(30))
+    print(is_multiply_prime(28))",Yes,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(N):
+        if N < 2:
+            return False
+        for I in range(2, int(N ** 0.5) + 1):
+            if N % I == 0:
+                return False
+        return True
+
+    def GET_PRIME_FACTORS(N):
+        FACTORS = []
+        D = 2
+        while D * D <= N:
+            while N % D == 0:
+                FACTORS.append(D)
+                N //= D
+            D += 1
+        if N > 1:
+            FACTORS.append(N)
+        return FACTORS
+    PRIME_FACTORS = GET_PRIME_FACTORS(a)
+    return len(PRIME_FACTORS) == 3",Yes,external,Claude Sonnet-4,,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(n):
+        for I in range(2, int(n ** 0.5) + 1):
+            if n % I == 0:
+                return False
+        return True
+    PRIMES = [I for I in range(2, a) if IS_PRIME(I)]
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,unusual,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","if n < 2:
+        return False
+    for i in range(2, int(math.sqrt(n)) + 1):
+        if n % i == 0:
+            return False
+    return True
+
+def is_multiply_prime(a):
+    for i in range(2, a):
+        if is_prime(i):
+            for j in range(2, a // i + 1):
+                if is_prime(j):
+                    if a % (i * j) == 0 and is_prime(a // (i * j)):
+                        return True
+    return False",No,external,Llama-3.3-70B,,HumanEval/75,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbz8u24_.py"", line 41, in <module>
+    check(is_multiply_prime)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbz8u24_.py"", line 28, in check
+    assert candidate(5) == False
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmphbz8u24_.py"", line 19, in is_multiply_prime
+    if is_prime(i):
+NameError: name 'is_prime' is not defined"
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+    N = len(PRIMES)
+    for I in range(N):
+        for J in range(I, N):
+            for K in range(J, N):
+                if PRIMES[I] * PRIMES[J] * PRIMES[K] == a:
+                    return True
+    return False",Yes,normal,gpt-4o,1.0,HumanEval/75,
+"
+def is_multiply_prime(a):
+    """"""Write a function that returns true if the given number is the multiplication of 3 prime numbers
+    and false otherwise.
+    Knowing that (a) is less then 100. 
+    Example:
+    is_multiply_prime(30) == True
+    30 = 2 * 3 * 5
+    """"""
+","
+    def IS_PRIME(n):
+        for I in range(2, int(n ** 0.5) + 1):
+            if n % I == 0:
+                return False
+        return True
+    PRIMES = [I for I in range(2, a) if IS_PRIME(I)]
+    for I in range(len(PRIMES)):
+        for J in range(I, len(PRIMES)):
+            for K in range(J, len(PRIMES)):
+                if a == PRIMES[I] * PRIMES[J] * PRIMES[K]:
+                    return True
+    return False",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.0,HumanEval/75,

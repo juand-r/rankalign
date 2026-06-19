@@ -1,0 +1,642 @@
+question,answer,correct,strategy,model,temperature,task_id,error
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# compute the result
+    assert True
+    n = int(y)
+    if n % 2 != 0:
+        n -= 1
+    _T0 = n if n >= x else -1
+    return _T0",Yes,normal,gpt-5.5,1.0,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","""""""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+    x_max_even = -1
+    for x_num in range(x, y+1):
+        if x_num % 2 == 0 and x_num > x_max_even:
+            x_max_even = x_num
+    return x_max_even",Yes,normal,gpt-3.5-turbo,0.2,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# compute the result
+    for i in range(y, x - 1, -1):
+        if i % 2 == 0:
+            return i
+    return -1
+
+    # Test cases
+    print(choose_num(12, 15))  # Expected output: 14
+    print(choose_num(13, 12))  # Expected output: -1",Yes,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+",return (x % 2 and y % 2 and y - (y % 2)) or (x % 2 and y % 2 and -1) or ((x % 2 and not y % 2) or (not x % 2 and y % 2)) and ((y // 2) * 2) or (not x % 2 and not y % 2 and y // 2),No,unusual,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/102,"Traceback (most recent call last):
+  File ""/tmp/tmpidk4s4rk.py"", line 29, in <module>
+    check(choose_num)
+  File ""/tmp/tmpidk4s4rk.py"", line 17, in check
+    assert candidate(13, 12) == -1
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","return min(y // 2, x - 1 if x % 2 != 0 else -(x - 1))",No,normal,allenai/OLMo-2-0425-1B-Instruct,1.0,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptb4jac3w.py"", line 29, in <module>
+    check(choose_num)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmptb4jac3w.py"", line 16, in check
+    assert candidate(12, 15) == 14
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","for i in range(max(x, y), min(x, y) - 1, -2):
+        if i % 2 == 0:
+            return i
+    return -1",No,unusual,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepfpus2x.py"", line 32, in <module>
+    check(choose_num)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpepfpus2x.py"", line 19, in check
+    assert candidate(12, 15) == 14
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x % 2 == 0 and x <= y:
+    return x
+    elif y % 2 == 0:
+    return y
+    else:
+    return -1",No,bad-style,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/102,"File ""/tmp/tmpkh3kkr4s.py"", line 12
+    return x
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x > y:
+        _T0 = -1
+        return _T0
+    x_biggest_even = -1
+    for x_i in range(y, x - 1, -1):
+        if x_i % 2 == 0:
+            x_biggest_even = x_i
+            break
+    return x_biggest_even",Yes,refactorable,gpt-4o-mini,1.0,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","assert True
+    if x > y:
+        _T0 = -1
+        return _T0
+    v0 = y if y % 2 == 0 else y - 1
+    return v0 if v0 >= x else -1",Yes,different-style,gpt-4o-mini,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","""""""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+    if x > y:
+        x, y = y, x
+    for i in range(x, y+1):
+        if i % 2 == 0:
+            return i
+    return -1",No,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/102,"Traceback (most recent call last):
+  File ""/tmp/tmpg_dapzr1.py"", line 42, in <module>
+    check(choose_num)
+  File ""/tmp/tmpg_dapzr1.py"", line 29, in check
+    assert candidate(12, 15) == 14
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","assert True
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+    for the_i_value in range(y, x-1, -1):
+        if the_i_value % 2 == 0:
+            return the_i_value
+    _T0 = -1
+    return _T0",Yes,bad-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","_T0 = max((v0 for v0 in range(x, y + 1) if v0 % 2 == 0), default=-1)
+    return _T0",Yes,unusual,gpt-4o-mini,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","assert True
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+    if x > y:
+        _T0 = -1
+        return _T0
+    else:
+        if y % 2 == 0:
+            return y
+        elif y - 1 >= x:
+            return y - 1
+        else:
+            return -1",Yes,normal,gpt-4,0.2,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if y < x:
+        return -1
+    evenNums = [i for i in range(x, y + 1) if i % 2 == 0]
+    if evenNums:
+        return max(evenNums)
+    else:
+        return -1",Yes,refactorable,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","even_num = next((i for i in range(x, y+1) if i % 2 == 0), None)
+    return even_num if even_num is not None else -1",No,normal,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7h1zh7_b.py"", line 30, in <module>
+    check(choose_num)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp7h1zh7_b.py"", line 17, in check
+    assert candidate(12, 15) == 14
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# compute the result
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+
+    x_result = -1
+    
+    for x_num in reversed(range(x, y + 1)):
+        if x_num % 2 == 0:
+            x_result = x_num
+            break
+
+    return x_result
+
+
+    # Test cases. They should print as expected.
+    print(choose_num(12, 15)) # 14
+    print(choose_num(13, 12)) # -1",Yes,beginner,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# Starting from y and going down to x and checking if it's even
+    for num in range(y, x-1, -1):
+        # Checking if the number is even and is greater than the current biggest even number
+        if num % 2 == 0 and num > x:
+            return num
+    # If no such number found, return -1
+    return -1",No,different-style,deepseek-ai/deepseek-coder-1.3b-instruct,1.0,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbeng2bi4.py"", line 35, in <module>
+    check(choose_num)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpbeng2bi4.py"", line 31, in check
+    assert candidate(546, 546) == 546
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x > y:
+    return -1
+
+    if x % 2 == 0:
+    return x
+
+    if (y - x) % 2 == 1:
+    return x + 1
+
+    return y if y % 2 == 0 else x - 1",No,refactorable,microsoft/Phi-3-mini-4k-instruct,0.7,HumanEval/102,"File ""/tmp/tmp7mhtngio.py"", line 12
+    return -1
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x % 2 == 0:
+      if x > y:
+         return -1
+      else:
+         return x
+
+       y_new = y
+       while y_new > x:
+      y_new -= 1
+      if y_new % 2 == 0:
+         return y_new
+
+       return -1
+
+    This function uses iterative approach, starting from `x` if it's even, otherwise going down from `y` until an even number is found or `x` when `x` is a valid choice. Both base cases are covered where required.",No,different-style,mistralai/Mistral-7B-Instruct-v0.3,1.2,HumanEval/102,"File ""/tmp/tmpsqsn145j.py"", line 11
+    if x % 2 == 0:
+IndentationError: unexpected indent"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# Check if x is less than y
+    if x < y:
+        return find_max_even(y, x)
+    else:
+        # Find the largest even number in the range [x, y]
+        return min(x, y) if x % 2 == 0 and x <= min(y, int(y**0.5)) + 1 else -1
+
+# Example usage:
+
+print(find_max_even(12, 15))  # Outputs: 14
+print(find_max_even(13, 12))  # Outputs: -1",No,different-style,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp_l12r5vl.py"", line 20, in <module>
+    print(find_max_even(12, 15))  # Outputs: 14
+NameError: name 'find_max_even' is not defined"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","assert True
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+    for i0 in range(y, x - 1, -1):
+        if i0 % 2 == 0:
+            return i0
+    _T0 = -1
+    return _T0",Yes,normal,deepseek-ai/deepseek-coder-1.3b-instruct,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","scenario4337adda_lowest = None
+    scenario4337adda_highest = None
+
+    for num in range(x, y + 1):
+        if num % 2 == 0:
+            if scenario4337adda_lowest is None or num < scenario4337adda_lowest:
+                scenario4337adda_lowest = num
+            if scenario4337adda_highest is None or num > scenario4337adda_highest:
+                scenario4337adda_highest = num
+
+    if scenario4337adda_lowest is None:
+        return -1
+
+    # For multiple possible even numbers, this function returns the lowest one by default
+    return scenario4337adda_lowest",No,beginner,microsoft/Phi-3-mini-4k-instruct,1.2,HumanEval/102,"Traceback (most recent call last):
+  File ""/tmp/tmpgv5xtm2d.py"", line 44, in <module>
+    check(choose_num)
+  File ""/tmp/tmpgv5xtm2d.py"", line 31, in check
+    assert candidate(12, 15) == 14
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# compute the result
+    if x > y:
+        _T0 = -1
+        return _T0
+    v1 = -1
+    for v0 in range(x, y + 1):
+        if v0 % 2 == 0:
+            v1 = v0
+    if v1 == -1:
+        return -1
+    return v1",Yes,bad-style,gpt-4o-mini,0.7,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x > y:
+        return -1
+    
+    if y % 2 == 0:
+        return y
+    elif y - 1 >= x:
+        return y - 1
+    else:
+        return -1",Yes,external,Claude Sonnet-4,,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","""""""
+    This function takes two positive numbers x and y and returns the 
+    biggest even integer number that is in the range [x, y] inclusive.
+    If there's no such number, then the function should return -1.
+    """"""
+    if x < 0 or y < 0:
+        return -1
+    else:
+        return max(2 * xi for xi in range(x, y + 1, 2))",No,refactorable,allenai/OLMo-2-0425-1B-Instruct,0.7,HumanEval/102,"Traceback (most recent call last):
+  File ""/tmp/tmpe4sslmrg.py"", line 37, in <module>
+    check(choose_num)
+  File ""/tmp/tmpe4sslmrg.py"", line 24, in check
+    assert candidate(12, 15) == 14
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","start = min(x, y)
+    end = max(x, y)
+    for num in range(end, start - 1, -1):
+        if num % 2 == 0:
+            return num
+    return -1",No,external,DeepSeek-V3,,HumanEval/102,"Traceback (most recent call last):
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifi0jrei.py"", line 34, in <module>
+    check(choose_num)
+  File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmpifi0jrei.py"", line 22, in check
+    assert candidate(13, 12) == -1
+AssertionError"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","assert True
+    for x_i in range(y, x - 1, -1):
+        if x_i % 2 == 0:
+            return x_i
+    _T0 = -1
+    return _T0",Yes,different-style,meta-llama/Llama-3.1-8B-Instruct,1.2,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","# compute the result
+    v0 = y if y % 2 == 0 else y - 1
+    if v0 >= x and v0 % 2 == 0:
+        return v0
+    else:
+        _T0 = -1
+        return _T0
+
+
+    # Do not touch the lines above, the above problem/task needs to be solved manually and written in this specific indent style.",Yes,refactorable,deepseek-ai/deepseek-coder-1.3b-instruct,1.2,HumanEval/102,
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","if x > y:
+    return -1
+    if y % 2 == 0:
+    return y
+    if (y - 1) >= x:
+    return y - 1
+    return -1",No,normal,gpt-4o,1.0,HumanEval/102,"File ""/var/folders/z7/lmwzdfqx4z7bkvkzvsttb0hr0000gq/T/tmp1b7tmkkc.py"", line 12
+    return -1
+    ^
+IndentationError: expected an indented block after 'if' statement on line 11"
+"
+def choose_num(x, y):
+    """"""This function takes two positive numbers x and y and returns the
+    biggest even integer number that is in the range [x, y] inclusive. If 
+    there's no such number, then the function should return -1.
+
+    For example:
+    choose_num(12, 15) = 14
+    choose_num(13, 12) = -1
+    """"""
+","x = max(x, y)
+    y = min(x, y)
+    for i in range(y, x-1, -2):
+        return i
+    return -1",No,different-style,meta-llama/Llama-3.1-8B-Instruct,0.7,HumanEval/102,"Traceback (most recent call last):
+  File ""/tmp/tmpys0ca5gp.py"", line 33, in <module>
+    check(choose_num)
+  File ""/tmp/tmpys0ca5gp.py"", line 20, in check
+    assert candidate(12, 15) == 14
+           ^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError"
