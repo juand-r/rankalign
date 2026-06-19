@@ -1,6 +1,6 @@
 \documentclass[10pt]{article}
 \usepackage[margin=0.6in,landscape]{geometry}
-\usepackage{booktabs,amsmath,amssymb,xcolor}
+\usepackage{booktabs,amsmath,amssymb,xcolor,graphicx}
 \newcommand{\stdv}[1]{{\tiny$\pm$#1}}
 \pagestyle{empty}
 \begin{document}
@@ -17,58 +17,58 @@ row appears only where the rerun batch has it (e.g.\ Base has own only; FLORA-PM
 FLORA-Neg no PMI). disc-shots: membership=few, ifeval=zero.}
 
 \subsection*{Generator (ROC$_G$, $\rho$)}
-\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
-\begin{tabular}{ll cccc cccc}
+\begin{center}\setlength{\tabcolsep}{3pt}\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll cccc cccc cccc cccc}
 \toprule
-& & \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\
-\cmidrule(lr){3-6}\cmidrule(lr){7-10}
-& & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\
-\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}
-\textbf{Method} & \textbf{eval} & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ \\
+& & \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} & \multicolumn{4}{c}{\textbf{HumanEval (Upper)}} & \multicolumn{4}{c}{\textbf{HumanEval (Multi)}} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-14}\cmidrule(lr){15-18}
+& & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G4-31b} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G4-31b} & \multicolumn{2}{c}{Q3.5-9b} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}\cmidrule(lr){13-14}\cmidrule(lr){15-16}\cmidrule(lr){17-18}
+\textbf{Method} & \textbf{eval} & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ & ROC$_G$ & $\rho$ \\
 \midrule
-Base & PMI self & --- & --- & 73.6\stdv{2.2} & 45.6\stdv{2.4} & --- & --- & --- & --- \\
-Base & Neg self & --- & --- & 73.8\stdv{2.7} & 43.9\stdv{3.1} & --- & --- & --- & --- \\
+Base & PMI self & --- & --- & 73.6\stdv{2.2} & 45.6\stdv{2.4} & --- & --- & --- & --- & --- & --- & 69.1\stdv{1.5} & 30.6\stdv{2.5} & --- & --- & 69.0\stdv{1.4} & 33.8\stdv{2.2} \\
+Base & Neg self & --- & --- & 73.8\stdv{2.7} & 43.9\stdv{3.1} & --- & --- & --- & --- & --- & --- & 65.7\stdv{1.6} & 26.3\stdv{2.4} & --- & --- & 59.9\stdv{1.6} & 26.7\stdv{2.2} \\
 \midrule
-SFT & PMI self & 87.5\stdv{1.4} & 69.1\stdv{1.9} & 82.6\stdv{1.9} & 61.3\stdv{2.8} & 66.7\stdv{2.8} & 22.8\stdv{6.0} & 66.2\stdv{3.6} & 20.6\stdv{5.6} \\
-SFT & PMI base & 84.4\stdv{1.4} & 60.7\stdv{2.2} & 81.3\stdv{1.8} & 59.1\stdv{2.5} & 58.2\stdv{4.0} & 13.9\stdv{7.3} & 62.5\stdv{4.1} & 13.0\stdv{6.2} \\
-SFT & Neg self & 83.2\stdv{3.3} & 55.4\stdv{5.2} & 84.2\stdv{3.0} & 59.7\stdv{5.3} & 50.7\stdv{2.7} & 0.5\stdv{5.2} & 48.8\stdv{2.8} & 3.2\stdv{4.5} \\
-SFT & Neg base & 82.1\stdv{1.3} & 52.3\stdv{3.0} & 80.7\stdv{1.9} & 56.2\stdv{3.4} & 49.3\stdv{3.8} & 4.6\stdv{6.7} & 49.9\stdv{4.3} & -3.6\stdv{5.8} \\
+SFT & PMI self & 87.5\stdv{1.4} & 69.1\stdv{1.9} & 82.6\stdv{1.9} & 61.3\stdv{2.8} & 66.7\stdv{2.8} & 22.8\stdv{6.0} & 66.2\stdv{3.6} & 20.6\stdv{5.6} & 80.6\stdv{1.2} & 42.4\stdv{2.6} & 84.1\stdv{1.2} & 46.8\stdv{2.3} & 81.6\stdv{1.1} & 52.9\stdv{1.8} & 83.3\stdv{1.1} & 55.1\stdv{1.8} \\
+SFT & PMI base & 84.4\stdv{1.4} & 60.7\stdv{2.2} & 81.3\stdv{1.8} & 59.1\stdv{2.5} & 58.2\stdv{4.0} & 13.9\stdv{7.3} & 62.5\stdv{4.1} & 13.0\stdv{6.2} & 82.9\stdv{1.2} & 42.2\stdv{2.9} & 87.9\stdv{1.1} & 50.5\stdv{2.2} & 87.9\stdv{0.9} & 62.2\stdv{1.7} & 89.4\stdv{0.9} & 63.6\stdv{1.6} \\
+SFT & Neg self & 83.2\stdv{3.3} & 55.4\stdv{5.2} & 84.2\stdv{3.0} & 59.7\stdv{5.3} & 50.7\stdv{2.7} & 0.5\stdv{5.2} & 48.8\stdv{2.8} & 3.2\stdv{4.5} & 76.5\stdv{1.5} & 47.1\stdv{2.5} & 73.9\stdv{1.6} & 42.0\stdv{2.5} & 72.1\stdv{1.5} & 38.9\stdv{2.5} & 66.1\stdv{1.5} & 33.2\stdv{2.4} \\
+SFT & Neg base & 82.1\stdv{1.3} & 52.3\stdv{3.0} & 80.7\stdv{1.9} & 56.2\stdv{3.4} & 49.3\stdv{3.8} & 4.6\stdv{6.7} & 49.9\stdv{4.3} & -3.6\stdv{5.8} & 81.6\stdv{1.7} & 40.9\stdv{3.0} & \textbf{94.1}\stdv{0.7} & 54.6\stdv{2.2} & 93.3\stdv{0.7} & 68.9\stdv{1.4} & 94.5\stdv{0.6} & 67.1\stdv{1.4} \\
 \midrule
-RankAlign & PMI self & 93.0\stdv{1.5} & \textbf{77.9}\stdv{2.2} & \textbf{89.1}\stdv{2.0} & \textbf{74.3}\stdv{3.0} & 52.1\stdv{3.9} & 3.0\stdv{4.5} & 67.9\stdv{3.6} & 26.3\stdv{7.6} \\
-RankAlign & PMI base & 89.5\stdv{1.5} & 68.8\stdv{2.7} & 82.6\stdv{2.1} & 63.2\stdv{3.0} & 43.4\stdv{4.8} & -5.4\stdv{7.0} & 58.3\stdv{3.9} & -1.3\stdv{5.2} \\
-RankAlign & Neg self & 90.0\stdv{2.4} & 67.8\stdv{5.2} & 85.7\stdv{2.6} & 63.7\stdv{4.7} & 52.1\stdv{4.7} & 8.1\stdv{6.7} & 57.7\stdv{4.2} & 5.0\stdv{6.8} \\
-RankAlign & Neg base & 84.8\stdv{2.0} & 57.7\stdv{3.4} & 82.3\stdv{2.0} & 61.9\stdv{3.6} & 43.0\stdv{4.9} & -5.6\stdv{7.0} & 53.1\stdv{4.2} & -1.6\stdv{5.6} \\
+RankAlign & PMI self & 93.0\stdv{1.5} & \textbf{77.9}\stdv{2.2} & \textbf{89.1}\stdv{2.0} & \textbf{74.3}\stdv{3.0} & 52.1\stdv{3.9} & 3.0\stdv{4.5} & 67.9\stdv{3.6} & 26.3\stdv{7.6} & 85.2\stdv{1.1} & 50.8\stdv{2.5} & 82.2\stdv{1.3} & 46.6\stdv{2.1} & 85.6\stdv{0.9} & 62.8\stdv{1.6} & 90.2\stdv{0.8} & 58.3\stdv{1.7} \\
+RankAlign & PMI base & 89.5\stdv{1.5} & 68.8\stdv{2.7} & 82.6\stdv{2.1} & 63.2\stdv{3.0} & 43.4\stdv{4.8} & -5.4\stdv{7.0} & 58.3\stdv{3.9} & -1.3\stdv{5.2} & 86.9\stdv{1.2} & 48.7\stdv{2.9} & 87.3\stdv{1.1} & 53.0\stdv{2.0} & 90.7\stdv{0.8} & 68.4\stdv{1.6} & 93.1\stdv{0.7} & 62.0\stdv{1.7} \\
+RankAlign & Neg self & 90.0\stdv{2.4} & 67.8\stdv{5.2} & 85.7\stdv{2.6} & 63.7\stdv{4.7} & 52.1\stdv{4.7} & 8.1\stdv{6.7} & 57.7\stdv{4.2} & 5.0\stdv{6.8} & 86.3\stdv{1.3} & 61.6\stdv{2.3} & 79.3\stdv{1.4} & 61.9\stdv{1.9} & 82.4\stdv{1.5} & 55.6\stdv{2.7} & 80.3\stdv{1.4} & \textbf{67.9}\stdv{1.7} \\
+RankAlign & Neg base & 84.8\stdv{2.0} & 57.7\stdv{3.4} & 82.3\stdv{2.0} & 61.9\stdv{3.6} & 43.0\stdv{4.9} & -5.6\stdv{7.0} & 53.1\stdv{4.2} & -1.6\stdv{5.6} & 88.2\stdv{1.6} & 54.7\stdv{2.7} & 90.2\stdv{1.3} & 60.9\stdv{2.0} & \textbf{94.2}\stdv{0.9} & 75.9\stdv{1.2} & \textbf{96.5}\stdv{0.5} & 65.4\stdv{1.5} \\
 \midrule
-Consistency FT & PMI base & --- & --- & --- & --- & 60.4\stdv{3.1} & 8.9\stdv{7.5} & --- & --- \\
-Consistency FT & Neg base & --- & --- & --- & --- & 46.6\stdv{2.6} & -9.4\stdv{6.8} & --- & --- \\
+Consistency FT & PMI base & --- & --- & --- & --- & 60.4\stdv{3.1} & 8.9\stdv{7.5} & --- & --- & 83.4\stdv{1.2} & 48.1\stdv{2.8} & 86.0\stdv{1.1} & 46.6\stdv{2.1} & 87.3\stdv{0.9} & 58.8\stdv{1.7} & 88.8\stdv{0.9} & 57.4\stdv{1.8} \\
+Consistency FT & Neg base & --- & --- & --- & --- & 46.6\stdv{2.6} & -9.4\stdv{6.8} & --- & --- & 84.4\stdv{1.5} & 46.2\stdv{3.0} & 92.6\stdv{0.8} & 52.7\stdv{2.1} & 93.3\stdv{0.6} & 64.0\stdv{1.5} & 93.9\stdv{0.6} & 63.5\stdv{1.6} \\
 \midrule
-FLORA-PMI & PMI self & \textbf{93.2}\stdv{1.4} & \textbf{77.9}\stdv{2.2} & 86.1\stdv{2.0} & 69.3\stdv{2.5} & \textbf{84.2}\stdv{2.6} & \textbf{53.9}\stdv{5.0} & \textbf{79.6}\stdv{3.3} & \textbf{46.8}\stdv{5.3} \\
-FLORA-PMI & PMI base & 92.6\stdv{1.3} & 75.8\stdv{2.1} & 86.9\stdv{2.0} & 70.7\stdv{2.1} & 80.6\stdv{2.5} & 51.5\stdv{4.3} & 74.5\stdv{3.5} & 36.6\stdv{6.7} \\
+FLORA-PMI & PMI self & \textbf{93.2}\stdv{1.4} & \textbf{77.9}\stdv{2.2} & 86.1\stdv{2.0} & 69.3\stdv{2.5} & \textbf{84.2}\stdv{2.6} & \textbf{53.9}\stdv{5.0} & \textbf{79.6}\stdv{3.3} & \textbf{46.8}\stdv{5.3} & 84.3\stdv{1.0} & 57.9\stdv{2.1} & 78.6\stdv{1.3} & 56.8\stdv{1.9} & 84.0\stdv{0.9} & 64.2\stdv{1.6} & 82.9\stdv{1.1} & 59.0\stdv{1.8} \\
+FLORA-PMI & PMI base & 92.6\stdv{1.3} & 75.8\stdv{2.1} & 86.9\stdv{2.0} & 70.7\stdv{2.1} & 80.6\stdv{2.5} & 51.5\stdv{4.3} & 74.5\stdv{3.5} & 36.6\stdv{6.7} & 90.7\stdv{0.8} & 66.6\stdv{1.8} & 83.2\stdv{1.2} & 64.1\stdv{1.7} & 90.1\stdv{0.8} & 73.0\stdv{1.4} & 89.8\stdv{0.9} & 67.4\stdv{1.6} \\
 \midrule
-FLORA-Neg & Neg self & 89.1\stdv{2.4} & 66.8\stdv{5.1} & --- & --- & 64.7\stdv{3.6} & 39.0\stdv{4.3} & 66.0\stdv{3.0} & 38.8\stdv{4.7} \\
-FLORA-Neg & Neg base & 92.0\stdv{1.3} & 74.5\stdv{3.1} & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3.1} & 48.7\stdv{3.3} & 68.9\stdv{3.5} & 39.5\stdv{5.3} \\
+FLORA-Neg & Neg self & 89.1\stdv{2.4} & 66.8\stdv{5.1} & --- & --- & 64.7\stdv{3.6} & 39.0\stdv{4.3} & 66.0\stdv{3.0} & 38.8\stdv{4.7} & 79.1\stdv{1.5} & 57.2\stdv{2.3} & 77.5\stdv{1.5} & 52.4\stdv{2.1} & 80.2\stdv{1.4} & 58.7\stdv{2.3} & 61.8\stdv{1.7} & 35.4\stdv{2.6} \\
+FLORA-Neg & Neg base & 92.0\stdv{1.3} & 74.5\stdv{3.1} & 86.7\stdv{2.3} & 70.2\stdv{3.2} & 69.6\stdv{3.1} & 48.7\stdv{3.3} & 68.9\stdv{3.5} & 39.5\stdv{5.3} & \textbf{94.8}\stdv{0.8} & \textbf{74.9}\stdv{1.2} & 88.9\stdv{1.1} & \textbf{66.8}\stdv{1.6} & 92.0\stdv{0.8} & \textbf{79.3}\stdv{1.2} & 87.9\stdv{1.2} & 66.8\stdv{1.6} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{center}
 
 \subsection*{Validator (ROC$_V$, Acc$_V$)}
-\begin{center}\footnotesize\setlength{\tabcolsep}{4pt}
-\begin{tabular}{l cccc cccc}
+\begin{center}\setlength{\tabcolsep}{3pt}\resizebox{\textwidth}{!}{%
+\begin{tabular}{l cccc cccc cccc cccc}
 \toprule
-& \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} \\
-\cmidrule(lr){2-5}\cmidrule(lr){6-9}
-& \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} \\
-\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}
-\textbf{Method} & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ \\
+& \multicolumn{4}{c}{\textbf{Hyponymy}} & \multicolumn{4}{c}{\textbf{IFEval (OOD)}} & \multicolumn{4}{c}{\textbf{HumanEval (Upper)}} & \multicolumn{4}{c}{\textbf{HumanEval (Multi)}} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}\cmidrule(lr){14-17}
+& \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G2-9b-it} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G4-31b} & \multicolumn{2}{c}{Q3.5-9b} & \multicolumn{2}{c}{G4-31b} & \multicolumn{2}{c}{Q3.5-9b} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}\cmidrule(lr){8-9}\cmidrule(lr){10-11}\cmidrule(lr){12-13}\cmidrule(lr){14-15}\cmidrule(lr){16-17}
+\textbf{Method} & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ & ROC$_V$ & Acc$_V$ \\
 \midrule
-Base & --- & --- & 95.7\stdv{1.8} & \textbf{88.0}\stdv{2.9} & --- & --- & --- & --- \\
-SFT & 94.6\stdv{2.0} & 85.0\stdv{2.8} & 95.7\stdv{1.7} & 86.7\stdv{3.1} & 78.4\stdv{3.7} & 66.3\stdv{4.0} & 82.8\stdv{3.1} & 73.1\stdv{3.8} \\
-RankAlign & \textbf{94.9}\stdv{1.9} & \textbf{87.1}\stdv{2.5} & 95.7\stdv{1.8} & 87.9\stdv{3.0} & 52.3\stdv{3.3} & 56.2\stdv{3.2} & 68.7\stdv{4.2} & 55.6\stdv{3.4} \\
-Consistency FT & --- & --- & --- & --- & 78.2\stdv{3.7} & 62.9\stdv{4.2} & --- & --- \\
-FLORA-PMI & 94.7\stdv{1.8} & 83.9\stdv{2.7} & \textbf{95.9}\stdv{1.7} & 86.0\stdv{3.2} & \textbf{79.4}\stdv{3.2} & 64.5\stdv{3.6} & 83.1\stdv{3.3} & \textbf{73.6}\stdv{3.8} \\
-FLORA-Neg & 94.8\stdv{1.9} & 86.4\stdv{2.6} & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \textbf{67.5}\stdv{3.9} & \textbf{83.2}\stdv{3.3} & 71.8\stdv{3.8} \\
+Base & --- & --- & 95.7\stdv{1.8} & \textbf{88.0}\stdv{2.9} & --- & --- & --- & --- & --- & --- & 81.7\stdv{1.3} & 65.3\stdv{1.4} & --- & --- & 83.4\stdv{1.2} & 66.8\stdv{1.5} \\
+SFT & 94.6\stdv{2.0} & 85.0\stdv{2.8} & 95.7\stdv{1.7} & 86.7\stdv{3.1} & 78.4\stdv{3.7} & 66.3\stdv{4.0} & 82.8\stdv{3.1} & 73.1\stdv{3.8} & 93.9\stdv{0.8} & 79.6\stdv{1.5} & \textbf{86.4}\stdv{1.0} & \textbf{78.6}\stdv{1.2} & \textbf{96.1}\stdv{0.6} & \textbf{87.2}\stdv{1.0} & \textbf{90.4}\stdv{0.9} & \textbf{82.3}\stdv{1.0} \\
+RankAlign & \textbf{94.9}\stdv{1.9} & \textbf{87.1}\stdv{2.5} & 95.7\stdv{1.8} & 87.9\stdv{3.0} & 52.3\stdv{3.3} & 56.2\stdv{3.2} & 68.7\stdv{4.2} & 55.6\stdv{3.4} & 91.4\stdv{1.0} & 76.8\stdv{1.6} & 83.3\stdv{1.2} & 74.3\stdv{1.2} & 90.0\stdv{1.0} & 76.5\stdv{1.3} & 84.8\stdv{1.2} & 77.9\stdv{1.1} \\
+Consistency FT & --- & --- & --- & --- & 78.2\stdv{3.7} & 62.9\stdv{4.2} & --- & --- & 93.9\stdv{0.8} & 87.9\stdv{1.0} & 84.7\stdv{1.1} & 76.5\stdv{1.2} & 93.8\stdv{0.8} & 83.8\stdv{1.3} & 88.0\stdv{1.1} & 80.4\stdv{1.1} \\
+FLORA-PMI & 94.7\stdv{1.8} & 83.9\stdv{2.7} & \textbf{95.9}\stdv{1.7} & 86.0\stdv{3.2} & \textbf{79.4}\stdv{3.2} & 64.5\stdv{3.6} & 83.1\stdv{3.3} & \textbf{73.6}\stdv{3.8} & 93.1\stdv{0.9} & 84.1\stdv{1.4} & 86.3\stdv{1.1} & 76.5\stdv{1.3} & 94.4\stdv{0.7} & 82.6\stdv{1.3} & 89.1\stdv{0.9} & 80.5\stdv{1.1} \\
+FLORA-Neg & 94.8\stdv{1.9} & 86.4\stdv{2.6} & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 79.0\stdv{3.5} & \textbf{67.5}\stdv{3.9} & \textbf{83.2}\stdv{3.3} & 71.8\stdv{3.8} & \textbf{94.0}\stdv{0.8} & \textbf{88.3}\stdv{1.1} & 86.0\stdv{1.1} & 78.3\stdv{1.1} & 94.3\stdv{0.8} & 76.8\stdv{1.3} & 88.5\stdv{1.0} & 80.4\stdv{1.1} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \end{center}
 
 \subsection*{Provenance --- every value above is from \texttt{outputs-rerun-wandb/}}
@@ -110,6 +110,15 @@ FLORA-Neg & 94.8\stdv{1.9} & 86.4\stdv{2.6} & 95.8\stdv{1.7} & 86.2\stdv{3.0} & 
 \item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-tcs-nv1-ng1-vlo-fsx-ppd-sm0.1-fix1}
 \item \texttt{v7-Qwen3.5-9B-d0.96-e2-ifeval-concat-all-vlo-sm0.1-fix1}
 \end{itemize}
+
+\item \textbf{HumanEval (Upper) \& (Multi) / G4-31b \& Q3.5-9b}: TEST split, mean $\pm$ SE over
+82 problems (per-problem metric, then $\bar{x}\pm \mathrm{sd}/\sqrt{n}$, same estimator as the other
+columns). ROC$_G$/$\rho$ are the \emph{tc} (typicality-corrected) variant; $\rho$ is Spearman.
+gemma-4-31b has no base eval, so its Base cells are \texttt{---}. Source score CSVs:
+\texttt{outputs\_gemma4\_mll\_tmp[-multi]/} (gemma-4) and \texttt{outputs-rerun-wandb/} (qwen);
+harvested into \texttt{docs/he\_harvest\_2026-06-17/}. Exact checkpoint dir names per setting:
+see \texttt{docs/he\_trainset\_eval\_model\_origins.md}. Note: HumanEval s13 (Consistency FT) also
+has self-typ evals, not shown here because this shared table only has CFT base-typ rows.
 \end{itemize}
 
 
