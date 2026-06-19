@@ -14,3 +14,12 @@ eval — "the whole 2000-item training set sits in L_train"). So it has the SAME
 NEW "fix" version of that original report that scores the train set PER-PROBLEM (per rosch
 category / per ifeval prompt) and re-derives the train-side numbers. Surface this when the user
 is back.
+
+## SPEC confirmed by user (2026-06-19)
+- Per-problem train eval: use ALL candidates per train problem (NO subsample).
+- That is ~15 positive + ~14 negative per problem (median; min 10 pos / 9 neg, max 15/15).
+- 80 train problems (HumanEval/0,101,102,...); train/test are DISJOINT problem sets
+  (82 test problems, 0 overlap) — a true held-out-problem generalization split.
+- **MUST state these details in the report** (per-problem, all candidates, ~15 pos/14 neg,
+  disjoint problem-level split, 80 train vs 82 test problems).
+- Monitor (laptop crontab + CronCreate heartbeat fdbb9b38) turned OFF 2026-06-19; re-arm later.
