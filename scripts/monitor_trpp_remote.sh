@@ -19,12 +19,12 @@ submit(){ MODEL="$1" CKPTS="$4" HE_TASK="$6" OUTDIR="$REPO/outputs-he-trainset-p
 all=1
 for pair in cu:humaneval-v2.1correct-upper cm:humaneval-v2.1correct-multi; do
   wtag=${pair%%:*}; het=${pair##*:}
-  for mt in gemma4:4:g4 qwen:2:qw; do
+  for mt in gemma4:4:g4 qwen:1:qw; do   # qwen gpu:1 (9B fits); s1/s13 dropped (2026-06-19)
     model=$(echo $mt|cut -d: -f1); gpu=$(echo $mt|cut -d: -f2); tag=$(echo $mt|cut -d: -f3)
     # base (S=2 modes)
     jn="trpp-$wtag-$tag-base"
     if [ "$(mk $model $wtag 2 base)" -ge "$(exp 2)" ]; then :; elif inq "$jn"; then all=0; else all=0; submit $model $gpu 2 base $wtag $het "$jn"; fi
-    for S in 1 2 3 4 7 13; do for C in 0 1 2; do
+    for S in 2 3 4 7; do for C in 0 1 2; do
       jn="trpp-$wtag-$tag-s$S-ep$C"
       if [ "$(mk $model $wtag $S ep$C)" -ge "$(exp $S)" ]; then :; elif inq "$jn"; then all=0; else all=0; submit $model $gpu $S $C $wtag $het "$jn"; fi
     done; done
