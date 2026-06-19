@@ -47,11 +47,13 @@ case "$MODEL" in
 esac
 
 case "$S" in
+  1) NAME=SFT;           MODES="--self-typicality --neg-typicality"; SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--vallogodds--labelonly0.1--fix1" ;;
+  13) NAME="ConsistencyFT"; MODES="--self-typicality --neg-typicality"; SUFFIX="-all--d2g--random--alpha1.0--full-completion--pref0.0--nllv1.0--nllg1.0--cft--labelonly0.1--fix1" ;;
   2) NAME=RankAlign;     MODES="--self-typicality --neg-typicality"; SUFFIX="-all--d2g--random--alpha1.0--full-completion--semi0.1--fix1" ;;
   3) NAME="New+fsx";     MODES="--self-typicality --neg-typicality"; SUFFIX="-all--d2g--random--alpha1.0--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" ;;
   4) NAME="New+fsx+selfTC"; MODES="--self-typicality"; SUFFIX="-all--d2g--random--alpha1.0--tc-self--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" ;;
   7) NAME="New+fsx+negTC";  MODES="--neg-typicality";  SUFFIX="-all--d2g--random--alpha1.0--tc-neg--full-completion--nllv1.0--nllg1.0--force-same-x--ppd--vallogodds--semi0.1--fix1" ;;
-  *) echo "FATAL S"; exit 2 ;;
+  *) echo "FATAL S (must be 1,2,3,4,7,13)"; exit 2 ;;
 esac
 
 export HF_HOME=/datastor2/jdr/.cache/huggingface HF_HUB_CACHE=/datastor2/jdr/.cache/huggingface/hub
