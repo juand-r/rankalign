@@ -118,13 +118,15 @@ def build_metric_table(metric_key, metric_name):
         tc = f"{r['tc']*100:.1f}" if pd.notna(r["tc"]) else "--"
         body.append(f"{esc(r['model'])} & {r['dataset']} & {r['setting']} & {esc(r['eval'])} & {raw} & {tc} " + r"\\")
         prev = key
+    cap = (f"HumanEval TEST {metric_name} ($\\times100$), raw vs tc gen variant. "
+           "Systems: gemma-4-31b \\& qwen-3.5-9b $\\times$ base/s1/s2/s3/s4/s7/s13, both datasets.")
     tex = (
-        "\\begin{table}[ht]\\centering\\small\n"
-        f"\\caption{{HumanEval TEST {metric_name} ($\\times100$), raw vs tc gen variant. "
-        "Systems: gemma-4-31b \\& qwen-3.5-9b $\\times$ base/s1/s2/s3/s4/s7/s13, both datasets.}}\n"
-        f"\\label{{tab:he_test_{metric_key}}}\n"
-        "\\begin{tabular}{llll rr}\n\\toprule\n" + header + "\n\\midrule\n"
-        + "\n".join(body) + "\n\\bottomrule\n\\end{tabular}\n\\end{table}\n"
+        "{\\small\n\\begin{longtable}{llll rr}\n"
+        f"\\caption{{{cap}}}\\label{{tab:he_test_{metric_key}}}\\\\\n"
+        "\\toprule\n" + header + "\n\\midrule\n\\endfirsthead\n"
+        "\\multicolumn{6}{l}{\\itshape (continued)}\\\\\n\\toprule\n" + header + "\n\\midrule\n\\endhead\n"
+        "\\bottomrule\n\\endfoot\n"
+        + "\n".join(body) + "\n\\bottomrule\n\\end{longtable}\n}\n"
     )
     out = HERE / f"humaneval_TEST_table_{metric_key}.tex"
     out.write_text(tex)
