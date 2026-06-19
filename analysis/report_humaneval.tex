@@ -9,6 +9,7 @@
 
 % TODO marker: pieces awaiting the in-flight train-set evals (trs2 batch) / wandb pull.
 \newcommand{\TODO}[1]{\par\noindent\colorbox{yellow!40}{\textbf{TODO:} #1}\par}
+\newcommand{\stdv}[1]{{\tiny$\pm$#1}}
 
 \title{HumanEval Training Dynamics Analysis\\
 \large RankAlign vs.\ TC methods --- why Upper and Multi differ}
@@ -109,12 +110,52 @@ methods, or something else.}
 %% ============================================================
 
 The clean test of TC is s3 (New+fsx, \emph{no} TC) vs s4 (adds self-TC) and s7 (adds neg-TC),
-evaluated in the matching TC mode.
+evaluated in the matching TC mode (tc gen ROC, base-typ). Table~\ref{tab:he_tc} gives the
+deltas at test (epoch 2).
 
-\TODO{Fill the test-side TC-delta table (s3$\to$s4 in self mode, s3$\to$s7 in neg mode) for
-both models and datasets from \texttt{humaneval\_TEST\_metrics\_aggregated.csv}; then the
-train-side version once \texttt{trs2} lands. Hypothesis to test: TC helps on upper (less
-overfitting headroom) but its train-set gain does not transfer on multi.}
+\begin{table}[H]
+\centering
+\caption{TC effect at TEST: s3$\to$s4 (self mode) and s3$\to$s7 (neg mode), tc gen ROC
+($\times100$); parenthetical = $\Delta$ from adding TC.}
+\label{tab:he_tc}
+\input{tables/he_tc_compare_test.tex}
+\end{table}
+
+\textbf{Finding.} TC training \emph{helps only on gemma-4 / upper} (s4 $+3.2$, s7 $+6.8$ over
+the no-TC s3). Everywhere else it \emph{hurts} at test: gemma multi ($-0.7$, $-2.1$), and qwen
+on both datasets (down to $-8.8$ on qwen multi). This is the \emph{opposite} of the old
+membership/IFEval report, where TC helped consistently --- on HumanEval, the TC signal
+transfers only in the one regime (gemma upper) where our methods also win Table~\ref{tab:he_q1}.
+
+\TODO{Add the train-side TC deltas once \texttt{trs2} lands. Hypothesis: TC's train-set gain
+is large everywhere, but only transfers on gemma upper --- i.e.\ the test losses are the
+overfitting signature of Section~2.}
+
+%% ============================================================
+\section{Generator--Validator Correlation (TEST)}
+%% ============================================================
+
+Spearman (Table~\ref{tab:he_sp}) and Pearson (Table~\ref{tab:he_pe}) between generator and
+validator scores, epoch 2, each method in its natural eval mode (tc), mean $\pm$ SE over 82
+problems.
+
+\begin{table}[H]
+\centering
+\caption{Spearman $\rho$ (gen vs val), tc, $\times100$.}
+\label{tab:he_sp}
+\input{tables/he_spearman_test.tex}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Pearson $r$ (gen vs val), tc, $\times100$.}
+\label{tab:he_pe}
+\input{tables/he_pearson_test.tex}
+\end{table}
+
+\TODO{Generator--validator \textbf{concordance} (ordering-agreement fraction) and the
+\textbf{scatter} / \textbf{score-delta histograms} need the raw per-candidate scores from mll
+(\texttt{outputs\_gemma4\_mll\_tmp[-multi]/}, \texttt{outputs-rerun-wandb/}) --- pulling next.}
 
 %% ============================================================
 \section{Q2 (cont.): Training Diagnostics --- WandB}
