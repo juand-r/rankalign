@@ -1,0 +1,36 @@
+\documentclass[10pt]{article}
+\usepackage[margin=0.7in]{geometry}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{lmodern}
+\title{HumanEval TRAIN-set typicality metrics --- per-epoch dynamics\\ \large gemma-4-31b $\times$ s2 (RankAlign) \& s4 (self-tc) $\times$ base/ep0/ep1/ep2}
+\author{}
+\date{2026-06-19}
+\begin{document}
+\maketitle
+
+One table per metric (gen ROC, val ROC, val acc, Pearson). Each shows the \textbf{raw} and
+\textbf{tc} (typicality-corrected) gen variants, with an \textbf{epoch axis}
+(base $\to$ ep0 $\to$ ep1 $\to$ ep2) so the training dynamics are visible. Systems:
+gemma-4-31b, settings s2 (RankAlign) and s4 (self-tc / New+fsx+self-tc), on both
+\texttt{humaneval-v2.1correct-upper} and \texttt{-multi}. Values $\times 100$, 1 decimal;
+means over the 82 problems. \textbf{Scores are on the \texttt{--train} split} (the candidate
+pool the models were trained against), subsampled to N=50 \emph{stratified} candidates per
+problem (25 positive / 25 negative). Eval = (typicality mode)/(base-typ vs no-base).
+
+\medskip\noindent\textit{Notes:} (i) \texttt{val ROC} and \texttt{val acc} are validator-based,
+so their raw and tc columns are identical by construction (shown for uniformity). (ii) \texttt{raw}
+gen scores do not depend on the eval mode, so the raw column repeats within a (dataset, setting,
+epoch) block. (iii) The \texttt{base} row is the untrained gemma-4-31b-it model (shared start point
+for both settings). (iv) s4 (self-tc) was evaluated in \emph{self}-typicality mode only
+(self/base-typ, self/no-base); base and s2 were evaluated in all four modes. (v) These are
+TRAIN-split numbers --- generator/validator agreement is expected to be high on data the model was
+trained on; the interest is the \emph{dynamics} (how raw vs tc move across epochs), not the absolute
+level. The companion TEST-split tables are in \texttt{docs/he\_harvest\_2026-06-17/}.
+
+\input{humaneval_TRAIN_table_gen_roc.tex}
+\input{humaneval_TRAIN_table_val_roc.tex}
+\input{humaneval_TRAIN_table_val_acc.tex}
+\input{humaneval_TRAIN_table_pearson.tex}
+
+\end{document}
