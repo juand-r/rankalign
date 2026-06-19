@@ -21,9 +21,14 @@ Usage (on mll, qwen35 venv active, HF_TOKEN exported):
 import argparse
 import os
 import sys
+import time
 from pathlib import Path
 
 from huggingface_hub import HfApi
+
+MAX_RETRIES = 4          # per-folder retries on transient errors
+RETRY_BACKOFF_S = 30     # base backoff; grows linearly
+FAILURES = []            # folders that failed after all retries
 
 REPO = Path("/datastor2/jdr/rankalign")
 DONE = REPO / ".he_monitor" / "hf_upload_done"
@@ -63,14 +68,29 @@ def upload_one_folder(api, repo_id, repo_type, folder: Path, path_in_repo: str, 
         print(f"  [skip] {tag} (done-marker present)", flush=True)
         return
     print(f"  [upload] {folder}  ->  {repo_id}:{path_in_repo}", flush=True)
-    api.upload_folder(
-        repo_id=repo_id, repo_type=repo_type, folder_path=str(folder),
-        path_in_repo=path_in_repo, allow_patterns=allow_patterns,
-        ignore_patterns=ignore_patterns,
-        commit_message=f"Add {path_in_repo}",
-    )
-    m.write_text("ok\n")
-    print(f"  [done]  {tag}", flush=True)
+    # Retry on transient errors so a multi-hour unattended run survives network blips.
+    # Not silent: every failure is logged loudly; a folder that never succeeds is recorded
+    # in FAILURES, left WITHOUT a done-marker (so a re-run retries it), and the process
+    # exits non-zero at the end.
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            api.upload_folder(
+                repo_id=repo_id, repo_type=repo_type, folder_path=str(folder),
+                path_in_repo=path_in_repo, allow_patterns=allow_patterns,
+                ignore_patterns=ignore_patterns,
+                commit_message=f"Add {path_in_repo}",
+            )
+            m.write_text("ok\n")
+            print(f"  [done]  {tag}", flush=True)
+            return
+        except Exception as e:  # noqa: BLE001 — logged loudly + surfaced, not swallowed
+            print(f"  [ERROR] {tag} attempt {attempt}/{MAX_RETRIES}: {type(e).__name__}: {e}",
+                  flush=True)
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_BACKOFF_S * attempt)
+    FAILURES.append(tag)
+    print(f"  [FAILED] {tag} — gave up after {MAX_RETRIES} attempts (will retry on re-run)",
+          flush=True)
 
 
 def do_scores(api):
@@ -127,6 +147,9 @@ def main():
         print("=== GEMMA-4 ADAPTERS ==="); do_adapters(api)
     if args.target in ("qwen", "all"):
         print("=== QWEN-3.5 MERGED ==="); do_qwen(api, limit=args.limit)
+    if FAILURES:
+        print(f"DONE WITH {len(FAILURES)} FAILED FOLDER(S): {FAILURES}", flush=True)
+        sys.exit(1)
     print("ALL REQUESTED UPLOADS COMPLETE", flush=True)
 
 
