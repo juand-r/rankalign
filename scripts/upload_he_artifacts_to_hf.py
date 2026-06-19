@@ -57,7 +57,7 @@ def marker(name: str) -> Path:
 
 
 def upload_one_folder(api, repo_id, repo_type, folder: Path, path_in_repo: str, tag: str,
-                      allow_patterns=None):
+                      allow_patterns=None, ignore_patterns=None):
     m = marker(f"{repo_type}_{tag}")
     if m.exists():
         print(f"  [skip] {tag} (done-marker present)", flush=True)
@@ -66,6 +66,7 @@ def upload_one_folder(api, repo_id, repo_type, folder: Path, path_in_repo: str, 
     api.upload_folder(
         repo_id=repo_id, repo_type=repo_type, folder_path=str(folder),
         path_in_repo=path_in_repo, allow_patterns=allow_patterns,
+        ignore_patterns=ignore_patterns,
         commit_message=f"Add {path_in_repo}",
     )
     m.write_text("ok\n")
@@ -78,8 +79,11 @@ def do_scores(api):
         d = REPO / src
         if not d.exists():
             print(f"  [warn] missing {d}"); continue
+        # only the score CSVs; exclude the eval run's .done marker dirs (they also
+        # contain "humaneval" in their names and would otherwise pollute the repo)
         upload_one_folder(api, SCORES_REPO, "dataset", d, sub, f"scores_{sub}",
-                          allow_patterns=["*humaneval*"])
+                          allow_patterns=["*humaneval*.csv"],
+                          ignore_patterns=[".done/*", "*/.done/*", "*.done"])
 
 
 def do_adapters(api):
