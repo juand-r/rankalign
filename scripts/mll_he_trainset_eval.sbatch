@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=9
 #SBATCH --mem=96G
-#SBATCH --time=10:00:00
+#SBATCH --time=12:00:00
 #SBATCH --output=/datastor2/jdr/logs/%j.out
 #SBATCH --error=/datastor2/jdr/logs/%j.err
 #
