@@ -23,3 +23,19 @@ is back.
 - **MUST state these details in the report** (per-problem, all candidates, ~15 pos/14 neg,
   disjoint problem-level split, 80 train vs 82 test problems).
 - Monitor (laptop crontab + CronCreate heartbeat fdbb9b38) turned OFF 2026-06-19; re-arm later.
+
+## Duplicate rows in train.csv (process note — KEEP OUT OF THE REPORT, docs only)
+- train.csv has pre-existing duplicate (task_id, answer, correct) rows: **165 upper / 37 multi**.
+- Verified there is NO dedup anywhere in the path: load_csv_items, the humaneval loaders,
+  eval_by_claude.py, and the trainer all keep them (the trainer's only `set()`/`unique` use is
+  for unique *prompts* in the labeled/unlabeled semi-supervised split, not candidate rows).
+- So they flow through training, eval, and the per-problem split unchanged. Using all
+  candidates per problem (user decision) keeps them; within-problem duplicates score
+  identically (redundant, harmless for ROC).
+- **User directive (2026-06-19): do NOT mention this in report_humaneval.tex; this docs note
+  is the record.**
+
+## Validation (2026-06-19): per-problem train tasks WORK
+- 160 tasks registered (humaneval-v2.1correct-{upper,multi}-train-<slug>, 80 each).
+- humaneval-v2.1correct-multi-train-humaneval_101 -> L_test = 29 candidates, task_id HumanEval/101,
+  14 pos / 15 neg. Problem-specific. (Run as NORMAL eval, no --train.)
