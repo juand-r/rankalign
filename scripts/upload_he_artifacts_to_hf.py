@@ -44,7 +44,8 @@ SCORE_DIRS = {
 def token() -> str:
     t = os.environ.get("HF_TOKEN")
     if not t:
-        t = (REPO / ".hf_token").read_text().strip()
+        # token lives OUTSIDE the git repo (parent dir) so it can never be committed
+        t = Path("/datastor2/jdr/.hf_token").read_text().strip()
     if not t:
         sys.exit("ERROR: no HF token (env HF_TOKEN or /datastor2/jdr/.hf_token)")
     return t
