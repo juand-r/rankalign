@@ -164,6 +164,29 @@ def build_tc_compare(perfile):
     print("wrote he_tc_compare_test.tex")
 
 
+def build_rawtc_lift(perfile):
+    # raw vs tc gen ROC at eval, and the lift = tc - raw, for s3/s4/s7 in TC eval mode.
+    NAT = {"s3": "neg/base-typ", "s4": "self/base-typ", "s7": "neg/base-typ"}
+
+    def m(mk, ds, s, v):
+        sub = perfile[(perfile.mkey == mk) & (perfile.ds == ds) & (perfile.setting == s)
+                      & (perfile.evalmode == NAT[s]) & (perfile.variant == v)]
+        return None if sub.empty else sub["gen_roc"].mean() * 100
+    lines = [r"\begin{tabular}{lll ccc}", r"\toprule",
+             r"Model & Data & Setting & raw & tc & lift \\", r"\midrule"]
+    for mk, ml in [("gemma", "gemma-4-31b"), ("qwen", "qwen-3.5-9b")]:
+        for ds in ["upper", "multi"]:
+            for s in ["s3", "s4", "s7"]:
+                raw, tc = m(mk, ds, s, "raw"), m(mk, ds, s, "tc")
+                lift = "" if (raw is None or tc is None) else f"{tc-raw:+.1f}"
+                f = lambda x: "---" if x is None else f"{x:.1f}"
+                lines.append(f"{ml} & {ds} & {SETTING_LABEL[s]} & {f(raw)} & {f(tc)} & {lift} " + r"\\")
+            lines.append(r"\midrule")
+    lines[-1] = r"\bottomrule"; lines.append(r"\end{tabular}")
+    (OUT / "he_rawtc_lift.tex").write_text("\n".join(lines) + "\n")
+    print("wrote he_rawtc_lift.tex")
+
+
 def main():
     test_df = pd.read_csv(TEST)
     train_df = pd.read_csv(TRAIN)
@@ -173,6 +196,7 @@ def main():
     build_corr_table(perfile, "spearman", "he_spearman_test.tex")
     build_corr_table(perfile, "pearson", "he_pearson_test.tex")
     build_tc_compare(perfile)
+    build_rawtc_lift(perfile)
     print("done.")
 
 

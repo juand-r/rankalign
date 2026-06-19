@@ -158,6 +158,39 @@ problems.
 (\texttt{outputs\_gemma4\_mll\_tmp[-multi]/}, \texttt{outputs-rerun-wandb/}) --- pulling next.}
 
 %% ============================================================
+\section{Why does TC behave so differently? (mechanism)}
+%% ============================================================
+
+\subsection{Eval-time: the typicality correction does MORE work on multi}
+
+Table~\ref{tab:he_lift} decomposes the eval-time effect: \textbf{raw} gen ROC (uncorrected
+log-prob ranking) vs.\ \textbf{tc} gen ROC, and the \emph{lift} from the correction.
+
+\begin{table}[H]
+\centering
+\caption{Eval-time raw vs.\ tc gen ROC ($\times100$), epoch 2, TC eval mode. lift $=$ tc $-$ raw.}
+\label{tab:he_lift}
+\input{tables/he_rawtc_lift.tex}
+\end{table}
+
+\textbf{Key reframing.} On \textbf{multi}, the \emph{raw} generator score barely ranks at all
+(gemma s7 $=68.1$; qwen s7 $=45.0$, i.e.\ \emph{below chance}), whereas on upper it is much
+healthier (gemma s7 raw $=83.6$). This is a direct consequence of the dataset construction:
+\texttt{multi}'s ΔlogP-selected stylizations make the \emph{correct} code \textbf{atypical}, so
+raw log-prob is a misleading signal --- and typicality correction is exactly what rescues it
+(lift $+23.9$ gemma multi, $+42.9$ qwen multi). So TC is \emph{not} failing on multi at eval;
+it is doing \emph{more} work there. The corrected (tc) scores end up similar across datasets
+($\approx88$--$95$). The real question is therefore \emph{not} ``does TC help at eval'' (it
+does, especially on multi) but ``why, once everything leans on TC on multi, does RankAlign
+(s2) still edge our s7 ($94.2$ vs $92.0$)?'' --- which is a \textbf{train$\to$test
+generalization} question, addressed in Section~2 and (fully) once \texttt{trs2} lands.
+
+\TODO{Mechanism evidence still to pull: (i) WandB loss-component dynamics (Pref/NLL-G/NLL-V,
+score-spread) per model$\times$dataset --- does TC training destabilize on multi/qwen? (ii)
+score-delta histograms + gen-vs-val scatter from raw candidate scores. (iii) the decisive
+train-side TC delta + train$\to$test gap for s3/s7/qwen (\texttt{trs2}).}
+
+%% ============================================================
 \section{Q2 (cont.): Training Diagnostics --- WandB}
 %% ============================================================
 
