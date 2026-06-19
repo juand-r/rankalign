@@ -15,10 +15,10 @@ cd "$REPO/scripts"
 S=summarize_scores_file.py
 
 echo "[harvest] qwen (outputs-rerun-wandb, both datasets) ->"
-python "$S" --glob "$REPO/outputs-rerun-wandb/scores_*.csv"        --csv "$OUT/qwen_he_perfile_metrics.csv"  --compact | tail -2
+python "$S" --glob "$REPO/outputs-rerun-wandb/scores_*humaneval*.csv"        --csv "$OUT/qwen_he_perfile_metrics.csv"  --compact | tail -2
 echo "[harvest] gemma upper (outputs_gemma4_mll_tmp) ->"
-python "$S" --glob "$REPO/outputs_gemma4_mll_tmp/scores_*.csv"     --csv "$OUT/gemma_cu_perfile_metrics.csv" --compact | tail -2
+python "$S" --glob "$REPO/outputs_gemma4_mll_tmp/scores_*humaneval*.csv"     --csv "$OUT/gemma_cu_perfile_metrics.csv" --compact | tail -2
 echo "[harvest] gemma multi (outputs_gemma4_mll_tmp-multi) ->"
-python "$S" --glob "$REPO/outputs_gemma4_mll_tmp-multi/scores_*.csv" --csv "$OUT/gemma_cm_perfile_metrics.csv" --compact | tail -2
+python "$S" --glob "$REPO/outputs_gemma4_mll_tmp-multi/scores_*humaneval*.csv" --csv "$OUT/gemma_cm_perfile_metrics.csv" --compact | tail -2
 
 echo "[harvest] done. CSVs:"; ls -la "$OUT"/*.csv 2>/dev/null

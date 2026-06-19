@@ -63,12 +63,20 @@ for fn in FILES:
 allm = pd.concat(rows, ignore_index=True)
 allm = allm[allm["variant"].isin(VARIANTS)].copy()
 
-# sanity: report any unparsed
+# Drop anything that isn't humaneval (the qwen dir also holds the earlier ifeval rerun).
+_n0 = len(allm)
+allm = allm[allm["file"].str.contains("humaneval", na=False)].copy()
+allm = allm[allm["dataset"].isin(["upper", "multi"])].copy()
+print(f"Filtered to humaneval upper/multi: {len(allm)} of {_n0} variant-rows kept")
+
+# sanity: any humaneval rows still unparsed?
 bad = allm[(allm["model"] == "?") | (allm["setting"] == "?") | (allm["dataset"] == "?")]
 if len(bad):
-    print(f"WARNING: {len(bad)} unparsed rows; sample files:")
+    print(f"WARNING: {len(bad)} unparsed humaneval rows; sample files:")
     for f in bad["file"].head(8):
         print("   ", f)
+else:
+    print("all humaneval rows parsed cleanly.")
 
 # --- aggregate: mean over the per-task files, per (model,dataset,setting,eval,variant) ---
 gcols = ["model", "mkey", "dataset", "setting", "eval", "variant"]
