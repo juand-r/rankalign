@@ -194,13 +194,47 @@ train-side TC delta + train$\to$test gap for s3/s7/qwen (\texttt{trs2}).}
 \section{Q2 (cont.): Training Diagnostics --- WandB}
 %% ============================================================
 
-WandB logging was \emph{online} for all HumanEval runs (project \texttt{rankalign}; run names
-\texttt{g4-\{cu,cm\}-s\{S\}} and \texttt{q35-\{cu,cm\}-s\{S\}}).
+All HumanEval training runs logged to WandB (project \texttt{juand-r/rankalign}, runs
+\texttt{g4-/q35-\{cu,cm\}-s\{S\}}, all 6 settings $\times$ 4 model/dataset groups, 500 steps
+each). Curves smoothed with a 20-step running average.
 
-\TODO{Pull and plot the loss curves (SFT vs RankAlign vs Ours; TC comparison) for gemma-4 and
-qwen on upper and multi, mirroring report.tex Section 2. Also the loss-component breakdown
-(Pref / NLL-G / NLL-V) --- check whether RankAlign's NLL-G stays bounded on HumanEval (it
-exploded on IFEval in the old report). Reuse \texttt{analysis/scripts/analyze\_wandb\_training.py}.}
+\subsection{Loss-component breakdown (final third of training)}
+
+\begin{table}[H]
+\centering
+\caption{WandB loss components (final-third mean). NLL-G is the diagnostic: an inflated
+generator NLL means the preference objective is moving generator scores without an NLL anchor.}
+\label{tab:he_loss}
+\input{tables/he_loss_breakdown.tex}
+\end{table}
+
+\textbf{Findings.} (i) On gemma-4, RankAlign (s2) runs with an elevated but \emph{controlled}
+NLL-G (e.g.\ $\approx12.4$ on upper) --- not the catastrophic explosion seen on IFEval in the
+old report ($\sim$3120). (ii) The WandB divergence check flags \textbf{qwen-3.5 / upper s4
+(FLORA-PMI)} as \emph{LOSS INCREASED $+$ NLL-G/NLL-V increased} --- a genuine training
+instability for the self-TC objective on qwen, consistent with s4's weak qwen test numbers.
+Several settings show high final-quarter variance.
+
+\subsection{Loss curves}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_methods_gemma-4-31b_upper.png}
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_methods_gemma-4-31b_multi.png}
+\caption{gemma-4-31b loss curves (SFT vs RankAlign vs Ours): upper (left), multi (right).}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_methods_qwen-3.5-9b_upper.png}
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_methods_qwen-3.5-9b_multi.png}
+\caption{qwen-3.5-9b loss curves (SFT vs RankAlign vs Ours): upper (left), multi (right).}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_tc_gemma-4-31b_multi.png}
+\includegraphics[width=0.49\textwidth]{plots/wandb_loss_tc_qwen-3.5-9b_multi.png}
+\caption{TC comparison (Ours / Ours w/o TC / Ours neg-TC) on multi: gemma-4 (left), qwen (right).}
+\end{figure}
+
+\TODO{Optional: zoomed loss curves + \texttt{wandb\_score\_stats\_*} score-spread panels (all
+20 figures are in \texttt{analysis/plots/}).}
 
 %% ============================================================
 \section{Diagnostics: Concordance / Correlation / Scatter}

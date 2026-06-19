@@ -164,6 +164,33 @@ def build_tc_compare(perfile):
     print("wrote he_tc_compare_test.tex")
 
 
+def build_loss_breakdown():
+    """§2.2 loss-component breakdown from the WandB summary CSVs (final-third means)."""
+    SETS = ["s1", "s2", "s3", "s4", "s7", "s13"]
+    groups = [("gemma-4-31b", "upper"), ("gemma-4-31b", "multi"),
+              ("qwen-3.5-9b", "upper"), ("qwen-3.5-9b", "multi")]
+    lines = [r"\begin{tabular}{lll rrrr}", r"\toprule",
+             r"Model & Data & Setting & Total & Pref & NLL-G & NLL-V \\", r"\midrule"]
+    for i, (model, ds) in enumerate(groups):
+        p = OUT / f"wandb_training_summary_{model}_{ds}.csv"
+        if not p.exists():
+            continue
+        df = pd.read_csv(p).set_index("setting")
+        for s in SETS:
+            if s not in df.index:
+                continue
+            r = df.loc[s]
+            def f(c):
+                v = r.get(c + "_final_mean")
+                return "--" if pd.isna(v) else (f"{v:.2f}" if abs(v) >= 0.01 else f"{v:.0e}")
+            lines.append(f"{model} & {ds} & {SETTING_LABEL[s]} & {f('loss')} & {f('preference_loss')} "
+                         f"& {f('nll_generator_loss')} & {f('nll_validator_loss')} " + r"\\")
+        lines.append(r"\midrule")
+    lines[-1] = r"\bottomrule"; lines.append(r"\end{tabular}")
+    (OUT / "he_loss_breakdown.tex").write_text("\n".join(lines) + "\n")
+    print("wrote he_loss_breakdown.tex")
+
+
 def build_rawtc_lift(perfile):
     # raw vs tc gen ROC at eval, and the lift = tc - raw, for s3/s4/s7 in TC eval mode.
     NAT = {"s3": "neg/base-typ", "s4": "self/base-typ", "s7": "neg/base-typ"}
@@ -197,6 +224,7 @@ def main():
     build_corr_table(perfile, "pearson", "he_pearson_test.tex")
     build_tc_compare(perfile)
     build_rawtc_lift(perfile)
+    build_loss_breakdown()
     print("done.")
 
 
