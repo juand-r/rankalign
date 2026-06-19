@@ -907,6 +907,28 @@ def main(args):
         print(f"Filtered to single-token completions: {len(LL)}")
         train_suffix += "--single-token"
 
+    # Optional train-set subsampling (opt-in). Default args.max_train is None -> this block is
+    # skipped entirely, so behavior is byte-identical to before for any existing call.
+    # --stratified samples equal numbers of positive/negative items (by the task's yes/no label).
+    if train_flag and getattr(args, "max_train", None) and len(LL) > args.max_train:
+        import random as _rnd
+        _r = _rnd.Random(seed)  # reproducible given the same --seed
+        _tc = get_task(task)
+        if args.stratified and _tc is not None:
+            _pos = [it for it in LL if _tc['get_label'](it) == 'yes']
+            _neg = [it for it in LL if _tc['get_label'](it) == 'no']
+            _k = args.max_train // 2
+            _r.shuffle(_pos); _r.shuffle(_neg)
+            LL = _pos[:_k] + _neg[:_k]
+            _r.shuffle(LL)
+            print(f"[max-train] stratified subsample: {len(_pos)} pos / {len(_neg)} neg available -> kept {len(LL)} ({min(_k,len(_pos))} pos + {min(_k,len(_neg))} neg)")
+        else:
+            if args.stratified:
+                print(f"[max-train] WARNING: --stratified requested but no task label fn for '{task}' -> random subsample")
+            _r.shuffle(LL)
+            LL = LL[:args.max_train]
+            print(f"[max-train] random subsample -> kept {len(LL)}")
+
     if split_type=='random':
         split_suffix = ""
     elif split_type=='hyper':
@@ -2103,6 +2125,10 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, help="model directory to process (this should contain merged/ subdirectory) or hf model")
     # parser.add_argument("--tunedlens", action="store_true", default=False, help="")
     parser.add_argument("--seed", type=int, default=0, help="Random seed for shuffling the data.")
+    parser.add_argument("--max-train", dest="max_train", type=int, default=None,
+                        help="With --train: subsample the train set to this many items (default None = use all; backwards compatible).")
+    parser.add_argument("--stratified", action="store_true", default=False,
+                        help="With --max-train: sample equal numbers of positive/negative items (by the task's yes/no label).")
     parser.add_argument("--disc-shots", type=str, default='few', help="'zero' vs 'few'")
     parser.add_argument("--gen-shots", type=str, default='zero', help="'zero' vs 'few'")
     parser.add_argument("--train", action="store_true", default=False, help="log-odds of train or test set?")

@@ -4,7 +4,7 @@
 #SBATCH --gres=gpu:4
 #SBATCH --cpus-per-task=9
 #SBATCH --mem=96G
-#SBATCH --time=5:00:00
+#SBATCH --time=10:00:00
 #SBATCH --output=/datastor2/jdr/logs/%j.out
 #SBATCH --error=/datastor2/jdr/logs/%j.err
 #
@@ -37,6 +37,7 @@ MODELS_DIR=/datastor2/jdr/rankalign/models2-rerun-wandb         # <-- s2/s4 live
 TRAIN_OUTDIR="${TRAIN_OUTDIR:-/datastor2/jdr/rankalign/outputs-he-trainset}"
 LOGDIR=/datastor2/jdr/logs
 CKPTS="${CKPTS:-base 0 1 2}"
+MAXTRAIN="${MAXTRAIN:-50}"           # subsample N train candidates/problem (stratified pos/neg). 50 -> ~8.5h s2 / ~4.3h s4.
 DONE_DIR="$TRAIN_OUTDIR/.done"
 
 export HF_HOME=/datastor2/jdr/.cache/huggingface
@@ -94,7 +95,8 @@ for C in $CKPTS; do
         # shellcheck disable=SC2086
         if python eval_by_claude.py --model "$MP" --task "$T" --split_type random \
               --gen-shots zero --disc-shots zero "$MODE" $BT_ARGS \
-              --validator-log-odds --train --save-scores-csv --outputs-dir "$TRAIN_OUTDIR" >> "$EVAL_LOG" 2>&1; then
+              --validator-log-odds --train --max-train "$MAXTRAIN" --stratified \
+              --save-scores-csv --outputs-dir "$TRAIN_OUTDIR" >> "$EVAL_LOG" 2>&1; then
           touch "$marker"; ok=$((ok+1))
         else
           echo "[$(date -u +%FT%TZ)]   FAIL $cname $mname bt$BT $T (see $EVAL_LOG)"
