@@ -34,10 +34,12 @@ shown in its natural eval mode (RankAlign/s3 $\to$ Neg base; s4 $\to$ PMI base; 
 Neg base), matching the convention in \texttt{docs/rerun\_only\_tables.tex}.
 \end{abstract}
 
-\noindent\textbf{Status (2026-06-19):} the TEST-set comparison (all settings, both models,
-both datasets) is complete. The train-set dynamics currently exist only for \textbf{gemma-4
-s2/s4} (GROUP B). Train-set evals for \textbf{gemma s3/s7} and \textbf{all qwen settings} are
-running on mll (38-job \texttt{trs2} batch); sections depending on them are marked \TODO{}.
+\noindent\textbf{Status (2026-06-20):} TEST comparison complete (all settings, both models,
+both datasets). The per-problem TRAIN-set eval is also \textbf{complete} --- each of the 80
+train problems scored on its own $\approx$29 candidates, all settings $\times$ epochs $\times$
+both models, replacing an earlier (incorrect) global-pool train eval. The train-vs-test
+(Section~3) is final; remaining \TODO{}s are train-side concordance/scatter and the per-epoch
+train-dynamics figure.
 
 \tableofcontents
 \newpage
@@ -65,45 +67,45 @@ FLORA-PMI (s4) $=90.7$ both beat RankAlign (s2) $=88.2$.
 \input{tables/he_q1_test.tex}
 \end{table}
 
-\TODO{Add the train-set counterpart of Table~\ref{tab:he_q1} once the \texttt{trs2} evals
-land (gemma s3/s7 + all qwen). Then we can state, per setting, whether the upper/multi
-ordering is the same on train as on test --- the crux of whether the effect is optimization
-(seen on train) or generalization (only on test).}
+The per-problem train counterpart of this table is now available (Section~3,
+Table~\ref{tab:he_tt}): the train ordering matches the test ordering closely (train$\approx$test,
+Section~3), so the upper/multi effect is present already at training-rank level --- it is an
+optimization/eval-time property, not a generalization gap.
 
 %% ============================================================
 \section{Q3: Train vs.\ Test --- Is It Overfitting?}
 %% ============================================================
 
-This is the central question. For the settings we already have on both splits
-(\textbf{gemma-4 s2 RankAlign} and \textbf{s4 FLORA-PMI}, epoch 2), Table~\ref{tab:he_tt}
-compares train-split and test-split tc gen ROC.
+This is the central question. \textbf{Train and test are disjoint problem sets} (80 train
+problems, 82 test problems, zero overlap), so the like-for-like comparison is per-problem ROC
+averaged over the 80 train problems vs.\ over the 82 test problems --- scored the \emph{same
+way} (per-problem, all $\approx$29 candidates each, no subsample). Table~\ref{tab:he_tt} gives
+it, epoch 2, each method in its natural eval mode.
 
 \begin{table}[H]
 \centering
-\caption{gemma-4 train vs.\ test tc gen ROC ($\times100$), epoch 2, each method in its
-natural eval mode. Train = \texttt{--train} split, N=50 stratified candidates/problem.
-$\Delta = \text{train}-\text{test}$ (large positive $\Rightarrow$ overfitting).}
+\caption{Per-problem train (80 problems) vs.\ test (82 problems) tc gen ROC ($\times100$),
+epoch 2, each method in its natural eval mode, mean $\pm$ SE. $\Delta=\text{train}-\text{test}$
+(large positive $\Rightarrow$ overfitting). gemma-4 has no base test eval.}
 \label{tab:he_tt}
-\input{tables/he_traintest_gemma.tex}
+\input{tables/he_traintest_perproblem.tex}
 \end{table}
 
-\textbf{Early finding (gemma-4, s2 vs s4).} On \textbf{multi}, FLORA-PMI (s4) shows a large
-train$\to$test drop ($99.0\to90.1$, $\Delta=+8.9$) while RankAlign generalizes almost
-perfectly ($94.6\to94.2$, $\Delta=+0.4$). On \textbf{upper}, s4 does \emph{not} overfit
-($90.9\to90.7$, $\Delta=+0.2$). This is consistent with the hypothesis that \textbf{our
-TC method overfits on multi} --- it is best on the training candidates but loses the
-advantage on held-out problems, which is exactly where RankAlign overtakes it at test time.
-RankAlign's small train$\to$test gap suggests it learns a flatter, more transferable
-ranking on this task.
+\textbf{Finding: there is essentially no overfitting.} For gemma-4 the train$\to$test gap is
+within $\pm2$ for every method (RankAlign $-0.0$/$+0.6$, s4 $+0.9$/$+2.0$, s7 $-0.7$/$+0.3$ on
+upper/multi). For qwen the train metric is actually \emph{lower} than test (negative $\Delta$,
+e.g.\ qwen upper s3 $-6.3$, RankAlign $-4.6$) --- the model ranks held-out problems at least as
+well as its training problems. So the upper-vs-multi and RankAlign-vs-ours differences seen on
+the test tables are \textbf{not} an overfitting effect.
 
-\TODO{This only covers s2 vs s4. The method that \emph{wins} upper is \textbf{s7 (neg-TC)},
-whose train-set eval is in the \texttt{trs2} batch --- add s7 (and s3, the no-TC baseline)
-train-vs-test once done, for both gemma and qwen. Expected check: does s7 overfit on multi
-(explaining its multi loss) but not on upper?}
-
-\TODO{Add the qwen train-vs-test rows (s2/s3/s4/s7) once \texttt{trs2} lands --- needed to
-confirm whether qwen's ``RankAlign wins both'' is also an overfitting story for the TC
-methods, or something else.}
+\textbf{Correction to an earlier (wrong) result.} A previous version of this section reported
+gemma multi FLORA-PMI ``overfitting'' with $\Delta=+8.9$ (train $99.0\to$ test $90.1$). That
+was an \textbf{artifact}: the train number had been computed on the \emph{global} train pool
+(one ranking over $\approx$50 candidates spanning many problems, scored once and replicated),
+which is a different, easier task than per-problem ranking and is not comparable to the
+per-problem test metric. Recomputed correctly (per-problem, this table), the gap is $+2.0$.
+The mechanism behind the test-set differences is the eval-time typicality dynamics
+(Section~5), not overfitting.
 
 %% ============================================================
 \section{Q2: Is TC Training Helping? (Focused TC comparison)}
@@ -127,9 +129,11 @@ on both datasets (down to $-8.8$ on qwen multi). This is the \emph{opposite} of 
 membership/IFEval report, where TC helped consistently --- on HumanEval, the TC signal
 transfers only in the one regime (gemma upper) where our methods also win Table~\ref{tab:he_q1}.
 
-\TODO{Add the train-side TC deltas once \texttt{trs2} lands. Hypothesis: TC's train-set gain
-is large everywhere, but only transfers on gemma upper --- i.e.\ the test losses are the
-overfitting signature of Section~2.}
+\textbf{Not overfitting (refuted).} The per-problem train-vs-test (Section~3) shows TC's effect
+is the \emph{same sign on train and test} (train$\approx$test within $\pm2$ on gemma, test$\ge$
+train on qwen), so where TC hurts at test it also hurts at train --- it is not that TC's
+train-set gain fails to transfer. The TC effect is an eval-time / optimization property
+(Section~5), not an overfitting signature.
 
 %% ============================================================
 \section{Generator--Validator Correlation (TEST)}
@@ -253,14 +257,19 @@ HumanEval has no category structure, so the per-category analysis is omitted.}
 \begin{enumerate}
 \item \textbf{The upper-vs-multi flip is real and gemma-4-specific}: our TC methods (s7, s4)
 beat RankAlign on gemma-4 \emph{upper} but lose on \emph{multi}; on qwen RankAlign wins both.
-\item \textbf{Preliminary overfitting signal}: gemma-4 FLORA-PMI overfits on multi
-($\Delta=+8.9$ train$-$test) but not on upper ($\Delta=+0.2$), while RankAlign generalizes on
-both. This is consistent with the multi loss being an overfitting effect.
+\item \textbf{It is NOT overfitting.} With the correct per-problem train-vs-test (80 train
+vs 82 test problems, scored identically), the train$\to$test gap is within $\pm2$ for all
+gemma-4 methods and \emph{negative} for qwen (test $\ge$ train). The earlier $\Delta=+8.9$
+``overfitting'' was an artifact of comparing a global-pool train metric to a per-problem test
+metric; recomputed per-problem it is $+2.0$ (Section~3).
+\item \textbf{The test-set differences are an eval-time effect}: on multi the raw generator
+score is near chance (the $\Delta$logP-selected stylizations make correct code atypical) and the
+typicality correction does the heavy lifting (Section~5); the RankAlign-vs-ours ordering
+follows from how each method's training interacts with that correction, not from overfitting.
 \end{enumerate}
 
-\TODO{Finalize conclusions once s7/s3/qwen train-set evals + WandB + concordance land. Open
-questions: (a) does s7 overfit on multi too? (b) does TC's train-set advantage simply fail to
-transfer on multi? (c) is qwen's behavior the same overfitting story or different?}
+\TODO{Remaining for full completeness: concordance/scatter/delta on the per-problem TRAIN set
+(harvested, builder ready), and the per-epoch train dynamics figure.}
 
 \paragraph{Reproducibility.} Tables built by
 \texttt{analysis/scripts/build\_he\_report\_tables.py} from
