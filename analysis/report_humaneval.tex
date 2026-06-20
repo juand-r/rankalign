@@ -38,8 +38,8 @@ Neg base), matching the convention in \texttt{docs/rerun\_only\_tables.tex}.
 both datasets). The per-problem TRAIN-set eval is also \textbf{complete} --- each of the 80
 train problems scored on its own $\approx$29 candidates, all settings $\times$ epochs $\times$
 both models, replacing an earlier (incorrect) global-pool train eval. The train-vs-test
-(Section~3) is final. This report now mirrors all sections of the original (held-out val loss
-deferred per request; per-category replaced by a per-problem analysis).
+(Section~3) is final. This report now mirrors all sections of the original, including the
+held-out test loss (Section~2.5); the per-category analysis is replaced by a per-problem one.
 
 \tableofcontents
 \newpage
@@ -262,6 +262,77 @@ Several settings show high final-quarter variance.
 \caption{qwen-3.5-9b training score statistics: upper (left), multi (right).}
 \end{figure}
 
+\subsection{Held-out test loss (per-checkpoint)}
+
+The WandB curves above are training-set losses. To check whether each setting also reduces loss
+on \emph{held-out} data, we recompute the same three loss components (preference, NLL-G, NLL-V)
+on the held-out TEST set for each checkpoint (base, epoch 0, 1, 2), exactly as in the original
+report's held-out validation-loss section. The base row is the untrained model and is drawn as a
+dashed reference line in each panel.
+
+\textbf{Held-out set.} The 82 test problems are problem-disjoint from the 80 train problems.
+The base task \texttt{humaneval-v2.1correct-\{upper,multi\}} is train-only, so we aggregate
+\texttt{L\_test} across the 82 per-problem test tasks (\texttt{--test-task
+humaneval-\{upper,multi\}-all}) --- the HumanEval analogue of the original's \texttt{rosch-all}
+aggregation --- giving 2{,}219 candidates (1{,}202 correct, 1{,}017 incorrect) per dataset; 500
+(correct, incorrect) pairs are sampled with a fixed seed for the preference term. Losses use the
+training-time definitions and the same \texttt{make\_prompt} (generator / discriminator). Grid:
+2 models $\times$ 2 datasets $\times$ 5 settings (SFT, RankAlign, New+fsx, FLORA-PMI, FLORA-Neg).
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{plots/he_val_loss_gemma-4-31b.png}
+\caption{Held-out test loss across checkpoints, gemma-4-31b. Rows: upper / multi. Columns:
+preference, NLL-G (generator), NLL-V (validator). Dashed black = untrained base; markers at
+ep0/ep1/ep2.}
+\label{fig:he_valloss_gemma}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{plots/he_val_loss_qwen-3.5-9b.png}
+\caption{Held-out test loss across checkpoints, qwen-3.5-9b. Same layout.}
+\label{fig:he_valloss_qwen}
+\end{figure}
+
+\textbf{Reading the figures.}
+\begin{itemize}
+\item \emph{No held-out divergence.} Unlike the original IFEval result --- where RankAlign's
+generator NLL exploded to $\sim$$1.6\times10^4$ on held-out data --- here NLL-G stays
+\emph{controlled} for every setting on both models (gemma-4 / multi: base $\approx140 \to
+62$--$120$ across settings; qwen comparable). The HumanEval gains are real generalization, not an
+in-sample optimization artifact.
+\item \emph{Every method reduces held-out preference loss.} gemma-4 / multi base preference loss
+is high ($14.9$) --- the multi transforms make correct code atypical by construction --- and all
+five settings cut it on held-out data at epoch 2 (New+fsx $6.0$, RankAlign $6.6$, FLORA-PMI
+$8.1$, FLORA-Neg $9.7$, SFT $9.4$). Upper starts lower (base $\approx7.6$ on qwen) and also drops
+for every setting. No setting regresses \emph{above} base, in contrast to RankAlign on IFEval.
+\item \emph{NLL-V falls} for most settings as training proceeds (the validator becomes better
+calibrated on held-out data), with no s2 validator spike of the kind seen on IFEval.
+\end{itemize}
+
+This held-out view reinforces the train-vs-test result (Section~4): the improvements are
+genuine generalization to unseen problems, and on HumanEval --- unlike RankAlign's IFEval
+instability --- no method is unsafe on held-out data.
+
+\begin{table}[H]\centering\footnotesize
+\caption{Held-out test loss across checkpoints, gemma-4-31b (all 10 cells $\times$ base/ep0/ep1/ep2).
+Base is the shared untrained reference within each dataset.}
+\label{tab:he_valloss_gemma}
+\input{tables/he_val_loss_gemma-4-31b.tex}
+\end{table}
+
+\begin{table}[H]\centering\footnotesize
+\caption{Held-out test loss across checkpoints, qwen-3.5-9b (all 10 cells $\times$ base/ep0/ep1/ep2).}
+\label{tab:he_valloss_qwen}
+\input{tables/he_val_loss_qwen-3.5-9b.tex}
+\end{table}
+
+\paragraph{Reproducibility (held-out loss).} Compute: \texttt{scripts/compute\_val\_loss\_he.py}
+(a copy of \texttt{compute\_val\_loss.py}, original untouched; explicit \texttt{--epN-path},
+adapter-aware loading [gemma-4 LoRA on base, qwen merged], held-out aggregation via
+\texttt{--test-task humaneval-\{upper,multi\}-all}, resumable per-checkpoint CSV). Launcher:
+\texttt{scripts/mll\_he\_val\_loss.sbatch} + \texttt{launch\_he\_val\_loss.sh} (20 Slurm jobs
+45247--45266; gemma-4 gpu:4, qwen gpu:1; one per-job CSV each). Build:
+\texttt{scripts/build\_he\_valloss\_section.py}. \texttt{--max-pairs 500}, \texttt{--seed 42}.
+
 %% ============================================================
 \section{Diagnostics: Dynamics / Scatter / Delta / Per-problem}
 %% ============================================================
@@ -317,8 +388,8 @@ follows from how each method's training interacts with that correction, not from
 \noindent\emph{Scope note:} this report mirrors all sections of the original
 \texttt{analysis/report.tex} (Q1 comparison + unified bar; WandB loss curves, components, and
 score statistics; concordance; Spearman/Pearson; score-delta; training dynamics; gen-vs-val
-scatter; TC comparison; train-vs-test). Two deviations: held-out validation loss is
-\emph{deferred} (per request), and the per-category analysis is replaced by a per-problem
+scatter; TC comparison; train-vs-test; held-out test loss). One deviation: the
+per-category analysis is replaced by a per-problem
 effect distribution (HumanEval has no categories).
 
 \paragraph{Reproducibility.} Tables built by
