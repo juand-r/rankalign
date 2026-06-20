@@ -13,8 +13,8 @@
 
 \title{HumanEval Training Dynamics Analysis\\
 \large RankAlign vs.\ TC methods --- why Upper and Multi differ}
-\author{Automated Analysis Report (in progress)}
-\date{June 19, 2026}
+\author{Automated Analysis Report}
+\date{June 20, 2026}
 
 \begin{document}
 \maketitle
@@ -38,8 +38,8 @@ Neg base), matching the convention in \texttt{docs/rerun\_only\_tables.tex}.
 both datasets). The per-problem TRAIN-set eval is also \textbf{complete} --- each of the 80
 train problems scored on its own $\approx$29 candidates, all settings $\times$ epochs $\times$
 both models, replacing an earlier (incorrect) global-pool train eval. The train-vs-test
-(Section~3) is final; remaining \TODO{}s are train-side concordance/scatter and the per-epoch
-train-dynamics figure.
+(Section~3) is final. This report now mirrors all sections of the original (held-out val loss
+deferred per request; per-category replaced by a per-problem analysis).
 
 \tableofcontents
 \newpage
@@ -66,6 +66,12 @@ FLORA-PMI (s4) $=90.7$ both beat RankAlign (s2) $=88.2$.
 \label{tab:he_q1}
 \input{tables/he_q1_test.tex}
 \end{table}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{plots/he_unified_genroc.png}
+\caption{Unified view of Table~\ref{tab:he_q1}: tc gen ROC ($\times100$, TEST) per setting,
+grouped by model$\times$dataset. ours (s4/s7) top gemma-4/upper; RankAlign tops elsewhere.}
+\end{figure}
 
 The per-problem train counterpart of this table is now available (Section~3,
 Table~\ref{tab:he_tt}): the train ordering matches the test ordering closely (train$\approx$test,
@@ -157,9 +163,18 @@ problems.
 \input{tables/he_pearson_test.tex}
 \end{table}
 
-\TODO{Generator--validator \textbf{concordance} (ordering-agreement fraction) and the
-\textbf{scatter} / \textbf{score-delta histograms} need the raw per-candidate scores from mll
-(\texttt{outputs\_gemma4\_mll\_tmp[-multi]/}, \texttt{outputs-rerun-wandb/}) --- pulling next.}
+\textbf{Concordance} (fraction of candidate pairs where the generator and validator agree on
+ordering; chance $=0.5$) is given in Table~\ref{tab:he_conc}, computed per-problem on the
+\textbf{train} split (mean $\pm$ SE over the 80 train problems, epoch 2, natural mode).
+
+\begin{table}[H]
+\centering
+\caption{Generator--validator concordance ($\times100$), per-problem TRAIN, epoch 2.
+Rises monotonically with method strength (Base $\to$ RankAlign $\to$ +fsx $\to$ +TC), with
+FLORA-Neg/PMI highest --- the generator and validator rankings become most aligned under TC.}
+\label{tab:he_conc}
+\input{tables/he_concordance_train.tex}
+\end{table}
 
 %% ============================================================
 \section{Why does TC behave so differently? (mechanism)}
@@ -186,13 +201,10 @@ raw log-prob is a misleading signal --- and typicality correction is exactly wha
 it is doing \emph{more} work there. The corrected (tc) scores end up similar across datasets
 ($\approx88$--$95$). The real question is therefore \emph{not} ``does TC help at eval'' (it
 does, especially on multi) but ``why, once everything leans on TC on multi, does RankAlign
-(s2) still edge our s7 ($94.2$ vs $92.0$)?'' --- which is a \textbf{train$\to$test
-generalization} question, addressed in Section~2 and (fully) once \texttt{trs2} lands.
-
-\TODO{Mechanism evidence still to pull: (i) WandB loss-component dynamics (Pref/NLL-G/NLL-V,
-score-spread) per model$\times$dataset --- does TC training destabilize on multi/qwen? (ii)
-score-delta histograms + gen-vs-val scatter from raw candidate scores. (iii) the decisive
-train-side TC delta + train$\to$test gap for s3/s7/qwen (\texttt{trs2}).}
+(s2) still edge our s7 ($94.2$ vs $92.0$)?'' --- a property of how each method's training
+interacts with the correction, \emph{not} a train$\to$test gap (Section~3 shows train$\approx$test).
+The score-delta and scatter diagnostics below visualize this; the WandB loss dynamics are in
+the next section.
 
 %% ============================================================
 \section{Q2 (cont.): Training Diagnostics --- WandB}
@@ -237,21 +249,55 @@ Several settings show high final-quarter variance.
 \caption{TC comparison (Ours / Ours w/o TC / Ours neg-TC) on multi: gemma-4 (left), qwen (right).}
 \end{figure}
 
-\TODO{Optional: zoomed loss curves + \texttt{wandb\_score\_stats\_*} score-spread panels (all
-20 figures are in \texttt{analysis/plots/}).}
+\subsection{Training score statistics}
+
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\textwidth]{plots/wandb_score_stats_gemma-4-31b_upper.png}
+\includegraphics[width=0.49\textwidth]{plots/wandb_score_stats_gemma-4-31b_multi.png}
+\caption{gemma-4-31b training score statistics (gen/val score$_i$/score$_j$, diff): upper (left), multi (right).}
+\end{figure}
+\begin{figure}[H]\centering
+\includegraphics[width=0.49\textwidth]{plots/wandb_score_stats_qwen-3.5-9b_upper.png}
+\includegraphics[width=0.49\textwidth]{plots/wandb_score_stats_qwen-3.5-9b_multi.png}
+\caption{qwen-3.5-9b training score statistics: upper (left), multi (right).}
+\end{figure}
 
 %% ============================================================
-\section{Diagnostics: Concordance / Correlation / Scatter}
+\section{Diagnostics: Dynamics / Scatter / Delta / Per-problem}
 %% ============================================================
 
-\TODO{Compute generator--validator concordance, Spearman, and Pearson (epoch 2) and the
-gen-vs-val scatter / score-delta histograms from the raw candidate-level score CSVs on mll
-(\texttt{outputs\_gemma4\_mll\_tmp[-multi]/}, \texttt{outputs-rerun-wandb/}, and the train
-scores in \texttt{outputs-he-trainset/}). Mirror report.tex Sections 2.5--2.9. Note:
-HumanEval has no category structure, so the per-category analysis is omitted.}
+\subsection{Per-epoch training dynamics (TRAIN, per-problem)}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{plots/he_train_dynamics.png}
+\caption{Per-problem tc gen ROC vs.\ checkpoint (base $\to$ ep0/1/2) on the TRAIN problems,
+each method in its natural eval mode. TC methods (s4/s7) climb fastest and highest.}
+\end{figure}
+
+\subsection{Generator--validator scatter (TRAIN, epoch 2)}
+\begin{figure}[H]\centering
+\includegraphics[width=0.95\textwidth]{plots/he_gen_vs_val_scatter.png}
+\caption{gen (tc) vs.\ validator score, correct (green) / incorrect (red), gemma-4 / multi,
+Base vs RankAlign vs FLORA-PMI. Training separates the classes in both gen and val space.}
+\end{figure}
+
+\subsection{Score-delta distributions (TRAIN, epoch 2)}
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{plots/he_score_delta_hist.png}
+\caption{Per-problem (mean tc-gen of correct $-$ mean of incorrect). Mass above 0 means the
+generator separates correct from incorrect; wider/cleaner separation for the TC methods.}
+\end{figure}
+
+\subsection{Per-problem effect distribution (TEST)}
+HumanEval has no category structure, so in place of the original per-category analysis we show
+the \emph{per-problem} distribution of the neg-TC effect (s7 $-$ s3).
+\begin{figure}[H]\centering
+\includegraphics[width=0.85\textwidth]{plots/he_perproblem_improvement.png}
+\caption{Per-problem $\Delta$ tc gen ROC (FLORA-Neg $-$ New+fsx) on the TEST problems. The
+sign/spread shows TC's effect is heterogeneous across problems and regime-dependent.}
+\end{figure}
 
 %% ============================================================
-\section{Conclusions (preliminary)}
+\section{Conclusions}
 %% ============================================================
 
 \begin{enumerate}
@@ -268,8 +314,12 @@ typicality correction does the heavy lifting (Section~5); the RankAlign-vs-ours 
 follows from how each method's training interacts with that correction, not from overfitting.
 \end{enumerate}
 
-\TODO{Remaining for full completeness: concordance/scatter/delta on the per-problem TRAIN set
-(harvested, builder ready), and the per-epoch train dynamics figure.}
+\noindent\emph{Scope note:} this report mirrors all sections of the original
+\texttt{analysis/report.tex} (Q1 comparison + unified bar; WandB loss curves, components, and
+score statistics; concordance; Spearman/Pearson; score-delta; training dynamics; gen-vs-val
+scatter; TC comparison; train-vs-test). Two deviations: held-out validation loss is
+\emph{deferred} (per request), and the per-category analysis is replaced by a per-problem
+effect distribution (HumanEval has no categories).
 
 \paragraph{Reproducibility.} Tables built by
 \texttt{analysis/scripts/build\_he\_report\_tables.py} from
