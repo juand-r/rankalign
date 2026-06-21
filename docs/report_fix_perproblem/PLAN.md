@@ -42,3 +42,17 @@ Loss-curve / loss-breakdown / held-out-loss sections: UNCHANGED (not per-problem
 
 ## Status log
 - 2026-06-20: verified grouping + data availability; no GPU needed. Writing metrics script.
+- 2026-06-20 (done): `report_fix.tex` complete, compiles clean (18pp, 0 undefined refs), pushed.
+  - Recomputed per-problem mean$\pm$SE: Q1 gen ROC, concordance, Spearman, Pearson (4 cells),
+    unified ROC bar chart (with SE error bars), train-vs-test (membership/rosch per-category).
+  - Pure re-aggregation, no GPU. Pipeline: `build_report_fix_metrics.py`.
+  - Honest findings: IFEval ROC rises substantially once prompts are unpooled (base 0.670->0.792
+    etc.); on Gemma/IFEval s3 and s4 become statistically tied (was "s4 best everywhere");
+    TC-promotes-generalization (train-vs-test) holds under per-category recomputation.
+  - NOT changed (retained from original, noted in-report): per-epoch dynamics, TC-comparison,
+    score-delta, gen-val scatter figures (pooled visualizations; corrected numbers are in the
+    tables). Loss-curve / loss-breakdown / held-out-loss sections: unchanged by design.
+  - train-vs-test omits s5/s11 (absent from the per-category rosch test artifact) and s1/s7
+    (different scoring direction; excluded from the PMI-base comparison).
+  - Artifacts committed: analysis/report_fix.{tex,pdf}, analysis/tables/fix_*.tex,
+    report_fix_metrics.csv, analysis/plots/fix_unified_genroc.png.
