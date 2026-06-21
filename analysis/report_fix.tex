@@ -95,10 +95,18 @@ Under per-problem averaging it is strictly best in 3 of 4 cells; on Gemma/IFEval
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/unified_genroc_comparison.png}
-\caption{Generator ROC AUC across settings and model/task combinations (epoch 2, train set). Self-TC scoring is used for all settings except s7 (Ours, neg TC), which is scored with neg-TC at eval to match its training-time TC type.}
+\includegraphics[width=0.95\textwidth]{plots/fix_unified_genroc.png}
+\caption{Generator ROC AUC across settings and model/task combinations (epoch 2, train set),
+\textbf{per-problem mean with SE error bars}. Self-TC scoring for all settings except s7 (neg-TC),
+scored with neg-TC to match its training-time TC type. Dashed line is chance (0.5).}
 \label{fig:unified_genroc}
 \end{figure}
+
+\noindent\emph{Note on the remaining figures in this report.} The per-epoch dynamics,
+TC-comparison, score-delta and generator--validator scatter plots below are retained from the
+original (pooled) computation; the corrected per-problem numbers are the tables and the bar chart
+above. The per-category analysis (Section~\ref{sec:percat}) was already per-category and is
+unchanged.
 
 
 %% ============================================================
@@ -321,6 +329,7 @@ Pearson tracks Spearman on the membership tasks (s4 highest). On the IFEval task
 \end{figure}
 
 \subsection{Per-Category Analysis}
+\label{sec:percat}
 
 \begin{figure}[H]
 \centering
@@ -379,22 +388,21 @@ A critical finding emerges when comparing train-set dynamics with held-out test 
 
 \begin{table}[H]
 \centering
-\caption{Train vs test gen\_roc: gemma-2-9b-it membership/rosch (basetyp scoring).}
+\caption{Train vs test gen\_roc: gemma-2-9b-it membership/rosch, PMI-base scoring, \textbf{both
+columns per-category mean$\pm$SE}. Train = the 68 membership categories; Test = the 10 held-out
+rosch categories. $\Delta=$ test$-$train. (s5/s11 are omitted: not present in the per-category
+rosch test artifact; s1/s7 use a different scoring direction and are excluded from this PMI-base
+comparison.)}
 \label{tab:train_test}
-\begin{tabular}{lccl}
-\toprule
-\textbf{Setting} & \textbf{Train (membership)} & \textbf{Test (rosch)} & \textbf{$\Delta$} \\
-\midrule
-s11 (TC-self vlo) & 0.970 & \textbf{0.924} & $-$0.046 \\
-s4 (TC-self full) & \textbf{0.976} & 0.920 & $-$0.056 \\
-s5 (TC-self basic) & 0.958 & 0.913 & $-$0.045 \\
-s2 (RA basic) & 0.941 & 0.891 & $-$0.050 \\
-s3 (RA full) & 0.948 & 0.885 & $-$0.063 \\
-\bottomrule
-\end{tabular}
+\input{tables/fix_train_vs_test.tex}
 \end{table}
 
-\textbf{Key finding}: s3 (full method, no TC) outperforms s2 on training categories but \emph{underperforms} on test categories (different Rosch categories). Meanwhile, all TC-trained models (s4, s11, s5) maintain their advantage on both splits. This suggests \textbf{TC promotes generalization} --- it prevents overfitting to training-specific patterns.
+\textbf{Key finding} (unchanged under per-category recomputation): s3 (full method, no TC)
+outperforms s2 on training categories ($0.947$ vs $0.945$) but \emph{underperforms} on the
+held-out rosch categories ($0.886$ vs $0.895$). Meanwhile s4 (TC-self) is highest on both splits
+($0.974$ train, $0.926$ test). This supports \textbf{TC promotes generalization} --- the non-TC
+full method overfits slightly to training-specific patterns while the TC model maintains its
+advantage out of distribution.
 
 \begin{figure}[H]
 \centering
