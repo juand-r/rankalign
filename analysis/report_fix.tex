@@ -47,8 +47,14 @@ controls for the fact that different prompts/categories sit at different absolut
 pooling them yields a single global AUC that does not reflect within-problem ranking quality. The
 recomputation reuses the existing per-cell score files (which already carry the grouping column);
 no re-evaluation was needed. Pipeline: \texttt{analysis/scripts/build\_report\_fix\_metrics.py}
-(reuses the file/setting matching from \texttt{analyze\_all\_combos.py}), reading
-\texttt{/datastor2/jdr/rankalign/outputs-trainset-dynamics/}.
+(tables) and \texttt{build\_report\_fix\_figures.py} (figures), both reusing the file/setting
+matching from \texttt{analyze\_all\_combos.py} and reading
+\texttt{/datastor2/jdr/rankalign/outputs-trainset-dynamics/}. The figures use the \emph{same}
+per-problem procedure as the HumanEval report (\texttt{build\_he\_report\_figures.py}): the
+unified gen-ROC and concordance bars, the TC comparison, the per-epoch dynamics, and the
+score-delta histograms are all per-problem (the generator--validator scatter pools raw candidate
+points in both reports). Only the WandB loss curves and the held-out validation-loss section are
+unchanged.
 
 \paragraph{Effect of the fix.} The membership numbers barely move (categories are already
 homogeneous), but the IFEval numbers rise substantially once prompts are no longer pooled (e.g.\
@@ -101,13 +107,6 @@ Under per-problem averaging it is strictly best in 3 of 4 cells; on Gemma/IFEval
 scored with neg-TC to match its training-time TC type. Dashed line is chance (0.5).}
 \label{fig:unified_genroc}
 \end{figure}
-
-\noindent\emph{Note on the remaining figures in this report.} The per-epoch dynamics,
-TC-comparison, score-delta and generator--validator scatter plots below are retained from the
-original (pooled) computation; the corrected per-problem numbers are the tables and the bar chart
-above. The per-category analysis (Section~\ref{sec:percat}) was already per-category and is
-unchanged.
-
 
 %% ============================================================
 \section{Q2: Training Diagnostics}
@@ -298,8 +297,11 @@ Pearson tracks Spearman on the membership tasks (s4 highest). On the IFEval task
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/gemma_membership_delta_histograms.png}
-\caption{Pairwise score delta distributions for gemma membership. Generator (blue) and validator (orange) distributions. Tighter = better calibrated.}
+\includegraphics[width=0.95\textwidth]{plots/fix_score_delta_hist.png}
+\caption{Per-problem score-delta distributions (ep2): one value per problem $=$ mean
+typicality-corrected generator score of correct candidates minus that of incorrect candidates,
+histogrammed over problems (s2/s4/s7). Mass above 0 means correct candidates score higher within
+the problem. Same procedure as the HumanEval report.}
 \label{fig:delta_histograms}
 \end{figure}
 
@@ -307,15 +309,19 @@ Pearson tracks Spearman on the membership tasks (s4 highest). On the IFEval task
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/gemma_membership_dynamics_key_settings.png}
-\caption{Training dynamics for gemma membership: Gen ROC and Spearman across epochs.}
+\includegraphics[width=0.95\textwidth]{plots/fix_tc_dynamics.png}
+\caption{Per-epoch training dynamics: per-problem typicality-corrected gen ROC ($\times100$) vs.\
+checkpoint (base/ep0/ep1/ep2) for s2/s3/s4/s7, each in its natural eval mode, across all four
+model/task cells. Same per-problem procedure as the HumanEval report. Note RankAlign (s2) on
+Gemma/IFEval collapses toward chance by ep2.}
 \label{fig:dynamics}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/unified_concordance_comparison.png}
-\caption{Concordance across all model/task combinations.}
+\includegraphics[width=0.95\textwidth]{plots/fix_unified_concordance.png}
+\caption{Generator--validator concordance by setting (ep2), \textbf{per-problem mean with SE error
+bars}, across all four cells. Dashed line is chance (0.5); s2 on Gemma/IFEval falls below it.}
 \label{fig:concordance}
 \end{figure}
 
@@ -323,8 +329,11 @@ Pearson tracks Spearman on the membership tasks (s4 highest). On the IFEval task
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/gen_vs_val_scatter.png}
-\caption{Generator vs validator scores for Base, s3, and s4 (self-TC scoring, gemma membership). Training improves the separation between positive (green) and negative (red) items in both generator and validator space.}
+\includegraphics[width=0.95\textwidth]{plots/fix_gen_vs_val_scatter.png}
+\caption{Generator (typicality-corrected) vs validator scores for Base, s2, and s4 (gemma
+membership, ep2), pooling the raw candidate points (member green, non-member red) --- a raw
+visualization, identical in procedure to the HumanEval report's scatter. Training improves the
+member/non-member separation in both generator and validator space.}
 \label{fig:scatter}
 \end{figure}
 
@@ -368,17 +377,16 @@ This suggests that TC-trained models learn better internal representations that 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/tc_comparison_self_vs_neg.png}
-\caption{TC comparison: self-TC variants (left) and neg-TC variants (right) against s3 baseline.}
+\includegraphics[width=0.95\textwidth]{plots/fix_tc_comparison.png}
+\caption{TC comparison on gemma membership (ep2): per-problem typicality-corrected gen ROC
+($\times100$, mean$\pm$SE) for the TC settings (self-TC: s4/s5/s6/s11; neg-TC: s7/s12) against the
+no-TC s3 baseline (dashed). Same per-problem procedure as the HumanEval report.}
 \label{fig:tc_comparison}
 \end{figure}
 
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{plots/tc_dynamics_self_and_neg.png}
-\caption{Epoch-by-epoch dynamics for TC comparison. TC-trained models converge quickly and maintain advantage throughout training.}
-\label{fig:tc_dynamics}
-\end{figure}
+\noindent The epoch-by-epoch dynamics for these settings are shown per problem in
+Figure~\ref{fig:dynamics} (TC-trained models converge quickly and hold their advantage across
+checkpoints).
 
 %% ============================================================
 \section{Train vs Test Generalization}
