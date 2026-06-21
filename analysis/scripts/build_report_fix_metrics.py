@@ -224,7 +224,7 @@ def build_train_vs_test(df):
         tm, tse = trow.iloc[0]["gen_roc_mean"], trow.iloc[0]["gen_roc_se"]
         if s in test:
             em, ese, _ = test[s]
-            d = tm - em
+            d = em - tm  # test - train (negative = generalization drop), matching original
             lines.append(f"{s} & ${tm:.3f}\\se{{{tse:.3f}}}$ & ${em:.3f}\\se{{{ese:.3f}}}$ & "
                          f"${d:+.3f}$ \\\\")
         else:
