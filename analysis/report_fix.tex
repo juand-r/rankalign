@@ -392,30 +392,44 @@ checkpoints).
 \section{Train vs Test Generalization}
 %% ============================================================
 
-A critical finding emerges when comparing train-set dynamics with held-out test sets.
+A critical finding emerges when comparing train-set dynamics with held-out test sets. Both panels
+are gemma-2-9b-it, PMI-base (base-typicality) scoring, with \textbf{both train and test columns
+computed per problem then averaged (mean$\pm$SE)} --- train on the model's own problems, test on
+held-out problems of a different distribution. $\Delta=$ test$-$train.
 
 \begin{table}[H]
 \centering
-\caption{Train vs test gen\_roc: gemma-2-9b-it membership/rosch, PMI-base scoring, \textbf{both
-columns per-category mean$\pm$SE}. Train = the 68 membership categories; Test = the 10 held-out
-rosch categories. $\Delta=$ test$-$train. (s5/s11 are omitted: not present in the per-category
-rosch test artifact; s1/s7 use a different scoring direction and are excluded from this PMI-base
-comparison.)}
+\caption{Membership TRAIN (68 categories) vs.\ rosch TEST (10 held-out categories), per-category
+mean$\pm$SE. s1 is shown only where both splits have it; s5/s11 are omitted (their per-category
+rosch-test source no longer exists on disk and the raw s5/s11 rosch-test scores were not retained,
+so they cannot be recomputed without re-evaluation); s7 (neg-TC) is excluded from this PMI-base
+comparison.}
 \label{tab:train_test}
-\input{tables/fix_train_vs_test.tex}
+\input{tables/fix_train_vs_test_membership.tex}
 \end{table}
 
-\textbf{Key finding} (unchanged under per-category recomputation): s3 (full method, no TC)
-outperforms s2 on training categories ($0.947$ vs $0.945$) but \emph{underperforms} on the
-held-out rosch categories ($0.886$ vs $0.895$). Meanwhile s4 (TC-self) is highest on both splits
-($0.974$ train, $0.926$ test). This supports \textbf{TC promotes generalization} --- the non-TC
-full method overfits slightly to training-specific patterns while the TC model maintains its
-advantage out of distribution.
+\begin{table}[H]
+\centering
+\caption{IFEval TRAIN (79 prompts) vs.\ IFEval-OOD TEST (20 held-out prompts), per-prompt
+mean$\pm$SE. PMI-base scoring (self-TC settings + base).}
+\label{tab:train_test_ifeval}
+\input{tables/fix_train_vs_test_ifeval.tex}
+\end{table}
+
+\textbf{Key finding} (holds under per-problem recomputation): on membership/rosch, s3 (full method,
+no TC) outperforms s2 on the training categories ($0.947$ vs $0.945$) but \emph{underperforms} on
+the held-out rosch categories ($0.886$ vs $0.895$), while s4 (TC-self) is highest on both splits
+($0.974$ train, $0.926$ test) --- \textbf{TC promotes generalization}. On IFEval, every setting
+generalizes with only a small test drop (base $\Delta-0.009$, s4 $\Delta-0.031$), except basic
+RankAlign (s2), which is near or below chance on \emph{both} train ($0.491$) and OOD test
+($0.434$) --- it is simply broken on IFEval, not overfit.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.95\textwidth]{plots/train_vs_test_comparison.png}
-\caption{Train vs test set gen\_roc. Left: membership train $\leftrightarrow$ rosch test. Right: ifeval train $\leftrightarrow$ ifeval OOD test.}
+\includegraphics[width=0.95\textwidth]{plots/fix_train_vs_test.png}
+\caption{Train vs held-out test gen ROC, \textbf{per-problem mean with SE error bars} (PMI-base,
+gemma-2-9b-it). Left: membership train vs rosch test. Right: ifeval train vs ifeval-OOD test.
+Dashed line is chance. Same per-problem procedure as the rest of this report.}
 \label{fig:train_test}
 \end{figure}
 

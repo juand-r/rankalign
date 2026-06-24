@@ -192,7 +192,55 @@ def fig_tc_comparison():
     print("wrote fix_tc_comparison.png")
 
 
+METHOD_MAP_TT = {"Base": "base", "SFT labelonly 10%": "s1", "RankAlign": "s2",
+                 "New + fsx [-TC]": "s3", "New + PMI + fsx": "s4"}
+
+
+def _test_means(csv_path):
+    """PMI-base per-problem test mean+-SE per setting from a precomputed long table."""
+    if not csv_path.exists():
+        return {}
+    r = pd.read_csv(csv_path); r = r[r["column"] == "PMI base"].copy()
+    r["setting"] = r["method"].map(METHOD_MAP_TT)
+    out = {}
+    for s, g in r.dropna(subset=["setting"]).groupby("setting"):
+        v = g["value"].to_numpy()
+        out[s] = (v.mean(), v.std(ddof=1) / np.sqrt(len(v)) if len(v) > 1 else 0.0)
+    return out
+
+
+def fig_train_vs_test():
+    """Two panels: membership TRAIN vs rosch TEST; ifeval TRAIN vs ifeval-OOD TEST (per-problem)."""
+    REPO = HERE.parent.parent
+    panels = [("gemma_membership", REPO / "metrics-from-scores-rerun-only" / "rosch_v7_9b-it_gen_roc_table_long.csv",
+               "membership train vs rosch test"),
+              ("gemma_ifeval", REPO / "metrics-from-scores" / "ifeval_v7_ood_9b-it_gen_roc_table_long.csv",
+               "ifeval train vs ifeval-OOD test")]
+    setts = ["base", "s1", "s2", "s3", "s4"]
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    for ax, (combo, test_csv, title) in zip(axes, panels):
+        test = _test_means(test_csv)
+        tr_m, tr_e, te_m, te_e, labs = [], [], [], [], []
+        for s in setts:
+            a = _per_problem(combo, s, "ep2", _roc)
+            if not len(a):
+                continue
+            labs.append(s)
+            tr_m.append(a.mean()); tr_e.append(a.std(ddof=1) / np.sqrt(len(a)) if len(a) > 1 else 0.0)
+            te_m.append(test.get(s, (np.nan, np.nan))[0]); te_e.append(test.get(s, (np.nan, np.nan))[1])
+        x = np.arange(len(labs)); w = 0.38
+        ax.bar(x - w / 2, tr_m, w, yerr=tr_e, capsize=3, label="train")
+        ax.bar(x + w / 2, te_m, w, yerr=te_e, capsize=3, label="test (held-out)")
+        ax.axhline(0.5, ls="--", color="gray", lw=1)
+        ax.set_xticks(x); ax.set_xticklabels(labs); ax.set_ylim(0.4, 1.0)
+        ax.set_ylabel("gen ROC (per-problem mean $\\pm$ SE)"); ax.set_title(title); ax.legend(fontsize=9)
+    plt.suptitle("Train vs held-out test (per-problem, PMI-base, gemma-2-9b-it)")
+    plt.tight_layout(); fig.savefig(PLOTS / "fix_train_vs_test.png", dpi=150, bbox_inches="tight"); plt.close(fig)
+    print("wrote fix_train_vs_test.png")
+
+
 def main():
+    fig_train_vs_test()
     fig_unified_concordance()
     fig_tc_dynamics()
     fig_score_delta_hist()
