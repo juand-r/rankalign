@@ -179,20 +179,37 @@ def fig_score_delta_hist():
 
 
 def fig_scatter():
-    """Pooled raw gen(tc) vs val, gemma membership base/s2/s4 (parity with HE scatter)."""
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    """Generator vs validator scatter, gemma-2-9b-it / membership: rows = scoring variant
+    (none / tc self / tc self base), cols = settings. NOTE: the original report only ran
+    base-typicality evals (basetyp-), so "tc self" (own-model, self/no-base) has NO data and is
+    shown as 'not evaluated' -- only "none" (raw gen_score) and "tc self base" are available."""
     combo = "gemma_membership"; lc = LABEL_COL["membership"]
-    for ax, s in zip(axes, ["base", "s2", "s4"]):
-        f = _file(combo, s, "ep2")
-        if f is None:
-            ax.set_title(f"{SET_LABEL[s]} (no data)"); continue
-        df = pd.read_csv(f); y = _labels(df[lc])
-        g = pd.to_numeric(df["gen_score_typcorr"], errors="coerce")
-        v = pd.to_numeric(df["val_score"], errors="coerce")
-        ax.scatter(g[y == 1], v[y == 1], s=8, alpha=.3, c="green", label="member")
-        ax.scatter(g[y == 0], v[y == 0], s=8, alpha=.3, c="red", label="non-member")
-        ax.set_xlabel("gen (tc)"); ax.set_ylabel("val"); ax.set_title(SET_LABEL[s]); ax.legend(fontsize=8)
-    plt.suptitle("gemma-2-9b-it / membership gen(tc) vs val (ep2, pooled points)")
+    setts = ["base", "s2", "s3", "s4"]
+    variants = [("none", "gen_score"), ("tc self", None), ("tc self base", "gen_score_typcorr")]
+    fig, axes = plt.subplots(len(variants), len(setts),
+                             figsize=(3 * len(setts), 2.8 * len(variants)), squeeze=False)
+    for ri, (vname, col) in enumerate(variants):
+        for ci, s in enumerate(setts):
+            ax = axes[ri][ci]
+            f = _file(combo, s, "ep2")  # basetyp (self/base-typ) file
+            if col is None or f is None:
+                msg = "not evaluated\n(no self/no-base scores)" if col is None else "no data"
+                ax.set_title(f"{SET_LABEL[s]} / {vname}", fontsize=8)
+                ax.text(0.5, 0.5, msg, ha="center", va="center", fontsize=7, color="gray",
+                        transform=ax.transAxes); ax.set_xticks([]); ax.set_yticks([]); continue
+            df = pd.read_csv(f); y = _labels(df[lc])
+            g = pd.to_numeric(df[col], errors="coerce"); v = pd.to_numeric(df["val_score"], errors="coerce")
+            ax.scatter(g[y == 1], v[y == 1], s=5, alpha=.25, c="green", label="member")
+            ax.scatter(g[y == 0], v[y == 0], s=5, alpha=.25, c="red", label="non-member")
+            ax.set_title(f"{SET_LABEL[s]} / {vname}", fontsize=8)
+            if ci == 0:
+                ax.set_ylabel(f"{vname}\nval", fontsize=8)
+            if ri == len(variants) - 1:
+                ax.set_xlabel("gen", fontsize=8)
+            if ri == 0 and ci == 0:
+                ax.legend(fontsize=6, markerscale=2)
+    plt.suptitle("gemma-2-9b-it / membership: generator vs validator (ep2) "
+                 "(rows: none / tc self / tc self base; cols: settings)")
     plt.tight_layout(); fig.savefig(PLOTS / "fix_gen_vs_val_scatter.png", dpi=150, bbox_inches="tight"); plt.close(fig)
     print("wrote fix_gen_vs_val_scatter.png")
 

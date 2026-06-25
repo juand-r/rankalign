@@ -205,17 +205,51 @@ plt.suptitle("Pairwise score-delta distributions (TRAIN, ep2): Gen vs Val |$\\De
 plt.tight_layout(); plt.savefig(f"{PLOTS}/he_score_delta_hist.png", dpi=150, bbox_inches="tight"); plt.close()
 print("wrote he_score_delta_hist.png")
 
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-for ax, s in zip(axes, ["base", "s2", "s4"]):
+# ---------- 2.9 gen vs val scatter: rows = scoring variant, cols = setting (gemma/multi, TRAIN) ----------
+# Three scoring variants of the SAME generator log-prob, all self-direction (NOT neg):
+#   none          = raw gen_score (no typicality correction)
+#   tc self       = gen_score_typcorr from a self/no-base file  (own-model typicality)
+#   tc self base  = gen_score_typcorr from a self/base-typ file (base-model typicality)
+SCAT_MK, SCAT_DS = "gemma", "multi"
+SCAT_SETTINGS = ["base", "s1", "s2", "s3", "s4", "s13"]
+SCAT_VARIANTS = [  # (row label, column, ordered list of acceptable modes)
+    ("none", "gen_score", ["self/base-typ", "self/no-base", "neg/base-typ", "neg/no-base"]),
+    ("tc self", "gen_score_typcorr", ["self/no-base"]),
+    ("tc self base", "gen_score_typcorr", ["self/base-typ"]),
+]
+
+
+def scat_df(s, modes):
     ep = "base" if s == "base" else "ep2"
-    paths = TR.get(("gemma", "multi", s, ep, NAT[s]), [])
-    if not paths: ax.set_title(f"{SET_LABEL[s]} (no data)"); continue
-    df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
-    g = pd.to_numeric(df["gen_score_typcorr"], errors="coerce"); v = pd.to_numeric(df["val_score"], errors="coerce"); pm = pos_mask(df)
-    ax.scatter(g[pm], v[pm], s=8, alpha=.3, c="green", label="correct")
-    ax.scatter(g[~pm], v[~pm], s=8, alpha=.3, c="red", label="incorrect")
-    ax.set_xlabel("gen (tc)"); ax.set_ylabel("val"); ax.set_title(SET_LABEL[s]); ax.legend(fontsize=8)
-plt.suptitle("gemma-4 / multi gen(tc) vs val (TRAIN, ep2)")
+    for mode in modes:
+        paths = TR.get((SCAT_MK, SCAT_DS, s, ep, mode), [])
+        if paths:
+            return pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
+    return None
+
+
+fig, axes = plt.subplots(len(SCAT_VARIANTS), len(SCAT_SETTINGS),
+                         figsize=(2.7 * len(SCAT_SETTINGS), 2.7 * len(SCAT_VARIANTS)), squeeze=False)
+for ri, (vname, col, modes) in enumerate(SCAT_VARIANTS):
+    for ci, s in enumerate(SCAT_SETTINGS):
+        ax = axes[ri][ci]
+        df = scat_df(s, modes)
+        if df is None or col not in df.columns:
+            ax.set_title(f"{SET_LABEL[s]} / {vname}\n(no data)", fontsize=8)
+            ax.set_xticks([]); ax.set_yticks([]); continue
+        g = pd.to_numeric(df[col], errors="coerce"); v = pd.to_numeric(df["val_score"], errors="coerce")
+        pm = pos_mask(df)
+        ax.scatter(g[pm], v[pm], s=5, alpha=.25, c="green", label="correct")
+        ax.scatter(g[~pm], v[~pm], s=5, alpha=.25, c="red", label="incorrect")
+        ax.set_title(f"{SET_LABEL[s]} / {vname}", fontsize=8)
+        if ci == 0:
+            ax.set_ylabel(f"{vname}\nval", fontsize=8)
+        if ri == len(SCAT_VARIANTS) - 1:
+            ax.set_xlabel("gen", fontsize=8)
+        if ri == 0 and ci == 0:
+            ax.legend(fontsize=6, markerscale=2)
+plt.suptitle(f"{SCAT_MK}-4 / {SCAT_DS}: generator vs validator, TRAIN ep2 "
+             "(rows: none / tc self / tc self base; cols: settings)")
 plt.tight_layout(); plt.savefig(f"{PLOTS}/he_gen_vs_val_scatter.png", dpi=150, bbox_inches="tight"); plt.close()
 print("wrote he_gen_vs_val_scatter.png")
 
