@@ -42,11 +42,12 @@ def task_split_key_label(n):
         ds = "upper" if "correct-upper" in n else ("multi" if "correct-multi" in n else None)
         if ds is None:
             return None
+        m = re.search(r"(humaneval_\d+)", n)
+        pid = m.group(1) if m else "?"
         if "train-humaneval_" in n:
-            return (f"HE-{ds}", "train", "prompt" if False else "task", "correct", "ALL")
+            return (f"HE-{ds}", "train", "task", "correct", pid)
         if "_test_" in n or "_test." in n:
-            m = re.search(r"(humaneval_\d+)", n)
-            return (f"HE-{ds}", "test", "task", "correct", m.group(1) if m else "?")
+            return (f"HE-{ds}", "test", "task", "correct", pid)
         return None
     if ("rosch-" in n) and ("_test" in n):
         m = re.search(r"(rosch-[a-z-]+)_test", n)
