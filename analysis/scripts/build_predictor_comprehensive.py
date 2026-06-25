@@ -132,11 +132,14 @@ def per_problem_roc(files, task, scorecol):
             df = pd.read_csv(f)
         except Exception:
             continue
-        if key not in df.columns or lab not in df.columns or scorecol not in df.columns:
+        if lab not in df.columns or scorecol not in df.columns:
             continue
         y = df[lab].astype(str).str.strip().str.lower().map(
             {"yes": 1, "true": 1, "1": 1, "no": 0, "false": 0, "0": 0})
-        for _, g in df.groupby(key):
+        # HumanEval (and any per-problem file) has no in-file group column: the whole file IS one
+        # problem. Otherwise group by the key column (prompt / category).
+        groups = df.groupby(key) if key in df.columns else [(None, df)]
+        for _, g in groups:
             yy = y.loc[g.index].to_numpy()
             xx = pd.to_numeric(g[scorecol], errors="coerce").to_numpy()
             ok = ~(np.isnan(yy) | np.isnan(xx)); yy, xx = yy[ok], xx[ok]
