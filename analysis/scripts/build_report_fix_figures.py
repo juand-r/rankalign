@@ -134,16 +134,46 @@ def fig_tc_dynamics():
     print("wrote fix_tc_dynamics.png")
 
 
+def _pairwise_deltas(combo, setting):
+    """EXACT port of the original report's compute_delta_histograms: pool all candidates in the
+    cell, sample ~100k random pairs, |score_i - score_j| for generator and validator."""
+    f = _file(combo, setting, "ep2")
+    if f is None:
+        return None, None
+    df = pd.read_csv(f)
+    gen = pd.to_numeric(df["gen_score_typcorr"], errors="coerce").dropna().to_numpy()
+    val = pd.to_numeric(df["val_score"], errors="coerce").dropna().to_numpy()
+    np.random.seed(42)
+
+    def d(a):
+        n = len(a)
+        if n < 2:
+            return np.array([])
+        npairs = min(100000, n * (n - 1) // 2)
+        i = np.random.randint(0, n, npairs); j = np.random.randint(0, n, npairs); m = i != j
+        return np.abs(a[i[m]] - a[j[m]])
+    return d(gen), d(val)
+
+
 def fig_score_delta_hist():
-    fig, axes = plt.subplots(2, 2, figsize=(13, 9)); axes = axes.flatten()
-    for ax, (combo, disp) in zip(axes, CELLS):
-        for s in ["s2", "s4", "s7"]:
-            a = _per_problem(combo, s, "ep2", _delta)
-            if len(a):
-                ax.hist(a, bins=20, alpha=0.5, label=SET_LABEL[s])
-        ax.axvline(0, color="k", lw=0.6); ax.set_title(disp); ax.legend(fontsize=8)
-        ax.set_xlabel("per-problem (tc-gen pos mean $-$ neg mean)")
-    plt.suptitle("Score-delta distributions (per-problem, ep2)")
+    """Pairwise |Δ| Gen vs Val, same procedure as the original report (score-spread/calibration)."""
+    setts = ["s2", "s3", "s4", "s7"]
+    fig, axes = plt.subplots(len(CELLS), len(setts), figsize=(4 * len(setts), 3 * len(CELLS)), squeeze=False)
+    for ri, (combo, disp) in enumerate(CELLS):
+        cache = {s: _pairwise_deltas(combo, s) for s in setts}
+        allv = [x for gv in cache.values() for x in gv if x is not None and len(x)]
+        xmax = float(np.percentile(np.concatenate(allv), 99)) if allv else 10.0
+        for ci, s in enumerate(setts):
+            ax = axes[ri][ci]; gd, vd = cache[s]
+            if gd is None or not len(gd):
+                ax.set_title(f"{disp} {SET_LABEL[s]}\n(no data)"); continue
+            ax.hist(gd, bins=50, alpha=0.6, density=True, range=(0, xmax), color="blue",
+                    label=f"Gen |$\\Delta$| ($\\mu$={gd.mean():.1f})")
+            ax.hist(vd, bins=50, alpha=0.6, density=True, range=(0, xmax), color="orange",
+                    label=f"Val |$\\Delta$| ($\\mu$={vd.mean():.1f})")
+            ax.set_xlim(0, xmax); ax.set_title(f"{disp} {SET_LABEL[s]}")
+            ax.legend(fontsize=6); ax.set_xlabel("|score$_i$ - score$_j$|")
+    plt.suptitle("Pairwise score-delta distributions (ep2): Gen vs Val |$\\Delta$|")
     plt.tight_layout(); fig.savefig(PLOTS / "fix_score_delta_hist.png", dpi=150, bbox_inches="tight"); plt.close(fig)
     print("wrote fix_score_delta_hist.png")
 

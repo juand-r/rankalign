@@ -156,18 +156,52 @@ plt.suptitle("Per-epoch TRAIN dynamics (per-problem, tc gen ROC)")
 plt.tight_layout(); plt.savefig(f"{PLOTS}/he_train_dynamics.png", dpi=150, bbox_inches="tight"); plt.close()
 print("wrote he_train_dynamics.png")
 
-# ---------- 2.7 score-delta hist + 2.9 scatter (TRAIN, ep2) ----------
-fig, axes = plt.subplots(2, 2, figsize=(13, 9)); axes = axes.flatten()
-for ax, (mk, ds) in zip(axes, groups):
-    for s in ["s2", "s4", "s7"]:
-        deltas = []
-        for p in TR.get((mk, ds, s, "ep2", NAT[s]), []):
-            df = pd.read_csv(p); g = pd.to_numeric(df["gen_score_typcorr"], errors="coerce"); pm = pos_mask(df)
-            if pm.sum() and (~pm).sum(): deltas.append(g[pm].mean()-g[~pm].mean())
-        if deltas: ax.hist(deltas, bins=20, alpha=0.5, label=SET_LABEL[s])
-    ax.axvline(0, color="k", lw=.6); ax.set_title(f"{mk} / {ds}"); ax.legend(fontsize=8)
-    ax.set_xlabel("per-problem (tc-gen pos mean $-$ neg mean)")
-plt.suptitle("Score-delta distributions (TRAIN, ep2)")
+# ---------- 2.7 score-delta hist (TRAIN, ep2) ----------
+# EXACT port of the original report (analyze_gemma_membership.compute_delta_histograms):
+# pool all candidates, sample ~100k random pairs, take pairwise |score_i - score_j| for the
+# generator (gen_score_typcorr) and validator (val_score), and overlay the two density
+# histograms per panel. This is a score-SPREAD / calibration diagnostic ("tighter = better
+# calibrated"), Gen vs Val -- NOT a correct-vs-incorrect separation.
+DELTA_SETTINGS = ["s2", "s3", "s4", "s7"]
+
+
+def pairwise_deltas(mk, ds, s):
+    ep = "base" if s == "base" else "ep2"
+    paths = TR.get((mk, ds, s, ep, NAT[s]), [])
+    if not paths:
+        return None, None
+    df = pd.concat([pd.read_csv(p) for p in paths], ignore_index=True)
+    gen = pd.to_numeric(df["gen_score_typcorr"], errors="coerce").dropna().to_numpy()
+    val = pd.to_numeric(df["val_score"], errors="coerce").dropna().to_numpy()
+    np.random.seed(42)
+
+    def deltas(a):
+        n = len(a)
+        if n < 2:
+            return np.array([])
+        npairs = min(100000, n * (n - 1) // 2)
+        i = np.random.randint(0, n, npairs); j = np.random.randint(0, n, npairs); m = i != j
+        return np.abs(a[i[m]] - a[j[m]])
+    return deltas(gen), deltas(val)
+
+
+fig, axes = plt.subplots(len(groups), len(DELTA_SETTINGS),
+                         figsize=(4 * len(DELTA_SETTINGS), 3 * len(groups)), squeeze=False)
+for ri, (mk, ds) in enumerate(groups):
+    cache = {s: pairwise_deltas(mk, ds, s) for s in DELTA_SETTINGS}
+    allv = [d for gv in cache.values() for d in gv if d is not None and len(d)]
+    xmax = float(np.percentile(np.concatenate(allv), 99)) if allv else 10.0
+    for ci, s in enumerate(DELTA_SETTINGS):
+        ax = axes[ri][ci]; gd, vd = cache[s]
+        if gd is None or not len(gd):
+            ax.set_title(f"{mk}/{ds} {SET_LABEL[s]}\n(no data)"); continue
+        ax.hist(gd, bins=50, alpha=0.6, density=True, range=(0, xmax), color="blue",
+                label=f"Gen |$\\Delta$| ($\\mu$={gd.mean():.1f})")
+        ax.hist(vd, bins=50, alpha=0.6, density=True, range=(0, xmax), color="orange",
+                label=f"Val |$\\Delta$| ($\\mu$={vd.mean():.1f})")
+        ax.set_xlim(0, xmax); ax.set_title(f"{mk}/{ds} {SET_LABEL[s]}")
+        ax.legend(fontsize=6); ax.set_xlabel("|score$_i$ - score$_j$|")
+plt.suptitle("Pairwise score-delta distributions (TRAIN, ep2): Gen vs Val |$\\Delta$|")
 plt.tight_layout(); plt.savefig(f"{PLOTS}/he_score_delta_hist.png", dpi=150, bbox_inches="tight"); plt.close()
 print("wrote he_score_delta_hist.png")
 
