@@ -180,8 +180,9 @@ def fig_score_delta_hist():
 
 def fig_scatter():
     """Generator vs validator scatter, gemma-2-9b-it / membership: rows = scoring variant
-    (none / tc self / tc self base), cols = settings. NOTE: the original report only ran
-    base-typicality evals (basetyp-), so "tc self" (own-model, self/no-base) has NO data and is
+    (none / tc self / tc self base), cols = settings. NOTE: the gemma-2-9b-it TRAIN-set evals only
+    computed base-typicality; self-typicality (own-model, self/no-base) was run only for the
+    held-out TEST sets, not the train set this scatter uses. So "tc self" has NO train data and is
     shown as 'not evaluated' -- only "none" (raw gen_score) and "tc self base" are available."""
     combo = "gemma_membership"; lc = LABEL_COL["membership"]
     setts = ["base", "s2", "s3", "s4"]
