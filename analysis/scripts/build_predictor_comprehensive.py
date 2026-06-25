@@ -168,26 +168,33 @@ def main():
     for mdl in models:
         for task in tasks:
             for split in ["train", "test"]:
-                base_f = cell_files(idx, mdl, task, split, "base", "base", ANY)
-                base_val, nbase = per_problem_roc(base_f, task, "val_score")
-                ra, nra = per_problem_roc(cell_files(idx, mdl, task, split, "s2", "ep2", SELF), task, "gen_score_typcorr")
+                base_val, nbase = per_problem_roc(cell_files(idx, mdl, task, split, "base", "base", ANY), task, "val_score")
+                # RankAlign scored in BOTH modes (no natural TC mode); take its best shot
+                ra_self, _ = per_problem_roc(cell_files(idx, mdl, task, split, "s2", "ep2", ["basetyp", "self"]), task, "gen_score_typcorr")
+                ra_neg, _ = per_problem_roc(cell_files(idx, mdl, task, split, "s2", "ep2", ["basetypneg", "neg"]), task, "gen_score_typcorr")
                 s4, n4 = per_problem_roc(cell_files(idx, mdl, task, split, "s4", "ep2", SELF), task, "gen_score_typcorr")
                 s7, n7 = per_problem_roc(cell_files(idx, mdl, task, split, "s7", "ep2", NEG), task, "gen_score_typcorr")
                 flora = np.nanmax([s4, s7]) if (s4 == s4 or s7 == s7) else np.nan
-                if base_val != base_val or (ra != ra and flora != flora):
+                ra_best = np.nanmax([ra_self, ra_neg]) if (ra_self == ra_self or ra_neg == ra_neg) else np.nan
+                if base_val != base_val or (ra_best != ra_best and flora != flora):
                     continue
-                winner = ("FLORA" if flora > ra else "RankAlign") if (ra == ra and flora == flora) else "?"
+                if ra_best == ra_best and flora == flora:
+                    winner = "FLORA" if flora > ra_best else "RankAlign"
+                    # convention-sensitive: would the winner flip depending on which RA mode we use?
+                    cs = (ra_self == ra_self and ra_neg == ra_neg and ((flora > ra_self) != (flora > ra_neg)))
+                else:
+                    winner, cs = "?", False
                 rows.append(dict(model=mdl, task=task, split=split, base_val_roc=base_val,
-                                 rankalign=ra, flora=flora, winner=winner,
-                                 nbase=nbase, n_ra=nra, n_flora=max(n4, n7)))
+                                 ra_self=ra_self, ra_neg=ra_neg, ra_best=ra_best, flora=flora,
+                                 winner=winner, conv_sensitive=cs, nbase=nbase, n_flora=max(n4, n7)))
     rows.sort(key=lambda r: (r["base_val_roc"] if r["base_val_roc"] == r["base_val_roc"] else 999))
     os.makedirs(TABLES, exist_ok=True); os.makedirs(PLOTS, exist_ok=True)
     with open(f"{TABLES}/predictor_comprehensive.csv", "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
-    print(f"\n{'model':14} {'task':9} {'split':6} {'baseVal':>7} {'RankAlign':>9} {'FLORA':>6} {'winner':>10} {'nprob':>6}")
+    print(f"\n{'model':14} {'task':9} {'split':6} {'baseVal':>7} {'RA_self':>7} {'RA_neg':>7} {'FLORA':>6} {'winner':>10} {'conv?':>5}")
     for r in rows:
         def fz(x): return f"{x:6.1f}" if x == x else "   ---"
-        print(f"{r['model']:14} {r['task']:9} {r['split']:6} {fz(r['base_val_roc'])} {fz(r['rankalign'])} {fz(r['flora'])} {r['winner']:>10} {r['nbase']:>4}/{r['n_flora']}")
+        print(f"{r['model']:14} {r['task']:9} {r['split']:6} {fz(r['base_val_roc'])} {fz(r['ra_self'])} {fz(r['ra_neg'])} {fz(r['flora'])} {r['winner']:>10} {'YES' if r['conv_sensitive'] else '':>5}")
     # plot
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(11, 6.5))
@@ -196,13 +203,16 @@ def main():
             continue
         c = "tab:green" if r["winner"] == "FLORA" else "tab:red"
         mk = "o" if r["split"] == "train" else "^"
-        ax.scatter(r["base_val_roc"], r["flora"] - r["rankalign"], c=c, marker=mk, s=80, edgecolor="k", zorder=3)
+        ec = "blue" if r["conv_sensitive"] else "k"; lw = 2.2 if r["conv_sensitive"] else 0.8
+        y = r["flora"] - r["ra_best"]
+        ax.scatter(r["base_val_roc"], y, c=c, marker=mk, s=80, edgecolor=ec, linewidth=lw, zorder=3)
         ax.annotate(f"{r['model'].replace('gemma-2-','g2').replace('gemma-4-31b','g4').replace('qwen-3.5-9b','qw')}/{r['task'][:5]}",
-                    (r["base_val_roc"], r["flora"] - r["rankalign"]), fontsize=6, xytext=(3, 2), textcoords="offset points")
+                    (r["base_val_roc"], y), fontsize=6, xytext=(3, 2), textcoords="offset points")
     ax.axhline(0, color="gray", lw=1); ax.axvline(87, color="navy", ls="--", lw=1, label="~87 threshold")
     ax.set_xlabel("BASE validator ROC (predictor, no generator)")
-    ax.set_ylabel("gen-ROC margin FLORA - RankAlign")
-    ax.set_title("Base validator ROC vs winner across models+tasks+splits\n(green=FLORA, red=RankAlign; o=train, ^=test)")
+    ax.set_ylabel("gen-ROC margin FLORA - RankAlign(best of self/neg)")
+    ax.set_title("Base validator ROC vs winner across models+tasks+splits\n"
+                 "(green=FLORA, red=RankAlign; o=train, ^=test; blue ring=convention-sensitive)")
     ax.legend(fontsize=8); fig.tight_layout()
     fig.savefig(f"{PLOTS}/predictor_comprehensive.png", dpi=150, bbox_inches="tight")
     print("\nwrote predictor_comprehensive.{csv,png}")
