@@ -26,7 +26,7 @@ REPO = "/datastor2/jdr/rankalign"
 TRAIN_DIR = f"{REPO}/outputs-he-trainset-perproblem"
 NAT = {"base": "self/no-base", "s1": "self/base-typ", "s2": "neg/base-typ", "s3": "neg/base-typ",
        "s4": "self/base-typ", "s7": "neg/base-typ", "s13": "self/base-typ"}
-LABEL = {"s2": "RankAlign", "s3": "New+fsx", "s4": "FLORA-PMI", "s7": "FLORA-Neg"}
+LABEL = {"base": "Base", "s2": "RankAlign", "s3": "New+fsx", "s4": "FLORA-PMI", "s7": "FLORA-Neg"}
 
 
 def parse(fname):
@@ -70,8 +70,9 @@ def main():
     print("-" * 70)
     for mk in ["gemma", "qwen"]:
         for ds in ["upper", "multi"]:
-            for s in ["s2", "s3", "s4", "s7"]:
-                paths = TR.get((mk, ds, s, "ep2", NAT[s]), [])
+            for s in ["base", "s2", "s3", "s4", "s7"]:
+                ep = "base" if s == "base" else "ep2"
+                paths = TR.get((mk, ds, s, ep, NAT[s]), [])
                 groc, vroc, gv, conc = [], [], [], []
                 for p in paths:
                     df = pd.read_csv(p)
