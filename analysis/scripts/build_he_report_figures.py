@@ -211,7 +211,8 @@ print("wrote he_score_delta_hist.png")
 #   tc self       = gen_score_typcorr from a self/no-base file  (own-model typicality)
 #   tc self base  = gen_score_typcorr from a self/base-typ file (base-model typicality)
 SCAT_MK, SCAT_DS = "gemma", "multi"
-SCAT_SETTINGS = ["base", "s1", "s2", "s3", "s4", "s13"]
+# s1/s13 per-problem train evals were intentionally not run, so they have no scatter data.
+SCAT_SETTINGS = ["base", "s2", "s3", "s4"]
 SCAT_VARIANTS = [  # (row label, column, ordered list of acceptable modes)
     ("none", "gen_score", ["self/base-typ", "self/no-base", "neg/base-typ", "neg/no-base"]),
     ("tc self", "gen_score_typcorr", ["self/no-base"]),
