@@ -160,21 +160,28 @@ def main():
         ds = {delta for (delta, _date) in groups}
         return next(iter(ds)) if len(ds) == 1 else None
 
+    def n_of(files):
+        return run_roc(files)[2]
+
+    def best(cands, groups):
+        # pick the MOST COMPLETE run (max n_prompts); tie-break by latest date.
+        # avoids selecting partial/broken fragments (e.g. v1's 2-prompt 20260609 runs).
+        return max(cands, key=lambda k: (n_of(groups[k]), k[1]))
+
     def pick(v, pfx, st):
         groups = allruns[v].get((pfx, st), {})
         if not groups:
             return None
         if v in ("v2", "v3"):
-            # expect exactly one delta; if more, take latest date
-            (delta, date) = sorted(groups, key=lambda k: k[1])[-1]
-            return delta, date, groups[(delta, date)]
-        # v1: match v3's delta if known, else latest-date run overall
+            key = best(list(groups), groups)
+            return key[0], key[1], groups[key]
+        # v1: match v3's delta if known, else any; then most-complete run
         tgt = v3_delta(pfx, st)
-        cand = [(dl, dt) for (dl, dt) in groups if tgt is None or dl == tgt]
+        cand = [k for k in groups if tgt is None or k[0] == tgt]
         if not cand:
             cand = list(groups)  # no delta match -> fall back, will be noted
-        (delta, date) = sorted(cand, key=lambda k: k[1])[-1]
-        return delta, date, groups[(delta, date)]
+        key = best(cand, groups)
+        return key[0], key[1], groups[key]
 
     # ---- (B) summary tables per mode ----
     for mode in ["self", "basetyp", "neg", "basetypneg"]:
