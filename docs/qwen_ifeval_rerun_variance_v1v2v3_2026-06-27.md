@@ -67,13 +67,42 @@ anomalously low draw; v2 and v3 agree closely.
 
 (n = 20 prompts for every cell.)
 
-## On the 83.2 RankAlign value
+## On the 83.2 RankAlign value — resolved: run-to-run VARIANCE, not delta or environment
 
-The three reruns (delta 0.96) cluster RankAlign `self` gen ROC at ~76 (best), never reaching
-83. The **83.2** came from the *original pod checkpoint at delta 0.001* — a different procedure,
-not the rerun recipe. So 83.2 reflects partly the different delta and partly a favorable draw;
-it is **not** reproducible under the rerun recipe, where RankAlign genuinely varies run-to-run
-(std ~4.5 in `self`, ~8.6 in `basetyp`), and v1 happened to be a low outlier.
+This was first attributed to a different delta: the original checkpoint's name carries
+`delta0.001`. **That was a red herring — `delta0.001` is a placeholder**, inserted when the
+original checkpoint was recovered from latkes and renamed to a canonical parseable form
+(`scripts/_orig_in_gemma4_eval.sh`: *"delta0.001 = placeholder"*). The training log embedded in
+the original checkpoint (`models2-original-hf/ifeval-s2-ep2/training_log.log.gz`) shows it was
+trained on a RunPod pod (2026-05-24) with `--delta 0.15 --delta-bins 10 → auto-δ 0.9627` — the
+**same delta regime as every rerun**. So the original and the reruns differ only in the unseeded
+pair shuffle + DataLoader shuffle + GPU nondeterminism. The remaining suspect was the *training
+environment* (the original pod: torch 2.4.1 / transformers 5.8.1; the mll reruns: torch 2.5.1 /
+transformers 5.8.0.dev0).
+
+### Pod-environment replication (3 fresh RunPod runs, 2026-06-29)
+
+The original recipe was re-run **three times on fresh TAUR RunPod H100 pods in the exact original
+environment** (`runpod/pytorch:2.4.0` → torch 2.4.1, `requirements-gemma4.txt` → transformers
+5.8.1, Qwen3.5 torch-fallback attention) — i.e. the literal pipeline that produced the 83.2:
+
+| eval mode | run1 | run2 | run3 | mean ± std |
+|---|---|---|---|---|
+| **self** | **82.2 ± 2.4** | 70.3 ± 4.7 | 65.9 ± 3.9 | **72.8 ± 6.9** |
+| neg | 38.0 ± 3.5 | 55.8 ± 3.9 | 61.1 ± 3.6 | 51.6 |
+| basetyp | 78.8 ± 2.7 | 63.1 ± 4.7 | 63.1 ± 3.9 | 68.3 |
+| basetypneg | 71.5 ± 3.3 | 59.2 ± 4.5 | 61.4 ± 4.1 | 64.0 |
+
+(n = 20 OOD prompts per cell.)
+
+**Verdict: variance, not environment.** The pod-environment `self` mean (72.8 ± 6.9) is
+indistinguishable from the mll-environment mean (73.1 ± 4.5) — the environment does **not**
+systematically produce 83. But run1 independently reached **82.2**, so the original 83.2 is a
+*reachable high draw* of a wide distribution, not a reproducible environment effect. Pooling all
+six independent runs (mll v1/v2/v3 + pod run1/2/3), RankAlign `self` gen ROC spans
+**65.9 → 82.2** (~16 points). The honest, representative RankAlign number on this cell is
+**~73 ± ~6**, in either environment — and the stable methods (New+fsx, FLORA-PMI at ~80 ± ~1)
+beat that representative mean.
 
 ## Provenance / reproducibility
 
@@ -87,3 +116,13 @@ it is **not** reproducible under the rerun recipe, where RankAlign genuinely var
   - comparison: `analysis/scripts/compute_rerun_v123_genroc.py` (prints the full per-run
     enumeration before the summary; picks the most-complete run per cell, not latest-date).
 - **Raw scores:** `/datastor2/jdr/rankalign/outputs-rerun-wandb-v3/`.
+
+### Pod-environment replication (2026-06-29)
+
+- **3 fresh TAUR RunPod H100 pods**, original recipe + environment (image `runpod/pytorch:2.4.0`,
+  `requirements-gemma4.txt`, `run_qwen35_cell.sh ifeval s2`, 3 epochs, `--delta 0.15 --delta-bins 10`).
+- **Models (public):** `latkes/rankalign-v7-qwen3.5-9b-ifeval-s2-variance-run{1,2,3}` (merged + training log).
+- **Committed scripts** (`longform`): `scripts/run_qwen35_variance_overnight.sh`,
+  `scripts/upload_qwen_variance_to_latkes.py`, `analysis/scripts/compute_pod_variance_genroc.py`.
+- **Raw scores (local):** `~/.claude/training_monitor/qwen_variance/scores/run{1,2,3}/` (80 CSVs each).
+- Per-run training logs embedded in each latkes repo confirm `auto-δ 0.96` (same regime as mll).
