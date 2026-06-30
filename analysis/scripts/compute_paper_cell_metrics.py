@@ -73,11 +73,12 @@ def summarize(label, files):
     print(f"    files={len(files)}  usable_prompts={len(rows)}  dates={dates}  deltas={deltas}")
     if not rows:
         return
-    for k, scale in [("gen_roc", 100), ("val_roc", 100), ("val_acc", 100), ("pearson", 1)]:
-        v = np.array([r[k] for r in rows]) * scale
+    # all reported x100 (Pearson too) at 1 decimal, matching the paper table format.
+    for k, disp in [("gen_roc", "gen_roc"), ("val_roc", "val_roc"),
+                    ("val_acc", "val_acc"), ("pearson", "pearson_x100")]:
+        v = np.array([r[k] for r in rows]) * 100
         se = v.std(ddof=1) / np.sqrt(len(v)) if len(v) > 1 else float("nan")
-        unit = "" if k == "pearson" else ""
-        print(f"    {k:9s} = {v.mean():7.3f} ± {se:.3f}{unit}")
+        print(f"    {disp:12s} = {v.mean():6.1f} ± {se:.1f}")
 
 
 def main():
@@ -89,6 +90,8 @@ def main():
               files_for("outputs-rerun-wandb", "neg", include=r"tcn|tc-neg", date="20260608"))
     summarize("s7 FLORA-Neg  neg   (outputs-rerun-wandb-v3)",
               files_for("outputs-rerun-wandb-v3", "neg", include=r"tcn|tc-neg"))
+    summarize("s13 Consistency-FT self (outputs-rerun-wandb-v3)",
+              files_for("outputs-rerun-wandb-v3", "self", include=r"cft"))
 
 
 if __name__ == "__main__":
