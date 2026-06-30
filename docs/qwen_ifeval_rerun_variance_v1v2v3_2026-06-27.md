@@ -52,6 +52,19 @@ is a *representative* run, not a high cherry-pick (82.2 would be the cherry).
 > environments) the self gen ROC spans 65.9–82.2 (mean 73.0, std 6.0). The 83.2 reported in earlier
 > drafts was a high draw, not the typical result.
 
+**Stability of the other methods for contrast (mll v1/v2/v3, 3 seeds each, natural eval mode):**
+
+| method | mode | v1 | v2 | v3 | mean ± std |
+|---|---|---|---|---|---|
+| SFT (s1) | self | 66.2 | 66.6 | 65.9 | **66.2 ± 0.4** |
+| New+fsx (s3) | self | 80.7 | 80.6 | 80.9 | **80.7 ± 0.2** |
+| FLORA-PMI (s4) | self | 79.6 | 78.2 | 80.9 | **79.6 ± 1.4** |
+| FLORA-Neg (s7) | neg | 66.0 | 64.2 | 66.0 | **65.4 ± 1.0** |
+
+All four are ≤ 1.4 std across seeds — vs RankAlign's 4.5 (these 3 mll seeds) / 6.0 (all 6 runs incl.
+pod). NB: this std is the run-to-run spread of the 3 run values; it is **not** the per-prompt SE used
+in the paper cells. s4/s7 have 3 seeds (mll only), not the 6 that s2 has.
+
 ### `basetyp` mode (RankAlign variance even larger)
 
 | Method | v1 | v2 | v3 | range / std |
