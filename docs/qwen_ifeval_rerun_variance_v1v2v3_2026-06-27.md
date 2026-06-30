@@ -38,6 +38,20 @@ anomalously low draw; v2 and v3 agree closely.
 | New+fsx (s3) | 80.7 ± 2.9 | 80.6 ± 3.0 | 80.9 ± 2.8 | 0.3 / 0.2 |
 | FLORA-PMI (s4) | 79.6 ± 3.3 | 78.2 ± 3.3 | 80.9 ± 3.0 | 2.7 / 1.4 |
 
+## PAPER REPORTING — RankAlign IFEval cell (decision + footnote)
+
+**Value reported in the paper table:** RankAlign / qwen IFEval (self) = **75.4 ± 3.9** — the v3 run
+(a single run + its per-prompt SE, consistent with every other cell, which are also single-run ±
+per-prompt SE). Of the 6 runs, v3 (75.4) is the single run closest to the 6-run mean (73.0), so it
+is a *representative* run, not a high cherry-pick (82.2 would be the cherry).
+
+**Footnote going into the paper (verbatim):**
+
+> RankAlign shows high run-to-run variance on IFEval. The reported value is a single representative
+> run (as elsewhere in the table); across 6 independent training runs (3 seeds in each of two
+> environments) the self gen ROC spans 65.9–82.2 (mean 73.0, std 6.0). The 83.2 reported in earlier
+> drafts was a high draw, not the typical result.
+
 ### `basetyp` mode (RankAlign variance even larger)
 
 | Method | v1 | v2 | v3 | range / std |
