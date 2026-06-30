@@ -65,6 +65,28 @@ All four are ≤ 1.4 std across seeds — vs RankAlign's 4.5 (these 3 mll seeds)
 pod). NB: this std is the run-to-run spread of the 3 run values; it is **not** the per-prompt SE used
 in the paper cells. s4/s7 have 3 seeds (mll only), not the 6 that s2 has.
 
+## Four-metric comparison of the paper cells (incl. s13 Consistency-FT)
+
+Per OOD prompt, mean ± SE, via `analysis/scripts/compute_paper_cell_metrics.py` (defs match
+`scripts/summarize_scores_file.py`): gen ROC = ROC(correct, `gen_score_typcorr`); val ROC =
+ROC(correct, `val_score`); val Acc = accuracy at `val_score > 0`; Pearson×100 = generator↔validator
+agreement. Self mode except s7 (neg). Run/version noted; gen ROC matches the table cell.
+
+| cell (run) | gen ROC | val ROC | val Acc | Pearson×100 |
+|---|---|---|---|---|
+| s2 RankAlign (self, v3) | 75.4 ± 3.9 | 82.7 ± 2.8 | 62.8 ± 4.5 | 32.8 ± 7.7 |
+| s4 FLORA-PMI (self, v1) | 79.6 ± 3.3 | 83.1 ± 3.3 | 73.6 ± 3.8 | 43.3 ± 7.3 |
+| s7 FLORA-Neg (neg, v1) | 66.0 ± 3.0 | 83.2 ± 3.3 | 71.8 ± 3.8 | 44.7 ± 4.9 |
+| **s13 Consistency-FT (self)** | **69.8 ± 3.6** | **81.4 ± 3.3** | **69.2 ± 4.0** | **22.4 ± 6.6** |
+
+**s13** is the wandb rerun added 2026-06-30 — the gap-filling cell (s13 was the one method skipped in
+the v1/v2/v3 qwen-ifeval reruns). Single run, 3 epochs / **epoch2**, SFT + `--consistency-ft` +
+`--labeled-only 0.1` (auto-δ 0.37, but δ is unused for SFT). It has the **lowest gen↔validator
+agreement (Pearson 22.4)**: pure SFT, no preference loss tying generator to validator — the cft
+filter only drops inconsistent *training* items, it doesn't align gen to val at inference. Scores in
+`outputs-rerun-wandb-v3/` (`…cft-labelonly0.1…` recipe, all 4 modes); checkpoints epoch0/1/2 in
+`models2-rerun-wandb-v3/`; committed launcher `scripts/_qwen_ifeval_s13_rerun.sh`.
+
 ### `basetyp` mode (RankAlign variance even larger)
 
 | Method | v1 | v2 | v3 | range / std |
