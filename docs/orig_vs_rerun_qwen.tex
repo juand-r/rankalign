@@ -25,6 +25,12 @@
  & neg-base & 88.3 & 86.7 & +1.6 & 71.7 & 70.2 & +1.5 \\
 \bottomrule
 \end{tabular}
-\caption{\textbf{Original vs wandb-rerun} (Qwen3.5-9B): two independently-trained checkpoints of the same setting, evaluated identically. \emph{orig} = paper checkpoint recovered from HF (latkes); \emph{rerun} = the mll wandb rerun. $\Delta$ = orig $-$ rerun (pp). IFEval is OOD (20 prompts); Hyponymy is the 10 rosch tasks. Only the four cells with both checkpoints are shown (qwen ifeval s1/s2, rosch s1/s7). All epoch 2.}
+\caption{\textbf{Original vs wandb-rerun} (Qwen3.5-9B): two independently-trained checkpoints of the same setting, evaluated identically. \emph{orig} = paper checkpoint recovered from HF (latkes); \emph{rerun} = the mll wandb rerun. $\Delta$ = orig $-$ rerun (pp). IFEval is OOD (20 prompts); Hyponymy is the 10 rosch tasks. Only the four cells with both checkpoints are shown (qwen ifeval s1/s2, rosch s1/s7). All epoch 2.
+\textbf{Note:} the large IFEval/RankAlign $\Delta$ is \emph{run-to-run training variance}, not a systematic
+difference. Both orig and rerun use the same recipe ($\delta$ from \texttt{-{}-delta-bins 10}; the orig's
+\texttt{delta0.001} dir tag is a placeholder, not the trained $\delta$). Six independent runs (3 mll + 3 in the
+original RunPod environment) give RankAlign \emph{self} gen ROC $65.9$--$82.2$ (mean ${\approx}73$); the orig's
+$83.2$ is a reachable high draw (a pod replication hit $82.2$), not reproducible on demand. SFT, by contrast,
+reproduces within ${\sim}1$ pp.}
 \label{tab:orig-vs-rerun-qwen}
 \end{table}
